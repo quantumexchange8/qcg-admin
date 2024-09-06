@@ -51,12 +51,11 @@ onMounted(() => {
         @mouseleave="sidebarState.handleHover(false)"
     >
         <div class="w-full h-full flex flex-col flex-1 px-5 py-8 gap-8 bg-white items-center">
-                    <!-- <SidebarHeader /> -->
+            <!-- <SidebarHeader /> -->
 
-                    <SidebarContent />
+            <SidebarContent />
 
-                    <SidebarFooter />
-
+            <SidebarFooter />
         </div>
     </aside>
 </template>

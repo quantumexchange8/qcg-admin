@@ -15,19 +15,19 @@ const props = defineProps({
 const { variant, pill } = props;
 
 const baseClasses = [
-    'min-w-5 flex flex-col justify-center items-center text-center'
+    'flex flex-col justify-center items-center text-center'
 ]
 
 const variantClasses = (variant) => ({
     'bg-info-400': variant === 'info',
-    'bg-info-400 rounded px-1 py-[1px]': variant === 'numberbadge'
+    'bg-primary-600 rounded-sm px-1 py-0.5': variant === 'numberBadge'
 })
 
 const classes = computed(() => [
     ...baseClasses,
     variantClasses(variant),
     {
-        'rounded p-0.5': !pill && variant !== 'numberbadge',
+        'rounded p-0.5': !pill && variant !== 'numberBadge',
         'rounded-full py-px px-1': pill,
     }
 ]);

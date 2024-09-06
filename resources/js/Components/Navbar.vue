@@ -48,13 +48,15 @@ const changeLanguage = async (langVal) => {
         >
             <IconMenu2 size="20" color="#182230" stroke-width="1.25" />
         </div>
-        <div class="w-full h-full flex items-center gap-2">
+        <Link class="w-full h-full flex items-center gap-2"
+            :href="route('dashboard')"
+        >
             <img src="/img/logo.svg" alt="no data" class="w-7 h-7" />
             <div class="flex flex-col items-start">
                 <span class="text-gray-950 text-sm font-black tracking-[4.20px]">量子資本集團</span>
                 <span class="text-gray-700 text-xxxs font-medium">QUANTUM CAPITAL GROUP</span>
             </div>
-        </div>
+        </Link>
         <!-- <div
             class="text-base md:text-lg font-semibold text-gray-950 w-full"
         >

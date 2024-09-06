@@ -2,7 +2,7 @@ export default {
     root: ({ context, props, parent }) => ({
         class: [
             // Font
-            'caret-primary-500 text-sm leading-none',
+            'caret-primary-500 text-sm',
 
             // Flexbox
             'flex items-start resize-none',

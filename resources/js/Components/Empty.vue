@@ -19,14 +19,14 @@ const props = defineProps({
     <div class="flex flex-col items-center gap-2 self-stretch">
       <!-- Slot for custom title -->
       <slot name="title">
-        <div v-if="title" class="self-stretch text-gray-950 text-center font-semibold text-sm md:text-base">
+        <div v-if="title" class="self-stretch text-gray-700 text-center font-bold">
           {{ title }}
         </div>
       </slot>
 
       <!-- Slot for custom message -->
       <slot name="message">
-        <div v-if="message" class="self-stretch text-gray-700 text-center text-xs md:text-sm">
+        <div v-if="message" class="self-stretch text-gray-500 text-center text-sm">
           {{ message }}
         </div>
       </slot>

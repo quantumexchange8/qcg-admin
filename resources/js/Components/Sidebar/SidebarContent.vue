@@ -49,7 +49,7 @@ import {
     <PerfectScrollbar
         tagname="nav"
         aria-label="main"
-        class="relative flex flex-col flex-1 max-w-full max-h-full gap-1 items-center"
+        class="relative w-full flex flex-col flex-1 max-w-full max-h-full gap-1 items-center"
     >
         <!-- Dashboard -->
         <SidebarLink
@@ -63,39 +63,27 @@ import {
         </SidebarLink>
 
         <!-- Pending -->
-        <!-- <SidebarLink
-            :title="$t('public.pending')"
-            :href="route('pending')"
-            :active="route().current('pending')"
-            :pendingCounts="pendingWithdrawals"
+        <SidebarCollapsible
+            :title="$t('public.request')"
+            :active="route().current('pending.*')"
         >
             <template #icon>
                 <IconClockDollar :size="20" stroke-width="1.25" />
             </template>
-        </SidebarLink> -->
-
-        <!-- Member -->
-        <!-- <SidebarCollapsible
-            :title="$t('public.member')"
-            :active="route().current('member.*')"
-        >
-            <template #icon>
-                <IconComponents :size="20" stroke-width="1.25" />
-            </template>
 
             <SidebarCollapsibleItem
-                :title="$t('public.member_listing')"
-                :href="route('member.listing')"
-                :active="route().current('member.listing') || route().current('member.detail')"
+                :title="$t('public.withdrawal')"
+                :href="route('pending.withdrawal')"
+                :active="route().current('pending.withdrawal')"
             />
 
             <SidebarCollapsibleItem
-                :title="$t('public.member_network')"
-                :href="route('member.network')"
-                :active="route().current('member.network')"
+                :title="$t('public.incentive')"
+                :href="route('pending.incentive')"
+                :active="route().current('pending.incentive')"
             />
 
-        </SidebarCollapsible> -->
+        </SidebarCollapsible>
 
         <!-- Group -->
         <!-- <SidebarLink

@@ -3,17 +3,16 @@ export default {
         class: [
             // Shape
             'rounded-lg',
-            'shadow-lg',
+            'shadow-dialog',
             'border-0',
 
             // Size
-            'max-h-[90vh]',
             'm-0',
 
             // Color
-            'bg-surface-0 dark:bg-surface-900',
+            'bg-white',
             '[&:last-child]:border-b',
-            'border-surface-200 dark:border-surface-700',
+            'border-gray-200',
 
             // Transitions
             'transform',
@@ -38,28 +37,35 @@ export default {
             'shrink-0',
 
             // Spacing
-            'p-6',
+            'p-4 md:px-6 md:py-4',
 
             // Shape
             'rounded-tl-lg',
             'rounded-tr-lg',
 
             // Colors
-            'text-surface-700 dark:text-surface-0/80',
-            'border border-b-0',
-            'border-surface-200 dark:border-surface-700'
+            'text-gray-700',
+            'border border-b border-solid',
+            'border-gray-200'
         ]
     },
     title: {
-        class: ['font-semibold text-xl leading-[normal]']
+        class: ['font-semibold text-gray-950 truncate md:text-lg']
     },
     headerActions: {
-        class: ['flex items-center']
+        class: [
+            'flex items-center',
+            '[&>[data-pc-name=pcclosebutton]]:text-gray-700',
+            '[&>[data-pc-name=pcclosebutton]]:hover:bg-gray-100',
+            '[&>[data-pc-name=pcclosebutton]]:border-0',
+            '[&>[data-pc-name=pcclosebutton]]:ring-0',
+            '[&>[data-pc-name=pcclosebutton]]:outline-none',
+        ]
     },
     content: ({ state, instance }) => ({
         class: [
             // Spacing
-            'px-6',
+            'px-4 md:px-6',
             'pb-6',
             'pt-0',
 
@@ -71,9 +77,9 @@ export default {
             },
 
             // Colors
-            'text-surface-700 dark:text-surface-0/80',
+            'text-gray-700',
             'border border-t-0 border-b-0',
-            'border-surface-200 dark:border-surface-700',
+            'border-gray-200',
 
             // Misc
             'overflow-y-auto'
@@ -96,10 +102,10 @@ export default {
             'rounded-b-lg',
 
             // Colors
-            'bg-surface-0 dark:bg-surface-900',
-            'text-surface-700 dark:text-surface-0/80',
+            'bg-white',
+            'text-gray-700',
             'border border-t-0 border-b-0',
-            'border-surface-200 dark:border-surface-700'
+            'border-gray-200'
         ]
     },
     mask: ({ props }) => ({

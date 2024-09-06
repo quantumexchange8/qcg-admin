@@ -2,40 +2,53 @@ export default {
     root: {
         class: [
             // Flex & Alignment
-            'flex items-center justify-center flex-wrap',
+            'relative flex items-center justify-center flex-wrap',
 
             // Spacing
-            'px-4 py-2',
+            'py-3',
 
             // Shape
             'border-0 rounded-md',
 
             // Color
-            'bg-surface-0 dark:bg-surface-900',
-            'text-surface-500 dark:text-white/60'
+            // 'bg-white',
+            'text-gray-700',
+
+            'text-sm',
         ]
     },
+    content: ({ context }) => ({
+        class: [
+            'relative flex items-center justify-center flex-wrap',
+
+            // Flex & Alignment
+            'inline-flex items-center justify-center gap-x-1 gap-y-3',
+
+            '[&>[data-pc-section=current]]:text-gray-500',
+            '[&>[data-pc-section=current]]:text-center',
+            '[&>[data-pc-section=current]]:text-sm',
+        ],
+    }),
     first: ({ context }) => ({
         class: [
             'relative',
 
             // Flex & Alignment
-            'inline-flex items-center justify-center',
+            'inline-flex items-center justify-center p-3 flex-wrap',
 
             // Shape
             'border-0 rounded-full',
 
             // Size
-            'min-w-[2.5rem] h-10 m-[0.143rem]',
-            'leading-none',
+            'w-11 h-11',
 
             // Color
-            'text-surface-500 dark:text-white/60',
+            'text-gray-700',
 
             // State
             {
-                'hover:bg-surface-50 dark:hover:bg-[rgba(255,255,255,0.03)]': !context.disabled,
-                'focus:outline-none focus:outline-offset-0 focus:ring-1 focus:ring-primary-500 dark:focus:ring-primary-400': !context.disabled
+                'hover:bg-gray-100': !context.disabled,
+                'focus:outline-none focus:outline-offset-0': !context.disabled
             },
 
             // Transition
@@ -51,22 +64,21 @@ export default {
             'relative',
 
             // Flex & Alignment
-            'inline-flex items-center justify-center',
+            'inline-flex items-center justify-center p-3 flex-wrap',
 
             // Shape
             'border-0 rounded-full',
 
             // Size
-            'min-w-[2.5rem] h-10 m-[0.143rem]',
-            'leading-none',
+            'w-11 h-11',
 
             // Color
-            'text-surface-500 dark:text-white/60',
+            'text-gray-700',
 
             // State
             {
-                'hover:bg-surface-50 dark:hover:bg-[rgba(255,255,255,0.03)]': !context.disabled,
-                'focus:outline-none focus:outline-offset-0 focus:ring-1 focus:ring-primary-500 dark:focus:ring-primary-400': !context.disabled
+                'hover:bg-gray-100': !context.disabled,
+                'focus:outline-none focus:outline-offset-0': !context.disabled
             },
 
             // Transition
@@ -82,22 +94,21 @@ export default {
             'relative',
 
             // Flex & Alignment
-            'inline-flex items-center justify-center',
+            'inline-flex items-center justify-center p-3 flex-wrap',
 
             // Shape
             'border-0 rounded-full',
 
             // Size
-            'min-w-[2.5rem] h-10 m-[0.143rem]',
-            'leading-none',
+            'w-11 h-11',
 
             // Color
-            'text-surface-500 dark:text-white/60',
+            'text-gray-700',
 
             // State
             {
-                'hover:bg-surface-50 dark:hover:bg-[rgba(255,255,255,0.03)]': !context.disabled,
-                'focus:outline-none focus:outline-offset-0 focus:ring-1 focus:ring-primary-500 dark:focus:ring-primary-400': !context.disabled
+                'hover:bg-gray-100': !context.disabled,
+                'focus:outline-none focus:outline-offset-0': !context.disabled
             },
 
             // Transition
@@ -113,22 +124,21 @@ export default {
             'relative',
 
             // Flex & Alignment
-            'inline-flex items-center justify-center',
+            'inline-flex items-center justify-center p-3 flex-wrap',
 
             // Shape
             'border-0 rounded-full',
 
             // Size
-            'min-w-[2.5rem] h-10 m-[0.143rem]',
-            'leading-none',
+            'w-11 h-11',
 
             // Color
-            'text-surface-500 dark:text-white/60',
+            'text-gray-700',
 
             // State
             {
-                'hover:bg-surface-50 dark:hover:bg-[rgba(255,255,255,0.03)]': !context.disabled,
-                'focus:outline-none focus:outline-offset-0 focus:ring-1 focus:ring-primary-500 dark:focus:ring-primary-400': !context.disabled
+                'hover:bg-gray-100': !context.disabled,
+                'focus:outline-none focus:outline-offset-0': !context.disabled
             },
 
             // Transition
@@ -139,27 +149,36 @@ export default {
             { 'cursor-default pointer-events-none opacity-60': context.disabled }
         ]
     }),
+    pages: ({ context }) => ({
+        class: [
+            'relative',
+
+            // Flex & Alignment
+            'inline-flex items-center justify-center gap-1 flex-wrap',
+        ]
+    }),
     page: ({ context }) => ({
         class: [
             'relative',
 
             // Flex & Alignment
-            'inline-flex items-center justify-center',
+            'inline-flex items-center justify-center flex-wrap',
 
             // Shape
             'border-0 rounded-full',
+            'py-3',
 
             // Size
-            'min-w-[2.5rem] h-10 m-[0.143rem]',
-            'leading-none',
+            'w-11 h-11',
 
             // Color
-            'text-surface-500 dark:text-white/60',
+            'text-gray-700',
 
             // State
             {
-                'hover:bg-surface-50 dark:hover:bg-[rgba(255,255,255,0.03)]': !context.disabled,
-                'focus:outline-none focus:outline-offset-0 focus:ring-1 focus:ring-primary-500 dark:focus:ring-primary-400': !context.disabled
+                'hover:bg-gray-100': !context.disabled,
+                'focus:outline-none focus:outline-offset-0': !context.disabled,
+                'bg-primary-100 hover:bg-primary-100 text-primary-600': context.active
             },
 
             // Transition

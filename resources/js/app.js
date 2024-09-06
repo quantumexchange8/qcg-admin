@@ -12,7 +12,7 @@ import ConfirmationService from 'primevue/confirmationservice';
 import Tooltip from 'primevue/tooltip';
 import iosZoomFix from '../js/Composables/ios-zoom-fix.js';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Mosanes Admin';
+const appName = import.meta.env.VITE_APP_NAME || 'QCG Admin';
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,

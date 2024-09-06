@@ -7,7 +7,7 @@ import dayjs from "dayjs";
         <p
             class="flex items-center justify-center gap-1 text-sm text-gray-600 dark:text-gray-400"
         >
-            © {{ dayjs().year() }} mosanes. All rights reserved.
+            © {{ dayjs().year() }} Quantum Capital Group. All rights reserved.
         </p>
     </footer>
 </template>
