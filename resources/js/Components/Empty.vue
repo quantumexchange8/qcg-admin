@@ -9,12 +9,14 @@ const props = defineProps({
 </script>
 
 <template>
-  <div class="flex flex-col justify-center items-center py-5 px-6 gap-5 self-stretch">
-    <!-- Slot for custom image or content -->
-    <slot name="image">
-      <!-- Default image content if no custom content is provided -->
+  <div class="flex flex-col flex-1 justify-center items-center py-5 px-6 gap-5 self-stretch">
+    <!-- Slot for custom image or content with fallback -->
+    <template v-if="$slots.image">
+      <slot name="image"></slot>
+    </template>
+    <template v-else>
       <EmptyRecordIcon class="w-60 h-[180px]" />
-    </slot>
+    </template>
 
     <div class="flex flex-col items-center gap-2 self-stretch">
       <!-- Slot for custom title -->

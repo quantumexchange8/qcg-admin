@@ -92,7 +92,7 @@ export default {
             'text-gray-500',
 
             // Size
-            'w-12',
+            'w-10',
 
             // Shape
             'rounded-r',

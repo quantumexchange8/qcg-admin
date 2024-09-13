@@ -75,19 +75,19 @@ class User extends Authenticatable
             ->toArray();
     }
 
-    // public function assignedGroup($group_id): void
-    // {
-    //     GroupHasUser::updateOrCreate(
-    //         ['user_id' => $this->id],
-    //         ['group_id' => $group_id]
-    //     );
-    // }
+    public function assignedGroup($group_id): void
+    {
+        GroupHasUser::updateOrCreate(
+            ['user_id' => $this->id],
+            ['group_id' => $group_id]
+        );
+    }
 
-    // // Relations
-    // public function groupHasUser(): HasOne
-    // {
-    //     return $this->hasOne(GroupHasUser::class, 'user_id');
-    // }
+    // Relations
+    public function groupHasUser(): HasOne
+    {
+        return $this->hasOne(GroupHasUser::class, 'user_id');
+    }
 
     public function directChildren(): HasMany
     {
@@ -99,40 +99,40 @@ class User extends Authenticatable
         return $this->belongsTo(User::class, 'upline_id', 'id');
     }
 
-    // public function paymentAccounts(): HasMany
-    // {
-    //     return $this->hasMany(PaymentAccount::class, 'user_id', 'id');
-    // }
+    public function paymentAccounts(): HasMany
+    {
+        return $this->hasMany(PaymentAccount::class, 'user_id', 'id');
+    }
 
-    // public function rebate_wallet(): HasOne
-    // {
-    //     return $this->hasOne(Wallet::class, 'user_id', 'id')->where('type', 'rebate_wallet');
-    // }
+    public function rebate_wallet(): HasOne
+    {
+        return $this->hasOne(Wallet::class, 'user_id', 'id')->where('type', 'rebate_wallet');
+    }
 
-    // public function bonus_wallet(): HasOne
-    // {
-    //     return $this->hasOne(Wallet::class, 'user_id', 'id')->where('type', 'bonus_wallet');
-    // }
+    public function bonus_wallet(): HasOne
+    {
+        return $this->hasOne(Wallet::class, 'user_id', 'id')->where('type', 'bonus_wallet');
+    }
 
-    // public function tradingAccounts(): HasMany
-    // {
-    //     return $this->hasMany(TradingAccount::class, 'user_id', 'id');
-    // }
+    public function tradingAccounts(): HasMany
+    {
+        return $this->hasMany(TradingAccount::class, 'user_id', 'id');
+    }
 
-    // public function tradingUsers(): HasMany
-    // {
-    //     return $this->hasMany(TradingUser::class, 'user_id', 'id');
-    // }
+    public function tradingUsers(): HasMany
+    {
+        return $this->hasMany(TradingUser::class, 'user_id', 'id');
+    }
 
-    // public function transactions(): HasMany
-    // {
-    //     return $this->hasMany(Transaction::class, 'user_id', 'id');
-    // }
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class, 'user_id', 'id');
+    }
 
-    // public function rebateAllocations(): HasMany
-    // {
-    //     return $this->hasMany(RebateAllocation::class, 'user_id', 'id');
-    // }
+    public function rebateAllocations(): HasMany
+    {
+        return $this->hasMany(RebateAllocation::class, 'user_id', 'id');
+    }
 
     // // Logs
     // public function getActivitylogOptions(): LogOptions

@@ -204,7 +204,7 @@ const updateBalEquity = () => {
                 <div class="w-full flex flex-col items-center gap-5">
                     <div class="w-full flex flex-col items-start px-3 py-5 gap-4 self-stretch rounded-lg bg-white shadow-card md:p-6">
                         <div class="flex items-center self-stretch">
-                            <span class="flex-1 text-gray-950 font-bold">{{ $t('public.withdrawal_request') }}</span>
+                            <span class="flex-1 text-gray-950 font-bold">{{ $t('public.dashboard_withdrawal_request') }}</span>
                             <Button
                                 variant="gray-text"
                                 size="sm"
@@ -226,7 +226,7 @@ const updateBalEquity = () => {
 
                     <div class="w-full flex flex-col items-start px-3 py-5 gap-4 self-stretch rounded-lg bg-white shadow-card md:p-6">
                         <div class="flex items-center self-stretch">
-                            <span class="flex-1 text-gray-950 font-bold">{{ $t('public.incentive_request') }}</span>
+                            <span class="flex-1 text-gray-950 font-bold">{{ $t('public.dashboard_incentive_request') }}</span>
                             <Button
                                 variant="gray-text"
                                 size="sm"

@@ -10,7 +10,7 @@ export default {
 
             // Shape
             { 'first:rounded-l-md rounded-none last:rounded-r-md': parent.instance.$name === 'InputGroup' && !props.showButtons },
-            { 'border-0 border-y border-l last:border-r border-surface-300 dark:border-surface-700': parent.instance.$name === 'InputGroup' && !props.showButtons },
+            { 'border-0 border-y border-l last:border-r border-surface-300': parent.instance.$name === 'InputGroup' && !props.showButtons },
             { 'first:ml-0 -ml-px': parent.instance.$name === 'InputGroup' && !props.showButtons },
 
             //Sizing
@@ -21,7 +21,8 @@ export default {
         root: ({ parent, context }) => ({
             class: [
                 // Font
-                'leading-none',
+                'caret-primary-500',
+                'text-sm',
 
                 // Display
                 'flex-auto',
@@ -42,21 +43,21 @@ export default {
                 { 'border-0': parent.instance.$parentInstance?.$name === 'InputGroup' && !parent.props.showButtons },
 
                 // Colors
-                'text-surface-800 dark:text-white/80',
-                'placeholder:text-surface-400 dark:placeholder:text-surface-500',
-                { 'bg-surface-0 dark:bg-surface-950': !context.disabled },
+                'text-surface-800',
+                'placeholder:text-surface-400',
+                { 'bg-surface-0': !context.disabled },
                 'border',
-                { 'border-surface-300 dark:border-surface-700': !parent.props.invalid },
+                { 'border-surface-300': !parent.props.invalid },
 
                 // Invalid State
                 'invalid:focus:ring-red-200',
                 'invalid:hover:border-red-500',
-                { 'border-red-500 dark:border-red-400': parent.props.invalid },
+                { 'border-red-500': parent.props.invalid },
 
                 // States
                 { 'hover:border-primary': !parent.props.invalid },
-                'focus:outline-none focus:outline-offset-0 focus:ring-1 focus:ring-primary-500 dark:focus:ring-primary-400 focus:z-10',
-                { 'bg-surface-200 dark:bg-surface-700 select-none pointer-events-none cursor-default': context.disabled },
+                'focus:outline-none focus:outline-offset-0 focus:ring-1 focus:ring-primary-500 focus:z-10',
+                { 'bg-surface-200 select-none pointer-events-none cursor-default': context.disabled },
 
                 // Filled State *for FloatLabel
                 { filled: parent.instance?.$parentInstance?.$name === 'FloatLabel' && parent.state.d_modelValue !== null },
@@ -96,10 +97,10 @@ export default {
             { 'order-1': props.showButtons && props.buttonLayout === 'vertical' },
 
             //Color
-            'text-surface-800 dark:text-surface-0',
+            'text-surface-800',
             'bg-transparent',
-            { 'dark:bg-surface-900': props.showButtons && props.buttonLayout !== 'stacked' },
-            'border border-surface-300 dark:border-surface-700',
+            { '': props.showButtons && props.buttonLayout !== 'stacked' },
+            'border border-surface-300',
             { 'border-0': props.showButtons && props.buttonLayout === 'stacked' },
             { 'border-l-0': props.showButtons && props.buttonLayout !== 'stacked' && props.buttonLayout === 'horizontal' },
             { 'border-b-0': props.showButtons && props.buttonLayout !== 'stacked' && props.buttonLayout === 'vertical' },
@@ -117,7 +118,7 @@ export default {
             { 'rounded-bl-none rounded-br-none': props.showButtons && props.buttonLayout === 'vertical' },
 
             //States
-            'hover:bg-surface-100 dark:hover:bg-[rgba(255,255,255,0.03)]',
+            'hover:bg-surface-100',
 
             //Misc
             'cursor-pointer overflow-hidden select-none'
@@ -141,10 +142,10 @@ export default {
             { 'order-3': props.showButtons && props.buttonLayout === 'vertical' },
 
             //Color
-            'text-surface-800 dark:text-surface-0',
+            'text-surface-800',
             'bg-transparent',
-            { 'dark:bg-surface-900': props.showButtons && props.buttonLayout !== 'stacked' },
-            'border border-surface-300 dark:border-surface-700',
+            { '': props.showButtons && props.buttonLayout !== 'stacked' },
+            'border border-surface-300',
             { 'border-0': props.showButtons && props.buttonLayout === 'stacked' },
             { 'border-r-0': props.showButtons && props.buttonLayout !== 'stacked' && props.buttonLayout === 'horizontal' },
             { 'border-t-0': props.showButtons && props.buttonLayout !== 'stacked' && props.buttonLayout === 'vertical' },
@@ -162,7 +163,7 @@ export default {
             { 'rounded-tr-none rounded-tl-none ': props.showButtons && props.buttonLayout === 'vertical' },
 
             //States
-            'hover:bg-surface-100 dark:hover:bg-[rgba(255,255,255,0.03)]',
+            'hover:bg-surface-100',
 
             //Misc
             'cursor-pointer overflow-hidden select-none'

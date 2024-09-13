@@ -105,6 +105,7 @@ export default {
     column: {
         headerCell: ({ context, props }) => ({
             class: [
+                'text-gray-950',
                 'font-bold',
                 'text-xs',
                 'uppercase',
@@ -204,7 +205,7 @@ export default {
         }),
         sortIcon: ({ context }) => ({
             class: [
-                'w-[16px] h-[16px]',
+                'w-4 h-4',
                 context.sorted ? 'text-inherit' : 'text-gray-700'
 
             ]
@@ -357,7 +358,7 @@ export default {
             { 'odd:bg-white odd:text-gray-600 even:bg-gray-50 even:text-gray-600': context.stripedRows },
 
             // State
-            { 'hover:bg-gray-100 hover:text-gray-600': props.selectionMode && !context.selected },
+            { 'hover:bg-gray-50 hover:text-gray-600': props.selectionMode && !context.selected },
 
             // Transition
             { 'transition duration-200': (props.selectionMode && !context.selected) || props.rowHover },

@@ -23,7 +23,7 @@ class TradingAccount extends Model
     // Relations
     public function accountType(): HasOne
     {
-        return $this->hasOne(AccountType::class, 'id', 'account_type_id');
+        return $this->hasOne(AccountType::class, 'id', 'account_type');
     }
 
     public function account_type(): BelongsTo

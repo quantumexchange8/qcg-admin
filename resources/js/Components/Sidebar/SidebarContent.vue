@@ -85,6 +85,29 @@ import {
 
         </SidebarCollapsible>
 
+        <!-- Member -->
+        <SidebarCollapsible
+            :title="$t('public.sidebar_member')"
+            :active="route().current('member.*')"
+        >
+            <template #icon>
+                <IconUsers :size="20" stroke-width="1.25" />
+            </template>
+
+            <SidebarCollapsibleItem
+                :title="$t('public.sidebar_listing')"
+                :href="route('member.listing')"
+                :active="route().current('member.listing') || route().current('member.detail')"
+            />
+
+            <SidebarCollapsibleItem
+                :title="$t('public.sidebar_network')"
+                :href="route('member.network')"
+                :active="route().current('member.network')"
+            />
+
+        </SidebarCollapsible>
+
         <!-- Group -->
         <!-- <SidebarLink
             :title="$t('public.group')"

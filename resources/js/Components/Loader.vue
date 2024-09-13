@@ -16,7 +16,7 @@
         from 90deg at 50% 50%,
         rgba(255, 255, 255, 0),
         rgba(126, 130, 190, 0.5),
-        #2970FF
+        #42A547
     );
     border-radius: 56px;
     /* previous code */
@@ -41,7 +41,7 @@
     transform: translateY(-50%);
     height: 4px;
     width: 4px;
-    background: #2970FF;
+    background: #42A547;
     border-radius: 4px;
 }
 @keyframes rotate {

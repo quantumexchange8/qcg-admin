@@ -1,9 +1,9 @@
 export default {
     root: ({ props }) => ({
         class: [
-          'inline-block relative',
-          'w-[35px] h-5',
-          'p-0.5',
+          'inline-block relative shrink-0 grow-0',
+          'w-[35px]',
+          'h-5',
           'rounded-full',
           {
             // 'opacity-60 select-none pointer-events-none cursor-default': props.disabled
@@ -14,16 +14,16 @@ export default {
     slider: ({ props }) => ({
         class: [
           // Position
-          'absolute top-0 left-0 right-0 bottom-0',
-          { 'before:transform before:translate-x-[calc(100%-2px)]': props.modelValue == props.trueValue },
+          'absolute top-0 left-0 right-0 bottom-0 shrink-0 grow-0',
+          { 'before:transform before:translate-x-[calc(95%)]': props.modelValue == props.trueValue },
           
           // Shape
           'rounded-full',
           
           // Before:
-          'before:absolute before:top-1/2 before:left-[1.67px]',
-          'before:-mt-2',
-          'before:h-4 before:w-4',
+          'before:absolute before:top-1/2 before:left-0 before:right-0 before:bottom-0',
+          'before:-translate-y-1/2',
+          'before:h-[calc(90%)] before:w-[calc(50%)]',
           'before:rounded-full',
           'before:duration-200',
           
@@ -66,6 +66,7 @@ export default {
             // Size
             'w-full ',
             'h-full',
+            'shrink-0 grow-0',
 
             // Position
             'absolute',

@@ -47,6 +47,10 @@ import scrollpanel from './scrollpanel';
 import splitter from './splitter';
 import stepper from './stepper';
 import tabs from './tabs';
+import tablist from './tablist';
+import tabpanels from './tabpanels';
+import tabpanel from './tabpanel';
+import tab from './tab';
 import toolbar from './toolbar';
 import confirmpopup from './confirmpopup';
 import confirmdialog from './confirmdialog';
@@ -137,6 +141,10 @@ export default {
     splitter,
     stepper,
     tabs,
+    tablist,
+    tabpanels,
+    tabpanel,
+    tab,
     toolbar,
     confirmpopup,
     confirmdialog,

@@ -5,9 +5,13 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Session;
+use App\Http\Controllers\MemberController;
+use App\Http\Controllers\GeneralController;
+use App\Http\Controllers\NetworkController;
 use App\Http\Controllers\PendingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\TradingAccountController;
 
 Route::get('locale/{locale}', function ($locale) {
     App::setLocale($locale);
@@ -25,6 +29,9 @@ Route::get('/', function () {
 // })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(function () {
+    Route::get('/getWalletData', [GeneralController::class, 'getWalletData'])->name('getWalletData');
+    Route::get('/getTradingAccountData', [GeneralController::class, 'getTradingAccountData'])->name('getTradingAccountData');
+
 
     /**
      * ==============================
@@ -54,6 +61,46 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
 
     //     Route::post('withdrawalApproval', [PendingController::class, 'withdrawalApproval'])->name('pending.withdrawalApproval');
     //     Route::post('revokeApproval', [PendingController::class, 'revokeApproval'])->name('pending.revokeApproval');
+    });
+
+    Route::prefix('member')->group(function () {
+        // listing
+        Route::get('/listing', [MemberController::class, 'listing'])->name('member.listing');
+        Route::get('/getMemberListingData', [MemberController::class, 'getMemberListingData'])->name('member.getMemberListingData');
+        Route::get('/getFilterData', [MemberController::class, 'getFilterData'])->name('member.getFilterData');
+        Route::get('/getAvailableUplineData', [MemberController::class, 'getAvailableUplineData'])->name('member.getAvailableUplineData');
+        Route::get('/access_portal/{user}', [MemberController::class, 'access_portal'])->name('member.access_portal');
+
+        Route::post('/addNewMember', [MemberController::class, 'addNewMember'])->name('member.addNewMember');
+        Route::post('/updateMemberStatus', [MemberController::class, 'updateMemberStatus'])->name('member.updateMemberStatus');
+        Route::post('/upgradeAgent', [MemberController::class, 'upgradeAgent'])->name('member.upgradeAgent');
+        Route::post('/uploadKyc', [MemberController::class, 'uploadKyc'])->name('member.uploadKyc');
+        Route::post('/resetPassword', [MemberController::class, 'resetPassword'])->name('member.resetPassword');
+        Route::post('/walletAdjustment', [MemberController::class, 'walletAdjustment'])->name('member.walletAdjustment');
+
+        Route::delete('/deleteMember', [MemberController::class, 'deleteMember'])->name('member.deleteMember');
+
+        // details
+        Route::get('/detail/{id_number}', [MemberController::class, 'detail'])->name('member.detail');
+        Route::get('/getUserData', [MemberController::class, 'getUserData'])->name('member.getUserData');
+        Route::get('/getFinancialInfoData', [MemberController::class, 'getFinancialInfoData'])->name('member.getFinancialInfoData');
+        Route::get('/getTradingAccounts', [MemberController::class, 'getTradingAccounts'])->name('member.getTradingAccounts');
+        Route::get('/getAdjustmentHistoryData', [MemberController::class, 'getAdjustmentHistoryData'])->name('member.getAdjustmentHistoryData');
+
+        Route::post('/updateContactInfo', [MemberController::class, 'updateContactInfo'])->name('member.updateContactInfo');
+        Route::post('/updateCryptoWalletInfo', [MemberController::class, 'updateCryptoWalletInfo'])->name('member.updateCryptoWalletInfo');
+        Route::post('/updateKYCStatus', [MemberController::class, 'updateKYCStatus'])->name('member.updateKYCStatus');
+
+        // network
+        Route::get('/network', [NetworkController::class, 'network'])->name('member.network');
+        Route::get('/getDownlineData', [NetworkController::class, 'getDownlineData'])->name('member.getDownlineData');
+
+        // account listing
+        Route::get('/account_listing', [TradingAccountController::class, 'index'])->name('member.account_listing');
+        Route::get('/getAccountListingData', [TradingAccountController::class, 'getAccountListingData'])->name('member.getAccountListingData');
+
+        Route::post('/accountAdjustment', [TradingAccountController::class, 'accountAdjustment'])->name('member.accountAdjustment');
+        Route::delete('/accountDelete', [TradingAccountController::class, 'accountDelete'])->name('member.accountDelete');
     });
 
     /**

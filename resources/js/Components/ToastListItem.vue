@@ -1,10 +1,10 @@
 <script setup>
 import {onMounted} from "vue";
 import {
-    IconCircleCheckFilled,
-    IconAlertTriangleFilled,
-    IconCircleXFilled,
-    IconInfoOctagonFilled,
+    IconCheck,
+    IconAlertTriangle,
+    IconCircleX,
+    IconInfoCircle,
     IconX
 } from '@tabler/icons-vue';
 
@@ -26,54 +26,67 @@ const emit = defineEmits(['remove']);
 
 // Determine icon based on the type
 const iconComponent = {
-    success: IconCircleCheckFilled,
-    warning: IconAlertTriangleFilled,
-    error: IconCircleXFilled,
-    info: IconInfoOctagonFilled
+    success: IconCheck,
+    warning: IconAlertTriangle,
+    error: IconCircleX,
+    info: IconInfoCircle
 }[props.type];
 
 const borderColor = {
-    success: 'border-success-500',
-    warning: 'border-warning-500',
-    error: 'border-error-500',
-    info: 'border-info-500',
+    success: 'border-success-600',
+    warning: 'border-warning-600',
+    error: 'border-error-600',
+    info: 'border-info-600',
+}[props.type];
+
+const bgColor = {
+    success: 'bg-success-100',
+    warning: 'bg-warning-100',
+    error: 'bg-error-100',
+    info: 'bg-info-100',
 }[props.type];
 
 
 const textColor = {
-    success: 'text-success-500',
-    warning: 'text-warning-500',
-    error: 'text-error-500',
-    info: 'text-info-500',
+    success: 'text-success-600',
+    warning: 'text-warning-600',
+    error: 'text-error-600',
+    info: 'text-info-600',
 }[props.type];
 
 </script>
 <template>
     <div
-        class="mx-3 sm:mx-0 py-3 px-4 flex justify-center self-stretch gap-4 border-t-8 shadow-toast bg-white"
+        class="mx-3 md:mx-0 py-3 px-4 flex justify-center items-start self-stretch gap-3 border-l-8 rounded"
         :class="[
-            message ? 'items-start' : 'items-center',
-            borderColor
+            borderColor,
+            bgColor,
         ]"
         role="alert"
     >
         <div :class="textColor">
-            <component :is="iconComponent" size="20" />
+            <component :is="iconComponent" size="24" />
         </div>
         <div
-            class="flex flex-col items-start w-full text-sm"
+            class="flex flex-col items-start gap-1 w-full text-sm"
             :class="{
                 'gap-1': message
             }"
         >
-            <div class="text-gray-950 font-semibold">
+            <div class="font-semibold" :class="textColor">
                 {{ title }}
             </div>
             <div class="text-gray-700">
                 {{ message }}
             </div>
         </div>
-        <div class="text-gray-400 hover:text-gray-600 hover:cursor-pointer select-none" @click="emit('remove')">
+        <div 
+            class="hover:cursor-pointer select-none" 
+            :class="[
+                textColor,
+            ]"
+            @click="emit('remove')"
+        >
             <IconX size="16" stroke-width="1.25" />
         </div>
     </div>

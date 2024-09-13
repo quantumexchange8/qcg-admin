@@ -25,7 +25,7 @@ const { formatAmount, formatDate } = transactionFormat();
 
 const loading = ref(false);
 const dt = ref();
-const pendingWithdrawals = ref([
+const pendingIncentives = ref([
     { 
         id: 1, 
         user_profile_photo: 'https://via.placeholder.com/100', 
@@ -87,7 +87,7 @@ const pendingWithdrawals = ref([
         wallet_address: '6789 Invest St' 
     }
 ]);
-// const pendingWithdrawals = ref();
+// const pendingIncentives = ref();
 const totalAmount = ref();
 const filteredValueCount = ref(0);
 
@@ -95,8 +95,8 @@ const filteredValueCount = ref(0);
 //     loading.value = true;
 
 //     try {
-//         const response = await axios.get('/pending/getPendingWithdrawalData');
-//         pendingWithdrawals.value = response.data.pendingWithdrawals;
+//         const response = await axios.get('/pending/getPendingIncentiveData');
+//         pendingIncentives.value = response.data.pendingIncentives;
 //         totalAmount.value = response.data.totalAmount;
 //     } catch (error) {
 //         console.error('Error changing locale:', error);
@@ -175,7 +175,7 @@ const submit = (transactionId) => {
     form.id = transactionId;
     form.action = approvalAction.value;
 
-    form.post(route('pending.withdrawalApproval'), {
+    form.post(route('pending.incentiveApproval'), {
         onSuccess: () => {
             closeDialog();
             form.reset();
@@ -190,14 +190,14 @@ const handleFilter = (e) => {
 </script>
 
 <template>
-    <AuthenticatedLayout :title="$t('public.withdrawal')">
+    <AuthenticatedLayout :title="$t('public.incentive')">
         <div class="w-full flex flex-col items-center gap-5">
             <div class="flex flex-col justify-center items-center px-3 py-5 gap-5 self-stretch rounded-lg bg-white shadow-card md:p-6 md:gap-6">
                 <!-- data table -->
                 <DataTable
                     v-model:filters="filters"
-                    :value="pendingWithdrawals"
-                    :paginator="pendingWithdrawals?.length > 0 && filteredValueCount > 0"
+                    :value="pendingIncentives"
+                    :paginator="pendingIncentives?.length > 0 && filteredValueCount > 0"
                     removableSort
                     :rows="10"
                     :rowsPerPageOptions="[10, 20, 50, 100]"
@@ -221,7 +221,7 @@ const handleFilter = (e) => {
                                     <InputText v-model="filters['global'].value" :placeholder="$t('public.keyword_search')" class="font-normal pl-12 w-full md:w-60" />
                                     <div
                                         v-if="filters['global'].value !== null"
-                                        class="absolute top-2/4 -mt-2 right-4 text-gray-400 hover:text-gray-500 select-none cursor-pointer"
+                                        class="absolute top-2/4 -mt-2 right-4 text-gray-300 hover:text-gray-400 select-none cursor-pointer"
                                         @click="clearFilterGlobal"
                                     >
                                         <IconCircleXFilled size="16" />
@@ -245,7 +245,7 @@ const handleFilter = (e) => {
                             <span class="text-sm text-gray-700">{{ $t('public.loading_transactions_caption') }}</span>
                         </div>
                     </template>
-                    <template v-if="pendingWithdrawals?.length > 0 && filteredValueCount > 0">
+                    <template v-if="pendingIncentives?.length > 0 && filteredValueCount > 0">
                         <Column field="name" sortable :header="$t('public.name')" style="width: 25%; max-width: 0;">
                             <template #body="slotProps">
                                 <div class="flex flex-col items-start max-w-full">
@@ -253,7 +253,7 @@ const handleFilter = (e) => {
                                         {{ slotProps.data.user_name }}
                                     </div>
                                     <div class="text-gray-500 text-xs truncate max-w-full">
-                                        {{ slotProps.data.user_email + slotProps.data.user_email + slotProps.data.user_email }}
+                                        {{ slotProps.data.user_email }}
                                     </div>
                                 </div>
                             </template>
@@ -263,11 +263,6 @@ const handleFilter = (e) => {
                                 {{ dayjs(slotProps.data.created_at).format('YYYY/MM/DD') }}
                             </template>
                         </Column>
-                        <Column field="from" :header="$t('public.from')" style="width: 25%" class="hidden md:table-cell">
-                            <template #body="slotProps">
-                                {{ slotProps.data.from === 'rebate_wallet' ? $t(`public.${slotProps.data.from}`) : slotProps.data.from }}
-                            </template>
-                        </Column>
                         <Column field="amount" :header="`${$t('public.amount')}&nbsp;($)`" sortable style="width: 25%">
                             <template #body="slotProps">
                                 {{ formatAmount(slotProps.data.amount) }}
@@ -275,7 +270,7 @@ const handleFilter = (e) => {
                         </Column>
                         <ColumnGroup type="footer">
                             <Row>
-                                <Column class="hidden md:table-cell" :footer="$t('public.total') + ' ($) :'" :colspan="3" footerStyle="text-align:right" />
+                                <Column class="hidden md:table-cell" :footer="$t('public.total') + ' ($) :'" :colspan="2" footerStyle="text-align:right" />
                                 <Column class="hidden md:table-cell" :footer="formatAmount(totalAmount ? totalAmount : 0)" />
                                 
                                 <Column class="md:hidden" :footer="$t('public.total') + ' ($) :'" :colspan="1" footerStyle="text-align:right" />

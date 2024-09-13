@@ -8,6 +8,7 @@ use App\Models\TradingUser;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use App\Services\CTraderService;
+use App\Services\ChangeTraderBalanceType;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 

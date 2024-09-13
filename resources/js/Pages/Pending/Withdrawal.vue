@@ -199,8 +199,8 @@ const handleFilter = (e) => {
                     :value="pendingWithdrawals"
                     :paginator="pendingWithdrawals?.length > 0 && filteredValueCount > 0"
                     removableSort
-                    :rows="10"
-                    :rowsPerPageOptions="[10, 20, 50, 100]"
+                    :rows="1"
+                    :rowsPerPageOptions="[1, 20, 50, 100]"
                     paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
                     :currentPageReportTemplate="$t('public.paginator_caption')"
                     :globalFilterFields="['user_name', 'user_email', 'from']"
@@ -221,7 +221,7 @@ const handleFilter = (e) => {
                                     <InputText v-model="filters['global'].value" :placeholder="$t('public.keyword_search')" class="font-normal pl-12 w-full md:w-60" />
                                     <div
                                         v-if="filters['global'].value !== null"
-                                        class="absolute top-2/4 -mt-2 right-4 text-gray-400 hover:text-gray-500 select-none cursor-pointer"
+                                        class="absolute top-2/4 -mt-2 right-4 text-gray-300 hover:text-gray-400 select-none cursor-pointer"
                                         @click="clearFilterGlobal"
                                     >
                                         <IconCircleXFilled size="16" />
@@ -253,7 +253,7 @@ const handleFilter = (e) => {
                                         {{ slotProps.data.user_name }}
                                     </div>
                                     <div class="text-gray-500 text-xs truncate max-w-full">
-                                        {{ slotProps.data.user_email + slotProps.data.user_email + slotProps.data.user_email }}
+                                        {{ slotProps.data.user_email }}
                                     </div>
                                 </div>
                             </template>

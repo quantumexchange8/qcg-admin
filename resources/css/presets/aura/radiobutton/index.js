@@ -85,7 +85,7 @@ export default {
             'rounded-full',
 
             // Size
-            'w-[60%] h-[60%]',
+            'w-3 h-3',
 
             // Conditions
             {

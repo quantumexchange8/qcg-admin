@@ -5,13 +5,13 @@ export default {
             'rounded',
 
             // Size
-            'min-w-[12rem]',
+            'min-w-[12rem] max-w-[200px]',
             'py-2',
 
             // Colors
             'bg-white',
             'border border-gray-200',
-            'shadow-dropdown'
+            'shadow-dropdown',
         ]
     },
     rootList: {
@@ -29,13 +29,14 @@ export default {
     itemContent: ({ context }) => ({
         class: [
             //Shape
-            'rounded-[4px]',
+            'rounded',
 
             // Colors
-            'text-gray-500',
             {
-                'text-gray-500': !context.focused && !context.active,
-                'text-gray-500 bg-gray-200': context.focused && !context.active,
+                'text-gray-500 hover:text-gray-950': !context.focused && !context.active,
+                'text-gray-700 bg-gray-100': context.focused && !context.active,
+                'text-gray-950 bg-gray-100': !context.focused && context.active,
+                'text-gray-900 bg-gray-100 hover:text-gray-950 hover:bg-gray-100': context.focused && context.active,
             },
 
             // Transitions
@@ -45,11 +46,10 @@ export default {
             // States
             {
                 'hover:bg-gray-100': !context.active,
-                'hover:bg-highlight-emphasis': context.active
             },
 
             // Disabled
-            { 'opacity-60 pointer-events-none cursor-default': context.disabled }
+            { 'opacity-60 pointer-events-none cursor-default': context.disabled },
         ]
     }),
     itemLink: {
@@ -64,9 +64,6 @@ export default {
             'py-2',
             'px-3',
 
-            // Color
-            'text-gray-500',
-
             // Misc
             'no-underline',
             'overflow-hidden',
@@ -74,43 +71,42 @@ export default {
             'select-none'
         ]
     },
-    itemIcon: {
+    itemIcon: ({ context }) => ({
         class: [
             // Spacing
             'mr-2',
-
-            // Color
-            'text-gray-500'
         ]
-    },
+    }),
     itemLabel: {
         class: ['leading-none']
     },
     submenuIcon: {
         class: [
             // Position
-            'ml-auto'
+            'ml-auto',
         ]
     },
     submenu: {
         class: [
-            // Spacing
+            // Spacings and Shape
+            'list-none',
             'flex flex-col',
             'm-0',
-            'p-1',
-            'list-none',
-            'min-w-[12.5rem]',
+            'outline-none',
+            'rounded',
 
-            // Shape
-            'shadow-none sm:shadow-md',
-            'border border-gray-200',
+            // Size
+            'w-full',
+            'py-2',
 
             // Position
-            'static sm:absolute',
+            'absolute',
             'z-10',
-
-            // Color
-            'bg-white'
+            
+            // Colors
+            'bg-white',
+            'border border-gray-200',
+            'shadow-dropdown'
         ]
     },
     separator: {
