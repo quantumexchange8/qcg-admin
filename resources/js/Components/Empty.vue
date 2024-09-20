@@ -9,7 +9,7 @@ const props = defineProps({
 </script>
 
 <template>
-  <div class="flex flex-col flex-1 justify-center items-center py-5 px-6 gap-5 self-stretch">
+  <div class="w-full grid grid-cols-1 place-items-center py-5 px-6 gap-5 self-stretch overflow-auto">
     <!-- Slot for custom image or content with fallback -->
     <template v-if="$slots.image">
       <slot name="image"></slot>

@@ -106,18 +106,71 @@ import {
                 :active="route().current('member.network')"
             />
 
+            <!-- <SidebarCollapsibleItem
+                :title="$t('public.sidebar_forum')"
+                :href="route('member.forum')"
+                :active="route().current('member.forum')"
+            /> -->
+
+            <SidebarCollapsibleItem
+                :title="$t('public.sidebar_account_listing')"
+                :href="route('member.account_listing')"
+                :active="route().current('member.account_listing')"
+            />
+
+
         </SidebarCollapsible>
 
-        <!-- Group -->
-        <!-- <SidebarLink
-            :title="$t('public.group')"
-            :href="route('group')"
-            :active="route().current('group')"
+        <!-- Team -->
+        <SidebarLink
+            :title="$t('public.sales_team')"
+            :href="route('team')"
+            :active="route().current('team')"
         >
             <template #icon>
-                <IconUsersGroup :size="20" stroke-width="1.25" />
+                <IconSitemap :size="20" stroke-width="1.25" />
             </template>
-        </SidebarLink> -->
+        </SidebarLink>
+
+        <!-- Transaction -->
+        <SidebarCollapsible
+            :title="$t('public.sidebar_transaction')"
+            :active="route().current('transaction.index', { type: 'deposit' })"
+        >
+            <template #icon>
+                <IconReportMoney :size="20" stroke-width="1.25" />
+            </template>
+
+            <SidebarCollapsibleItem
+                :title="$t('public.sidebar_deposit')"
+                :href="route('transaction.index', { type: 'deposit' })"
+                :active="route().current('transaction.index', { type: 'deposit' })"
+            />
+
+            <SidebarCollapsibleItem
+                :title="$t('public.sidebar_withdrawal')"
+                :href="route('transaction.index', { type: 'withdrawal' })"
+                :active="route().current('transaction.index', { type: 'withdrawal' })"
+            />
+
+            <SidebarCollapsibleItem
+                :title="$t('public.sidebar_transfer')"
+                :href="route('transaction.index', { type: 'transfer' })"
+                :active="route().current('transaction.index', { type: 'transfer' })"
+            />
+            
+            <SidebarCollapsibleItem
+                :title="$t('public.sidebar_rebate_payout')"
+                :href="route('transaction.index', { type: 'rebate' })"
+                :active="route().current('transaction.index', { type: 'rebate' })"
+            />
+
+            <SidebarCollapsibleItem
+                :title="$t('public.sidebar_incentive_payout')"
+                :href="route('transaction.index', { type: 'incentive' })"
+                :active="route().current('transaction.index', { type: 'incentive' })"
+            />
+        </SidebarCollapsible>
 
         <!-- Pamm Allocate -->
         <!-- <SidebarLink
@@ -177,7 +230,7 @@ import {
         </SidebarLink> -->
 
         <!-- Components -->
-       <SidebarCollapsible
+       <!-- <SidebarCollapsible
            title="Components"
            :active="route().current('components.*')"
        >
@@ -190,7 +243,7 @@ import {
                :href="route('components.buttons')"
                :active="route().current('components.buttons')"
            />
-       </SidebarCollapsible>
+       </SidebarCollapsible> -->
 
 
         <!-- Profile -->

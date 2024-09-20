@@ -5,9 +5,6 @@ const props = defineProps({
   variant: {
     type: String,
     default: "success",
-    validator(value) {
-      return ["primary", "success", "error", "warning", "info", "gray"].includes(value);
-    },
   },
   borderRadius: {
     default: "rounded",
@@ -20,18 +17,18 @@ const baseClasses = [
 ];
 
 const variantClasses = computed(() => {
-    if (props.value === 'primary' || props.value === 'member') {
-        return 'bg-primary-50 text-primary-500'
-    } else if (props.value === 'successful' || props.value === 'active' || props.value === 'live') {
-        return 'bg-success-50 text-success-500'
-    } else if (props.value === 'error' || props.value === 'failed' || props.value === 'rejected') {
-        return 'bg-error-50 text-error-500'
-    } else if (props.value === 'warning' || props.value === 'agent' || props.value === 'ongoing') {
-        return 'bg-warning-50 text-warning-500'
-    } else if (props.value === 'info' || props.value === 'demo' || props.value === 'processing') {
-        return 'bg-info-50 text-info-500'
-    } else if (props.value === 'gray' || props.value === 'inactive' ) {
-        return 'bg-gray-50 text-gray-500'
+    if (props.variant === 'primary' || props.variant === 'member') {
+        return 'bg-primary-600 text-white'
+    } else if (props.variant === 'successful' || props.variant === 'active' || props.variant === 'live') {
+        return 'bg-success-500 text-white'
+    } else if (props.variant === 'error' || props.variant === 'failed' || props.variant === 'rejected') {
+        return 'bg-error-600 text-white'
+    } else if (props.variant === 'warning' || props.variant === 'agent' || props.variant === 'ongoing') {
+        return 'bg-warning-500 text-white'
+    } else if (props.variant === 'info' || props.variant === 'demo' || props.variant === 'processing') {
+        return 'bg-info-500 text-white'
+    } else if (props.variant === 'gray' || props.variant === 'inactive' ) {
+        return 'bg-gray-500 text-white'
     }
     return 'bg-primary-600 text-gray-950'
 })

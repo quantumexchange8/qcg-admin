@@ -20,6 +20,7 @@ import Tab from 'primevue/tab';
 import TabPanels from 'primevue/tabpanels';
 import TabPanel from 'primevue/tabpanel';
 import toast from '@/Composables/toast';
+import DatePicker from 'primevue/datepicker';
 
 const selectedCity = ref();
 const cities = ref([
@@ -74,6 +75,7 @@ function triggerToast() {
 
 }
 const value = ref('0');
+const dates = ref();
 
 </script>
 
@@ -209,7 +211,7 @@ const value = ref('0');
             Toast
         </Button> -->
 
-        <div class="card">
+        <!-- <div class="card">
         <Tabs v-model:value="value">
             <TabList>
                 <Tab value="0">Header I</Tab>
@@ -237,7 +239,9 @@ const value = ref('0');
                 </TabPanel>
             </TabPanels>
         </Tabs>
-    </div>
+    </div> -->
+
+    <DatePicker v-model="dates" selectionMode="range" showIcon iconDisplay="input" />
 
     </AuthenticatedLayout>
 </template>

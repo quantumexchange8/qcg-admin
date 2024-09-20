@@ -199,8 +199,8 @@ const handleFilter = (e) => {
                     :value="pendingWithdrawals"
                     :paginator="pendingWithdrawals?.length > 0 && filteredValueCount > 0"
                     removableSort
-                    :rows="1"
-                    :rowsPerPageOptions="[1, 20, 50, 100]"
+                    :rows="10"
+                    :rowsPerPageOptions="[10, 20, 50, 100]"
                     paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
                     :currentPageReportTemplate="$t('public.paginator_caption')"
                     :globalFilterFields="['user_name', 'user_email', 'from']"

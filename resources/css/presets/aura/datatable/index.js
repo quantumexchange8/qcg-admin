@@ -64,7 +64,7 @@ export default {
     thead: ({ context }) => ({
         class: [
             {
-                'bg-white top-0 z-40 sticky': context.scrollable
+                'bg-white top-0 z-10 sticky': context.scrollable
             }
         ]
     }),
@@ -111,7 +111,7 @@ export default {
                 'uppercase',
                 
                 // Position
-                { 'sticky z-20 border-b': props.frozen || props.frozen === '' },
+                { 'sticky z-10 border-b': props.frozen || props.frozen === '' },
 
                 { relative: context.resizable },
 
@@ -411,6 +411,6 @@ export default {
         class: 'inline-block w-4 h-4'
     },
     columnResizeIndicator: {
-        class: 'absolute hidden w-[2px] z-20 bg-primary'
+        class: 'absolute hidden w-[2px] z-10 bg-primary'
     }
 };

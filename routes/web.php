@@ -5,12 +5,14 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Session;
+use App\Http\Controllers\TeamController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\GeneralController;
 use App\Http\Controllers\NetworkController;
 use App\Http\Controllers\PendingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\TradingAccountController;
 
 Route::get('locale/{locale}', function ($locale) {
@@ -51,8 +53,8 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
      * ==============================
      */
     Route::prefix('pending')->group(function () {
-        Route::get('withdrawal', [PendingController::class, 'withdrawal'])->name('pending.withdrawal');
-        Route::get('incentive', [PendingController::class, 'incentive'])->name('pending.incentive');
+        Route::get('/withdrawal', [PendingController::class, 'withdrawal'])->name('pending.withdrawal');
+        Route::get('/incentive', [PendingController::class, 'incentive'])->name('pending.incentive');
         Route::get('/getPendingWithdrawalData', [PendingController::class, 'getPendingWithdrawalData'])->name('pending.getPendingWithdrawalData');
 
     //     Route::get('/', [PendingController::class, 'index'])->name('pending');
@@ -98,9 +100,30 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
         // account listing
         Route::get('/account_listing', [TradingAccountController::class, 'index'])->name('member.account_listing');
         Route::get('/getAccountListingData', [TradingAccountController::class, 'getAccountListingData'])->name('member.getAccountListingData');
+        Route::get('/getTradingAccountData', [TradingAccountController::class, 'getTradingAccountData'])->name('member.getTradingAccountData');
 
         Route::post('/accountAdjustment', [TradingAccountController::class, 'accountAdjustment'])->name('member.accountAdjustment');
+        Route::post('/refreshAllAccount', [TradingAccountController::class, 'refreshAllAccount'])->name('member.refreshAllAccount');
         Route::delete('/accountDelete', [TradingAccountController::class, 'accountDelete'])->name('member.accountDelete');
+    });
+
+    /**
+     * ==============================
+     *          Team
+     * ==============================
+     */
+    Route::prefix('team')->group(function () {
+        Route::get('/team', [TeamController::class, 'index'])->name('team');
+    });
+
+
+    /**
+     * ==============================
+     *          Transaction
+     * ==============================
+     */
+    Route::prefix('transaction')->group(function () {
+        Route::get('transaction/{type}', [TransactionController::class, 'index'])->name('transaction.index');
     });
 
     /**

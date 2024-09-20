@@ -2,62 +2,105 @@ export default {
     root: ({ props }) => ({
         class: [
             // Display and Position
-            {
-                flex: props.fluid,
-                'inline-flex': !props.fluid
-            },
+            'flex',
             'max-w-full',
             'relative'
         ]
     }),
     pcInput: ({ props, parent }) => ({
-        root: {
-            class: [
-                // Display
-                'flex-auto w-[1%]',
+        // root: {
+        //     class: [
+        //         // Display
+        //         'flex-auto w-[1%]',
 
-                // Font
-                'leading-none',
+        //         // Font
+        //         'leading-none',
 
-                // Colors
-                'text-surface-600 dark:text-surface-200',
-                'placeholder:text-surface-400 dark:placeholder:text-surface-500',
-                { 'bg-surface-0 dark:bg-surface-950': !props.disabled },
-                'border',
-                { 'border-surface-300 dark:border-surface-600': !props.invalid },
+        //         // Colors
+        //         'text-gray-600',
+        //         'placeholder:text-gray-400',
+        //         { 'bg-white': !props.disabled },
+        //         'border',
+        //         { 'border-gray-300': !props.invalid },
 
-                // Invalid State
-                'invalid:focus:ring-red-200',
-                'invalid:hover:border-red-500',
-                { 'border-red-500 dark:border-red-400': props.invalid },
+        //         // Invalid State
+        //         'invalid:focus:ring-red-200',
+        //         'invalid:hover:border-red-500',
+        //         { 'border-red-500': props.invalid },
 
-                // Spacing
-                'm-0 py-2 px-3',
+        //         // Spacing
+        //         'm-0 py-2 px-3',
 
-                // Shape
-                'appearance-none',
-                { 'rounded-md': !props.showIcon || props.iconDisplay == 'input' },
-                { 'rounded-l-md  flex-1 pr-9': props.showIcon && props.iconDisplay !== 'input' },
-                { 'rounded-md flex-1 pr-9': props.showIcon && props.iconDisplay === 'input' },
+        //         // Shape
+        //         'appearance-none',
+        //         { 'rounded-md': !props.showIcon || props.iconDisplay == 'input' },
+        //         { 'rounded-l-md  flex-1 pr-9': props.showIcon && props.iconDisplay !== 'input' },
+        //         { 'rounded-md flex-1 pr-9': props.showIcon && props.iconDisplay === 'input' },
 
-                // Transitions
-                'transition-colors',
-                'duration-200',
+        //         // Transitions
+        //         'transition-colors',
+        //         'duration-200',
 
-                // States
-                {
-                    'hover:border-surface-400 dark:hover:border-surface-600': !props.disabled && !props.invalid,
-                    'focus:outline-none focus:outline-offset-0 focus:ring-1 focus:ring-primary-500 dark:focus:ring-primary-400 focus:z-10': !props.disabled,
-                    'bg-surface-200 dark:bg-surface-700 select-none pointer-events-none cursor-default': props.disabled
-                },
+        //         // States
+        //         {
+        //             'hover:border-gray-400': !props.disabled && !props.invalid,
+        //             'focus:outline-none focus:outline-offset-0 focus:ring-1 focus:ring-primary-500 focus:z-10': !props.disabled,
+        //             'bg-gray-200 select-none pointer-events-none cursor-default': props.disabled
+        //         },
 
-                // Filled State *for FloatLabel
-                { filled: parent.instance?.$name == 'FloatLabel' && props.modelValue !== null }
-            ]
-        }
+        //         // Filled State *for FloatLabel
+        //         { filled: parent.instance?.$name == 'FloatLabel' && props.modelValue !== null }
+        //     ]
+        // }
+    }),
+    pcButton: ({ props, parent }) => ({
+        // root: {
+        //     class: [
+        //         // Display
+        //         'flex-auto w-[1%]',
+
+        //         // Font
+        //         'leading-none',
+
+        //         // Colors
+        //         'text-gray-600',
+        //         'placeholder:text-gray-400',
+        //         { 'bg-white': !props.disabled },
+        //         'border',
+        //         { 'border-gray-300': !props.invalid },
+
+        //         // Invalid State
+        //         'invalid:focus:ring-red-200',
+        //         'invalid:hover:border-red-500',
+        //         { 'border-red-500': props.invalid },
+
+        //         // Spacing
+        //         'm-0 py-2 px-3',
+
+        //         // Shape
+        //         'appearance-none',
+        //         { 'rounded-md': !props.showIcon || props.iconDisplay == 'input' },
+        //         { 'rounded-l-md  flex-1 pr-9': props.showIcon && props.iconDisplay !== 'input' },
+        //         { 'rounded-md flex-1 pr-9': props.showIcon && props.iconDisplay === 'input' },
+
+        //         // Transitions
+        //         'transition-colors',
+        //         'duration-200',
+
+        //         // States
+        //         {
+        //             'hover:border-gray-400': !props.disabled && !props.invalid,
+        //             'focus:outline-none focus:outline-offset-0 focus:ring-1 focus:ring-primary-500 focus:z-10': !props.disabled,
+        //             'bg-gray-200 select-none pointer-events-none cursor-default': props.disabled
+        //         },
+
+        //         // Filled State *for FloatLabel
+        //         { filled: parent.instance?.$name == 'FloatLabel' && props.modelValue !== null }
+        //     ]
+        // }
     }),
     dropdownIcon: {
-        class: ['absolute top-1/2 -mt-2', 'text-surface-600 dark:text-surface-200', 'right-3']
+        class: ['absolute top-1/2 -mt-2', 'text-gray-400', 'right-3']
     },
     dropdown: {
         class: [
@@ -75,16 +118,16 @@ export default {
             'leading-[normal]',
 
             // Colors
-            'border border-l-0 border-surface-300 dark:border-surface-600',
+            'border border-l-0 border-gray-300',
 
             // States
             'focus:outline-none focus:outline-offset-0 focus:ring-1',
             'hover:bg-primary-hover hover:border-primary-hover',
-            'focus:ring-primary-500 dark:focus:ring-primary-400'
+            'focus:ring-primary-500'
         ]
     },
     inputIconContainer: 'absolute cursor-pointer top-1/2 right-3 -mt-3',
-    inputIcon: 'inline-block text-base',
+    inputIcon: 'inline-block text-gray-400 w-5 h-5',
     panel: ({ props }) => ({
         class: [
             // Display & Position
@@ -94,9 +137,10 @@ export default {
             },
 
             // Size
-            { 'w-auto p-3 ': !props.inline },
-            { 'min-w-[80vw] w-auto p-3 ': props.touchUI },
-            { 'p-3 min-w-full': props.inline },
+            { 'w-auto mt-1 ': !props.inline },
+            { 'min-w-[80vw] w-auto': props.touchUI },
+            { 'min-w-full': props.inline },
+            'p-5',
 
             // Shape
             'border rounded-lg',
@@ -105,8 +149,8 @@ export default {
             },
 
             // Colors
-            'bg-surface-0 dark:bg-surface-900',
-            'border-surface-200 dark:border-surface-700',
+            'bg-white',
+            'border-gray-200',
 
             //misc
             { 'overflow-x-auto': props.inline }
@@ -114,9 +158,6 @@ export default {
     }),
     header: {
         class: [
-            //Font
-            'font-medium',
-
             // Flexbox and Alignment
             'flex items-center justify-between',
 
@@ -126,43 +167,49 @@ export default {
 
             // Shape
             'border-b',
-            'rounded-t-md',
 
             // Colors
-            'text-surface-700 dark:text-white/80',
-            'bg-surface-0 dark:bg-surface-900',
-            'border-surface-200 dark:border-surface-700'
+            'text-gray-700',
+            'bg-white',
+            'border-gray-200'
         ]
     },
     title: {
         class: [
+            // Flex
+            'flex',
+            'justify-center',
+            'items-center',
+            
             // Text
-            'leading-7',
+            'text-center',
             'mx-auto my-0'
         ]
     },
     selectMonth: {
         class: [
-            // Font
-            'text-base leading-[normal]',
-            'font-medium',
+            // Flex
+            'flex',
 
-            //shape
-            'rounded-md',
+            // Spacing
+            'px-3 py-2',
+            'justify-center',
+            'items-center',
+
+            // Font
+            'text-center',
+            'text-sm',
+            'font-semibold',
 
             // Colors
-            'text-surface-700 dark:text-white/80',
+            'text-gray-700',
 
             // Transitions
             'transition duration-200',
 
-            // Spacing
-            'p-1',
-            'm-0 mr-2',
-
             // States
-            'hover:text-primary-500 dark:hover:text-primary-400',
-            'focus:outline-none focus:outline-offset-0 focus:ring-1 focus:ring-primary-500 dark:focus:ring-primary-400 focus:z-10',
+            'hover:text-primary-500',
+            'focus:outline-none focus:outline-offset-0 focus:ring-0 focus:ring-primary-500 focus:z-10',
 
             // Misc
             'cursor-pointer'
@@ -170,26 +217,28 @@ export default {
     },
     selectYear: {
         class: [
-            // Font
-            'text-base leading-[normal]',
-            'font-medium',
+            // Flex
+            'flex',
 
-            //shape
-            'rounded-md',
+            // Spacing
+            'px-3 py-2',
+            'justify-center',
+            'items-center',
+
+            // Font
+            'text-center',
+            'text-sm',
+            'font-semibold',
 
             // Colors
-            'text-surface-700 dark:text-white/80',
+            'text-gray-700',
 
             // Transitions
             'transition duration-200',
 
-            // Spacing
-            'p-1',
-            'm-0 mr-2',
-
             // States
-            'hover:text-primary-500 dark:hover:text-primary-400',
-            'focus:outline-none focus:outline-offset-0 focus:ring-1 focus:ring-primary-500 dark:focus:ring-primary-400 focus:z-10',
+            'hover:text-primary-500',
+            'focus:outline-none focus:outline-offset-0 focus:ring-0 focus:ring-primary-500 focus:z-10',
 
             // Misc
             'cursor-pointer'
@@ -215,15 +264,15 @@ export default {
         ]
     },
     weekHeader: {
-        class: ['leading-5', 'text-surface-600 dark:text-white/70', 'opacity-60 cursor-default']
+        class: ['leading-5', 'text-gray-600', 'opacity-60 cursor-default']
     },
     weekNumber: {
-        class: ['text-surface-600 dark:text-white/70', 'opacity-60 cursor-default']
+        class: ['text-gray-600', 'opacity-60 cursor-default']
     },
     weekday: {
         class: [
             // Colors
-            'text-surface-500 dark:text-white/60',
+            'text-gray-500',
             'p-1'
         ]
     },
@@ -264,15 +313,15 @@ export default {
 
             // Colors
             {
-                'bg-surface-100 dark:bg-surface-800 text-surface-600 dark:text-white/70': context.date.today && !context.selected && !context.disabled,
-                'bg-transparent text-surface-600 dark:text-white/70': !context.selected && !context.disabled && !context.date.today,
+                'bg-gray-100 text-gray-600': context.date.today && !context.selected && !context.disabled,
+                'bg-transparent text-gray-600': !context.selected && !context.disabled && !context.date.today,
                 'bg-highlight': context.selected && !context.disabled
             },
 
             // States
-            'focus:outline-none focus:outline-offset-0 focus:ring-1 focus:ring-primary-500 dark:focus:ring-primary-400 focus:z-10',
+            'focus:outline-none focus:outline-offset-0 focus:ring-1 focus:ring-primary-500 focus:z-10',
             {
-                'hover:bg-surface-50 dark:hover:bg-surface-500/10': !context.selected && !context.disabled
+                'hover:bg-gray-50': !context.selected && !context.disabled
             },
             {
                 'opacity-60 cursor-default': context.disabled,
@@ -300,14 +349,14 @@ export default {
 
             // Colors
             {
-                'text-surface-600 dark:text-white/70 bg-transparent': !context.selected && !context.disabled,
+                'text-gray-600 bg-transparent': !context.selected && !context.disabled,
                 'bg-highlight': context.selected && !context.disabled
             },
 
             // States
-            'focus:outline-none focus:outline-offset-0 focus:ring-1 focus:ring-primary-500 dark:focus:ring-primary-400 focus:z-10',
+            'focus:outline-none focus:outline-offset-0 focus:ring-1 focus:ring-primary-500 focus:z-10',
             {
-                'hover:bg-surface-100 dark:hover:bg-[rgba(255,255,255,0.03)]': !context.selected && !context.disabled
+                'hover:bg-gray-100': !context.selected && !context.disabled
             },
 
             // Misc
@@ -334,14 +383,14 @@ export default {
 
             // Colors
             {
-                'text-surface-600 dark:text-white/70 bg-transparent': !context.selected && !context.disabled,
+                'text-gray-600 bg-transparent': !context.selected && !context.disabled,
                 'bg-highlight': context.selected && !context.disabled
             },
 
             // States
-            'focus:outline-none focus:outline-offset-0 focus:ring-1 focus:ring-primary-500 dark:focus:ring-primary-400 focus:z-10',
+            'focus:outline-none focus:outline-offset-0 focus:ring-1 focus:ring-primary-500 focus:z-10',
             {
-                'hover:bg-surface-100 dark:hover:bg-[rgba(255,255,255,0.03)]': !context.selected && !context.disabled
+                'hover:bg-gray-100': !context.selected && !context.disabled
             },
 
             // Misc
@@ -356,7 +405,7 @@ export default {
 
             // Borders
             'border-t-1',
-            'border-solid border-surface-200',
+            'border-solid border-gray-200',
 
             // Spacing
             'pt-2 mt-2'
@@ -424,7 +473,7 @@ export default {
         ]
     },
     calendarContainer: 'flex',
-    calendar: 'flex-auto border-l first:border-l-0 border-surface-200',
+    calendar: 'flex-auto border-l first:border-l-0 border-gray-200',
     buttonbar: {
         class: [
             // Flexbox
@@ -434,7 +483,7 @@ export default {
             'pt-2',
 
             // Shape
-            'border-t border-surface-200 dark:border-surface-700'
+            'border-t border-gray-200'
         ]
     },
     transition: {

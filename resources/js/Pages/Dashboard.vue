@@ -45,22 +45,22 @@ const dataOverviews = computed(() => [
     {
         icon: DepositIcon,
         total: totalDeposit.value,
-        label: trans('public.total_deposit'),
+        label: trans('public.dashboard_total_deposit'),
     },
     {
         icon: WithdrawalIcon,
         total: totalWithdrawal.value,
-        label: trans('public.total_withdrawal'),
+        label: trans('public.dashboard_total_withdrawal'),
     },
     {
         icon: AgentIcon,
         total: totalAgent.value,
-        label: trans('public.total_agent'),
+        label: trans('public.dashboard_total_agent'),
     },
     {
         icon: MemberIcon,
         total: totalMember.value,
-        label: trans('public.total_member'),
+        label: trans('public.dashboard_total_member'),
     },
 ]);
 
@@ -134,7 +134,7 @@ const updateBalEquity = () => {
                 <div class="w-full flex flex-col items-start md:items-center">
                     <div class="w-full md:w-[300px] lg:w-[304px] xl:w-[560px] flex flex-col items-start gap-1 md:items-center">
                         <span class="self-stretch text-primary-700 font-bold md:text-center md:text-xl">
-                            {{ $t('public.welcome_back', {'name': user.name}) }}
+                            {{ $t('public.welcome_back', {'name': user.first_name}) }}
                         </span>
                         <span class="self-stretch text-primary-950 text-xs md:text-center md:text-sm">
                             {{ $t('public.greeting_caption') }}

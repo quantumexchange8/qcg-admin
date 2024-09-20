@@ -50,7 +50,7 @@ const getResults = async () => {
 onMounted(getResults);
 
 const form = useForm({
-    user_id: props.member.id,
+    user_id: props.member ? props.member.id : '',
     meta_login: '',
     action: '',
     amount: 0,
@@ -145,8 +145,8 @@ const submitForm = () => {
     <form>
         <div class="flex flex-col gap-5 items-center self-stretch py-4 md:py-6">
             <div class="flex flex-col justify-center items-start self-stretch">
-                <span class="text-gray-950 font-semibold w-full truncate">{{ props.member.name }}</span>
-                <span class="text-gray-500 text-sm w-full truncate">{{ props.member.email }}</span>
+                <span class="text-gray-950 font-semibold w-full truncate">{{ props.member ? props.member.name : props.account.name }}</span>
+                <span class="text-gray-500 text-sm w-full truncate">{{ props.member ? props.member.email : props.account.email }}</span>
             </div>
             <div class="flex flex-col justify-center items-center px-8 py-3 gap-1 self-stretch bg-gray-100">
                 <div class="text-gray-500 text-center text-xs">

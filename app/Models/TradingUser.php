@@ -3,9 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TradingUser extends Model
 {
@@ -24,7 +25,7 @@ class TradingUser extends Model
     }
 
     // Relations
-    public function user(): BelongsTo
+    public function userData(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
     }
@@ -33,4 +34,10 @@ class TradingUser extends Model
     {
         return $this->belongsTo(TradingAccount::class, 'meta_login', 'meta_login');
     }
+
+    public function accountType(): HasOne
+    {
+        return $this->hasOne(AccountType::class, 'id', 'account_type');
+    }
+
 }
