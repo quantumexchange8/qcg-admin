@@ -46,10 +46,10 @@ import {
 </script>
 
 <template>
-    <PerfectScrollbar
+    <div
         tagname="nav"
         aria-label="main"
-        class="relative w-full flex flex-col flex-1 max-w-full max-h-full gap-1 items-center"
+        class="relative w-full flex flex-col flex-1 max-w-full max-h-full gap-1 items-center "
     >
         <!-- Dashboard -->
         <SidebarLink
@@ -129,6 +129,17 @@ import {
         >
             <template #icon>
                 <IconSitemap :size="20" stroke-width="1.25" />
+            </template>
+        </SidebarLink>
+
+        <!-- Team -->
+        <SidebarLink
+            :title="$t('public.rebate_setting')"
+            :href="route('rebate_setting')"
+            :active="route().current('rebate_setting')"
+        >
+            <template #icon>
+                <IconTrophy :size="20" stroke-width="1.25" />
             </template>
         </SidebarLink>
 
@@ -257,5 +268,5 @@ import {
             </template>
         </SidebarLink> -->
 
-    </PerfectScrollbar>
+    </div>
 </template>

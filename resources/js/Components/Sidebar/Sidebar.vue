@@ -5,6 +5,7 @@ import { sidebarState } from '@/Composables'
 import SidebarHeader from '@/Components/Sidebar/SidebarHeader.vue'
 import SidebarContent from '@/Components/Sidebar/SidebarContent.vue'
 import SidebarFooter from '@/Components/Sidebar/SidebarFooter.vue'
+import PerfectScrollbar from '@/Components/PerfectScrollbar.vue'
 
 onMounted(() => {
     window.addEventListener('resize', sidebarState.handleWindowResize)
@@ -39,7 +40,7 @@ onMounted(() => {
             transition-duration: 150ms;
         "
         :class="[
-            'fixed h-full top-0 lg:sticky left-0 z-20 bg-gray-100 flex flex-col lg:top-20  lg:overflow-y-auto lg:h-[calc(90vh)]',
+            'fixed h-full top-0 left-0 z-20 bg-gray-100 flex flex-col lg:sticky lg:z-0 lg:top-20 lg:overflow-y-auto lg:h-[calc(90vh)]',
             {
                 'translate-x-0 w-[232px]':
                     sidebarState.isOpen || sidebarState.isHovered,
@@ -50,12 +51,24 @@ onMounted(() => {
         @mouseenter="sidebarState.handleHover(true)"
         @mouseleave="sidebarState.handleHover(false)"
     >
-        <div class="w-full h-full flex flex-col flex-1 px-5 py-8 gap-8 bg-white items-center">
-            <!-- <SidebarHeader /> -->
+        <div class="w-full flex flex-col h-full px-5 py-8 gap-8 bg-white items-center overflow-y-auto no-scrollbar">
+        <!-- <SidebarHeader /> -->
 
-            <SidebarContent />
-
+            <div class="w-full h-full flex flex-col justify-center items-center overflow-y-auto no-scrollbar">
+                <SidebarContent />
+            </div>
             <SidebarFooter />
         </div>
     </aside>
 </template>
+
+<style>
+    .no-scrollbar {
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* Internet Explorer and Edge */
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+        display: none; /* Chrome, Safari, and other WebKit browsers */
+    }
+</style>
