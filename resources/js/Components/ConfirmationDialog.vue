@@ -16,7 +16,8 @@ import Button from "@/Components/Button.vue";
                         {{ message.suffix }}
                     </span>
                 </div>
-                <div class="flex justify-end items-center gap-4 self-stretch">
+                <!-- <div class="flex justify-end items-center gap-4 self-stretch"> -->
+                <div class="grid grid-cols-2 justify-items-end items-center gap-4 self-stretch">
                     <Button
                         type="button"
                         variant="gray-outlined"

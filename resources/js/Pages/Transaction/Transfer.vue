@@ -160,7 +160,7 @@ const copyToClipboard = (text) => {
 </script>
 
 <template>
-    <AuthenticatedLayout :title="$t('public.sidebar_transfer')">
+    <AuthenticatedLayout :title="`${$t('public.transactions')}&nbsp;-&nbsp;${$t('public.sidebar_transfer')}`">
         <div class="flex flex-col justify-center items-center px-3 py-5 self-stretch rounded-lg bg-white shadow-card md:p-6 md:gap-6">
             <div class="flex flex-col pb-3 gap-3 items-center self-stretch md:flex-row md:gap-0 md:justify-between md:pb-0">
                 <span class="text-gray-950 font-semibold self-stretch">{{ $t('public.all_transfer') }}</span>

@@ -13,7 +13,7 @@ import {
     WithdrawalIcon,
     AgentIcon,
     MemberIcon,
-} from '@/Components/Icons/solid.jsx';
+} from '@/Components/Icons/outline.jsx';
 import { computed, ref, watchEffect } from "vue";
 import { trans } from "laravel-vue-i18n";
 import Vue3autocounter from 'vue3-autocounter';
@@ -163,7 +163,14 @@ const updateBalEquity = () => {
                     v-for="(item, index) in dataOverviews"
                     :key="index"
                 >
-                    <component :is="item.icon" class="w-9 h-9 grow-0 shrink-0 rounded-full" />
+                    <component :is="item.icon" class="w-9 h-9 grow-0 shrink-0" 
+                        :class="{
+                            'text-success-600' : item.icon == DepositIcon,
+                            'text-error-600' : item.icon == WithdrawalIcon,
+                            'text-orange' : item.icon == AgentIcon,
+                            'text-cyan' : item.icon == MemberIcon,
+                        }"
+                    />
                     <span class="self-stretch text-gray-700 text-center text-sm font-medium">{{ item.label }}</span>
                     <div class="self-stretch text-gray-950 text-center text-lg font-semibold md:text-xxl">
                         $&nbsp;<Vue3autocounter ref="counter" :startAmount="0" :endAmount="item.total" :duration="counterDuration" separator="," decimalSeparator="." :decimals="2" :autoinit="true" />

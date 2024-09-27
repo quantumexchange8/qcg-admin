@@ -133,9 +133,9 @@ const clearSearch = () => {
                         <div
                             class="rounded flex flex-col items-center md:max-w-[215px] shadow-card border-l-4 select-none cursor-pointer md:basis-1/3 xl:basis-1/4 bg-white"
                             :class="{
-                                'border-primary-600 hover:border-t hover:border-t-primary-600 hover:border-b hover:border-b-primary-600 hover:border-r hover:border-r-primary-600': upline.role === 'admin',
-                                'border-orange hover:border-t hover:border-t-orange hover:border-b hover:border-b-orange hover:border-r hover:border-r-orange': upline.role === 'member',
-                                'border-info-500 hover:border-t hover:border-t-info-500 hover:border-b hover:border-b-info-500 hover:border-r hover:border-r-info-500': upline.role === 'ib',
+                                'border-primary-600 hover:border-t hover:border-t-primary-600 hover:border-b hover:border-b-primary-600 hover:border-r hover:border-r-primary-600': upline.length === 0 || upline.level === 0,
+                                'border-orange hover:border-t hover:border-t-orange hover:border-b hover:border-b-orange hover:border-r hover:border-r-orange': upline.role === 'agent',
+                                'border-info-500 hover:border-t hover:border-t-info-500 hover:border-b hover:border-b-info-500 hover:border-r hover:border-r-info-500': upline.role === 'member',
                             }"
                         >
                             <div class="pt-3 pb-2 px-3 rounded-t flex flex-col items-center w-full self-stretch animate-pulse">
@@ -168,9 +168,9 @@ const clearSearch = () => {
                         <div
                             class="rounded flex flex-col items-center md:max-w-[215px] shadow-card border-l-4 select-none cursor-pointer md:basis-1/3 xl:basis-1/4 bg-white"
                             :class="{
-                                'border-primary-600 hover:border-t hover:border-t-primary-600 hover:border-b hover:border-b-primary-600 hover:border-r hover:border-r-primary-600': upline.role === 'admin',
-                                'border-orange hover:border-t hover:border-t-orange hover:border-b hover:border-b-orange hover:border-r hover:border-r-orange': upline.role === 'member',
-                                'border-info-500 hover:border-t hover:border-t-info-500 hover:border-b hover:border-b-info-500 hover:border-r hover:border-r-info-500': upline.role === 'ib',
+                                'border-orange hover:border-t hover:border-t-orange hover:border-b hover:border-b-orange hover:border-r hover:border-r-orange': upline.role === 'agent',
+                                'border-info-500 hover:border-t hover:border-t-info-500 hover:border-b hover:border-b-info-500 hover:border-r hover:border-r-info-500': upline.role === 'member',
+                                'border-primary-600 hover:border-t hover:border-t-primary-600 hover:border-b hover:border-b-primary-600 hover:border-r hover:border-r-primary-600': upline.length === 0 || upline.level === 0,
                             }"
                         >
                             <div class="pt-3 pb-2 px-3 rounded-t flex flex-col items-center w-full self-stretch">
@@ -187,7 +187,7 @@ const clearSearch = () => {
                                         <IconUserCircle size="20" />
                                     </div>
                                     <div class="text-sm text-gray-950 font-medium truncate">
-                                        {{ formatAmount(upline.total_agent_count, 0) }}
+                                        {{ formatAmount(upline.total_member_count, 0) }}
                                     </div>
                                 </div>
                                 <div class="flex gap-1 items-center w-1/2">
@@ -195,7 +195,7 @@ const clearSearch = () => {
                                         <IconUserCircle size="20" />
                                     </div>
                                     <div class="text-sm text-gray-950 font-medium truncate">
-                                        {{ formatAmount(upline.total_member_count, 0) }}
+                                        {{ formatAmount(upline.total_agent_count, 0) }}
                                     </div>
                                 </div>
                             </div>
@@ -216,8 +216,8 @@ const clearSearch = () => {
                             class="rounded flex flex-col items-center md:max-w-[215px] shadow-card border-l-4 select-none cursor-pointer md:basis-1/3 xl:basis-1/4 bg-white"
                             :class="{
                                 'border-primary-600 hover:border-t hover:border-t-primary-600 hover:border-b hover:border-b-primary-600 hover:border-r hover:border-r-primary-600': parent.length === 0 || parent.level === 0,
-                                'border-orange hover:border-t hover:border-t-orange hover:border-b hover:border-b-orange hover:border-r hover:border-r-orange': parent && parent.role === 'member',
-                                'border-info-500 hover:border-t hover:border-t-info-500 hover:border-b hover:border-b-info-500 hover:border-r hover:border-r-info-500': parent && parent.role === 'ib',
+                                'border-orange hover:border-t hover:border-t-orange hover:border-b hover:border-b-orange hover:border-r hover:border-r-orange': parent && parent.role === 'agent',
+                                'border-info-500 hover:border-t hover:border-t-info-500 hover:border-b hover:border-b-info-500 hover:border-r hover:border-r-info-500': parent && parent.role === 'member',
                             }"
                         >
                             <div class="pt-3 pb-2 px-3 rounded-t flex flex-col items-center w-full self-stretch animate-pulse">
@@ -263,9 +263,9 @@ const clearSearch = () => {
                         <div
                             class="rounded flex flex-col items-center md:max-w-[215px] shadow-card border-l-4 select-none cursor-pointer md:basis-1/3 xl:basis-1/4 bg-white"
                             :class="{
-                                'border-primary-600 hover:border-t hover:border-t-primary-600 hover:border-b hover:border-b-primary-600 hover:border-r hover:border-r-primary-600': parent.role === 'admin',
-                                'border-orange hover:border-t hover:border-t-orange hover:border-b hover:border-b-orange hover:border-r hover:border-r-orange': parent.role === 'member',
-                                'border-info-500 hover:border-t hover:border-t-info-500 hover:border-b hover:border-b-info-500 hover:border-r hover:border-r-info-500': parent.role === 'ib',
+                                'border-primary-600 hover:border-t hover:border-t-primary-600 hover:border-b hover:border-b-primary-600 hover:border-r hover:border-r-primary-600': parent.length === 0 || parent.level === 0,
+                                'border-orange hover:border-t hover:border-t-orange hover:border-b hover:border-b-orange hover:border-r hover:border-r-orange': parent.role === 'agent',
+                                'border-info-500 hover:border-t hover:border-t-info-500 hover:border-b hover:border-b-info-500 hover:border-r hover:border-r-info-500': parent.role === 'member',
                             }"
                         >
                             <div class="pt-3 pb-2 px-3 rounded-t flex flex-col items-center w-full self-stretch">
@@ -282,7 +282,7 @@ const clearSearch = () => {
                                         <IconUserCircle size="20" />
                                     </div>
                                     <div class="text-sm text-gray-950 font-medium truncate">
-                                        {{ formatAmount(parent.total_agent_count, 0) }}
+                                        {{ formatAmount(parent.total_member_count, 0) }}
                                     </div>
                                 </div>
                                 <div class="flex gap-1 items-center w-1/2">
@@ -290,7 +290,7 @@ const clearSearch = () => {
                                         <IconUserCircle size="20" />
                                     </div>
                                     <div class="text-sm text-gray-950 font-medium truncate">
-                                        {{ formatAmount(parent.total_member_count, 0) }}
+                                        {{ formatAmount(parent.total_agent_count, 0) }}
                                     </div>
                                 </div>
                             </div>
@@ -310,9 +310,9 @@ const clearSearch = () => {
                         <div
                             class="rounded flex flex-col items-center md:max-w-[215px] shadow-card border-l-4 select-none cursor-pointer md:basis-1/3 xl:basis-1/4 bg-white"
                             :class="{
-                                'border-primary-600 hover:border-t hover:border-t-primary-600 hover:border-b hover:border-b-primary-600 hover:border-r hover:border-r-primary-600': parent && parent.role === 'agent',
-                                'border-orange hover:border-t hover:border-t-orange hover:border-b hover:border-b-orange hover:border-r hover:border-r-orange': parent && parent.role === 'member',
-                                'border-info-500 hover:border-t hover:border-t-info-500 hover:border-b hover:border-b-info-500 hover:border-r hover:border-r-info-500': parent && parent.role === 'ib',
+                                // 'border-primary-600 hover:border-t hover:border-t-primary-600 hover:border-b hover:border-b-primary-600 hover:border-r hover:border-r-primary-600': parent && parent.role === 'member',
+                                'border-orange hover:border-t hover:border-t-orange hover:border-b hover:border-b-orange hover:border-r hover:border-r-orange': parent && parent.role === 'agent',
+                                'border-info-500 hover:border-t hover:border-t-info-500 hover:border-b hover:border-b-info-500 hover:border-r hover:border-r-info-500': parent && parent.role === 'member',
                             }"
                         >
                             <div class="pt-3 pb-2 px-3 rounded-t flex flex-col items-center w-full self-stretch animate-pulse">
@@ -347,9 +347,9 @@ const clearSearch = () => {
                             :key="downline.id"
                             class="rounded flex flex-col items-center md:max-w-[215px] shadow-card border-l-4 select-none cursor-pointer md:basis-1/3 xl:basis-1/4 bg-white"
                             :class="{
-                                'border-primary-600 hover:border-t hover:border-t-primary-600 hover:border-b hover:border-b-primary-600 hover:border-r hover:border-r-primary-600': downline.role === 'admin',
-                                'border-orange hover:border-t hover:border-t-orange hover:border-b hover:border-b-orange hover:border-r hover:border-r-orange': downline.role === 'member',
-                                'border-info-500 hover:border-t hover:border-t-info-500 hover:border-b hover:border-b-info-500 hover:border-r hover:border-r-info-500': downline.role === 'ib',
+                                // 'border-primary-600 hover:border-t hover:border-t-primary-600 hover:border-b hover:border-b-primary-600 hover:border-r hover:border-r-primary-600': downline.role === 'member',
+                                'border-orange hover:border-t hover:border-t-orange hover:border-b hover:border-b-orange hover:border-r hover:border-r-orange': downline.role === 'agent',
+                                'border-info-500 hover:border-t hover:border-t-info-500 hover:border-b hover:border-b-info-500 hover:border-r hover:border-r-info-500': downline.role === 'member',
                             }"
                             @click="selectDownline(downline.id)"
                         >
@@ -367,7 +367,7 @@ const clearSearch = () => {
                                         <IconUserCircle size="20" />
                                     </div>
                                     <div class="text-sm text-gray-950 font-medium truncate">
-                                        {{ formatAmount(downline.total_agent_count, 0) }}
+                                        {{ formatAmount(downline.total_member_count, 0) }}
                                     </div>
                                 </div>
                                 <div class="flex gap-1 items-center w-1/2">
@@ -375,7 +375,7 @@ const clearSearch = () => {
                                         <IconUserCircle size="20" />
                                     </div>
                                     <div class="text-sm text-gray-950 font-medium truncate">
-                                        {{ formatAmount(downline.total_member_count, 0) }}
+                                        {{ formatAmount(downline.total_agent_count, 0) }}
                                     </div>
                                 </div>
                             </div>

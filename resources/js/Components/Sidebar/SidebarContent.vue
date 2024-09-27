@@ -132,16 +132,28 @@ import {
             </template>
         </SidebarLink>
 
-        <!-- Team -->
+        <!-- Rebate Setting -->
         <SidebarLink
             :title="$t('public.rebate_setting')"
             :href="route('rebate_setting')"
             :active="route().current('rebate_setting')"
         >
             <template #icon>
+                <IconSettingsDollar :size="20" stroke-width="1.25" />
+            </template>
+        </SidebarLink>
+
+        <!-- Leaderboard -->
+        <SidebarLink
+            :title="$t('public.leaderboard')"
+            :href="route('leaderboard')"
+            :active="route().current('leaderboard')"
+        >
+            <template #icon>
                 <IconTrophy :size="20" stroke-width="1.25" />
             </template>
         </SidebarLink>
+
 
         <!-- Transaction -->
         <SidebarCollapsible

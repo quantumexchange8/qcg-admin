@@ -7,20 +7,23 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        Schema::create('group_has_users', function (Blueprint $table) {
+        Schema::create('teams', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('group_id');
-            $table->unsignedBigInteger('user_id');
+            $table->string('name');
+            $table->decimal('fee_charges');
+            $table->string('color');
+            $table->unsignedBigInteger('team_leader_id');
+            $table->unsignedBigInteger('edited_by');
             $table->softDeletes();
             $table->timestamps();
 
-            $table->foreign('group_id')
+            $table->foreign('team_leader_id')
                 ->references('id')
-                ->on('groups')
+                ->on('users')
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
 
-            $table->foreign('user_id')
+            $table->foreign('edited_by')
                 ->references('id')
                 ->on('users')
                 ->onUpdate('cascade')
@@ -30,6 +33,6 @@ return new class extends Migration {
 
     public function down(): void
     {
-        Schema::dropIfExists('group_has_users');
+        Schema::dropIfExists('teams');
     }
 };

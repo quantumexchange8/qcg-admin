@@ -7,11 +7,10 @@ export default {
 
             // Shape and Size
             'border-0',
-            'h-5',
-            'rounded-md',
+            'h-2',
 
             // Colors
-            'bg-surface-100 dark:bg-surface-800'
+            'bg-gray-100'
         ]
     },
     value: ({ props }) => ({
@@ -20,7 +19,7 @@ export default {
             { 'absolute flex items-center justify-center overflow-hidden': props.mode !== 'indeterminate' },
 
             // Colors
-            'bg-primary',
+            'bg-primary-600',
 
             // Spacing & Sizing
             'm-0',
@@ -51,7 +50,7 @@ export default {
             'inline-flex',
 
             // Font and Text
-            'text-white dark:text-surface-900',
+            'text-white',
             'leading-5'
         ]
     }

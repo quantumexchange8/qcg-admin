@@ -7,11 +7,13 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Session;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\MemberController;
+use App\Http\Controllers\RebateController;
 use App\Http\Controllers\GeneralController;
 use App\Http\Controllers\NetworkController;
 use App\Http\Controllers\PendingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\TradingAccountController;
 
@@ -33,6 +35,7 @@ Route::get('/', function () {
 Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(function () {
     Route::get('/getWalletData', [GeneralController::class, 'getWalletData'])->name('getWalletData');
     Route::get('/getTradingAccountData', [GeneralController::class, 'getTradingAccountData'])->name('getTradingAccountData');
+    Route::get('/getAgents', [GeneralController::class, 'getAgents'])->name('getAgents');    
 
 
     /**
@@ -113,9 +116,46 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
      * ==============================
      */
     Route::prefix('team')->group(function () {
-        Route::get('/team', [TeamController::class, 'index'])->name('team');
+        Route::get('/', [TeamController::class, 'index'])->name('team');
+        Route::get('/getTeams', [TeamController::class, 'getTeams'])->name('team.getTeams');
+
+        Route::post('/createTeam', [TeamController::class, 'createTeam'])->name('team.createTeam');
+        Route::post('/editTeam', [TeamController::class, 'editTeam'])->name('team.editTeam');
+        Route::delete('/deleteTeam', [TeamController::class, 'deleteTeam'])->name('team.deleteTeam');
     });
 
+    /**
+     * ==============================
+     *        Rebate Setting
+     * ==============================
+     */
+    Route::prefix('rebate')->group(function () {
+        Route::get('/', [RebateController::class, 'index'])->name('rebate_setting');
+        Route::get('/getCompanyProfileData', [RebateController::class, 'getCompanyProfileData'])->name('rebate.getCompanyProfileData');
+        Route::get('/getRebateStructureData', [RebateController::class, 'getRebateStructureData'])->name('rebate.getRebateStructureData');
+        Route::get('/getAgents', [RebateController::class, 'getAgents'])->name('rebate.getAgents');
+        Route::get('/changeAgents', [RebateController::class, 'changeAgents'])->name('rebate.changeAgents');
+
+        Route::post('/updateRebateAllocation', [RebateController::class, 'updateRebateAllocation'])->name('rebate.updateRebateAllocation');
+        Route::post('/updateRebateAmount', [RebateController::class, 'updateRebateAmount'])->name('rebate.updateRebateAmount');
+    });
+
+    /**
+     * ==============================
+     *          Leaderboard
+     * ==============================
+     */
+    Route::prefix('leaderboard')->group(function () {
+        Route::get('/', [LeaderboardController::class, 'index'])->name('leaderboard');
+        Route::get('/getIncentiveProfiles', [LeaderboardController::class, 'getIncentiveProfiles'])->name('leaderboard.getIncentiveProfiles');
+        Route::get('/getStatementData', [LeaderboardController::class, 'getStatementData'])->name('leaderboard.getStatementData');
+
+        Route::post('/createIncentiveProfile', [LeaderboardController::class, 'createIncentiveProfile'])->name('leaderboard.createIncentiveProfile');
+        Route::post('/editIncentiveProfile', [LeaderboardController::class, 'editIncentiveProfile'])->name('leaderboard.editIncentiveProfile');
+        Route::delete('/deleteIncentiveProfile', [LeaderboardController::class, 'deleteIncentiveProfile'])->name('leaderboard.deleteIncentiveProfile');
+
+
+    });
 
     /**
      * ==============================

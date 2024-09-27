@@ -75,18 +75,18 @@ class User extends Authenticatable
             ->toArray();
     }
 
-    public function assignedGroup($group_id): void
+    public function assignedTeam($team_id): void
     {
-        GroupHasUser::updateOrCreate(
+        TeamHasUser::updateOrCreate(
             ['user_id' => $this->id],
-            ['group_id' => $group_id]
+            ['team_id' => $team_id]
         );
     }
 
     // Relations
-    public function groupHasUser(): HasOne
+    public function teamHasUser(): HasOne
     {
-        return $this->hasOne(GroupHasUser::class, 'user_id');
+        return $this->hasOne(TeamHasUser::class, 'user_id');
     }
 
     public function directChildren(): HasMany

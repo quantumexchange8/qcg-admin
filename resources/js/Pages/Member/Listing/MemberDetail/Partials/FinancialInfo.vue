@@ -1,6 +1,6 @@
 <script setup>
 import {  } from '@tabler/icons-vue';
-import { DepositIcon, WithdrawalIcon } from '@/Components/Icons/solid';
+import { DepositIcon, WithdrawalIcon } from '@/Components/Icons/outline';
 import { computed, h, ref, watchEffect } from "vue";
 import Empty from '@/Components/Empty.vue';
 import { wTrans } from "laravel-vue-i18n";
@@ -67,12 +67,12 @@ const overviewData = computed(() =>  [
     {
         label: wTrans('public.total_deposit'),
         value: totalDeposit.value,
-        icon: h(DepositIcon),
+        icon: DepositIcon,
     },
     {
         label: wTrans('public.total_withdrawal'),
         value: totalWithdrawal.value,
-        icon: h(WithdrawalIcon),
+        icon: WithdrawalIcon,
     },
 ]);
 
@@ -92,7 +92,12 @@ watchEffect(() => {
                     v-for="overview in overviewData"
                     class="w-full flex flex-col justify-center items-center px-3 py-7 gap-4 rounded-lg bg-white shadow-card md:px-6"
                 >
-                    <component :is="overview.icon" class="w-9 h-9" />
+                    <component :is="overview.icon" class="w-9 h-9" 
+                        :class="{
+                            'text-success-600' : overview.icon == DepositIcon,
+                            'text-error-600' : overview.icon == WithdrawalIcon,
+                        }"
+                     />
                     <div class="self-stretch text-center text-gray-700 text-xs font-medium md:text-sm flex-wrap break-all w-full">{{ overview.label }}</div>
                     <div class="self-stretch text-center text-gray-950 font-semibold md:text-xl flex-wrap break-all w-full">$&nbsp;{{ formatAmount(overview.value) }}</div>
                 </div>

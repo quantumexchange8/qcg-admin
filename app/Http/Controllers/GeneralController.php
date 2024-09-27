@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Models\Wallet;
 use Illuminate\Http\Request;
 use App\Models\TradingAccount;
@@ -72,4 +73,23 @@ class GeneralController extends Controller
     
         return collect(['accountData' => $accountData]);
     }
+
+    public function getAgents()
+    {
+        $users = User::where('role', 'agent')
+            ->where('status', 1)
+            ->select('id', 'first_name')
+            ->get()
+            ->map(function ($user) {
+                return [
+                    'value' => $user->id,
+                    'name' => $user->first_name,
+                ];
+            });
+
+        return response()->json([
+            'users' => $users,
+        ]);
+    }
+
 }

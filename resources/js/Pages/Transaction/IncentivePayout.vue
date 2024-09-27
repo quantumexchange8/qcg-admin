@@ -162,7 +162,7 @@ const copyToClipboard = (text) => {
 </script>
 
 <template>
-    <AuthenticatedLayout :title="$t('public.sidebar_incentive_payout')">
+    <AuthenticatedLayout :title="`${$t('public.transactions')}&nbsp;-&nbsp;${$t('public.sidebar_incentive_payout')}`">
         <div class="flex flex-col justify-center items-center px-3 py-5 self-stretch rounded-lg bg-white shadow-card md:p-6 md:gap-6">
             <div class="flex flex-col pb-3 gap-3 items-center self-stretch md:flex-row md:gap-0 md:justify-between md:pb-0">
                 <span class="text-gray-950 font-semibold self-stretch">{{ $t('public.all_incentive_payout') }}</span>
@@ -330,7 +330,7 @@ const copyToClipboard = (text) => {
                     <span class="w-full truncate text-gray-950 text-sm font-medium">{{ data.from_meta_login }}</span>
                 </div>
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
-                    <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.traget') }}</span>
+                    <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.target') }}</span>
                     <span class="w-full truncate text-gray-950 text-sm font-medium">{{ data.from_meta_login }}</span>
                 </div>
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">

@@ -29,7 +29,7 @@ class TradingAccountController extends Controller
                 'value' => $accountType->id,
                 'name' => $accountType->name,
             ];
-    });
+        });
 
         return Inertia::render('Member/Account/AccountListing', [
             'accountTypes' => $accountTypes,
