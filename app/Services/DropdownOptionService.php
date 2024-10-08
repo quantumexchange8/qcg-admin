@@ -2,9 +2,11 @@
 
 namespace App\Services;
 
+use App\Models\Team;
 use App\Models\User;
 use App\Models\Group;
 use App\Models\Country;
+use App\Models\TeamHasUser;
 use App\Models\Transaction;
 use App\Models\GroupHasUser;
 use App\Models\SettingLeverage;
@@ -37,14 +39,14 @@ class DropdownOptionService
         });
     }
 
-    public function getGroups(): Collection
+    public function getTeams(): Collection
     {
-        return Group::get()
-            ->map(function ($group) {
+        return Team::get()
+            ->map(function ($team) {
                 return [
-                    'value' => $group->id,
-                    'name' => $group->name,
-                    'color' => $group->color,
+                    'value' => $team->id,
+                    'name' => $team->name,
+                    'color' => $team->color,
                 ];
             });
     }
@@ -65,10 +67,10 @@ class DropdownOptionService
 
     public function getAgents(): Collection
     {
-        $has_group = GroupHasUser::pluck('user_id');
+        $has_team = TeamHasUser::pluck('user_id');
 
         $users = User::where('role', 'agent')
-            ->whereNotIn('id', $has_group)
+            ->whereNotIn('id', $has_team)
             ->select('id', 'name')
             ->get()
             ->map(function ($user) {

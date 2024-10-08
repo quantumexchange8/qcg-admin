@@ -9,46 +9,44 @@ export default {
             'relative',
 
             // Shape
-            'rounded-md',
+            'rounded',
 
             // Color and Background
-            { 'bg-surface-0 dark:bg-surface-950': !props.disabled },
+            { 'bg-white': !props.disabled },
             'border',
-            { 'border-surface-300 dark:border-surface-600': !props.invalid },
+            { 'border-gray-300': !props.invalid },
 
             // Invalid State
-            'invalid:focus:ring-red-200',
-            'invalid:hover:border-red-500',
-            { 'border-red-500 dark:border-red-400': props.invalid },
+            // 'invalid:focus:ring-red-200',
+            // 'invalid:hover:border-red-500',
+            { 'border-error-500 focus:border-error-500': props.invalid },
 
             // Transitions
             'transition-all',
             'duration-200',
 
             // States
-            { 'hover:border-surface-400 dark:hover:border-surface-700': !props.invalid },
-            { 'outline-none outline-offset-0 z-10 ring-1 ring-primary-500 dark:ring-primary-400': state.focused },
-
-            // Misc
-            'cursor-pointer',
-            'select-none',
-            { 'bg-surface-200 dark:bg-surface-700 select-none pointer-events-none cursor-default': props.disabled }
+            { 'hover:border-primary-500': !props.invalid },
+            { 'outline-none outline-offset-0 ring-0 ring-primary-500 z-10': state.focused },
+            { 'shadow-focus': !props.invalid && state.focused },
+            { 'shadow-input': !props.invalid && !state.focused },
         ]
     }),
-    labelContainer: 'overflow-hidden flex flex-auto cursor-pointer',
+    labelContainer: 'relative overflow-hidden flex items-center flex-auto cursor-pointer rounded',
     label: ({ props }) => ({
         class: [
-            'text-base leading-2',
+            'caret-primary-500 text-sm',
 
             // Spacing
             {
-                'py-2 px-3': props.display === 'comma' || (props.display === 'chip' && !props?.modelValue?.length),
-                'py-1 px-1': props.display === 'chip' && props?.modelValue?.length > 0
+                'py-3 px-4': props.display === 'comma' || (props.display === 'chip' && !props?.modelValue?.length),
+                'py-1 px-1': props.display === 'chip' && props?.modelValue?.length > 0,
+                'py-2 px-3': props.display == null
             },
 
             // Color
-            { 'text-surface-800 dark:text-white/80': props.modelValue?.length, 'text-surface-400 dark:text-surface-500': !props.modelValue?.length },
-            'placeholder:text-surface-400 dark:placeholder:text-surface-500',
+            { 'text-gray-950': props.modelValue?.length, 'text-gray-400': !props.modelValue?.length },
+            'placeholder:text-gray-500',
 
             // Transitions
             'transition duration-200',
@@ -65,24 +63,24 @@ export default {
 
             // Color and Background
             'bg-transparent',
-            'text-surface-500',
+            'text-gray-500',
 
             // Size
-            'w-12',
+            'w-8',
 
             // Shape
-            'rounded-r-md'
+            'rounded'
         ]
     },
     overlay: {
         class: [
             // Colors
-            'bg-surface-0 dark:bg-surface-900',
-            'text-surface-700 dark:text-white/80',
+            'bg-white',
+            'text-gray-700',
 
             // Shape
-            'border border-surface-300 dark:border-surface-700',
-            'rounded-md',
+            'border border-gray-300',
+            'rounded',
             'shadow-md',
             'mt-[2px]'
         ]
@@ -93,21 +91,30 @@ export default {
             'flex items-center justify-between',
 
             // Spacing
-            'pt-2 px-4 pb-0 gap-2',
+            'py-3 px-4 gap-2',
             'm-0',
 
             //Shape
             'border-b-0',
-            'rounded-tl-md',
-            'rounded-tr-md',
+            'rounded',
 
             // Color
-            'text-surface-700 dark:text-white/80',
-            'bg-surface-0 dark:bg-surface-900',
-            'border-surface-300 dark:border-surface-700',
+            'text-gray-700',
+            'bg-white',
+            'border-gray-300',
 
-            '[&_[data-pc-name=pcfiltercontainer]]:!flex-auto',
             '[&_[data-pc-name=pcfilter]]:w-full'
+        ]
+    },
+    pcHeaderCheckbox: {
+        root: [
+            'relative cursor-pointer select-none',
+            'w-4',
+            'h-4'
+        ],
+        icon: [
+            'w-3 h-3',
+            'text-white',
         ]
     },
     listContainer: {
@@ -139,16 +146,16 @@ export default {
 
             // Colors
             {
-                'text-surface-700 dark:text-white/80': !context.focused && !context.selected,
-                'bg-surface-200 dark:bg-surface-600/60': context.focused && !context.selected,
-                'text-surface-700 dark:text-white/80': context.focused && !context.selected,
+                'text-gray-700': !context.focused && !context.selected,
+                'bg-gray-200': context.focused && !context.selected,
+                'text-gray-700': context.focused && !context.selected,
                 'bg-highlight': context.selected
             },
 
             //States
-            { 'hover:bg-surface-100 dark:hover:bg-[rgba(255,255,255,0.03)]': !context.focused && !context.selected },
+            { 'hover:bg-gray-100': !context.focused && !context.selected },
             { 'hover:bg-highlight-emphasis': context.selected },
-            { 'hover:text-surface-700 hover:bg-surface-100 dark:hover:text-white dark:hover:bg-[rgba(255,255,255,0.03)]': context.focused && !context.selected },
+            { 'hover:text-gray-700 hover:bg-gray-100': context.focused && !context.selected },
 
             // Transition
             'transition-shadow duration-200',
@@ -165,10 +172,21 @@ export default {
             'm-0 py-2 px-3',
 
             // Colors
-            'text-surface-400 dark:text-surface-500',
+            'text-gray-400',
 
             // Misc
             'cursor-auto'
+        ]
+    },
+    pcOptionCheckbox: {
+        root: [
+            'relative cursor-pointer select-none',
+            'w-4',
+            'h-4'
+        ],
+        icon: [
+            'w-3 h-3',
+            'text-white',
         ]
     },
     emptyMessage: {
@@ -180,12 +198,12 @@ export default {
             'py-2 px-3',
 
             // Color
-            'text-surface-800 dark:text-white/80',
+            'text-gray-800',
             'bg-transparent'
         ]
     },
     loadingIcon: {
-        class: 'text-surface-400 dark:text-surface-500 animate-spin'
+        class: 'text-gray-400 animate-spin'
     },
     transition: {
         enterFromClass: 'opacity-0 scale-y-[0.8]',

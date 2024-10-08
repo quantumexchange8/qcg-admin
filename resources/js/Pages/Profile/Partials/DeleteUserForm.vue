@@ -1,95 +1,95 @@
 <script setup>
-import DangerButton from '@/Components/DangerButton.vue';
+import { ref } from 'vue';
+import Button from "@/Components/Button.vue";
+import ConfirmDialog from 'primevue/confirmdialog';
+import { IconTrashX } from "@tabler/icons-vue";
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
-import Modal from '@/Components/Modal.vue';
-import SecondaryButton from '@/Components/SecondaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
+import Password from 'primevue/password';
 import { useForm } from '@inertiajs/vue3';
-import { nextTick, ref } from 'vue';
-
-const confirmingUserDeletion = ref(false);
-const passwordInput = ref(null);
 
 const form = useForm({
     password: '',
 });
 
-const confirmUserDeletion = () => {
-    confirmingUserDeletion.value = true;
+const visible = ref(false);
 
-    nextTick(() => passwordInput.value.focus());
+const openConfirmDialog = () => {
+    visible.value = true;
 };
 
-const deleteUser = () => {
+const handleDelete = () => {
     form.delete(route('profile.destroy'), {
-        preserveScroll: true,
-        onSuccess: () => closeModal(),
-        onError: () => passwordInput.value.focus(),
-        onFinish: () => form.reset(),
+        onSuccess: () => {
+            visible.value = false;
+            form.reset();
+        },
     });
-};
-
-const closeModal = () => {
-    confirmingUserDeletion.value = false;
-
-    form.reset();
 };
 </script>
 
 <template>
-    <section class="space-y-6">
-        <header>
-            <h2 class="text-lg font-medium text-gray-900">Delete Account</h2>
+    <div class="w-full h-full flex flex-col justify-between items-start p-3 gap-8 rounded-lg bg-white shadow-card md:p-6">
+        <div class="w-full flex flex-col justify-center items-start gap-1">
+            <span class="text-gray-950 font-bold">{{ $t('public.delete_account') }}</span>
+            <span class="text-gray-500 text-xs">{{ $t('public.delete_account_desc') }}</span>
+        </div>
 
-            <p class="mt-1 text-sm text-gray-600">
-                Once your account is deleted, all of its resources and data will be permanently deleted. Before deleting
-                your account, please download any data or information that you wish to retain.
-            </p>
-        </header>
+        <Button
+            type="button"
+            variant="error-flat"
+            size="base"
+            @click="openConfirmDialog"
+        >
+            {{ $t('public.delete_account') }}
+        </Button>
+    </div>
 
-        <DangerButton @click="confirmUserDeletion">Delete Account</DangerButton>
-
-        <Modal :show="confirmingUserDeletion" @close="closeModal">
-            <div class="p-6">
-                <h2 class="text-lg font-medium text-gray-900">
-                    Are you sure you want to delete your account?
-                </h2>
-
-                <p class="mt-1 text-sm text-gray-600">
-                    Once your account is deleted, all of its resources and data will be permanently deleted. Please
-                    enter your password to confirm you would like to permanently delete your account.
-                </p>
-
-                <div class="mt-6">
-                    <InputLabel for="password" value="Password" class="sr-only" />
-
-                    <TextInput
-                        id="password"
-                        ref="passwordInput"
-                        v-model="form.password"
-                        type="password"
-                        class="mt-1 block w-3/4"
-                        placeholder="Password"
-                        @keyup.enter="deleteUser"
-                    />
-
-                    <InputError :message="form.errors.password" class="mt-2" />
+    <ConfirmDialog
+        group="headless-error"
+        v-model:visible="visible"
+    >
+        <template #container>
+            <div class="flex flex-col justify-center items-center px-4 pt-[60px] pb-6 gap-8 bg-white rounded shadow-dialog w-[90vw] md:w-[500px] md:px-6">
+                <div class="flex flex-col items-center gap-2 self-stretch">
+                    <span class="self-stretch text-gray-950 text-center font-bold md:text-lg">{{ $t('public.delete_account') }}</span>
+                    <span class="self-stretch text-gray-700 text-center text-sm">{{ $t('public.delete_account_message') }}</span>
                 </div>
-
-                <div class="mt-6 flex justify-end">
-                    <SecondaryButton @click="closeModal"> Cancel </SecondaryButton>
-
-                    <DangerButton
-                        class="ms-3"
-                        :class="{ 'opacity-25': form.processing }"
-                        :disabled="form.processing"
-                        @click="deleteUser"
+                <div class="flex flex-col gap-1 w-full">
+                    <InputLabel for="current_password" :value="$t('public.current_password')" />
+                    <Password
+                        ref="currentPasswordInput"
+                        v-model="form.current_password"
+                        toggleMask
+                        placeholder="••••••••"
+                        :invalid="!!form.errors.current_password"
+                    />
+                    <InputError :message="form.errors.current_password" />
+                </div>
+                <div class="grid grid-cols-2 justify-items-end items-center gap-4 self-stretch">
+                    <Button
+                        type="button"
+                        variant="gray-outlined"
+                        @click="visible = false"
+                        class="w-full"
+                        size="base"
                     >
-                        Delete Account
-                    </DangerButton>
+                        {{ $t('public.cancel') }}
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="error-flat"
+                        @click="handleDelete"
+                        class="w-full text-nowrap"
+                        size="base"
+                    >
+                        {{ $t('public.delete') }}
+                    </Button>
+                </div>
+                <div class="flex w-[84px] h-[84px] p-6 justify-center items-center absolute -top-[42px] rounded-full grow-0 shrink-0 bg-error-600">
+                    <IconTrashX size="36" stroke-width="1.25" color="#FFFFFF" />
                 </div>
             </div>
-        </Modal>
-    </section>
+        </template>
+    </ConfirmDialog>
 </template>

@@ -3,11 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\PaymentAccount;
+use App\Services\DropdownOptionService;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -16,7 +20,7 @@ class ProfileController extends Controller
     /**
      * Display the user's profile form.
      */
-    public function edit(Request $request): Response
+    public function index(Request $request): Response
     {
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
@@ -29,15 +33,26 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
+
+            return redirect()->back()->with('toast', [
+                'title' => 'Invalid Action',
+                'type' => 'warning'
+            ]);
         }
 
-        $request->user()->save();
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+        ]);
 
-        return Redirect::route('profile.edit');
+        return redirect()->back()->with('toast', [
+            'title' => trans('public.toast_update_profile_success'),
+            'type' => 'success'
+        ]);
     }
 
     /**
@@ -51,6 +66,15 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
+        $user->paymentAccounts()->delete();
+        $user->tradingAccounts()->delete();
+        $user->tradingUsers()->delete();
+        $user->transactions()->delete();
+        $user->rebateAllocations()->delete();
+        $user->rebate_wallet()->delete();
+        $user->incentive_wallet()->delete();
+        $user->teamHasUser()->delete();
+
         Auth::logout();
 
         $user->delete();
@@ -60,4 +84,24 @@ class ProfileController extends Controller
 
         return Redirect::to('/');
     }
+
+    public function updateProfilePhoto(Request $request)
+    {
+        $user = $request->user();
+
+        if ($request->action == 'upload' && $request->hasFile('profile_photo')) {
+            $user->clearMediaCollection('profile_photo');
+            $user->addMedia($request->profile_photo)->toMediaCollection('profile_photo');
+        }
+
+        if ($request->action == 'remove') {
+            $user->clearMediaCollection('profile_photo');
+        }
+
+        return redirect()->back()->with('toast', [
+            'title' => trans('public.toast_update_profile_photo_success'),
+            'type' => 'success'
+        ]);
+    }
+
 }

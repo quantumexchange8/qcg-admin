@@ -115,7 +115,7 @@ const submitForm = () => {
                         <div class="flex flex-col items-start gap-2 self-stretch md:col-span-2">
                             <InputLabel
                                 for="color"
-                                :value="$t('public.color')"
+                                :value="$t('public.colour')"
                                 :invalid="!!form.errors.color"
                             />
 

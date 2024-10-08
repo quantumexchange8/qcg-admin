@@ -11,23 +11,23 @@ import Select from "primevue/select";
 import InputError from "@/Components/InputError.vue";
 import InputText from "primevue/inputtext";
 import { useForm } from "@inertiajs/vue3";
-import { generalFormat } from "@/Composables/index.js";
+import { generalFormat, transactionFormat } from "@/Composables/index.js";
 import { useConfirm } from "primevue/useconfirm";
 import { trans } from "laravel-vue-i18n";
 import { router } from "@inertiajs/vue3";
 
 const props = defineProps({
     userDetail: Object,
+    countries: Array,
 })
 
-const checked = ref(false)
 const visible = ref(false)
-const countries = ref()
+const countries = ref(props.countries)
 const selectedCountry = ref();
 const { formatRgbaColor } = generalFormat();
+const { formatAmount } = transactionFormat();
 
 watch(() => props.userDetail, (user) => {
-    checked.value = user.status === 'active';
     form.user_id = props.userDetail.id
     form.name = props.userDetail.name
     form.email = props.userDetail.email
@@ -51,17 +51,6 @@ const form = useForm({
     phone_number: '',
 });
 
-// const getResults = async () => {
-//     try {
-//         const response = await axios.get('/member/getFilterData');
-//         countries.value = response.data.countries;
-//     } catch (error) {
-//         console.error('Error changing locale:', error);
-//     }
-// };
-
-// getResults();
-
 const submitForm = () => {
     form.dial_code = selectedCountry.value;
 
@@ -69,68 +58,12 @@ const submitForm = () => {
         form.phone_number = selectedCountry.value.phone_code + form.phone;
     }
 
-    form.post(route('member.updateContactInfo'), {
+    form.post(route('member.updateMemberInfo'), {
         onSuccess: () => {
             visible.value = false;
         },
     });
 };
-
-const confirm = useConfirm();
-
-const requireConfirmation = (action_type) => {
-    const messages = {
-        activate_member: {
-            group: 'headless-gray',
-            header: trans('public.deactivate_member'),
-            text: trans('public.deactivate_member_caption'),
-            cancelButton: trans('public.cancel'),
-            acceptButton: trans('public.confirm'),
-            action: () => {
-                router.visit(route('member.updateMemberStatus', props.userDetail.id), {
-                    method: 'post',
-                    data: {
-                        id: props.userDetail.id,
-                    },
-                })
-
-                checked.value = !checked.value;
-            }
-        },
-        deactivate_member: {
-            group: 'headless-primary',
-            header: trans('public.activate_member'),
-            text: trans('public.activate_member_caption'),
-            cancelButton: trans('public.cancel'),
-            acceptButton: trans('public.confirm'),
-            action: () => {
-                router.visit(route('member.updateMemberStatus', props.userDetail.id), {
-                    method: 'post',
-                    data: {
-                        id: props.userDetail.id,
-                    },
-                })
-
-                checked.value = !checked.value;
-            }
-        },
-    };
-
-    const { group, header, text, dynamicText, suffix, actionType, cancelButton, acceptButton, action } = messages[action_type];
-
-    confirm.require({
-        group,
-        header,
-        actionType,
-        text,
-        dynamicText,
-        suffix,
-        cancelButton,
-        acceptButton,
-        accept: action
-    });
-};
-
 </script>
 
 <template>
@@ -185,19 +118,23 @@ const requireConfirmation = (action_type) => {
             </div>
             <div class="flex flex-col gap-2">
                 <div class="text-gray-500 truncate">{{ $t('public.sales_team') }}</div>
-                <div 
-                    v-if="userDetail.group_id" 
-                    class="flex items-center gap-2 rounded py-1 px-2"
-                    :style="{ backgroundColor: formatRgbaColor(userDetail.group_color, 0.1) }"
-                >
+                <div class="flex items-center">
                     <div 
-                        class="text-xs font-semibold"
-                        :style="{ color: `#${userDetail.group_color}` }"
+                        v-if="userDetail.team_id" 
+                        class="flex items-center gap-2 rounded py-1 px-2"
+                        :style="{ backgroundColor: formatRgbaColor(userDetail.team_color, 0.1) }"
                     >
-                        {{ userDetail.group_name }}
+                        <div class="flex items-center">
+                            <div 
+                                class="text-xs font-semibold"
+                                :style="{ color: `#${userDetail.team_color}` }"
+                            >
+                                {{ userDetail.team_name }}
+                            </div>
+                        </div>
                     </div>
+                    <div v-else>-</div>
                 </div>
-                <div v-else>-</div>
             </div>
             <div class="flex flex-col gap-2">
                 <div class="text-gray-500 truncate">{{ $t('public.upline') }}</div>
@@ -205,7 +142,7 @@ const requireConfirmation = (action_type) => {
             </div>
             <div class="flex flex-col gap-2">
                 <div class="text-gray-500 truncate">{{ $t('public.total_referee') }}</div>
-                <div class="truncate text-gray-700 font-medium">{{ userDetail.total_direct_member }}</div>
+                <div class="truncate text-gray-700 font-medium">{{ formatAmount(userDetail.total_direct_member + userDetail.total_direct_agent, 0) }}</div>
             </div>
         </div>
         <div v-else class="w-full grid grid-cols-2 gap-5 animate-pulse">
@@ -244,7 +181,7 @@ const requireConfirmation = (action_type) => {
         <form>
             <div class="flex flex-col gap-5 py-4 md:py-6">
                 <div class="flex flex-col gap-1">
-                    <InputLabel for="name" :value="$t('public.name')" />
+                    <InputLabel for="name" :value="$t('public.name')" :invalid="!!form.errors.name" />
                     <InputText
                         id="name"
                         type="text"
@@ -257,7 +194,7 @@ const requireConfirmation = (action_type) => {
                     <InputError :message="form.errors.name" />
                 </div>
                 <div class="flex flex-col gap-1">
-                    <InputLabel for="email" :value="$t('public.email_address')" />
+                    <InputLabel for="email" :value="$t('public.email_address')" :invalid="!!form.errors.email" />
                     <InputText
                         id="email"
                         type="email"
@@ -270,7 +207,7 @@ const requireConfirmation = (action_type) => {
                     <InputError :message="form.errors.email" />
                 </div>
                 <div class="flex flex-col gap-1 items-start self-stretch">
-                    <InputLabel for="phone" :value="$t('public.phone_number')" />
+                    <InputLabel for="phone" :value="$t('public.phone_number')" :invalid="!!form.errors.phone" />
                     <div class="flex gap-2 items-center self-stretch relative">
                         <Select
                             v-model="selectedCountry"
@@ -321,6 +258,7 @@ const requireConfirmation = (action_type) => {
                     {{ $t('public.cancel') }}
                 </Button>
                 <Button
+                    type="button"
                     variant="primary-flat"
                     class="w-full"
                     :disabled="form.processing"

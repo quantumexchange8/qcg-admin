@@ -78,7 +78,7 @@ const changeLanguage = async (langVal) => {
                 <IconTransferOut size="20" stroke-width="1.25" />
             </Link>
             <Link
-                class="w-12 h-12 p-2 items-center justify-center rounded-full outline-none hover:cursor-pointer hover:bg-gray-100 hidden md:block focus:bg-gray-100"
+                class="w-12 h-12 p-2 items-center justify-center rounded-full outline-none hover:cursor-pointer hover:bg-gray-100 focus:bg-gray-100"
                 :href="route('profile')"
             >
                 <ProfilePhoto class="w-8 h-8" />

@@ -17,7 +17,7 @@ import { trans, wTrans } from "laravel-vue-i18n";
 const { formatAmount, formatDate } = transactionFormat();
 
 const props = defineProps({
-    profile: Object,
+    team: Object,
 })
 
 const emit = defineEmits(['update:visible'])
@@ -28,21 +28,31 @@ const closeDialog = () => {
 
 const loading = ref(false);
 const dt = ref();
-const bonuses = ref()
-const totalBonusAmount = ref(0);
-
-// Reactive variable for selected date range
-const selectedDate = ref([]);
+const transactions = ref();
+const totalAmount = ref(0);
+const totalFee = ref(0);
+const totalBalance = ref(0);
 
 // Get current date
 const today = new Date();
+
+// Define minDate and maxDate
+const minDate = ref(new Date(today.getFullYear(), today.getMonth(), 1));
 const maxDate = ref(today);
+
+// Reactive variable for selected date range
+const selectedDate = ref([minDate.value, maxDate.value]);
+
+// Clear date selection
+const clearDate = () => {
+    selectedDate.value = [];
+};
 
 const getResults = async (dateRanges = null) => {
     loading.value = true;
 
     try {
-        let url = `/leaderboard/getStatementData?profile_id=${props.profile.id}`;
+        let url = `/team/getTeamTransaction?team_id=${props.team.id}`;
 
         if (dateRanges) {
             const [startDate, endDate] = dateRanges;
@@ -50,8 +60,10 @@ const getResults = async (dateRanges = null) => {
         }
 
         const response = await axios.get(url);
-        bonuses.value = response.data.bonuses;
-        totalBonusAmount.value = response.data.totalBonusAmount;
+        transactions.value = response.data.transactions;
+        totalAmount.value = response.data.totalAmount;
+        totalFee.value = response.data.totalFee;
+        totalBalance.value = response.data.totalBalance;
     } catch (error) {
         console.error('Error changing locale:', error);
     } finally {
@@ -77,20 +89,16 @@ watch(selectedDate, (newDateRange) => {
     }
 })
 
-const clearDate = () => {
-    selectedDate.value = [];
-};
-
 const exportCSV = () => {
     const dtComponent = dt.value;
 
     // Manually specify the fields to include in the CSV export
     const exportFields = [
         { field: 'created_at', header: wTrans('public.date') },
-        { field: 'target_amount', header: wTrans('public.target') },
-        { field: 'achieved_amount', header: wTrans('public.achieved') },
-        { field: 'incentive_rate', header: wTrans('public.rate') },
-        { field: 'incentive_amount', header: `${wTrans('public.amount')} ($)` },
+        { field: 'name', header: wTrans('public.name') },
+        { field: 'amount', header: `${wTrans('public.amount')}&nbsp;($)` },
+        { field: 'transaction_charges', header: `${wTrans('public.fee')}&nbsp;($)` },
+        { field: 'transaction_amount', header: `${wTrans('public.balance')}&nbsp;($)` },
     ];
 
     dtComponent.exportCSV({
@@ -102,7 +110,7 @@ const exportCSV = () => {
 <template>
     <div class="w-full flex flex-col justify-center items-center pt-4 gap-4 self-stretch md:pt-6 md:gap-8">
         <DataTable
-            :value="bonuses"
+            :value="transactions"
             removableSort
             scrollable
             scrollHeight="400px"
@@ -143,10 +151,6 @@ const exportCSV = () => {
                             {{ $t('public.export') }}
                         </Button>
                     </div>
-                    <div v-if="bonuses?.length > 0" class="flex items-center gap-3 self-stretch md:hidden">
-                        <span class="text-gray-500 text-sm font-normal">{{ $t('public.total') }}:</span>
-                        <span class="text-gray-950 font-semibold">$&nbsp;{{ formatAmount(totalBonusAmount) }}</span>
-                    </div>
                 </div>
             </template>
             <template #empty><Empty :title="$t('public.empty_pending_request_title')" :message="$t('public.empty_pending_request_message')" /></template>
@@ -156,63 +160,81 @@ const exportCSV = () => {
                     <span class="text-sm text-gray-700">{{ $t('public.loading') }}</span>
                 </div>
             </template>
-            <template v-if="bonuses?.length > 0">
+            <template v-if="transactions?.length > 0">
             <!-- <template> -->
+                <Column field="name" :header="$t('public.name')" sortable style="width: 20%" class="hidden md:table-cell">
+                    <template #body="slotProps">
+                        <div class="flex flex-col items-start max-w-full">
+                            <div class="font-semibold truncate max-w-full">
+                                {{ slotProps.data.name }}
+                            </div>
+                            <div class="text-gray-500 text-xs truncate max-w-full">
+                                {{ slotProps.data.email }}
+                            </div>
+                        </div>
+                    </template>
+                </Column>
                 <Column field="created_at" :header="$t('public.date')" sortable style="width: 20%" class="hidden md:table-cell">
                     <template #body="slotProps">
                         {{ dayjs(slotProps.data.created_at).format('YYYY/MM/DD') }}
                     </template>
                 </Column>
-                <Column field="target_amount" :header="`${$t('public.target')}&nbsp;(${profile.sales_category === 'trade_volume' ? 'Ł' : '$'})`" style="width: 20%" class="hidden md:table-cell">
+                <Column field="amount" :header="`${$t('public.amount')}&nbsp;($)`" sortable style="width: 20%" class="hidden md:table-cell">
                     <template #body="slotProps">
-                        {{ formatAmount(slotProps.data.target_amount) }}
+                        {{ formatAmount(slotProps.data.amount) }}
                     </template>
                 </Column>
-                <Column field="achieved_amount" :header="`${$t('public.achieved')}&nbsp;(${profile.sales_category === 'trade_volume' ? 'Ł' : '$'})`" style="width: 20%" class="hidden md:table-cell">
+                <Column field="transaction_charges" :header="`${$t('public.fee')}&nbsp;($)`" sortable style="width: 20%" class="hidden md:table-cell">
                     <template #body="slotProps">
-                        {{ formatAmount(slotProps.data.achieved_amount) }}
+                        {{ formatAmount(slotProps.data.transaction_charges) }}
                     </template>
                 </Column>
-                <Column field="incentive_rate" :header="`${$t('public.rate')}&nbsp;(${profile.sales_category === 'trade_volume' ? '$' : '%'})`" style="width: 20%" class="hidden md:table-cell">
+                <Column field="transaction_amount" :header="`${$t('public.balance')}&nbsp;($)`" sortable style="width: 20%" class="hidden md:table-cell w-full max-w-0 truncate">
                     <template #body="slotProps">
-                        {{ formatAmount(slotProps.data.incentive_rate) }}
-                    </template>
-                </Column>
-                <Column field="incentive_amount" :header="`${$t('public.incentive')}&nbsp;($)`" sortable style="width: 20%" class="hidden md:table-cell">
-                    <template #body="slotProps">
-                        {{ formatAmount(slotProps.data.incentive_amount) }}
+                        <span :class="{
+                                'text-success-600': ['deposit', 'balance_in'].includes(slotProps.data.transaction_type),
+                                'text-error-600': ['withdrawal', 'balance_out', 'rebate_out'].includes(slotProps.data.transaction_type)
+                            }"
+                        >
+                            {{ formatAmount(slotProps.data.transaction_amount) }}
+                        </span>
                     </template>
                 </Column>
                 <ColumnGroup type="footer">
                     <Row>
-                        <Column class="hidden md:table-cell" :footer="$t('public.total') + ' ($) :'" :colspan="4" footerStyle="text-align:right" />
-                        <Column class="hidden md:table-cell" :footer="formatAmount(totalBonusAmount ? totalBonusAmount : 0)" />
+                        <Column class="hidden md:table-cell" :footer="$t('public.total') + ' ($) :'" :colspan="2" footerStyle="text-align:right" />
+                        <Column class="hidden md:table-cell" :footer="formatAmount(totalAmount ? totalAmount : 0)" />
+                        <Column class="hidden md:table-cell" :footer="formatAmount(totalFee ? totalFee : 0)" />
+                        <Column class="hidden md:table-cell" :footer="formatAmount(totalBalance ? totalBalance : 0)" />
                     </Row>
                 </ColumnGroup>
-                <Column style="width: 50%" class="md:hidden" headerClass="hidden">
+                <Column class="w-1/2 max-w-0 md:hidden" headerClass="hidden">
                     <template #body="slotProps">
-                        <div class="flex flex-col items-start gap-1 self-stretch">
-                            <span class="self-stretch text-gray-950 font-semibold">{{ dayjs(slotProps.data.created_at).format('YYYY/MM/DD') }}</span>
-                            <div class="flex items-center gap-1 text-gray-700 text-xs">
-                                <div>
-                                    <span v-if="profile.sales_category !== 'trade_volume'">$&nbsp;</span>{{ formatAmount(slotProps.data.achieved_amount) }}<span v-if="profile.sales_category === 'trade_volume'">&nbsp;Ł</span>
-                                </div>
-                                <span class="text-gray-500">|</span>
-                                <div>
-                                    <span v-if="profile.sales_category !== 'trade_volume'">$&nbsp;</span>{{ formatAmount(slotProps.data.target_amount) }}<span v-if="profile.sales_category === 'trade_volume'">&nbsp;Ł</span>
-                                </div>
+                        <div class="max-w-full truncate flex flex-col items-start gap-1 self-stretch">
+                            <span class="max-w-full truncate  self-stretch text-base text-gray-950 font-semibold">{{ slotProps.data.name }}</span>
+                            <div class="max-w-full truncate text-gray-500 text-xs">
+                                {{ dayjs(slotProps.data.created_at).format('YYYY/MM/DD') }}
                             </div>
                         </div>
                     </template>
                 </Column>
-                <Column style="width: 50%" class="md:hidden" headerClass="hidden">
+                <Column class="w-1/2 max-w-0 md:hidden" headerClass="hidden">
                     <template #body="slotProps">
-                        <div class="flex flex-col items-end gap-1">
-                            <span class="self-stretch text-gray-950 text-right font-semibold">$&nbsp;{{ formatAmount(slotProps.data.incentive_amount) }}</span>
-                            <div class="flex justify-end items-center gap-1 self-stretch text-xs">
-                                <span class="text-gray-700">{{ $t('public.rate') }}:</span>
-                                <div class="text-gray-500 text-right">
-                                    <span v-if="profile.sales_category === 'trade_volume'">$&nbsp;</span>{{ formatAmount(slotProps.data.incentive_rate) }}<span v-if="profile.sales_category !== 'trade_volume'">&nbsp;%</span>
+                        <div class="max-w-full truncate flex flex-col items-end gap-1">
+                            <span 
+                                class="max-w-full truncate self-stretch text-base text-right font-semibold"
+                                :class="{
+                                    'text-gray-950': !['deposit', 'balance_in', 'withdrawal', 'balance_out', 'rebate_out'].includes(slotProps.data.transaction_type),
+                                    'text-success-600': ['deposit', 'balance_in'].includes(slotProps.data.transaction_type),
+                                    'text-error-600': ['withdrawal', 'balance_out', 'rebate_out'].includes(slotProps.data.transaction_type)
+                                }"
+                            >
+                                $&nbsp;{{ formatAmount(slotProps.data.transaction_amount) }}
+                            </span>
+                            <div v-if="slotProps.data.transaction_charges" class="max-w-full truncate flex justify-end items-center gap-1 self-stretch text-xs">
+                                <span class="max-w-full truncate text-gray-500">{{ $t('public.fee') }}:</span>
+                                <div class="max-w-full truncate text-gray-700 text-right">
+                                    $&nbsp;{{ formatAmount(slotProps.data.transaction_charges) }}
                                 </div>
                             </div>
                         </div>

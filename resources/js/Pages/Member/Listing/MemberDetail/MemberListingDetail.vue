@@ -20,7 +20,10 @@ import FinancialInfo from "@/Pages/Member/Listing/MemberDetail/Partials/Financia
 import AdjustmentHistory from "@/Pages/Member/Listing/MemberDetail/Partials/AdjustmentHistory.vue";
 
 const props = defineProps({
-    user: Object
+    user: Object,
+    teams: Array,
+    countries: Array,
+    uplines: Array,
 })
 
 const userDetail = ref();
@@ -99,12 +102,13 @@ function updateType(event) {
                     :size="16"
                     stroke-width="1.25"
                 />
-                <div class="flex px-4 py-2 text-gray-700 items-center justify-center rounded text-sm font-medium text-center">{{ user.name }} - {{ $t('public.view_details') }}</div>
+                <div class="flex px-4 py-2 text-gray-700 items-center justify-center rounded text-sm font-medium text-center">{{ userDetail?.name }} - {{ $t('public.view_details') }}</div>
             </div>
 
             <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-5">
                 <ProfileInfo
                     :userDetail="userDetail"
+                    :countries="props.countries"
                 />
                 <div class="flex flex-col w-full gap-5 self-stretch">
                     <CryptoWalletInfo

@@ -1,5 +1,6 @@
 <script setup>
-import { ref } from "vue";
+import { ref, watchEffect } from "vue";
+import { usePage } from "@inertiajs/vue3";
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
 import { transactionFormat } from "@/Composables/index.js";
@@ -11,81 +12,29 @@ const props = defineProps({
     user_id: Number
 })
 
-// const adjustmentHistories = ref([
-//   {
-//     created_at: "2024-09-10T14:48:00.000Z",
-//     transaction_type: "rebate_in",
-//     to_meta_login: "80001345",
-//     from_meta_login: null,
-//     transaction_amount: 150.0,
-//     amount: 150.0,
-//     remarks: "Rebate adjustment",
-//   },
-//   {
-//     created_at: "2024-09-11T10:20:00.000Z",
-//     transaction_type: "rebate_out",
-//     to_meta_login: null,
-//     from_meta_login: "80001345",
-//     transaction_amount: 100.0,
-//     amount: 100.0,
-//     remarks: "Rebate adjustment",
-//   },
-//   {
-//     created_at: "2024-09-12T10:13:00.000Z",
-//     transaction_type: "balance_in",
-//     to_meta_login: '8005414',
-//     from_meta_login: null,
-//     transaction_amount: 120.0,
-//     amount: 120.0,
-//     remarks: "Balance adjustment",
-//   },
-//   {
-//     created_at: "2024-09-12T10:16:00.000Z",
-//     transaction_type: "balance_out",
-//     to_meta_login: null,
-//     from_meta_login: "8005414",
-//     transaction_amount: 200.0,
-//     amount: 200.0,
-//     remarks: "Balance adjustment",
-//   },
-//   {
-//     created_at: "2024-09-13T10:08:00.000Z",
-//     transaction_type: "credit_in",
-//     to_meta_login: '8004477',
-//     from_meta_login: null,
-//     transaction_amount: 350.0,
-//     amount: 350.0,
-//     remarks: "Credit adjustment",
-//   },
-//   {
-//     created_at: "2024-09-14T10:12:00.000Z",
-//     transaction_type: "credit_out",
-//     to_meta_login: null,
-//     from_meta_login: "8004477",
-//     transaction_amount: 250.0,
-//     amount: 250.0,
-//     remarks: "Credit adjustment",
-//   },
-// ]);
-
 const adjustmentHistories = ref([]);
 const { formatAmount } = transactionFormat();
 const loading = ref(false);
 
-// const getAdjustmentHistoryData = async () => {
-//     loading.value = true;
+const getAdjustmentHistoryData = async () => {
+    loading.value = true;
 
-//     try {
-//         const response = await axios.get(`/member/getAdjustmentHistoryData?id=${props.user_id}`);
-//         adjustmentHistories.value = response.data;
-//     } catch (error) {
-//         console.error('Error fetching adjustment history data:', error);
-//     } finally {
-//         loading.value = false;
-//     }
-// }
+    try {
+        const response = await axios.get(`/member/getAdjustmentHistoryData?id=${props.user_id}`);
+        adjustmentHistories.value = response.data;
+    } catch (error) {
+        console.error('Error fetching adjustment history data:', error);
+    } finally {
+        loading.value = false;
+    }
+}
+getAdjustmentHistoryData();
 
-// getAdjustmentHistoryData();
+watchEffect(() => {
+    if (usePage().props.toast !== null) {
+        getAdjustmentHistoryData();
+    }
+});
 
 // Toggle expand state on click
 const toggleExpand = (index) => {
@@ -107,6 +56,7 @@ const toggleExpand = (index) => {
             :loading="loading"
             selectionMode="single"
             class="hidden md:block"
+            tableClass="min-h-[350px]"
             scrollable
             scrollHeight="350px"
         >
@@ -118,7 +68,7 @@ const toggleExpand = (index) => {
             <template #loading>
                 <div class="flex flex-col gap-2 items-center justify-center">
                     <Loader />
-                    <span class="text-sm text-gray-700">{{ $t('public.loading_users_caption') }}</span>
+                    <span class="text-sm text-gray-700">{{ $t('public.loading') }}</span>
                 </div>
             </template>
             <Column field="created_at" sortable style="width: 20%" headerClass="hidden md:table-cell">
@@ -160,7 +110,7 @@ const toggleExpand = (index) => {
                     <span class="hidden md:block">{{ $t('public.remarks') }}</span>
                 </template>
                 <template #body="slotProps">
-                    {{ $t(`public.${slotProps.data.remarks}`) }}
+                    {{ slotProps.data.remarks }}
                 </template>
             </Column>
         </DataTable>

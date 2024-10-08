@@ -9,7 +9,7 @@ const props = defineProps({
 </script>
 
 <template>
-  <div class="w-full grid grid-cols-1 place-items-center py-5 px-6 gap-5 self-stretch overflow-auto">
+  <div class="w-full h-full grid grid-cols-1 place-items-center py-5 px-6 gap-5 self-stretch overflow-auto">
     <!-- Slot for custom image or content with fallback -->
     <template v-if="$slots.image">
       <slot name="image"></slot>
@@ -18,7 +18,7 @@ const props = defineProps({
       <EmptyRecordIcon class="w-60 h-[180px]" />
     </template>
 
-    <div class="flex flex-col items-center gap-2 self-stretch">
+    <div class="flex flex-col justify-center items-center gap-2 self-stretch">
       <!-- Slot for custom title -->
       <slot name="title">
         <div v-if="title" class="self-stretch text-gray-700 text-center font-bold">

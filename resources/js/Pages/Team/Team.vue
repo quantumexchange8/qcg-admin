@@ -11,15 +11,13 @@ import {
 } from '@/Components/Icons/outline.jsx';
 import Button from '@/Components/Button.vue';
 import Calendar from 'primevue/calendar';
-// import DefaultProfilePhoto from '@/Components/DefaultProfilePhoto.vue';
-// import NewGroup from '@/Pages/Group/Partials/NewGroup.vue';
-// import GroupMenu from '@/Pages/Group/Partials/GroupMenu.vue';
 import Vue3Autocounter from 'vue3-autocounter';
 import Empty from '@/Components/Empty.vue';
 import { usePage } from '@inertiajs/vue3';
 import { wTrans, trans } from "laravel-vue-i18n";
 import DatePicker from 'primevue/datepicker';
 import CreateTeam from '@/Pages/Team/Partials/CreateTeam.vue';
+import SettlementReport from '@/Pages/Team/Partials/SettlementReport.vue'
 import TeamAction from '@/Pages/Team/Partials/TeamAction.vue';
 
 defineProps({
@@ -130,47 +128,57 @@ watchEffect(() => {
     }
 });
 
-// const refreshingGroup = reactive({});
+const refreshingTeam = reactive({});
 
-// const refreshGroup = async (groupId) => {
-//     try {
-//         refreshingGroup[groupId] = true;
-//         let response;
-//         const [startDate, endDate] = selectedDate.value;
+const refreshTeam = async (teamId) => {
+    try {
+        refreshingTeam[teamId] = true;
+        let response;
 
-//         let url = `/group/refreshGroup`;
+        // Destructure selectedDate safely
+        const [startDate, endDate] = selectedDate.value.length ? selectedDate.value : [null, null];
 
-//         if (selectedDate.value) {
-//             url += `?startDate=${formatDate(startDate)}&endDate=${formatDate(endDate)}`;
-//         }
+        let url = `/team/refreshTeam`;
 
-//         if (groupId) {
-//             url += `&group_id=${groupId}`;
-//         }
+        // If dates are available, construct the URL with dates
+        if (startDate && endDate) {
+            url += `?startDate=${formatDate(startDate)}&endDate=${formatDate(endDate)}`;
+        } else if (startDate || endDate) {
+            // If one date is available, use it for both start and end
+            const dateToUse = startDate || endDate;
+            url += `?startDate=${formatDate(dateToUse)}&endDate=${formatDate(dateToUse)}`;
+        }
 
-//         response = await axios.get(url);
-//         const refreshedGroup = response.data.refreshed_group;
+        // Add teamId to the URL if it exists
+        if (teamId) {
+            url += `${selectedDate.value.length > 0 ? '&' : '?'}team_id=${teamId}`;
+        }
 
-//         // Find the index of the group to be replaced
-//         const groupIndex = groups.value.findIndex(group => group.id === refreshedGroup.id);
+        // Make the API call
+        response = await axios.get(url);
+        const refreshedTeam = response.data.refreshed_team;
 
-//         if (groupIndex !== -1) {
-//             // Replace the group data with the refreshed group data
-//             groups.value[groupIndex] = refreshedGroup;
-//         }
+        // Find the index of the team to be replaced
+        const teamIndex = teams.value.findIndex(team => team.id === refreshedTeam.id);
 
-//         total.value = response.data.total;
-//         totalNetBalance.value = total.value.total_net_balance;
-//         totalDeposit.value = total.value.total_deposit;
-//         totalWithdrawal.value = total.value.total_withdrawal;
-//         totalFeeCharges.value = total.value.total_charges;
-//         counterDuration.value = 1;
-//     } catch (error) {
-//         console.error('Error fetching group:', error);
-//     } finally {
-//         refreshingGroup[groupId] = false;
-//     }
-// }
+        if (teamIndex !== -1) {
+            // Replace the team data with the refreshed team data
+            teams.value[teamIndex] = refreshedTeam;
+        }
+
+        // Update totals from the response
+        total.value = response.data.total;
+        totalNetBalance.value = total.value.total_net_balance;
+        totalDeposit.value = total.value.total_deposit;
+        totalWithdrawal.value = total.value.total_withdrawal;
+        totalFeeCharges.value = total.value.total_charges;
+        counterDuration.value = 1;
+    } catch (error) {
+        console.error('Error fetching team:', error);
+    } finally {
+        refreshingTeam[teamId] = false; // Indicate that the refresh is complete
+    }
+}
 </script>
 
 <template>
@@ -225,6 +233,7 @@ watchEffect(() => {
                     </div>
 
                     <div class="flex flex-col items-center gap-3 self-stretch md:flex-row md:gap-5">
+                        <SettlementReport />
                         <CreateTeam />
                     </div>
                  </div>
@@ -253,8 +262,8 @@ watchEffect(() => {
                                     </span>
                                 </div>
                             </div>
-                            <div class="flex flex-col items-center p-4 gap-3 self-stretch">
-                                <div class="flex items-center pb-3 gap-3 self-stretch border-b border-gray-200 truncate">
+                            <div class="flex flex-col items-center px-4 pb-4 gap-3 self-stretch">
+                                <div class="flex items-center py-3 gap-3 self-stretch border-b border-gray-200 truncate">
                                     <div class="w-full flex flex-col gap-1 justify-center items-start truncate animate-pulse">
                                         <span class="self-stretch truncate text-gray-950 font-semibold">
                                             <div class="h-3 bg-gray-200 rounded-full w-20"></div>
@@ -332,8 +341,8 @@ watchEffect(() => {
                                     <span class="text-right font-medium">{{ formatAmount(team.member_count, 0) }}</span>
                                 </div>
                             </div>
-                            <div class="flex flex-col items-center p-4 gap-3 self-stretch">
-                                <div class="flex items-center pb-3 gap-3 self-stretch border-b border-gray-200 truncate">
+                            <div class="flex flex-col items-center px-4 pb-4 gap-3 self-stretch">
+                                <div class="flex items-center py-3 gap-3 self-stretch border-b border-gray-200 truncate">
                                     <div class="w-full flex flex-col justify-center items-start truncate">
                                         <span class="self-stretch truncate text-gray-950 font-semibold">{{ team.leader_name }}</span>
                                         <span class="self-stretch truncate text-gray-500 text-sm">{{ team.leader_email }}</span>
@@ -344,10 +353,11 @@ watchEffect(() => {
                                         type="button"
                                         iconOnly
                                         pill
+                                        @click="refreshTeam(team.id)"
                                     >
-                                        <!-- <div :class="{ 'animate-spin': refreshingGroup[group.id] }"> -->
+                                        <div :class="{ 'animate-spin': refreshingTeam[team.id] }">
                                             <IconRefresh size="16" stroke-width="1.25" />
-                                        <!-- </div> -->
+                                        </div>
                                     </Button>
                                     <TeamAction :team="team" />
                                 </div>
@@ -383,277 +393,6 @@ watchEffect(() => {
                 </template>
 
             </div>
-
-            <!-- <div class="w-full py-6 px-4 md:p-6 flex flex-col items-center gap-6 self-stretch rounded-2xl border border-solid border-gray-200 bg-white shadow-table">
-                <div class="flex flex-col items-center gap-3 self-stretch md:flex-row md:justify-between">
-                    <div class="relative w-full md:w-[272px]">
-                        <Calendar
-                            v-model="selectedDate"
-                            selectionMode="range"
-                            :manualInput="false"
-                            :maxDate="maxDate"
-                            dateFormat="dd/mm/yy"
-                            showIcon
-                            iconDisplay="input"
-                            placeholder="yyyy/mm/dd - yyyy/mm/dd"
-                            class="w-full md:w-[272px]"
-                        />
-                        <div
-                            v-if="selectedDate && selectedDate.length > 0"
-                            class="absolute top-2/4 -mt-2.5 right-4 text-gray-400 select-none cursor-pointer bg-white"
-                            @click="clearDate"
-                        >
-                            <IconX size="20" />
-                        </div>
-                    </div>
-                    <div class="flex flex-col-reverse md:flex-row gap-3 items-center self-stretch">
-                        <SettlementReport />
-                        <NewGroup />
-                    </div>
-                </div>
-
-                <template v-if="groupCount === 0 && !groups.length">
-                    <Empty :title="$t('public.no_group_header')" :message="$t('public.no_group_caption')" />
-                </template>
-
-                <template v-else>
-                    <div
-                        v-if="isLoading"
-                        class="flex flex-col items-center self-stretch"
-                    >
-                        <div
-                            class="py-2 px-4 flex items-center gap-3 self-stretch bg-primary-300"
-                        >
-                            <div class="flex-1 text-white font-semibold animate-pulse">
-                                <div class="h-2.5 bg-primary-200 rounded-full w-40 my-1"></div>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <IconUserFilled size="16" stroke-width="1.25" color="white" />
-                                <div class="text-white text-right text-sm font-medium animate-pulse">
-                                    <div class="h-2 bg-primary-200 rounded-full w-8 my-1.5"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="p-4 flex flex-col items-center gap-2 self-stretch">
-                            <div class="min-w-[240px] pb-3 flex items-center gap-3 self-stretch border-b border-solid border-gray-200">
-                                <div class="flex items-center gap-3 flex-1">
-                                    <div class="w-7 h-7 rounded-full overflow-hidden">
-                                        <DefaultProfilePhoto />
-                                    </div>
-                                    <div class="flex flex-col items-start flex-1">
-                                        <div class="max-w-40 self-stretch overflow-hidden whitespace-nowrap text-gray-950 text-ellipsis text-sm font-medium md:max-w-[500px] xl:max-w-3xl">
-                                            <div class="h-2.5 bg-gray-200 rounded-full w-28 my-1"></div>
-                                        </div>
-                                        <div class="max-w-40 self-stretch overflow-hidden whitespace-nowrap text-gray-500 text-ellipsis text-xs md:max-w-[500px] xl:max-w-3xl">
-                                            <div class="h-2 bg-gray-200 rounded-full w-36 my-1.5"></div>
-                                        </div>
-                                    </div>
-                                    <Button
-                                        variant="gray-text"
-                                        size="sm"
-                                        type="button"
-                                        iconOnly
-                                        pill
-                                    >
-                                        <IconRefresh size="16" stroke-width="1.25" color="#667085" />
-                                    </Button>
-                                    <Button
-                                        variant="gray-text"
-                                        size="sm"
-                                        type="button"
-                                        iconOnly
-                                        pill
-                                    >
-                                        <IconDotsVertical size="16" stroke-width="1.25" color="#667085" />
-                                    </Button>
-                                </div>
-                            </div>
-                            <div class="py-3 grid grid-cols-2 items-start content-start gap-y-3 gap-x-5 self-stretch flex-wrap md:grid-cols-3 md:gap-2 xl:grid-cols-6">
-                                <div class="min-w-[100px] flex flex-col items-start gap-1 flex-1 md:min-w-[160px] xl:min-w-max">
-                                    <div class="text-gray-500 text-xs">
-                                        {{ $t('public.deposit') }} ($)
-                                    </div>
-                                    <div class="text-gray-950 font-semibold animate-pulse">
-                                        <div class="h-2.5 bg-gray-200 rounded-full w-40 my-1"></div>
-                                    </div>
-                                </div>
-                                <div class="min-w-[100px] flex flex-col items-start gap-1 flex-1 md:min-w-[160px] xl:min-w-max">
-                                    <div class="text-gray-500 text-xs">
-                                        {{ $t('public.withdrawal') }} ($)
-                                    </div>
-                                    <div class="text-gray-950 font-semibold animate-pulse">
-                                        <div class="h-2.5 bg-gray-200 rounded-full w-40 my-1"></div>
-                                    </div>
-                                </div>
-                                <div class="min-w-[100px] flex flex-col items-start gap-1 flex-1 md:min-w-[160px] xl:min-w-max">
-                                    <div class="text-gray-500 text-xs">
-                                        {{ $t('public.fee_charge') }} ($)
-                                    </div>
-                                    <div class="text-gray-950 font-semibold animate-pulse">
-                                        <div class="h-2.5 bg-gray-200 rounded-full w-40 my-1"></div>
-                                    </div>
-                                </div>
-                                <div class="min-w-[100px] flex flex-col items-start gap-1 flex-1 md:min-w-[160px] xl:min-w-max">
-                                    <div class="text-gray-500 text-xs">
-                                        {{ $t('public.net_balance') }} ($)
-                                    </div>
-                                    <div class="text-gray-950 font-semibold animate-pulse">
-                                        <div class="h-2.5 bg-gray-200 rounded-full w-40 my-1"></div>
-                                    </div>
-                                </div>
-                                <div class="min-w-[100px] flex flex-col items-start gap-1 flex-1 md:min-w-[160px] xl:min-w-max">
-                                    <div class="text-gray-500 text-xs">
-                                        {{ $t('public.account_balance') }} ($)
-                                    </div>
-                                    <div class="text-gray-950 font-semibold animate-pulse">
-                                        <div class="h-2.5 bg-gray-200 rounded-full w-40 my-1"></div>
-                                    </div>
-                                </div>
-                                <div class="min-w-[100px] flex flex-col items-start gap-1 flex-1 md:min-w-[160px] xl:min-w-max">
-                                    <div class="text-gray-500 text-xs">
-                                        {{ $t('public.account_equity') }} ($)
-                                    </div>
-                                    <div class="text-gray-950 font-semibold animate-pulse">
-                                        <div class="h-2.5 bg-gray-200 rounded-full w-40 my-1"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div v-else class="w-full">
-                        <div
-                            v-for="(group, index) in groups"
-                            :key="index"
-                            class="flex flex-col items-center self-stretch"
-                        >
-                            <div
-                                class="py-2 px-4 flex items-center gap-3 self-stretch"
-                                :style="{'backgroundColor': `#${group.color}`}"
-                            >
-                                <div class="flex-1 text-white font-semibold">
-                                    {{ group.name }}
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <IconUserFilled size="16" stroke-width="1.25" color="white" />
-                                    <div class="text-white text-right text-sm font-medium">
-                                        {{ formatAmount(group.member_count, 0) }}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="p-4 flex flex-col items-center gap-2 self-stretch">
-                                <div class="min-w-[240px] pb-3 flex items-center gap-3 self-stretch border-b border-solid border-gray-200">
-                                    <div class="flex items-center gap-3 flex-1">
-                                        <div class="w-7 h-7 rounded-full overflow-hidden">
-                                            <template v-if="group.profile_photo">
-                                                <img :src="group.profile_photo" alt="group_leader_profile_photo">
-                                            </template>
-                                            <template v-else>
-                                                <DefaultProfilePhoto />
-                                            </template>
-                                        </div>
-                                        <div class="flex flex-col items-start flex-1">
-                                            <div class="max-w-40 self-stretch overflow-hidden whitespace-nowrap text-gray-950 text-ellipsis text-sm font-medium md:max-w-[500px] xl:max-w-3xl">
-                                                {{ group.leader_name }}
-                                            </div>
-                                            <div class="max-w-40 self-stretch overflow-hidden whitespace-nowrap text-gray-500 text-ellipsis text-xs md:max-w-[500px] xl:max-w-3xl">
-                                                {{ group.leader_email }}
-                                            </div>
-                                        </div>
-                                        <Button
-                                            variant="gray-text"
-                                            size="sm"
-                                            type="button"
-                                            iconOnly
-                                            pill
-                                            @click="refreshGroup(group.id)"
-                                        >
-                                            <div :class="{ 'animate-spin': refreshingGroup[group.id] }">
-                                                <IconRefresh size="16" stroke-width="1.25" color="#667085" />
-                                            </div>
-                                        </Button>
-                                        <GroupMenu :group="group" :date="selectedDate" />
-                                    </div>
-                                </div>
-                                <div class="py-3 grid grid-cols-2 items-start content-start gap-y-3 gap-x-5 self-stretch flex-wrap md:grid-cols-3 md:gap-2 xl:grid-cols-6">
-                                    <div class="min-w-[100px] flex flex-col items-start gap-1 flex-1 md:min-w-[160px] xl:min-w-max">
-                                        <div class="text-gray-500 text-xs">
-                                            {{ $t('public.deposit') }} ($)
-                                        </div>
-                                        <div
-                                            class="text-gray-950 font-semibold"
-                                            :class="{'animate-pulse': refreshingGroup[group.id] }"
-                                        >
-                                            <div v-if="refreshingGroup[group.id]" class="h-2.5 bg-gray-200 rounded-full w-40 my-1"></div>
-                                            <span v-else>{{ formatAmount(group.deposit) }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="min-w-[100px] flex flex-col items-start gap-1 flex-1 md:min-w-[160px] xl:min-w-max">
-                                        <div class="text-gray-500 text-xs">
-                                            {{ $t('public.withdrawal') }} ($)
-                                        </div>
-                                        <div
-                                            class="text-gray-950 font-semibold"
-                                            :class="{'animate-pulse': refreshingGroup[group.id] }"
-                                        >
-                                            <div v-if="refreshingGroup[group.id]" class="h-2.5 bg-gray-200 rounded-full w-40 my-1"></div>
-                                            <span v-else>{{ formatAmount(group.withdrawal) }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="min-w-[100px] flex flex-col items-start gap-1 flex-1 md:min-w-[160px] xl:min-w-max">
-                                        <div class="text-gray-500 text-xs">
-                                            {{ group.fee_charge }}% {{ $t('public.fee_charge') }} ($)
-                                        </div>
-                                        <div
-                                            class="text-gray-950 font-semibold"
-                                            :class="{'animate-pulse': refreshingGroup[group.id] }"
-                                        >
-                                            <div v-if="refreshingGroup[group.id]" class="h-2.5 bg-gray-200 rounded-full w-40 my-1"></div>
-                                            <span v-else>{{ formatAmount(group.transaction_fee_charge) }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="min-w-[100px] flex flex-col items-start gap-1 flex-1 md:min-w-[160px] xl:min-w-max">
-                                        <div class="text-gray-500 text-xs">
-                                            {{ $t('public.net_balance') }} ($)
-                                        </div>
-                                        <div
-                                            class="text-gray-950 font-semibold"
-                                            :class="{'animate-pulse': refreshingGroup[group.id] }"
-                                        >
-                                            <div v-if="refreshingGroup[group.id]" class="h-2.5 bg-gray-200 rounded-full w-40 my-1"></div>
-                                            <span v-else>{{ formatAmount(group.net_balance) }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="min-w-[100px] flex flex-col items-start gap-1 flex-1 md:min-w-[160px] xl:min-w-max">
-                                        <div class="text-gray-500 text-xs">
-                                            {{ $t('public.account_balance') }} ($)
-                                        </div>
-                                        <div
-                                            class="text-gray-950 font-semibold"
-                                            :class="{'animate-pulse': refreshingGroup[group.id] }"
-                                        >
-                                            <div v-if="refreshingGroup[group.id]" class="h-2.5 bg-gray-200 rounded-full w-40 my-1"></div>
-                                            <span v-else>{{ formatAmount(group.account_balance) }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="min-w-[100px] flex flex-col items-start gap-1 flex-1 md:min-w-[160px] xl:min-w-max">
-                                        <div class="text-gray-500 text-xs">
-                                            {{ $t('public.account_equity') }} ($)
-                                        </div>
-                                        <div
-                                            class="text-gray-950 font-semibold"
-                                            :class="{'animate-pulse': refreshingGroup[group.id] }"
-                                        >
-                                            <div v-if="refreshingGroup[group.id]" class="h-2.5 bg-gray-200 rounded-full w-40 my-1"></div>
-                                            <span v-else>{{ formatAmount(group.account_equity) }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </template>
-            </div> -->
         </div>
     </AuthenticatedLayout>
 </template>

@@ -173,7 +173,7 @@ const submitForm = () => {
 
             <!-- trading account -->
             <div v-if="props.type !== 'rebate' && !props.account" class="flex flex-col items-start gap-2 self-stretch">
-                <InputLabel for="trading_account" :value="$t('public.trading_account')" />
+                <InputLabel for="trading_account" :value="$t('public.trading_account')" :invalid="!!form.errors.meta_login" />
                 <Select
                     v-model="selectedAccount"
                     :options="accountData"
@@ -189,7 +189,7 @@ const submitForm = () => {
             </div>
             <!-- action -->
             <div class="flex flex-col items-start gap-2 self-stretch">
-                <InputLabel for="action" :value="$t('public.action')" />
+                <InputLabel for="action" :value="$t('public.action')" :invalid="!!form.errors.action" />
                 <div class="flex items-center gap-4 md:gap-5">
                     <div
                         v-for="(action, index) in radioOptions"
@@ -211,7 +211,7 @@ const submitForm = () => {
 
             <!-- amount -->
             <div class="flex flex-col items-start gap-2 self-stretch">
-                <InputLabel for="amount" :value="$t('public.amount')" />
+                <InputLabel for="amount" :value="$t('public.amount')" :invalid="!!form.errors.amount" />
                 <InputNumber
                     v-model="form.amount"
                     inputId="currency-us"
@@ -230,7 +230,7 @@ const submitForm = () => {
 
             <!-- remarks -->
             <div class="flex flex-col items-start gap-2 self-stretch">
-                <InputLabel for="remarks">{{ `${$t('public.remarks')}&nbsp;(${$t('public.optional')})` }}</InputLabel>
+                <InputLabel for="remarks" :invalid="!!form.errors.remarks">{{ `${$t('public.remarks')}&nbsp;(${$t('public.optional')})` }}</InputLabel>
                 <div class="flex items-center content-center gap-3 self-stretch flex-wrap">
                     <div v-for="(chip, index) in chips" :key="index">
                         <Chip

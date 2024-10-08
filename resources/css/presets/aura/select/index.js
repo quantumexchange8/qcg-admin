@@ -37,7 +37,8 @@ export default {
             // Misc
             'cursor-pointer',
             'select-none',
-            { 'bg-gray-100 select-none pointer-events-none cursor-default': props.disabled }
+            { 'bg-gray-100 select-none pointer-events-none cursor-default': props.disabled },
+
         ]
     }),
     label: ({ props, parent }) => ({

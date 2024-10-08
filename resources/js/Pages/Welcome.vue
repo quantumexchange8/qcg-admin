@@ -21,8 +21,10 @@ import TabPanels from 'primevue/tabpanels';
 import TabPanel from 'primevue/tabpanel';
 import toast from '@/Composables/toast';
 import DatePicker from 'primevue/datepicker';
+import MultiSelect from 'primevue/multiselect';
 
 const selectedCity = ref();
+const selectedCities = ref();
 const cities = ref([
     { name: 'New York', code: 'NY' },
     { name: 'Rome', code: 'RM' },
@@ -241,7 +243,9 @@ const dates = ref();
         </Tabs>
     </div> -->
 
-    <DatePicker v-model="dates" selectionMode="range" showIcon iconDisplay="input" />
+    <!-- <DatePicker v-model="dates" selectionMode="range" showIcon iconDisplay="input" /> -->
+
+    <MultiSelect v-model="selectedCities" :options="cities" optionLabel="name" filter placeholder="Select Cities" :maxSelectedLabels="3" class="w-full md:w-80" />
 
     </AuthenticatedLayout>
 </template>

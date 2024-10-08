@@ -45,7 +45,7 @@ const submit = () => {
             <form @submit.prevent="submit" class="flex flex-col items-center gap-6 self-stretch rounded-xl">
                 <div class="flex flex-col items-start gap-5 self-stretch">
                     <div class="flex flex-col items-start gap-2 self-stretch">
-                        <InputLabel for="email">{{ $t('public.email') }}</InputLabel>
+                        <InputLabel for="email" :invalid="!!form.errors.email">{{ $t('public.email') }}</InputLabel>
 
                         <InputText
                             id="email"
@@ -61,7 +61,7 @@ const submit = () => {
                         <InputError :message="form.errors.email" />
                     </div>
                     <div class="flex flex-col items-start gap-2 self-stretch">
-                        <InputLabel for="password">{{ $t('public.password') }}</InputLabel>
+                        <InputLabel for="password" :invalid="!!form.errors.password">{{ $t('public.password') }}</InputLabel>
 
                         <Password
                             id="password"

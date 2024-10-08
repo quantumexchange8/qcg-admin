@@ -109,9 +109,9 @@ class User extends Authenticatable
         return $this->hasOne(Wallet::class, 'user_id', 'id')->where('type', 'rebate_wallet');
     }
 
-    public function bonus_wallet(): HasOne
+    public function incentive_wallet(): HasOne
     {
-        return $this->hasOne(Wallet::class, 'user_id', 'id')->where('type', 'bonus_wallet');
+        return $this->hasOne(Wallet::class, 'user_id', 'id')->where('type', 'incentive_wallet');
     }
 
     public function tradingAccounts(): HasMany

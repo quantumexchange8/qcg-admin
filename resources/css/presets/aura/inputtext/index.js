@@ -15,7 +15,8 @@ export default {
             {
                 'py-3 px-3.5': props.size == 'large',
                 'py-1.5 px-2': props.size == 'small',
-                'py-3 px-4': props.size == null
+                'py-3 px-4': props.size == null,
+                'py-3 px-10': props.size == 'search',
             },
 
             // Shape

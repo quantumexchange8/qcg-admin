@@ -18,12 +18,16 @@ class PasswordController extends Controller
         $validated = $request->validate([
             'current_password' => ['required', 'current_password'],
             'password' => ['required', Password::defaults(), 'confirmed'],
+            'password_confirmation' => ['required', 'same:password'],
         ]);
 
         $request->user()->update([
             'password' => Hash::make($validated['password']),
         ]);
 
-        return back();
+        return redirect()->back()->with('toast', [
+            'title' => trans('public.toast_reset_password_success'),
+            'type' => 'success'
+        ]);
     }
 }

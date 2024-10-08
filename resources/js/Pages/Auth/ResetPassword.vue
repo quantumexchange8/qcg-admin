@@ -58,7 +58,7 @@ const goToLoginPage = () => {
             <div class="flex flex-col items-center gap-6 self-stretch">
                 <form @submit.prevent="submit" class="flex flex-col items-start gap-5 self-stretch">
                     <div class="flex flex-col items-start gap-1 self-stretch">
-                        <InputLabel for="password" :value="$t('public.password')" />
+                        <InputLabel for="password" :value="$t('public.password')" :invalid="!!form.errors.password" />
 
                         <Password
                             id="password"
@@ -77,7 +77,7 @@ const goToLoginPage = () => {
                     </div>
 
                     <div class="flex flex-col items-start gap-1 self-stretch">
-                        <InputLabel for="password_confirmation" :value="$t('public.confirm_password')" />
+                        <InputLabel for="password_confirmation" :value="$t('public.confirm_password')" :invalid="!!form.errors.password_confirmation" />
 
                         <Password
                             id="password_confirmation"

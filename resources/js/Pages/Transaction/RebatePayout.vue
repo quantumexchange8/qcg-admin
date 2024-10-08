@@ -18,6 +18,8 @@ import { transactionFormat } from "@/Composables/index.js";
 import dayjs from "dayjs";
 import { trans, wTrans } from "laravel-vue-i18n";
 import StatusBadge from '@/Components/StatusBadge.vue';
+import DatePicker from 'primevue/datepicker';
+
 const { formatAmount } = transactionFormat();
 
 const props = defineProps({
@@ -28,77 +30,121 @@ const visible = ref(false);
 const loading = ref(false);
 const dt = ref(null);
 const transactions = ref();
-// Dummy data for transactions
-transactions.value = [
-    {
-        name: "John Doe",
-        email: "john@example.com",
-        created_at: dayjs().subtract(1, 'day').toString(),
-        id_number: "ID12345",
-        meta_login: "MetaLogin001",
-        transaction_amount: 1500.00,
-        status: "successful",
-        deleted_at: dayjs().subtract(1, 'day').toString(),
-        from_wallet_address: 'test1from',
-        to_wallet_address: 'test1to',
-        remarks: 'test1'
-    },
-    {
-        name: "Jane Smith",
-        email: "jane@example.com",
-        created_at: dayjs().subtract(3, 'days').toString(),
-        id_number: "ID67890",
-        meta_login: "MetaLogin002",
-        transaction_amount: 2500.50,
-        status: "processing",
-        deleted_at: dayjs().subtract(3, 'days').toString(),
-        from_wallet_address: 'test2from',
-        to_wallet_address: 'test2to',
-        remarks: 'test2'
-    },
-    {
-        name: "Michael Johnson",
-        email: "michael@example.com",
-        created_at: dayjs().subtract(7, 'days').toString(),
-        id_number: "ID11111",
-        meta_login: "MetaLogin003",
-        transaction_amount: 3200.75,
-        status: "failed",
-        deleted_at: dayjs().subtract(7, 'days').toString(),
-        from_wallet_address: 'test3from',
-        to_wallet_address: 'test3to',
-        remarks: 'test3'
-    }
-];
+const totalAmount = ref();
 
 const accountType = ref();
 const filteredValueCount = ref(0);
 
 // Define the account type options
-const accountTypeOption = ref(props.accountTypes);
+const accountTypeOption = ref();
 
-// const getResults = async () => {
-//     loading.value = true;
+const getAccountTypesWithSlugs = async () => {
+    try {
+        const response = await axios.get('/getAccountTypesWithSlugs');
+        accountTypeOption.value = response.data.accountTypes;
 
-//     try {
-//         const response = await axios.get('/member/getAccountListingData?type=all');
-//         transactions.value = response.data.transactions;
+    } catch (error) {
+        console.error('Error account types:', error);
+    }
+};
 
-//     } catch (error) {
-//     console.error('Error In Fetch Data:', error);
-//         } finally {
-//         loading.value = false;
-//     }
+getAccountTypesWithSlugs()
 
-// };
+// Get current date
+const today = new Date();
 
-// getResults();
+// Define minDate and maxDate
+const minDate = ref(new Date(today.getFullYear(), today.getMonth(), 1));
+const maxDate = ref(today);
+
+// Reactive variable for selected date range
+const selectedDate = ref([minDate.value, maxDate.value]);
+
+// Clear date selection
+const clearDate = () => {
+    selectedDate.value = [];
+};
+
+const getResults = async (dateRanges = null) => {
+    loading.value = true;
+
+    try {
+        let url = `/transaction/getRebatePayoutData`;
+
+        if (dateRanges) {
+            const [startDate, endDate] = dateRanges;
+            url += `?startDate=${dayjs(startDate).format('YYYY-MM-DD')}&endDate=${dayjs(endDate).format('YYYY-MM-DD')}`;
+        }
+
+        const response = await axios.get(url);
+        transactions.value = response.data.transactions
+        totalAmount.value = response.data.totalAmount;
+    } catch (error) {
+        console.error('Error fetching rebate payout data:', error);
+        transactions.value = [];
+        totalAmount.value = 0;
+    } finally {
+        loading.value = false;
+    }
+};
+
+getResults(selectedDate.value)
+
+watch(selectedDate, (newDateRange) => {
+    if (Array.isArray(newDateRange)) {
+        const [startDate, endDate] = newDateRange;
+
+        if (startDate && endDate) {
+            getResults([startDate, endDate]);
+        } else if (startDate || endDate) {
+            getResults([startDate || endDate, endDate || startDate]);
+        } else {
+            getResults();
+        }
+    } else {
+        console.warn('Invalid date range format:', newDateRange);
+    }
+});
+
 
 const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
     name: { value: null, matchMode: FilterMatchMode.CONTAINS },
     email: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    account_type: { value: null, matchMode: FilterMatchMode.CONTAINS },
 });
+
+const recalculateTotals = () => {
+    const globalFilterValue = filters.value.global?.value?.toLowerCase();
+
+    const filtered = transactions.value.filter(transaction => {
+        const matchesGlobalFilter = globalFilterValue 
+            ? [
+                transaction.name,
+                transaction.email,
+            ].some(field => {
+                // Convert field to string and check if it includes the global filter value
+                const fieldValue = field !== undefined && field !== null ? field.toString() : '';
+                return fieldValue.toLowerCase().includes(globalFilterValue);
+            }) 
+            : true; // If no global filter is set, match all
+
+        // Apply individual field filters (name, email, status)
+        const matchesNameFilter = !filters.value.name?.value || transaction.name.startsWith(filters.value.name.value);
+        const matchesEmailFilter = !filters.value.email?.value || transaction.email.startsWith(filters.value.email.value);
+        const matchesTransactionTypeFilter = !filters.value.account_type?.value || transaction.account_type.startsWith(filters.value.account_type.value);
+
+        // Only return transactions that match both global and specific filters
+        return matchesGlobalFilter && matchesNameFilter && matchesEmailFilter && matchesTransactionTypeFilter;
+    });
+
+    // Calculate the total for successful transactions
+    totalAmount.value = filtered.reduce((acc, item) => acc + parseFloat(item.rebate || 0), 0);
+};
+
+watch(filters, () => {
+    recalculateTotals();
+}, { deep: true });
 
 const clearFilterGlobal = () => {
     filters.value['global'].value = null;
@@ -109,9 +155,9 @@ const clearFilter = () => {
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
         name: { value: null, matchMode: FilterMatchMode.CONTAINS },
         email: { value: null, matchMode: FilterMatchMode.CONTAINS },
+        account_type: { value: null, matchMode: FilterMatchMode.CONTAINS },
     };
-
-    accountType.value = null;
+    selectedDate.value = [minDate.value, maxDate.value];
 };
 
 watchEffect(() => {
@@ -165,13 +211,13 @@ const copyToClipboard = (text) => {
     <AuthenticatedLayout :title="`${$t('public.transactions')}&nbsp;-&nbsp;${$t('public.sidebar_rebate_payout')}`">
         <div class="flex flex-col justify-center items-center px-3 py-5 self-stretch rounded-lg bg-white shadow-card md:p-6 md:gap-6">
             <div class="flex flex-col pb-3 gap-3 items-center self-stretch md:flex-row md:gap-0 md:justify-between md:pb-0">
-                <span class="text-gray-950 font-semibold self-stretch">{{ $t('public.all_rebate_payout') }}</span>
+                <span class="text-gray-950 font-semibold self-stretch md:self-auto">{{ $t('public.all_rebate_payout') }}</span>
                 <div class="flex flex-col gap-3 items-center self-stretch md:flex-row md:gap-5">
                     <div class="relative w-full md:w-60">
                         <div class="absolute top-2/4 -mt-[9px] left-4 text-gray-500">
                             <IconSearch size="20" stroke-width="1.25" />
                         </div>
-                        <InputText v-model="filters['global'].value" :placeholder="$t('public.keyword_search')" class="font-normal pl-12 w-full md:w-60" />
+                        <InputText v-model="filters['global'].value" :placeholder="$t('public.keyword_search')" size="search" class="font-normal w-full md:w-60" />
                         <div
                             v-if="filters['global'].value !== null"
                             class="absolute top-2/4 -mt-2 right-4 text-gray-300 hover:text-gray-400 select-none cursor-pointer"
@@ -195,7 +241,7 @@ const copyToClipboard = (text) => {
                 :rowsPerPageOptions="[10, 20, 50, 100]"
                 paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
                 :currentPageReportTemplate="$t('public.paginator_caption')"
-                :globalFilterFields="['name', 'email', 'transaction_amount']"
+                :globalFilterFields="['name', 'email']"
                 ref="dt"
                 :loading="loading"
                 selectionMode="single"
@@ -205,24 +251,33 @@ const copyToClipboard = (text) => {
                 <template #header>
                     <div class="flex flex-col justify-between items-center pb-5 gap-3 self-stretch md:flex-row md:pb-6">
                         <div class="flex flex-col items-center gap-3 self-stretch md:flex-row md:gap-5">
-                            <!-- <Select
-                                v-model="accountType"
-                                :options="accountTypes"
-                                filter
-                                :filterFields="['name']"
-                                optionLabel="name"
-                                optionValue="value"
-                                :placeholder="$t('public.filter_by_account_type')"
-                                class="w-full md:w-60"
-                                scroll-height="236px"
-                            /> -->
+                            <div class="relative w-full md:w-60">
+                                <DatePicker 
+                                    v-model="selectedDate"
+                                    selectionMode="range"
+                                    :manualInput="false"
+                                    :maxDate="maxDate"
+                                    dateFormat="dd/mm/yy"
+                                    showIcon
+                                    iconDisplay="input"
+                                    :placeholder="$t('public.select_date')"
+                                    class="font-normal w-full md:w-60"
+                                />
+                                <div
+                                    v-if="selectedDate && selectedDate.length > 0"
+                                    class="absolute top-[11px] right-3 flex justify-center items-center text-gray-400 select-none cursor-pointer bg-white w-6 h-6 "
+                                    @click="clearDate"
+                                >
+                                    <IconCircleXFilled size="20" />
+                                </div>
+                            </div>
                             <Select
-                                v-model="accountType"
+                                v-model="filters['account_type'].value"
                                 :options="accountTypeOption"
                                 optionLabel="name"
                                 optionValue="value"
                                 :placeholder="$t('public.filter_by_account_type')"
-                                class="w-full md:w-60"
+                                class="w-full md:w-60 font-normal"
                                 scroll-height="236px"
                             />
                         </div>
@@ -247,11 +302,11 @@ const copyToClipboard = (text) => {
                 <template #loading>
                     <div class="flex flex-col gap-2 items-center justify-center">
                         <Loader />
-                        <span class="text-sm text-gray-700">{{ $t('public.loading_transactions_caption') }}</span>
+                        <span class="text-sm text-gray-700">{{ $t('public.loading') }}</span>
                     </div>
                 </template>
                 <template v-if="transactions?.length > 0 && filteredValueCount > 0">
-                    <Column field="name" sortable :header="$t('public.name')" class="w-1/2 md:w-[20%] max-w-0">
+                    <Column field="name" sortable :header="$t('public.name')" class="w-1/2 md:w-[20%] max-w-0 px-3">
                         <template #body="slotProps">
                             <div class="flex flex-col items-start max-w-full">
                                 <div class="font-semibold truncate max-w-full">
@@ -263,40 +318,40 @@ const copyToClipboard = (text) => {
                             </div>
                         </template>
                     </Column>
-                    <Column field="created_at" :header="$t('public.date')" sortable class="hidden md:table-cell w-full md:w-[20%] max-w-0">
+                    <Column field="execute_at" :header="$t('public.date')" sortable class="hidden md:table-cell w-full md:w-[20%] max-w-0">
                         <template #body="slotProps">
                             <div class="text-gray-950 text-sm truncate max-w-full">
-                                {{ dayjs(slotProps.data.created_at).format('YYYY/MM/DD') }}
+                                {{ dayjs(slotProps.data.execute_at).format('YYYY/MM/DD') }}
                             </div>
                         </template>
                     </Column>
                     <Column field="account_type" :header="$t('public.account_type')" class="hidden md:table-cell w-[20%]">
                         <template #body="slotProps">
                             <div class="text-gray-950 text-sm">
-                                {{ slotProps.data.id_number }}
+                                {{ slotProps.data.account_type }}
                             </div>
                         </template>
                     </Column>
                     <Column field="volume" :header="`${$t('public.volume')}&nbsp;(Ł)`" sortable class="hidden md:table-cell w-[20%]">
                         <template #body="slotProps">
                             <div class="text-gray-950 text-sm">
-                                {{ slotProps.data.meta_login }}
+                                {{ formatAmount(slotProps.data.volume) }}
                             </div>
                         </template>
                     </Column>
-                    <Column field="transaction_amount" :header="`${$t('public.amount')}&nbsp;($)`" sortable class="w-1/2 md:w-[20%]">
+                    <Column field="rebate" :header="`${$t('public.amount')}&nbsp;($)`" sortable class="w-1/2 md:w-[20%] px-3">
                         <template #body="slotProps">
                             <div class="text-gray-950 text-sm">
-                                {{ formatAmount(slotProps.data.transaction_amount) }}
+                                {{ formatAmount(slotProps.data.rebate) }}
                             </div>
                         </template>
                     </Column>
                     <ColumnGroup type="footer">
                         <Row>
                             <Column class="hidden md:table-cell" :footer="$t('public.total') + '&nbsp;($)&nbsp;:'" :colspan="4" footerStyle="text-align:right" />
-                            <Column class="hidden md:table-cell" :colspan="5" :footer="formatAmount(0)" />
+                            <Column class="hidden md:table-cell" :colspan="5" :footer="formatAmount(totalAmount)" />
                             <Column class="md:hidden" :footer="$t('public.total') + '&nbsp;($)&nbsp;:'" :colspan="1" footerStyle="text-align:right" />
-                            <Column class="md:hidden" :colspan="2" :footer="formatAmount(0)" />
+                            <Column class="md:hidden" :colspan="2" :footer="formatAmount(totalAmount)" />
                         </Row>
                     </ColumnGroup>
                 </template>
@@ -312,22 +367,70 @@ const copyToClipboard = (text) => {
                     <span class="w-full truncate text-gray-500 text-sm">{{ data.email }}</span>
                 </div>
                 <div class="flex items-center self-stretch">
-                    <span class="w-full truncate text-gray-950 text-lg font-semibold">{{ `$&nbsp;${formatAmount(data.transaction_amount)}` }}</span>
+                    <span class="w-full truncate text-gray-950 text-lg font-semibold">{{ `$&nbsp;${formatAmount(data.rebate)}` }}</span>
                 </div>
             </div>
             
             <div class="flex flex-col items-center p-3 gap-3 self-stretch bg-gray-50">
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.date') }}</span>
-                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ dayjs(data.created_at).format('YYYY/MM/DD') }}</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ dayjs(data.execute_at).format('YYYY/MM/DD') }}</span>
                 </div>
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.account_type') }}</span>
-                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ data.transaction_number }}</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ data.account_type }}</span>
                 </div>
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.total_volume') }}</span>
-                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ data.from_meta_login }}</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ formatAmount(data.volume) }}&nbsp;Ł</span>
+                </div>
+            </div>
+
+            <div class="w-full flex flex-col justify-center items-center">
+                <!-- below md -->
+                <div class="md:hidden flex flex-col items-center self-stretch" v-for="(product, index) in data.details" :key="index" :class="{'border-b border-gray-100': index !== data.details.length - 1}">
+                    <div class="flex justify-between items-center py-2 self-stretch">
+                        <div class="w-full truncate flex flex-col items-start gap-1">
+                            <span class="w-full truncate text-gray-950 font-semibold" style="text-transform: capitalize;" >{{ $t('public.' + product.name) }}</span>
+                            <div class="w-full truncate flex items-center gap-1 self-stretch text-xs">
+                                <span class="truncate text-gray-700">{{ formatAmount(product.volume) }}</span>
+                                <span class="truncate text-gray-500">|</span>
+                                <span class="truncate text-gray-700">{{ formatAmount(product.net_rebate) }}</span>
+                            </div>
+                        </div>
+                        <span class="w-[100px] truncate text-gray-950 text-right font-semibold">$&nbsp;{{ formatAmount(product.rebate) }}</span>
+                    </div>
+                </div>
+
+                <!-- above md -->
+                <div class="w-full hidden md:grid grid-cols-4 py-3 items-center border-b border-gray-100 bg-gray-50 uppercase text-gray-700 text-xs font-bold">
+                    <div class="flex items-center px-3">
+                        {{ $t('public.product') }}
+                    </div>
+                    <div class="flex items-center px-3">
+                        {{ $t('public.volume') }} (Ł)
+                    </div>
+                    <div class="flex items-center px-3">
+                        {{ $t('public.rebate') }} / Ł ($)
+                    </div>
+                    <div class="flex items-center px-3">
+                        {{ $t('public.total') }} ($)
+                    </div>
+                </div>
+
+                <div v-for="(product, index) in data.details" :key="index" class="w-full hidden md:grid grid-cols-4 py-2 items-center hover:bg-gray-50" :class="{'border-b border-gray-100': index !== data.details.length - 1}">
+                    <div class="flex items-center px-3">
+                        <span class="text-gray-950 text-sm" style="text-transform: capitalize;" >{{ $t('public.' + product.name) }}</span>
+                    </div>
+                    <div class="flex items-center px-3">
+                        <span class="text-gray-950 text-sm">{{ formatAmount(product.volume) }}</span>
+                    </div>
+                    <div class="flex items-center px-3">
+                        <span class="text-gray-950 text-sm">{{ formatAmount(product.net_rebate) }}</span>
+                    </div>
+                    <div class="flex items-center px-3">
+                        <span class="text-gray-950 text-sm">{{ formatAmount(product.rebate) }}</span>
+                    </div>
                 </div>
             </div>
         </div>

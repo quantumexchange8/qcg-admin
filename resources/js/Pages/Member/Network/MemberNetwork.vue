@@ -84,14 +84,14 @@ const clearSearch = () => {
 </script>
 
 <template>
-    <AuthenticatedLayout :title="$t('public.member_network')">
+    <AuthenticatedLayout :title="$t('public.sidebar_network')">
         <div class="w-full flex flex-col justify-center items-center px-3 py-5 gap-5 self-stretch rounded-lg bg-white shadow-card md:p-6 md:gap-10">
             <div class="flex flex-col md:flex-row gap-3 items-center self-stretch">
                 <div class="relative w-full md:w-60">
                     <div class="absolute top-2/4 -mt-[9px] left-4 text-gray-500">
                         <IconSearch size="20" stroke-width="1.25" />
                     </div>
-                    <InputText v-model="search" placeholder="Keyword Search" class="font-normal pl-12 w-full md:w-60" />
+                    <InputText v-model="search" placeholder="Keyword Search" size="search" class="font-normal w-full md:w-60" />
                     <div
                         v-if="search"
                         class="absolute top-2/4 -mt-2 right-4 text-gray-300 hover:text-gray-400 select-none cursor-pointer"
@@ -215,7 +215,7 @@ const clearSearch = () => {
                         <div
                             class="rounded flex flex-col items-center md:max-w-[215px] shadow-card border-l-4 select-none cursor-pointer md:basis-1/3 xl:basis-1/4 bg-white"
                             :class="{
-                                'border-primary-600 hover:border-t hover:border-t-primary-600 hover:border-b hover:border-b-primary-600 hover:border-r hover:border-r-primary-600': parent.length === 0 || parent.level === 0,
+                                // 'border-primary-600 hover:border-t hover:border-t-primary-600 hover:border-b hover:border-b-primary-600 hover:border-r hover:border-r-primary-600': parent.length === 0 || parent.level === 0,
                                 'border-orange hover:border-t hover:border-t-orange hover:border-b hover:border-b-orange hover:border-r hover:border-r-orange': parent && parent.role === 'agent',
                                 'border-info-500 hover:border-t hover:border-t-info-500 hover:border-b hover:border-b-info-500 hover:border-r hover:border-r-info-500': parent && parent.role === 'member',
                             }"

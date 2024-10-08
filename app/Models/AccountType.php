@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AccountType extends Model
 {
@@ -25,4 +26,10 @@ class AccountType extends Model
         'color',
         'edited_by',
     ];
+
+    public function trading_accounts(): HasMany
+    {
+        return $this->hasMany(TradingAccount::class, 'account_type', 'id');
+    }
+
 }

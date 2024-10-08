@@ -14,36 +14,37 @@ use Illuminate\Support\Facades\Auth;
 
 class PendingController extends Controller
 {
-    public function withdrawal()
+    public function index($type)
     {
-        return Inertia::render('Pending/Withdrawal');
+        if ($type === 'withdrawal') {
+            return Inertia::render('Pending/Withdrawal');
+        } elseif ($type === 'incentive') {
+            return Inertia::render('Pending/Incentive');
+        }
+        
+        abort(404); // Return 404 if the type doesn't match
     }
-
-    public function incentive()
-    {
-        return Inertia::render('Pending/Incentive');
-    }
-
-    public function getPendingWithdrawalData(Request $request)
+    
+    public function getPendingWithdrawalData()
     {
         $pendingWithdrawals = Transaction::with([
-            'user:id,email,name',
+            'user:id,email,first_name',
             'payment_account:id,payment_account_name,account_no',
         ])
             ->where('transaction_type', 'withdrawal')
             ->where('status', 'processing')
-            ->whereNot('category', 'bonus_wallet')
+            ->whereNot('category', 'incentive_wallet')
             ->latest()
             ->get()
             ->map(function ($transaction) {
                 return [
                     'id' => $transaction->id,
                     'created_at' => $transaction->created_at,
-                    'user_name' => $transaction->user->name,
+                    'user_name' => $transaction->user->first_name,
                     'user_email' => $transaction->user->email,
-                    'user_profile_photo' => $transaction->user->getFirstMediaUrl('profile_photo'),
+                    // 'user_profile_photo' => $transaction->user->getFirstMediaUrl('profile_photo'),
                     'from' => $transaction->category == 'trading_account' ? $transaction->from_meta_login : 'rebate_wallet',
-                    'balance' => $transaction->category == 'trading_account' ? $transaction->from_meta_login->balance : $transaction->from_wallet->balance,
+                    'balance' => $transaction->category == 'trading_account' ? $transaction->from_meta_login->balance ?? 0 : $transaction->from_wallet->balance ?? 0,
                     'amount' => $transaction->amount,
                     'transaction_charges' => $transaction->transaction_charges,
                     'transaction_amount' => $transaction->transaction_amount,
@@ -97,17 +98,17 @@ class PendingController extends Controller
                 $rebate_wallet->save();
             }
 
-            if ($transaction->category == 'bonus_wallet') {
-                $bonus_wallet = Wallet::where('user_id', $transaction->user_id)
-                    ->where('type', 'bonus_wallet')
+            if ($transaction->category == 'incentive_wallet') {
+                $incentive_wallet = Wallet::where('user_id', $transaction->user_id)
+                    ->where('type', 'incentive_wallet')
                     ->first();
 
                 $transaction->update([
-                    'old_wallet_amount' => $bonus_wallet->balance,
-                    'new_wallet_amount' => $bonus_wallet->balance += $transaction->amount,
+                    'old_wallet_amount' => $incentive_wallet->balance,
+                    'new_wallet_amount' => $incentive_wallet->balance += $transaction->amount,
                 ]);
 
-                $bonus_wallet->save();
+                $incentive_wallet->save();
             }
 
             if ($transaction->category == 'trading_account') {
@@ -133,120 +134,50 @@ class PendingController extends Controller
             }
 
             return redirect()->back()->with('toast', [
-                'title' => trans('public.toast_reject_withdrawal_request'),
+                'title' => trans('public.toast_reject_withdrawal_request_success'),
                 'type' => 'success'
             ]);
         } else {
             return redirect()->back()->with('toast', [
-                'title' => trans('public.toast_approve_withdrawal_request'),
+                'title' => trans('public.toast_approve_withdrawal_request_success'),
                 'type' => 'success'
             ]);
         }
     }
 
-    // public function getPendingRevokeData(Request $request)
-    // {
-    //     $pendingRevokes = AssetRevoke::with([
-    //             'user:id,email,name',
-    //             'asset_master:id,asset_name',
-    //         ])
-    //         ->where('status', 'pending')
-    //         ->latest()
-    //         ->get()
-    //         ->map(function ($revoke) {
-    //             return [
-    //                 'id' => $revoke->id,
-    //                 'created_at' => $revoke->created_at,
-    //                 'user_name' => $revoke->user->name,
-    //                 'user_email' => $revoke->user->email,
-    //                 'user_profile_photo' => $revoke->user->getFirstMediaUrl('profile_photo'),
-    //                 'meta_login' => $revoke->meta_login,
-    //                 'asset_master_name' => $revoke->asset_master->asset_name,
-    //                 'amount' => $revoke->penalty_fee,
-    //             ];
-    //         });
+    public function getPendingIncentiveData()
+    {
+        $pendingincentives = Transaction::with([
+            'user:id,email,first_name',
+            'payment_account:id,payment_account_name,account_no',
+        ])
+            ->where('transaction_type', 'withdrawal')
+            ->where('status', 'processing')
+            ->where('category', 'incentive_wallet')
+            ->latest()
+            ->get()
+            ->map(function ($transaction) {
+                return [
+                    'id' => $transaction->id,
+                    'created_at' => $transaction->created_at,
+                    'user_name' => $transaction->user->first_name,
+                    'user_email' => $transaction->user->email,
+                    // 'user_profile_photo' => $transaction->user->getFirstMediaUrl('profile_photo'),
+                    'from' => $transaction->category == 'trading_account' ? $transaction->from_meta_login : 'rebate_wallet',
+                    'balance' => $transaction->category == 'trading_account' ? $transaction->from_meta_login->balance ?? 0 : $transaction->from_wallet->balance ?? 0,
+                    'amount' => $transaction->amount,
+                    'transaction_charges' => $transaction->transaction_charges,
+                    'transaction_amount' => $transaction->transaction_amount,
+                    'wallet_name' => $transaction->payment_account->payment_account_name,
+                    'wallet_address' => $transaction->payment_account->account_no,
+                ];
+            });
 
-    //     $totalAmount = $pendingRevokes->sum('amount');
+        $totalAmount = $pendingincentives->sum('amount');
 
-    //     return response()->json([
-    //         'pendingRevokes' => $pendingRevokes,
-    //         'totalAmount' => $totalAmount,
-    //     ]);
-    // }
-
-    // public function revokeApproval(Request $request)
-    // {
-    //     // Validate request data
-    //     $request->validate([
-    //         'id' => 'required|integer|exists:asset_revokes,id',
-    //         'remarks' => 'required|string|max:255',
-    //     ]);
-
-    //     // Check connection status
-    //     $conn = (new CTraderService)->connectionStatus();
-    //     if ($conn['code'] != 0) {
-    //         return back()->with('toast', [
-    //             'title' => 'Connection Error',
-    //             'type' => 'error'
-    //         ]);
-    //     }
-
-    //     // Find the AssetRevoke record or fail
-    //     $assetRevoke = AssetRevoke::findOrFail($request->id);
-
-    //     // Update the AssetRevoke record
-    //     $assetRevoke->update([
-    //         'status' => 'revoked',
-    //         'remarks' => $request->remarks,
-    //         'approval_at' => now(),
-    //         'handle_by' => Auth::id(),
-    //     ]);
-
-    //     // Update the related AssetSubscription record using the relationship
-    //     $assetRevoke->asset_subscription()->update([
-    //         'status' => 'revoked',
-    //         'remarks' => $request->remarks,
-    //         'revoked_at' => now(),
-    //     ]);
-
-    //     // Create a trade using CTraderService
-    //     try {
-    //         $trade = (new CTraderService)->createTrade($assetRevoke->meta_login,$assetRevoke->penalty_fee,$request->remarks,ChangeTraderBalanceType::WITHDRAW);
-
-    //         // Create a new Transaction record
-    //         Transaction::create([
-    //             'user_id' => $assetRevoke->user_id,
-    //             'category' => 'trading_account',
-    //             'transaction_type' => 'penalty_fee',
-    //             'from_meta_login' => $assetRevoke->meta_login,
-    //             'ticket' => $trade->getTicket(),
-    //             'transaction_number' => RunningNumberService::getID('transaction'),
-    //             'amount' => $assetRevoke->penalty_fee,
-    //             'transaction_amount' => $assetRevoke->penalty_fee,
-    //             'status' => 'successful',
-    //             'remarks' => 'System Approval',
-    //             'approved_at' => now(),
-    //             'handle_by' => Auth::id(),
-    //         ]);
-
-    //     } catch (\Throwable $e) {
-    //         if ($e->getMessage() == "Not found") {
-    //             TradingUser::firstWhere('meta_login', $assetRevoke->meta_login)->update(['acc_status' => 'Inactive']);
-    //         } else {
-    //             Log::error('Error creating trade or transaction: ' . $e->getMessage());
-    //         }
-
-    //         return back()->with('toast', [
-    //             'title' => 'Trading account error',
-    //             'type' => 'error'
-    //         ]);
-    //     }
-
-    //     // Return a success response
-    //     return redirect()->back()->with('toast', [
-    //         'title' => trans('public.toast_approve_revoke_request'),
-    //         'type' => 'success'
-    //     ]);
-    // }
-
+        return response()->json([
+            'pendingincentives' => $pendingincentives,
+            'totalAmount' => $totalAmount,
+        ]);
+    }
 }

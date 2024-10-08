@@ -25,7 +25,9 @@ const { formatRgbaColor } = generalFormat();
 const props = defineProps({
     totalMembers: Number,
     totalAgents: Number,
-    groups: Array,
+    countries: Array,
+    uplines: Array,
+    teams: Array,
 });
 
 const loading = ref(false);
@@ -34,8 +36,8 @@ const users = ref();
 const total_members = ref(0);
 const total_agents = ref(0);
 const filteredValueCount = ref(0);
-const groups = ref(props.groups);
-const group_id = ref(null)
+const teams = ref(props.teams);
+const team_id = ref(null)
 
 const tabs = ref([
     {   
@@ -95,21 +97,8 @@ const getResults = async () => {
 
 };
 
-// const getFilterData = async () => {
-//     try {
-//         const uplineResponse = await axios.get('/member/getFilterData');
-//         groups.value = uplineResponse.data.groups;
-//         groups.value = uplineResponse.data.groups;
-//     } catch (error) {
-//         console.error('Error changing locale:', error);
-//     } finally {
-//         loading.value = false;
-//     }
-// };
-
 onMounted(() => {
     getResults();
-    // getFilterData();
 })
 
 const exportCSV = () => {
@@ -120,7 +109,7 @@ const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
     name: { value: null, matchMode: FilterMatchMode.CONTAINS },
     email: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    group_id: { value: null, matchMode: FilterMatchMode.EQUALS },
+    team_id: { value: null, matchMode: FilterMatchMode.EQUALS },
 });
 
 const clearFilterGlobal = () => {
@@ -132,15 +121,15 @@ const clearFilter = () => {
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
         name: { value: null, matchMode: FilterMatchMode.CONTAINS },
         email: { value: null, matchMode: FilterMatchMode.CONTAINS },
-        group_id: { value: null, matchMode: FilterMatchMode.EQUALS },
+        team_id: { value: null, matchMode: FilterMatchMode.EQUALS },
     };
 
-    group_id.value = null;
+    team_id.value = null;
 };
 
-watch(group_id, (newGroupId) => {
-    if (group_id.value !== null) {
-        filters.value['group_id'].value = newGroupId.value
+watch(team_id, (newTeamId) => {
+    if (team_id.value !== null) {
+        filters.value['team_id'].value = newTeamId.value
     }
 })
 
@@ -161,7 +150,7 @@ const handleFilter = (e) => {
         <div class="w-full flex flex-col items-center gap-5">
             <div class="flex flex-col justify-center items-center px-3 py-5 gap-3 self-stretch rounded-lg bg-white shadow-card md:p-6 md:gap-6">
                 <div class="w-full flex flex-col-reverse md:flex-row justify-between items-center self-stretch gap-3 md:gap-0">
-                    <div class="flex items-center">
+                    <div class="w-full md:w-auto flex items-center">
                         <Tabs v-model:value="activeIndex">
                             <TabList class="flex justify-center items-center">
                                 <Tab 
@@ -184,7 +173,10 @@ const handleFilter = (e) => {
                             <IconDownload size="20" stroke-width="1.25" />
                             {{ $t('public.export') }}
                         </Button>
-                        <AddMember />
+                        <AddMember
+                            :countries="props.countries"
+                            :uplines="props.uplines"
+                        />
                     </div>
                 </div>
                 <!-- data table -->
@@ -214,10 +206,10 @@ const handleFilter = (e) => {
                         <div class="flex flex-col justify-between items-center pb-5 gap-5 self-stretch md:flex-row md:pb-6">
                             <div class="flex flex-col items-center gap-3 self-stretch md:flex-row md:gap-5">
                                 <div class="relative w-full md:w-60">
-                                    <div class="absolute top-2/4 -mt-[9px] left-4 text-gray-500">
+                                    <div class="absolute top-2/4 -mt-[9px] left-3 text-gray-500">
                                         <IconSearch size="20" stroke-width="1.25" />
                                     </div>
-                                    <InputText v-model="filters['global'].value" :placeholder="$t('public.keyword_search')" class="font-normal pl-12 w-full md:w-60" />
+                                    <InputText v-model="filters['global'].value" :placeholder="$t('public.keyword_search')" size="search" class="font-normal w-full md:w-60" />
                                     <div
                                         v-if="filters['global'].value !== null"
                                         class="absolute top-2/4 -mt-2 right-4 text-gray-300 hover:text-gray-400 select-none cursor-pointer"
@@ -227,13 +219,13 @@ const handleFilter = (e) => {
                                     </div>
                                 </div>
                                 <Select
-                                    v-model="group_id"
-                                    :options="groups"
+                                    v-model="team_id"
+                                    :options="teams"
                                     filter
                                     :filterFields="['name']"
                                     optionLabel="name"
-                                    :placeholder="$t('public.filter_sales_team_placeholder')"
-                                    class="w-full md:w-60"
+                                    :placeholder="$t('public.filter_by_sales_team')"
+                                    class="w-full md:w-60 font-normal"
                                     scroll-height="236px"
                                 >
                                 <template #value="slotProps">
@@ -274,11 +266,11 @@ const handleFilter = (e) => {
                     <template #loading>
                         <div class="flex flex-col gap-2 items-center justify-center">
                             <Loader />
-                            <span class="text-sm text-gray-700">{{ $t('public.loading_transactions_caption') }}</span>
+                            <span class="text-sm text-gray-700">{{ $t('public.loading') }}</span>
                         </div>
                     </template>
                     <template v-if="users?.length > 0 && filteredValueCount > 0">
-                        <Column field="name" sortable :header="$t('public.name')" style="width: 25%; max-width: 0;">
+                        <Column field="name" sortable :header="$t('public.name')" style="width: 25%; max-width: 0;" class="px-3">
                             <template #body="slotProps">
                                 <div class="flex flex-col items-start max-w-full">
                                     <div class="font-semibold truncate max-w-full">
@@ -297,18 +289,18 @@ const handleFilter = (e) => {
                                 </div>
                             </template>
                         </Column>
-                        <Column field="group" :header="$t('public.sales_team')" style="width: 25%" class="hidden md:table-cell">
+                        <Column field="team" :header="$t('public.sales_team')" style="width: 25%" class="hidden md:table-cell">
                             <template #body="slotProps">
                                 <div class="flex items-center">
                                     <div
-                                        v-if="slotProps.data.group_id"
+                                        v-if="slotProps.data.team_id"
                                         class="flex justify-center items-center gap-2 rounded-sm py-1 px-2"
-                                        :style="{ backgroundColor: formatRgbaColor(slotProps.data.group_color, 1) }"
+                                        :style="{ backgroundColor: formatRgbaColor(slotProps.data.team_color, 1) }"
                                     >
                                         <div
                                             class="text-white text-xs text-center"
                                         >
-                                            {{ slotProps.data.group_name }}
+                                            {{ slotProps.data.team_name }}
                                         </div>
                                     </div>
                                     <div v-else>

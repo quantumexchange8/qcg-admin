@@ -17,22 +17,15 @@ use App\Jobs\UpdateCTraderAccountJob;
 use App\Services\RunningNumberService;
 use App\Services\ChangeTraderBalanceType;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Controllers\GeneralController;
 use Illuminate\Validation\ValidationException;
 
 class TradingAccountController extends Controller
 {
     public function index()
     {
-        $accountTypes = AccountType::all()
-        ->map(function($accountType) {
-            return [
-                'value' => $accountType->id,
-                'name' => $accountType->name,
-            ];
-        });
-
         return Inertia::render('Member/Account/AccountListing', [
-            'accountTypes' => $accountTypes,
+            'accountTypes' => (new GeneralController())->getAccountTypes(true),
         ]);
     }
 
@@ -124,28 +117,28 @@ class TradingAccountController extends Controller
         ]);
         $validator->validate();
 
-        // $cTraderService = (new CTraderService);
+        $cTraderService = (new CTraderService);
 
-        // $conn = $cTraderService->connectionStatus();
-        // if ($conn['code'] != 0) {
-        //     return back()
-        //         ->with('toast', [
-        //             'title' => 'Connection Error',
-        //             'type' => 'error'
-        //         ]);
-        // }
+        $conn = $cTraderService->connectionStatus();
+        if ($conn['code'] != 0) {
+            return back()
+                ->with('toast', [
+                    'title' => 'Connection Error',
+                    'type' => 'error'
+                ]);
+        }
 
-        // try {
-        //     $cTraderService->getUserInfo($request->meta_login);
-        // } catch (\Throwable $e) {
-        //     Log::error($e->getMessage());
+        try {
+            $cTraderService->getUserInfo($request->meta_login);
+        } catch (\Throwable $e) {
+            Log::error($e->getMessage());
 
-        //     return back()
-        //         ->with('toast', [
-        //             'title' => 'No Account Found',
-        //             'type' => 'error'
-        //         ]);
-        // }
+            return back()
+                ->with('toast', [
+                    'title' => 'No Account Found',
+                    'type' => 'error'
+                ]);
+        }
 
         $trading_account = TradingAccount::where('meta_login', $request->meta_login)->first();
         $action = $request->action;
@@ -160,67 +153,67 @@ class TradingAccountController extends Controller
             throw ValidationException::withMessages(['amount' => trans('public.insufficient_credit')]);
         }
 
-        // $transaction = Transaction::create([
-        //     'user_id' => $trading_account->user_id,
-        //     'category' => 'trading_account',
-        //     'transaction_type' => $action,
-        //     'from_meta_login' => ($action === 'balance_out' || $action === 'credit_out') ? $trading_account->meta_login : null,
-        //     'to_meta_login' => ($action === 'balance_in' || $action === 'credit_in') ? $trading_account->meta_login : null,
-        //     'transaction_number' => RunningNumberService::getID('transaction'),
-        //     'amount' => $amount,
-        //     'transaction_amount' => $amount,
-        //     'status' => 'processing',
-        //     'remarks' => $request->remarks,
-        //     'handle_by' => Auth::id(),
-        // ]);
+        $transaction = Transaction::create([
+            'user_id' => $trading_account->user_id,
+            'category' => 'trading_account',
+            'transaction_type' => $action,
+            'from_meta_login' => ($action === 'balance_out' || $action === 'credit_out') ? $trading_account->meta_login : null,
+            'to_meta_login' => ($action === 'balance_in' || $action === 'credit_in') ? $trading_account->meta_login : null,
+            'transaction_number' => RunningNumberService::getID('transaction'),
+            'amount' => $amount,
+            'transaction_amount' => $amount,
+            'status' => 'processing',
+            'remarks' => $request->remarks,
+            'handle_by' => Auth::id(),
+        ]);
 
-        // $changeType = match($type) {
-        //     'account_balance' => match($action) {
-        //         'balance_in' => ChangeTraderBalanceType::DEPOSIT,
-        //         'balance_out' => ChangeTraderBalanceType::WITHDRAW,
-        //         default => throw ValidationException::withMessages(['action' => trans('public.invalid_type')]),
-        //     },
-        //     'account_credit' => match($action) {
-        //         'credit_in' => ChangeTraderBalanceType::DEPOSIT_NONWITHDRAWABLE_BONUS,
-        //         'credit_out' => ChangeTraderBalanceType::WITHDRAW_NONWITHDRAWABLE_BONUS,
-        //         default => throw ValidationException::withMessages(['action' => trans('public.invalid_type')]),
-        //     },
-        //     default => throw ValidationException::withMessages(['action' => trans('public.invalid_type')]),
-        // };
+        $changeType = match($type) {
+            'account_balance' => match($action) {
+                'balance_in' => ChangeTraderBalanceType::DEPOSIT,
+                'balance_out' => ChangeTraderBalanceType::WITHDRAW,
+                default => throw ValidationException::withMessages(['action' => trans('public.invalid_type')]),
+            },
+            'account_credit' => match($action) {
+                'credit_in' => ChangeTraderBalanceType::DEPOSIT_NONWITHDRAWABLE_BONUS,
+                'credit_out' => ChangeTraderBalanceType::WITHDRAW_NONWITHDRAWABLE_BONUS,
+                default => throw ValidationException::withMessages(['action' => trans('public.invalid_type')]),
+            },
+            default => throw ValidationException::withMessages(['action' => trans('public.invalid_type')]),
+        };
 
-        // try {
-        //     $trade = (new CTraderService)->createTrade($trading_account->meta_login, $amount, $transaction->remarks, $changeType);
+        try {
+            $trade = (new CTraderService)->createTrade($trading_account->meta_login, $amount, $transaction->remarks, $changeType);
 
-        //     $transaction->update([
-        //         'ticket' => $trade->getTicket(),
-        //         'approved_at' => now(),
-        //         'status' => 'successful',
-        //     ]);
+            $transaction->update([
+                'ticket' => $trade->getTicket(),
+                'approved_at' => now(),
+                'status' => 'successful',
+            ]);
 
             return redirect()->back()->with('toast', [
                 'title' => $type == 'account_balance' ? trans('public.toast_balance_adjustment_success') : trans('public.toast_credit_adjustment_success'),
                 'type' => 'success'
             ]);
-        // } catch (\Throwable $e) {
-        //     // Update transaction status to failed on error
-        //     $transaction->update([
-        //         'approved_at' => now(),
-        //         'status' => 'failed'
-        //     ]);
+        } catch (\Throwable $e) {
+            // Update transaction status to failed on error
+            $transaction->update([
+                'approved_at' => now(),
+                'status' => 'failed'
+            ]);
 
-        //     // Handle specific error cases
-        //     if ($e->getMessage() == "Not found") {
-        //         TradingUser::firstWhere('meta_login', $trading_account->meta_login)->update(['acc_status' => 'Inactive']);
-        //     } else {
-        //         Log::error($e->getMessage());
-        //     }
+            // Handle specific error cases
+            if ($e->getMessage() == "Not found") {
+                TradingUser::firstWhere('meta_login', $trading_account->meta_login)->update(['acc_status' => 'Inactive']);
+            } else {
+                Log::error($e->getMessage());
+            }
 
-        //     return back()
-        //         ->with('toast', [
-        //             'title' => 'Adjustment failed',
-        //             'type' => 'error'
-        //         ]);
-        // }
+            return back()
+                ->with('toast', [
+                    'title' => 'Adjustment failed',
+                    'type' => 'error'
+                ]);
+        }
     }
 
     public function accountDelete(Request $request)

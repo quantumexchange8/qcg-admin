@@ -17,6 +17,7 @@ import { wTrans } from "laravel-vue-i18n";
 import AgentDropdown from '@/Pages/RebateSetting/Partials/AgentDropdown.vue';
 import InputNumber from "primevue/inputnumber";
 import Empty from "@/Components/Empty.vue";
+import Dialog from "primevue/dialog";
 
 const props = defineProps({
     accountTypes: Array,
@@ -101,6 +102,15 @@ const clearFilterGlobal = () => {
 }
 
 const editingRows = ref([]);
+const visible = ref(false);
+const agentRebateDetail = ref();
+const productDetails = ref();
+
+const openDialog = (agentData) => {
+    visible.value = true;
+    agentRebateDetail.value = agentData[0][0];
+    productDetails.value = agentData[1];
+}
 
 const form = useForm({
     rebates: null
@@ -113,6 +123,21 @@ const onRowEditSave = (event) => {
     form.rebates = agents.value[index][1];
     form.post(route('rebate.updateRebateAmount'));
 };
+
+const submitForm = (submitData) => {
+    form.rebates = submitData;
+    form.post(route('rebate.updateRebateAmount'), {
+        onSuccess: () => {
+            closeDialog();
+            form.reset();
+        },
+    });
+};
+
+const closeDialog = () => {
+    visible.value = false;
+}
+
 </script>
 
 <template>
@@ -136,7 +161,7 @@ const onRowEditSave = (event) => {
                         <div class="absolute top-2/4 -mt-[9px] left-4 text-gray-400">
                             <IconSearch size="20" stroke-width="1.25" />
                         </div>
-                        <InputText v-model="filters['global'].value" :placeholder="$t('public.search')" class="font-normal pl-12 w-full md:w-60" />
+                        <InputText v-model="filters['global'].value" :placeholder="$t('public.search')" size="search" class="font-normal w-full md:w-60" />
                         <div
                             v-if="filters['global'].value !== null"
                             class="absolute top-2/4 -mt-2 right-4 text-gray-300 hover:text-gray-400 select-none cursor-pointer"
@@ -161,7 +186,7 @@ const onRowEditSave = (event) => {
                     <span class="text-sm text-gray-700">{{ $t('public.loading_users_caption') }}</span>
                 </div>
             </template>
-            <Column v-if="agents && agents.length" field="level" style="width:10%;">
+            <Column v-if="agents && agents.length" field="level" style="width:10%;" class="px-3">
                 <template #header>
                     <span>{{ $t('public.level') }}</span>
                 </template>
@@ -169,7 +194,7 @@ const onRowEditSave = (event) => {
                     {{ slotProps.data[0][0].level }}
                 </template>
             </Column>
-            <Column v-if="agents && agents.length" field="agent" class="w-auto">
+            <Column v-if="agents && agents.length" field="agent" class="w-auto px-3">
                 <template #header>
                     <span>{{ $t('public.agent') }}</span>
                 </template>
@@ -277,7 +302,7 @@ const onRowEditSave = (event) => {
                     />
                 </template>
             </Column>
-            <Column v-if="agents && agents.length" :rowEditor="true" style="width: 10%;" bodyStyle="text-align:center">
+            <Column v-if="agents && agents.length" :rowEditor="true" style="width: 10%;" class="hidden md:table-cell" bodyStyle="text-align:center">
                 <template #roweditoriniticon>
                     <Button
                         variant="gray-text"
@@ -290,6 +315,171 @@ const onRowEditSave = (event) => {
                     </Button>
                 </template>
             </Column>
+            <Column v-if="agents && agents.length" style="width: 15%;" class="md:hidden table-cell px-3">
+                <template #body="slotProps">
+                    <Button
+                        variant="gray-text"
+                        type="button"
+                        size="sm"
+                        iconOnly
+                        pill
+                        @click="openDialog(slotProps.data)"
+                    >
+                        <IconAdjustmentsHorizontal size="16" stroke-width="1.25" />
+                    </Button>
+                </template>
+            </Column>
         </DataTable>
     </div>
+
+    <Dialog
+        v-model:visible="visible"
+        modal
+        :header="$t('public.edit_rebate_details')"
+        class="dialog-xs"
+    >
+        <div class="flex flex-col py-4 md:py-6 gap-6 items-center self-stretch">
+            <!-- agent details -->
+            <div class="w-full flex items-center gap-3">
+                <div class="w-full flex flex-col items-start">
+                    <div class="w-full truncate font-semibold text-gray-950">
+                        {{ agentRebateDetail.name }}
+                    </div>
+                    <div class="w-full truncate text-gray-500 text-sm">
+                        {{ agentRebateDetail.email }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- rebate allocation -->
+            <div class="w-full flex flex-col items-center self-stretch">
+                <div class="flex justify-between items-center py-3 self-stretch border-b border-gray-100 bg-gray-50">
+                    <div
+                        class="flex items-center w-full px-3 text-gray-950 text-xs font-semibold uppercase">
+                        {{ $t('public.product') }}
+                    </div>
+                    <div
+                        class="flex items-center px-3 w-full text-gray-950 text-xs font-semibold uppercase">
+                        {{ $t('public.upline_rebate') }} ($)
+                    </div>
+                    <div
+                        class="flex items-center px-3 w-full text-gray-950 text-xs font-semibold uppercase">
+                        {{ $t('public.rebate') }} / Ł ($)
+                    </div>
+                </div>
+
+                <div class="flex flex-col items-center self-stretch max-h-[400px] overflow-y-auto">
+                    <div class="flex justify-between py-2 items-center self-stretch text-gray-950">
+                        <div class="px-3 w-full">
+                            {{ $t('public.forex') }}
+                        </div>
+                        <div class="px-3 w-full">
+                            {{ productDetails.upline_forex }}
+                        </div>
+                        <div class="px-3 w-full">
+                            <InputNumber
+                                v-model="productDetails['1']"
+                                :min="productDetails.downline_forex ? productDetails.downline_forex : 0"
+                                :max="productDetails.upline_forex"
+                                :minFractionDigits="2"
+                                fluid
+                                size="sm"
+                            />
+                        </div>
+                    </div>
+                    <div class="flex justify-between py-2 items-center self-stretch text-gray-950">
+                        <div class="px-3 w-full">
+                            {{ $t('public.stocks') }}
+                        </div>
+                        <div class="px-3 w-full">
+                            {{ productDetails.upline_stocks }}
+                        </div>
+                        <div class="px-3 w-full">
+                            <InputNumber
+                                v-model="productDetails['2']"
+                                :min="productDetails.downline_stocks ? productDetails.downline_stocks : 0"
+                                :max="productDetails.upline_stocks"
+                                :minFractionDigits="2"
+                                fluid
+                                size="sm"
+                            />
+                        </div>
+                    </div>
+                    <div class="flex justify-between py-2 items-center self-stretch text-gray-950">
+                        <div class="px-3 w-full">
+                            {{ $t('public.indices') }}
+                        </div>
+                        <div class="px-3 w-full">
+                            {{ productDetails.upline_indices }}
+                        </div>
+                        <div class="px-3 w-full">
+                            <InputNumber
+                                v-model="productDetails['3']"
+                                :min="productDetails.downline_indices ? productDetails.downline_indices : 0"
+                                :max="productDetails.upline_indices"
+                                :minFractionDigits="2"
+                                fluid
+                                size="sm"
+                            />
+                        </div>
+                    </div>
+                    <div class="flex justify-between py-2 items-center self-stretch text-gray-950">
+                        <div class="px-3 w-full truncate">
+                            {{ $t('public.commodities') }}
+                        </div>
+                        <div class="px-3 w-full">
+                            {{ productDetails.upline_commodities }}
+                        </div>
+                        <div class="px-3 w-full">
+                            <InputNumber
+                                v-model="productDetails['4']"
+                                :min="productDetails.downline_commodities ? productDetails.downline_commodities : 0"
+                                :max="productDetails.upline_commodities"
+                                :minFractionDigits="2"
+                                fluid
+                                size="sm"
+                            />
+                        </div>
+                    </div>
+                    <div class="flex justify-between py-2 items-center self-stretch text-gray-950">
+                        <div class="px-3 w-full truncate">
+                            {{ $t('public.cryptocurrency') }}
+                        </div>
+                        <div class="px-3 w-full">
+                            {{ productDetails.upline_cryptocurrency }}
+                        </div>
+                        <div class="px-3 w-full">
+                            <InputNumber
+                                v-model="productDetails['5']"
+                                :min="productDetails.downline_cryptocurrency ? productDetails.downline_cryptocurrency : 0"
+                                :max="productDetails.upline_cryptocurrency"
+                                :minFractionDigits="2"
+                                fluid
+                                size="sm"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="flex justify-end items-center pt-6 gap-4 self-stretch">
+            <Button
+                type="button"
+                variant="gray-tonal"
+                class="w-full md:w-[120px]"
+                @click="closeDialog"
+            >
+                {{ $t('public.cancel') }}
+            </Button>
+            <Button
+                variant="primary-flat"
+                class="w-full md:w-[120px]"
+                @click="submitForm(productDetails)"
+                :disabled="form.processing"
+            >
+                {{ $t('public.save') }}
+            </Button>
+        </div>
+    </Dialog>
+
 </template>

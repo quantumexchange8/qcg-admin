@@ -73,14 +73,14 @@ import {
 
             <SidebarCollapsibleItem
                 :title="$t('public.withdrawal')"
-                :href="route('pending.withdrawal')"
-                :active="route().current('pending.withdrawal')"
+                :href="route('pending.index', { type: 'withdrawal' })"
+                :active="route().current('pending.index') && route().params.type === 'withdrawal'"
             />
 
             <SidebarCollapsibleItem
                 :title="$t('public.incentive')"
-                :href="route('pending.incentive')"
-                :active="route().current('pending.incentive')"
+                :href="route('pending.index', { type: 'incentive' })"
+                :active="route().current('pending.index') && route().params.type === 'incentive'"
             />
 
         </SidebarCollapsible>
@@ -195,62 +195,16 @@ import {
             />
         </SidebarCollapsible>
 
-        <!-- Pamm Allocate -->
-        <!-- <SidebarLink
-            :title="$t('public.pamm_allocate')"
-            :href="route('pamm_allocate')"
-            :active="route().current('pamm_allocate')"
-            :pendingCounts="pendingPammAllocate"
-        >
-            <template #icon>
-                <IconCoinMonero :size="20" stroke-width="1.25" />
-            </template>
-        </SidebarLink> -->
-
-        <!-- Rebate Allocate -->
-        <!-- <SidebarLink
-            :title="$t('public.rebate_allocate')"
-            :href="route('rebate_allocate')"
-            :active="route().current('rebate_allocate')"
-        >
-            <template #icon>
-                <IconBusinessplan :size="20" stroke-width="1.25" />
-            </template>
-        </SidebarLink> -->
-
-        <!-- Billboard -->
-        <!-- <SidebarLink
-            :title="$t('public.billboard')"
-            :href="route('billboard')"
-            :active="route().current('billboard')"
-            :pendingCounts="pendingBonusWithdrawal"
-        >
-            <template #icon>
-                <IconAward :size="20" stroke-width="1.25" />
-            </template>
-        </SidebarLink> -->
-
-        <!-- Transaction -->
-        <!-- <SidebarLink
-            :title="$t('public.transaction')"
-            :href="route('transaction')"
-            :active="route().current('transaction')"
-        >
-            <template #icon>
-                <IconReceiptDollar :size="20" stroke-width="1.25" />
-            </template>
-        </SidebarLink> -->
-
         <!-- Account Type -->
-        <!-- <SidebarLink
-            :title="$t('public.account_type')"
+        <SidebarLink
+            :title="$t('public.sidebar_account_type')"
             :href="route('accountType')"
             :active="route().current('accountType')"
         >
             <template #icon>
-                <IconId :size="20" stroke-width="1.25" />
+                <IconTool :size="20" stroke-width="1.25" />
             </template>
-        </SidebarLink> -->
+        </SidebarLink>
 
         <!-- Components -->
        <!-- <SidebarCollapsible
@@ -267,18 +221,6 @@ import {
                :active="route().current('components.buttons')"
            />
        </SidebarCollapsible> -->
-
-
-        <!-- Profile -->
-        <!-- <SidebarLink
-            :title="$t('public.my_profile')"
-            :href="route('profile')"
-            :active="route().current('profile')"
-        >
-            <template #icon>
-                <IconUserCircle :size="20" stroke-width="1.25" />
-            </template>
-        </SidebarLink> -->
 
     </div>
 </template>

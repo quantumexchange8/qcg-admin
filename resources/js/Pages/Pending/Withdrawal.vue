@@ -25,87 +25,87 @@ const { formatAmount, formatDate } = transactionFormat();
 
 const loading = ref(false);
 const dt = ref();
-const pendingWithdrawals = ref([
-    { 
-        id: 1, 
-        user_profile_photo: 'https://via.placeholder.com/100', 
-        user_name: 'John Doe', 
-        user_email: 'john.doe@example.com', 
-        created_at: '2024-09-05T12:34:56Z', 
-        from: 'rebate_wallet', 
-        amount: '150.00', 
-        balance: '200.00', 
-        wallet_name: 'Main Wallet', 
-        wallet_address: '1234 Placeholder Ave' 
-    },
-    { 
-        id: 2, 
-        user_profile_photo: 'https://via.placeholder.com/100', 
-        user_name: 'Jane Smith', 
-        user_email: 'jane.smith@example.com', 
-        created_at: '2024-09-04T15:20:30Z', 
-        from: '80001234', 
-        amount: '75.00', 
-        balance: '100.00', 
-        wallet_name: 8000412, 
-        wallet_address: '5678 Dummy St' 
-    },
-    { 
-        id: 3, 
-        user_profile_photo: 'https://via.placeholder.com/100', 
-        user_name: 'Alice Johnson', 
-        user_email: 'alice.johnson@example.com', 
-        created_at: '2024-09-03T10:10:10Z', 
-        from: 'rebate_wallet', 
-        amount: '120.00', 
-        balance: '180.00', 
-        wallet_name: 8001547, 
-        wallet_address: '9101 Example Ave' 
-    },
-    { 
-        id: 4, 
-        user_profile_photo: 'https://via.placeholder.com/100', 
-        user_name: 'Bob Brown', 
-        user_email: 'bob.brown@example.com', 
-        created_at: '2024-09-02T08:15:45Z', 
-        from: '80005678', 
-        amount: '200.00', 
-        balance: '250.00', 
-        wallet_name: 8000518, 
-        wallet_address: '2345 Business Rd' 
-    },
-    { 
-        id: 5, 
-        user_profile_photo: 'https://via.placeholder.com/100', 
-        user_name: 'Carol White', 
-        user_email: 'carol.white@example.com', 
-        created_at: '2024-09-01T14:22:35Z', 
-        from: 'rebate_wallet', 
-        amount: '90.00', 
-        balance: '130.00', 
-        wallet_name: 'rebate_wallet', 
-        wallet_address: '6789 Invest St' 
-    }
-]);
-// const pendingWithdrawals = ref();
+// const pendingWithdrawals = ref([
+//     { 
+//         id: 1, 
+//         user_profile_photo: 'https://via.placeholder.com/100', 
+//         user_name: 'John Doe', 
+//         user_email: 'john.doe@example.com', 
+//         created_at: '2024-09-05T12:34:56Z', 
+//         from: 'rebate_wallet', 
+//         amount: '150.00', 
+//         balance: '200.00', 
+//         wallet_name: 'Main Wallet', 
+//         wallet_address: '1234 Placeholder Ave' 
+//     },
+//     { 
+//         id: 2, 
+//         user_profile_photo: 'https://via.placeholder.com/100', 
+//         user_name: 'Jane Smith', 
+//         user_email: 'jane.smith@example.com', 
+//         created_at: '2024-09-04T15:20:30Z', 
+//         from: '80001234', 
+//         amount: '75.00', 
+//         balance: '100.00', 
+//         wallet_name: 8000412, 
+//         wallet_address: '5678 Dummy St' 
+//     },
+//     { 
+//         id: 3, 
+//         user_profile_photo: 'https://via.placeholder.com/100', 
+//         user_name: 'Alice Johnson', 
+//         user_email: 'alice.johnson@example.com', 
+//         created_at: '2024-09-03T10:10:10Z', 
+//         from: 'rebate_wallet', 
+//         amount: '120.00', 
+//         balance: '180.00', 
+//         wallet_name: 8001547, 
+//         wallet_address: '9101 Example Ave' 
+//     },
+//     { 
+//         id: 4, 
+//         user_profile_photo: 'https://via.placeholder.com/100', 
+//         user_name: 'Bob Brown', 
+//         user_email: 'bob.brown@example.com', 
+//         created_at: '2024-09-02T08:15:45Z', 
+//         from: '80005678', 
+//         amount: '200.00', 
+//         balance: '250.00', 
+//         wallet_name: 8000518, 
+//         wallet_address: '2345 Business Rd' 
+//     },
+//     { 
+//         id: 5, 
+//         user_profile_photo: 'https://via.placeholder.com/100', 
+//         user_name: 'Carol White', 
+//         user_email: 'carol.white@example.com', 
+//         created_at: '2024-09-01T14:22:35Z', 
+//         from: 'rebate_wallet', 
+//         amount: '90.00', 
+//         balance: '130.00', 
+//         wallet_name: 'rebate_wallet', 
+//         wallet_address: '6789 Invest St' 
+//     }
+// ]);
+const pendingWithdrawals = ref();
 const totalAmount = ref();
 const filteredValueCount = ref(0);
 
-// const getResults = async () => {
-//     loading.value = true;
+const getResults = async () => {
+    loading.value = true;
 
-//     try {
-//         const response = await axios.get('/pending/getPendingWithdrawalData');
-//         pendingWithdrawals.value = response.data.pendingWithdrawals;
-//         totalAmount.value = response.data.totalAmount;
-//     } catch (error) {
-//         console.error('Error changing locale:', error);
-//     } finally {
-//         loading.value = false;
-//     }
-// };
+    try {
+        const response = await axios.get('/pending/getPendingWithdrawalData');
+        pendingWithdrawals.value = response.data.pendingWithdrawals;
+        totalAmount.value = response.data.totalAmount;
+    } catch (error) {
+        console.error('Error changing locale:', error);
+    } finally {
+        loading.value = false;
+    }
+};
 
-// getResults();
+getResults();
 
 const exportCSV = () => {
     dt.value.exportCSV();
@@ -212,13 +212,13 @@ const handleFilter = (e) => {
                 >
                     <template #header>
                         <div class="flex flex-col justify-between items-center pb-5 gap-5 self-stretch md:flex-row md:pb-6">
-                            <span class="self-stretch text-gray-950 font-semibold">{{ $t('public.withdrawal_request', {action: ''}) }}</span>
+                            <span class="self-stretch md:self-auto text-gray-950 font-semibold">{{ $t('public.withdrawal_request', {action: ''}) }}</span>
                             <div class="flex flex-col items-center gap-3 self-stretch md:flex-row md:gap-5">
                                 <div class="relative w-full md:w-60">
                                     <div class="absolute top-2/4 -mt-[9px] left-4 text-gray-500">
                                         <IconSearch size="20" stroke-width="1.25" />
                                     </div>
-                                    <InputText v-model="filters['global'].value" :placeholder="$t('public.keyword_search')" class="font-normal pl-12 w-full md:w-60" />
+                                    <InputText v-model="filters['global'].value" :placeholder="$t('public.keyword_search')" size="search" class="font-normal w-full md:w-60" />
                                     <div
                                         v-if="filters['global'].value !== null"
                                         class="absolute top-2/4 -mt-2 right-4 text-gray-300 hover:text-gray-400 select-none cursor-pointer"
@@ -242,11 +242,11 @@ const handleFilter = (e) => {
                     <template #loading>
                         <div class="flex flex-col gap-2 items-center justify-center">
                             <Loader />
-                            <span class="text-sm text-gray-700">{{ $t('public.loading_transactions_caption') }}</span>
+                            <span class="text-sm text-gray-700">{{ $t('public.loading') }}</span>
                         </div>
                     </template>
                     <template v-if="pendingWithdrawals?.length > 0 && filteredValueCount > 0">
-                        <Column field="name" sortable :header="$t('public.name')" style="width: 25%; max-width: 0;">
+                        <Column field="name" sortable :header="$t('public.name')" style="width: 25%; max-width: 0;" class="px-3">
                             <template #body="slotProps">
                                 <div class="flex flex-col items-start max-w-full">
                                     <div class="font-medium truncate max-w-full">
@@ -268,7 +268,7 @@ const handleFilter = (e) => {
                                 {{ slotProps.data.from === 'rebate_wallet' ? $t(`public.${slotProps.data.from}`) : slotProps.data.from }}
                             </template>
                         </Column>
-                        <Column field="amount" :header="`${$t('public.amount')}&nbsp;($)`" sortable style="width: 25%">
+                        <Column field="amount" :header="`${$t('public.amount')}&nbsp;($)`" sortable style="width: 25%" class="px-3">
                             <template #body="slotProps">
                                 {{ formatAmount(slotProps.data.amount) }}
                             </template>

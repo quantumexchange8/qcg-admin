@@ -12,11 +12,11 @@ use App\Models\LeaderboardProfile;
 use App\Models\TradeBrokerHistory;
 use App\Services\RunningNumberService;
 
-class DistributeSalesBonusCommand extends Command
+class DistributeSalesIncentiveCommand extends Command
 {
-    protected $signature = 'distribute:sales-bonus';
+    protected $signature = 'distribute:sales-incentive';
 
-    protected $description = 'Calculate and distribute sales bonus';
+    protected $description = 'Calculate and distribute sales incentive';
 
     public function handle(): void
     {
@@ -171,7 +171,7 @@ class DistributeSalesBonusCommand extends Command
                 }
             }
 
-            $bonus = LeaderboardBonus::create([
+            $incentive = LeaderboardBonus::create([
                 'user_id' => $profile->user_id,
                 'leaderboard_profile_id' => $profile->id,
                 'target_amount' => $profile->target_amount,
@@ -181,27 +181,27 @@ class DistributeSalesBonusCommand extends Command
                 'incentive_amount' => $achieved_percentage >= $profile->calculation_threshold ? $incentive_amount : 0,
             ]);
 
-            if ($bonus->incentive_amount > 0) {
-                $bonus_wallet = Wallet::where('user_id', $profile->user_id)
-                    ->where('type', 'bonus_wallet')
+            if ($incentive->incentive_amount > 0) {
+                $incentive_wallet = Wallet::where('user_id', $profile->user_id)
+                    ->where('type', 'incentive_wallet')
                     ->first();
 
                 Transaction::create([
                     'user_id' => $profile->user_id,
-                    'category' => 'bonus_wallet',
-                    'transaction_type' => 'bonus',
-                    'to_wallet_id' => $bonus_wallet->id,
+                    'category' => 'incentive_wallet',
+                    'transaction_type' => 'incentive',
+                    'to_wallet_id' => $incentive_wallet->id,
                     'transaction_number' => RunningNumberService::getID('transaction'),
-                    'amount' => $bonus->incentive_amount,
+                    'amount' => $incentive->incentive_amount,
                     'transaction_charges' => 0,
-                    'transaction_amount' => $bonus->incentive_amount,
-                    'old_wallet_amount' => $bonus_wallet->balance,
-                    'new_wallet_amount' => $bonus_wallet->balance += $bonus->incentive_amount,
+                    'transaction_amount' => $incentive->incentive_amount,
+                    'old_wallet_amount' => $incentive_wallet->balance,
+                    'new_wallet_amount' => $incentive_wallet->balance += $incentive->incentive_amount,
                     'status' => 'successful',
                     'approved_at' => now(),
                 ]);
 
-                $bonus_wallet->save();
+                $incentive_wallet->save();
             }
 
             // Save the old next_payout_date before updating
@@ -215,7 +215,7 @@ class DistributeSalesBonusCommand extends Command
                         'next_payout_date' => $nextPayout
                     ]);
 
-                    $bonus->update([
+                    $incentive->update([
                         'incentive_month' => $nextPayout->subWeek()->month
                     ]);
                     break;
@@ -227,7 +227,7 @@ class DistributeSalesBonusCommand extends Command
                         'next_payout_date' => $nextPayout
                     ]);
 
-                    $bonus->update([
+                    $incentive->update([
                         'incentive_month' => $nextPayout->subWeeks(2)->month
                     ]);
                     break;
@@ -239,7 +239,7 @@ class DistributeSalesBonusCommand extends Command
                         'next_payout_date' => $nextPayout
                     ]);
 
-                    $bonus->update([
+                    $incentive->update([
                         'incentive_month' => $nextPayout->subMonth()->month
                     ]);
                     break;
@@ -251,7 +251,7 @@ class DistributeSalesBonusCommand extends Command
                         'next_payout_date' => $nextPayout
                     ]);
 
-                    $bonus->update([
+                    $incentive->update([
                         'incentive_month' => $nextPayout->subMonth()->month
                     ]);
             }

@@ -10,58 +10,39 @@ import DataTable from "primevue/datatable";
 import Column from "primevue/column";
 import dayjs from "dayjs";
 import Loader from "@/Components/Loader.vue";
+import Vue3autocounter from 'vue3-autocounter';
 
 const props = defineProps({
     user_id: Number
 })
 
-const totalDeposit = ref(0);
-const totalWithdrawal = ref(0);
+const totalDeposit = ref(99999);
+const totalWithdrawal = ref(99999);
 const transactionHistory = ref([]);
 const rebateWallet = ref(null);
 const isLoading = ref(false);
+const counterDuration = ref(10);
+
 const { formatAmount, formatDateTime } = transactionFormat();
 
-// Dummy data for initial rendering
-totalDeposit.value = 15000000000;
-totalWithdrawal.value = 7500000000;
-transactionHistory.value = [
-{
-    transaction_type: 'deposit',
-    to_meta_login: 'user123',
-    meta_login: '8005588',
-    approved_at: '2024-09-01T14:30:00Z',
-    transaction_amount: 500,
-    amount: 500,
-  },
-  {
-    transaction_type: 'withdrawal',
-    from_meta_login: '8000578',
-    meta_login: 'user123',
-    approved_at: '2024-09-05T10:00:00Z',
-    amount: 300,
-    transaction_amount: 300,
-  },
-];
+const getFinancialData = async () => {
+    isLoading.value = true;
 
-// const getFinancialData = async () => {
-//   isLoading.value = true;
+    try {
+        const response = await axios.get(`/member/getFinancialInfoData?id=${props.user_id}`);
 
-//   try {
-//     const response = await axios.get(`/member/getFinancialInfoData?id=${props.user_id}`);
-
-//     totalDeposit.value = response.data.totalDeposit;
-//     totalWithdrawal.value = response.data.totalWithdrawal;
-//     transactionHistory.value = response.data.transactionHistory;
-//     rebateWallet.value = response.data.rebateWallet;
-//   } catch (error) {
-//     console.error('Error get info:', error);
-//   } finally {
-//     isLoading.value = false;
-//   }
-// };
-
-// getFinancialData();
+        totalDeposit.value = response.data.totalDeposit;
+        totalWithdrawal.value = response.data.totalWithdrawal;
+        transactionHistory.value = response.data.transactionHistory;
+        rebateWallet.value = response.data.rebateWallet;
+    } catch (error) {
+        console.error('Error get info:', error);
+    } finally {
+        isLoading.value = false;
+        counterDuration.value = 1
+    }
+};
+getFinancialData();
 
 const overviewData = computed(() =>  [
     {
@@ -99,7 +80,9 @@ watchEffect(() => {
                         }"
                      />
                     <div class="self-stretch text-center text-gray-700 text-xs font-medium md:text-sm flex-wrap break-all w-full">{{ overview.label }}</div>
-                    <div class="self-stretch text-center text-gray-950 font-semibold md:text-xl flex-wrap break-all w-full">$&nbsp;{{ formatAmount(overview.value) }}</div>
+                    <div class="self-stretch text-center text-gray-950 font-semibold md:text-xl flex-wrap break-all w-full">$&nbsp;
+                        <Vue3autocounter ref="counter" :startAmount="0" :endAmount="Number(overview.value)" :duration="counterDuration" separator="," decimalSeparator="." :decimals="2" :autoinit="true" />
+                    </div>
                 </div>
             </div>
         </div>
@@ -109,14 +92,14 @@ watchEffect(() => {
             <div class="h-9 flex items-center gap-7 flex-shrink-0 self-stretch">
                 <div class="text-gray-950 text-sm font-bold">{{ $t('public.recent_transaction' )}}</div>
             </div>
-            <div v-if="transactionHistory?.length <= 0" class="flex flex-col items-center flex-1 self-stretch">
+            <div v-if="isLoading" class="flex flex-col gap-2 items-center justify-center">
+                <Loader />
+                <span class="text-sm text-gray-700">{{ $t('public.loading') }}</span>
+            </div>
+            <div v-else-if="transactionHistory?.length <= 0" class="flex flex-col items-center flex-1 self-stretch">
               <Empty :message="$t('public.empty_transaction_message')">
                   <template #image></template>
               </Empty>
-            </div>
-            <div v-else-if="isLoading" class="flex flex-col gap-2 items-center justify-center">
-                <Loader />
-                <span class="text-sm text-gray-700">{{ $t('public.loading_transactions_caption') }}</span>
             </div>
 
             <div v-else class="flex flex-col items-center flex-1 self-stretch overflow-auto" style="-ms-overflow-style: none; scrollbar-width: none;">
@@ -125,21 +108,21 @@ watchEffect(() => {
                   class="grid"
                 >
                     <template v-if="transactionHistory?.length > 0">
-                        <Column field="approved_at" :header="$t('public.date')" style="width: 25%">
+                        <Column field="approved_at" :header="$t('public.date')" style="width: 25%" class="px-3">
                             <template #body="slotProps">
                                 <div class="text-gray-950 text-sm break-all">
                                     {{ dayjs(slotProps.data.approved_at).format('YYYY/MM/DD') }}
                                 </div>
                             </template>
                         </Column>
-                        <Column field="meta_login" :header="$t('public.account')" style="width: 25%">
+                        <Column field="meta_login" :header="$t('public.account')" style="width: 25%" class="px-3">
                             <template #body="slotProps">
                                 <div class="text-gray-950 text-sm break-all">
-                                    {{ slotProps.data.meta_login }}
+                                    {{ slotProps.data.from_meta_login ?? slotProps.data.to_meta_login }}
                                 </div>
                             </template>
                         </Column>
-                        <Column field="transaction_amount" :header="`${$t('public.amount')}&nbsp;($)`" style="width: 25%">
+                        <Column field="transaction_amount" :header="`${$t('public.amount')}&nbsp;($)`" style="width: 25%" class="px-3">
                             <template #body="slotProps">
                                 <div class="text-sm break-all"
                                     :class="{

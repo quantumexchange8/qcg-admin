@@ -119,7 +119,7 @@ const closeDialog = () => {
                     <span class="text-gray-950 font-semibold max-w-[220px] truncate">{{ member.name }}</span>
                     <div class="text-gray-500 text-sm max-w-[220px] truncate flex gap-1 items-center self-stretch">
                         <span>{{ member.id_number }}</span>
-                        <IconArrowRight size="14" stroke-width="1.25" />
+                        →
                         <span>{{ newIdNumber }}</span>
                     </div>
                 </div>

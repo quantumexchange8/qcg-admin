@@ -55,7 +55,7 @@ const form = useForm({
 const agents = ref();
 const getAgents = async () => {
     try {
-        const agentResponse = await axios.get('/getAgents');
+        const agentResponse = await axios.get('/leaderboard/getAgents');
         agents.value = agentResponse.data.users;
     } catch (error) {
         console.error('Error fetching agents:', error);

@@ -1,6 +1,7 @@
 <?php
 
 use Inertia\Inertia;
+use App\Models\AccountType;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Application;
@@ -13,6 +14,7 @@ use App\Http\Controllers\NetworkController;
 use App\Http\Controllers\PendingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\AccountTypeController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\TradingAccountController;
@@ -34,9 +36,17 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(function () {
     Route::get('/getWalletData', [GeneralController::class, 'getWalletData'])->name('getWalletData');
+    Route::get('/getLeverages', [GeneralController::class, 'getLeverages'])->name('getLeverages');
     Route::get('/getTradingAccountData', [GeneralController::class, 'getTradingAccountData'])->name('getTradingAccountData');
     Route::get('/getAgents', [GeneralController::class, 'getAgents'])->name('getAgents');    
-
+    Route::get('/getTransactionMonths', [GeneralController::class, 'getTransactionMonths'])->name('getTransactionMonths');    
+    Route::get('/getSettlementMonths', [GeneralController::class, 'getSettlementMonths'])->name('getSettlementMonths');    
+    Route::get('/getAccountTypes', [GeneralController::class, 'getAccountTypes'])->name('getAccountTypes');    
+    Route::get('/getAccountTypesWithSlugs', [GeneralController::class, 'getAccountTypesWithSlugs'])->name('getAccountTypesWithSlugs');    
+    Route::get('/getCountries', [GeneralController::class, 'getCountries'])->name('getCountries');    
+    Route::get('/getUplines', [GeneralController::class, 'getUplines'])->name('getUplines');    
+    Route::get('/getTeams', [GeneralController::class, 'getTeams'])->name('getTeams');    
+    Route::get('/getIncentiveMonths', [GeneralController::class, 'getIncentiveMonths'])->name('getIncentiveMonths');    
 
     /**
      * ==============================
@@ -56,16 +66,12 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
      * ==============================
      */
     Route::prefix('pending')->group(function () {
-        Route::get('/withdrawal', [PendingController::class, 'withdrawal'])->name('pending.withdrawal');
-        Route::get('/incentive', [PendingController::class, 'incentive'])->name('pending.incentive');
+        Route::get('/{type}', [PendingController::class, 'index'])->where('type', 'withdrawal|incentive')->name('pending.index');
         Route::get('/getPendingWithdrawalData', [PendingController::class, 'getPendingWithdrawalData'])->name('pending.getPendingWithdrawalData');
+        Route::get('/getPendingRevokeData', [PendingController::class, 'getPendingRevokeData'])->name('pending.getPendingRevokeData');
 
-    //     Route::get('/', [PendingController::class, 'index'])->name('pending');
-    //     Route::get('/getPendingWithdrawalData', [PendingController::class, 'getPendingWithdrawalData'])->name('pending.getPendingWithdrawalData');
-    //     Route::get('/getPendingRevokeData', [PendingController::class, 'getPendingRevokeData'])->name('pending.getPendingRevokeData');
-
-    //     Route::post('withdrawalApproval', [PendingController::class, 'withdrawalApproval'])->name('pending.withdrawalApproval');
-    //     Route::post('revokeApproval', [PendingController::class, 'revokeApproval'])->name('pending.revokeApproval');
+        Route::post('withdrawalApproval', [PendingController::class, 'withdrawalApproval'])->name('pending.withdrawalApproval');
+        Route::post('revokeApproval', [PendingController::class, 'revokeApproval'])->name('pending.revokeApproval');
     });
 
     Route::prefix('member')->group(function () {
@@ -92,7 +98,7 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
         Route::get('/getTradingAccounts', [MemberController::class, 'getTradingAccounts'])->name('member.getTradingAccounts');
         Route::get('/getAdjustmentHistoryData', [MemberController::class, 'getAdjustmentHistoryData'])->name('member.getAdjustmentHistoryData');
 
-        Route::post('/updateContactInfo', [MemberController::class, 'updateContactInfo'])->name('member.updateContactInfo');
+        Route::post('/updateMemberInfo', [MemberController::class, 'updateMemberInfo'])->name('member.updateMemberInfo');
         Route::post('/updateCryptoWalletInfo', [MemberController::class, 'updateCryptoWalletInfo'])->name('member.updateCryptoWalletInfo');
         Route::post('/updateKYCStatus', [MemberController::class, 'updateKYCStatus'])->name('member.updateKYCStatus');
 
@@ -118,9 +124,13 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
     Route::prefix('team')->group(function () {
         Route::get('/', [TeamController::class, 'index'])->name('team');
         Route::get('/getTeams', [TeamController::class, 'getTeams'])->name('team.getTeams');
+        Route::get('/refreshTeam', [TeamController::class, 'refreshTeam'])->name('team.refreshTeam');
+        Route::get('/getTeamTransaction', [TeamController::class, 'getTeamTransaction'])->name('team.getTeamTransaction');
+        Route::get('/getSettlementReport', [TeamController::class, 'getSettlementReport'])->name('team.getSettlementReport');
 
         Route::post('/createTeam', [TeamController::class, 'createTeam'])->name('team.createTeam');
         Route::post('/editTeam', [TeamController::class, 'editTeam'])->name('team.editTeam');
+        Route::post('/markSettlementReport', [TeamController::class, 'markSettlementReport'])->name('team.markSettlementReport');
         Route::delete('/deleteTeam', [TeamController::class, 'deleteTeam'])->name('team.deleteTeam');
     });
 
@@ -148,6 +158,7 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
     Route::prefix('leaderboard')->group(function () {
         Route::get('/', [LeaderboardController::class, 'index'])->name('leaderboard');
         Route::get('/getIncentiveProfiles', [LeaderboardController::class, 'getIncentiveProfiles'])->name('leaderboard.getIncentiveProfiles');
+        Route::get('/getAgents', [LeaderboardController::class, 'getAgents'])->name('leaderboard.getAgents');
         Route::get('/getStatementData', [LeaderboardController::class, 'getStatementData'])->name('leaderboard.getStatementData');
 
         Route::post('/createIncentiveProfile', [LeaderboardController::class, 'createIncentiveProfile'])->name('leaderboard.createIncentiveProfile');
@@ -164,7 +175,27 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
      */
     Route::prefix('transaction')->group(function () {
         Route::get('transaction/{type}', [TransactionController::class, 'index'])->name('transaction.index');
+        Route::get('/getTransactionListingData', [TransactionController::class, 'getTransactionListingData'])->name('transaction.getTransactionListingData');
+        Route::get('/getTransactionData', [TransactionController::class, 'getTransactionData'])->name('transaction.getTransactionData');
+        Route::get('/getRebatePayoutData', [TransactionController::class, 'getRebatePayoutData'])->name('transaction.getRebatePayoutData');
+        Route::get('/getIncentivePayoutData', [TransactionController::class, 'getIncentivePayoutData'])->name('transaction.getIncentivePayoutData');
     });
+
+    /**
+     * ==============================
+     *        Account Type
+     * ==============================
+     */
+    Route::prefix('accountType')->group(function () {
+        Route::get('/', [AccountTypeController::class, 'index'])->name('accountType');
+        Route::get('/getAccountTypes', [AccountTypeController::class, 'getAccountTypes'])->name('accountType.getAccountTypes');
+        Route::get('/syncAccountTypes', [AccountTypeController::class, 'syncAccountTypes'])->name('accountType.syncAccountTypes');
+
+        Route::post('/updateStatus', [AccountTypeController::class, 'updateStatus'])->name('accountType.updateStatus');
+        Route::post('/updateAccountType', [AccountTypeController::class, 'updateAccountType'])->name('accountType.updateAccountType');
+
+    });
+
 
     /**
      * ==============================

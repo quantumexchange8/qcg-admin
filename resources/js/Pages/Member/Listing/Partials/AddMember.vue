@@ -13,6 +13,11 @@ import FileUpload from 'primevue/fileupload';
 import ProgressBar from 'primevue/progressbar';
 import { IconPlus, IconUpload } from "@tabler/icons-vue";
 
+const props = defineProps({
+    countries: Array,
+    uplines: Array,
+});
+
 const visible = ref(false)
 
 const closeDialog = () => {
@@ -46,8 +51,8 @@ const submitForm = () => {
     });
 };
 
-const countries = ref()
-const uplines = ref()
+const countries = ref(props.countries)
+const uplines = ref(props.uplines)
 const selectedCountry = ref();
 // const getResults = async () => {
 //     try {
@@ -73,7 +78,7 @@ const selectedCountry = ref();
         type="button"
         variant="primary-flat"
         size="base"
-        class='w-full md:w-auto'
+        class='w-full md:w-auto truncate'
         @click="visible = true"
     >
         <IconPlus size="20" stroke-width="1.25" />
@@ -96,7 +101,7 @@ const selectedCountry = ref();
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-5 w-full">
                         <div class="space-y-2">
-                            <InputLabel for="name" :value="$t('public.full_name')" />
+                            <InputLabel for="name" :value="$t('public.full_name')" :invalid="!!form.errors.name" />
                             <InputText
                                 id="name"
                                 type="text"
@@ -109,7 +114,7 @@ const selectedCountry = ref();
                             <InputError :message="form.errors.name" />
                         </div>
                         <div class="space-y-2">
-                            <InputLabel for="email" :value="$t('public.email')" />
+                            <InputLabel for="email" :value="$t('public.email')" :invalid="!!form.errors.email" />
                             <InputText
                                 id="email"
                                 type="email"
@@ -121,7 +126,7 @@ const selectedCountry = ref();
                             <InputError :message="form.errors.email" />
                         </div>
                         <div class="space-y-2">
-                            <InputLabel for="phone" :value="$t('public.phone_number')" />
+                            <InputLabel for="phone" :value="$t('public.phone_number')" :invalid="!!form.errors.phone" />
                             <div class="flex gap-2 items-center self-stretch relative">
                                 <Select
                                     v-model="selectedCountry"
@@ -161,7 +166,7 @@ const selectedCountry = ref();
                             <InputError :message="form.errors.phone" />
                         </div>
                         <div class="space-y-2">
-                            <InputLabel for="email" :value="$t('public.upline')" />
+                            <InputLabel for="email" :value="$t('public.upline')" :invalid="!!form.errors.upline" />
                             <Select
                                 v-model="form.upline"
                                 :options="uplines"
@@ -173,7 +178,7 @@ const selectedCountry = ref();
                                 scroll-height="236px"
                                 :invalid="!!form.errors.upline"
                             >
-                                <template #value="slotProps">
+                                <!-- <template #value="slotProps">
                                     <div v-if="slotProps.value" class="flex items-center gap-3">
                                         <div class="flex items-center gap-2">
                                             <div class="w-5 h-5 rounded-full overflow-hidden">
@@ -203,7 +208,7 @@ const selectedCountry = ref();
                                         </div>
                                         <div>{{ slotProps.option.name }}</div>
                                     </div>
-                                </template>
+                                </template> -->
                             </Select>
                             <InputError :message="form.errors.upline" />
                         </div>
@@ -218,7 +223,7 @@ const selectedCountry = ref();
                     <div class="w-full space-y-2">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-5 w-full">
                             <div class="space-y-2">
-                                <InputLabel for="password" :value="$t('public.password')" />
+                                <InputLabel for="password" :value="$t('public.password')" :invalid="!!form.errors.password" />
                                 <Password
                                     v-model="form.password"
                                     toggleMask
@@ -230,7 +235,7 @@ const selectedCountry = ref();
                                 <span class="self-stretch text-gray-500 text-xs md:hidden">{{ $t('public.password_rule') }}</span>
                             </div>
                             <div class="space-y-2">
-                                <InputLabel for="password_confirmation" :value="$t('public.confirm_password')" />
+                                <InputLabel for="password_confirmation" :value="$t('public.confirm_password')" :invalid="!!form.errors.password" />
                                 <Password
                                     v-model="form.password_confirmation"
                                     toggleMask

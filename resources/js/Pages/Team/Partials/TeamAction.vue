@@ -74,7 +74,7 @@ const requireConfirmation = (action_type) => {
             cancelButton: trans('public.cancel'),
             acceptButton: trans('public.confirm'),
             action: () => {
-                router.visit(route('team.'), {
+                router.visit(route('team.markSettlementReport'), {
                     method: 'post',
                     data: {
                         id: props.team.id,
@@ -89,7 +89,7 @@ const requireConfirmation = (action_type) => {
             header: trans('public.remove_sales_team_header'),
             message: trans('public.remove_sales_team_message'),
             cancelButton: trans('public.cancel'),
-            acceptButton: trans('public.remove'),
+            acceptButton: trans('public.sales_team_remove'),
             action: () => {
                 router.visit(route('team.deleteTeam'), {
                     method: 'delete',

@@ -143,7 +143,7 @@ const handleFilter = (e) => {
                         <div class="absolute top-2/4 -mt-[9px] left-4 text-gray-500">
                             <IconSearch size="20" stroke-width="1.25" />
                         </div>
-                        <InputText v-model="filters['global'].value" :placeholder="$t('public.keyword_search')" class="font-normal pl-12 w-full md:w-60" />
+                        <InputText v-model="filters['global'].value" :placeholder="$t('public.keyword_search')" size="search" class="font-normal w-full md:w-60" />
                         <div
                             v-if="filters['global'].value !== null"
                             class="absolute top-2/4 -mt-2 right-4 text-gray-300 hover:text-gray-400 select-none cursor-pointer"
@@ -160,7 +160,7 @@ const handleFilter = (e) => {
                         optionLabel="name"
                         optionValue="value"
                         :placeholder="$t('public.filter_by_account_type')"
-                        class="w-full md:w-60"
+                        class="w-full md:w-60 font-normal"
                         scroll-height="236px"
                     />
                 </div>
@@ -185,7 +185,7 @@ const handleFilter = (e) => {
         <template #loading>
             <div class="flex flex-col gap-2 items-center justify-center">
                 <Loader />
-                <span class="text-sm text-gray-700">{{ $t('public.loading_transactions_caption') }}</span>
+                <span class="text-sm text-gray-700">{{ $t('public.loading') }}</span>
             </div>
         </template>
         <template v-if="accounts?.length > 0 && filteredValueCount > 0">

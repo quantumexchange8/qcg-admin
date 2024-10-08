@@ -8,4 +8,4 @@ use Illuminate\Support\Facades\Schedule;
 //     $this->comment(Inspiring::quote());
 // })->purpose('Display an inspiring quote')->hourly();
 
-// Schedule::command('distribute:sales-bonus')->weekly();
+Schedule::command('distribute:sales-incentive')->weekly();

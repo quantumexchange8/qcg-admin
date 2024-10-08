@@ -178,7 +178,7 @@ watchEffect(() => {
                         class="w-full flex flex-col items-center p-4 gap-3 self-stretch rounded border border-gray-100 bg-white shadow-card md:p-6 md:gap-6"
                     >
                         <div class="w-full flex justify-between items-center self-stretch">
-                            <div class="w-full flex flex-col items-start">
+                            <div class="w-full truncate flex flex-col items-start">
                                 <span class="w-full text-gray-950 font-semibold truncate">{{ profile.name }}</span>
                                 <span class="w-full text-gray-500 text-sm truncate">{{ profile.email }}</span>
                             </div>

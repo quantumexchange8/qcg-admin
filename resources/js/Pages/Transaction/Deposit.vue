@@ -18,56 +18,18 @@ import { transactionFormat } from "@/Composables/index.js";
 import dayjs from "dayjs";
 import { trans, wTrans } from "laravel-vue-i18n";
 import StatusBadge from '@/Components/StatusBadge.vue';
+import MultiSelect from "primevue/multiselect";
+
 const { formatAmount } = transactionFormat();
 
 const visible = ref(false);
 const loading = ref(false);
 const dt = ref(null);
 const transactions = ref();
-// Dummy data for transactions
-transactions.value = [
-    {
-        name: "John Doe",
-        email: "john@example.com",
-        created_at: dayjs().subtract(1, 'day').toString(),
-        id_number: "ID12345",
-        meta_login: "MetaLogin001",
-        transaction_amount: 1500.00,
-        status: "successful",
-        deleted_at: dayjs().subtract(1, 'day').toString(),
-        from_wallet_address: 'test1from',
-        to_wallet_address: 'test1to',
-        remarks: 'test1'
-    },
-    {
-        name: "Jane Smith",
-        email: "jane@example.com",
-        created_at: dayjs().subtract(3, 'days').toString(),
-        id_number: "ID67890",
-        meta_login: "MetaLogin002",
-        transaction_amount: 2500.50,
-        status: "processing",
-        deleted_at: dayjs().subtract(3, 'days').toString(),
-        from_wallet_address: 'test2from',
-        to_wallet_address: 'test2to',
-        remarks: 'test2'
-    },
-    {
-        name: "Michael Johnson",
-        email: "michael@example.com",
-        created_at: dayjs().subtract(7, 'days').toString(),
-        id_number: "ID11111",
-        meta_login: "MetaLogin003",
-        transaction_amount: 3200.75,
-        status: "failed",
-        deleted_at: dayjs().subtract(7, 'days').toString(),
-        from_wallet_address: 'test3from',
-        to_wallet_address: 'test3to',
-        remarks: 'test3'
-    }
-];
-
-const status = ref();
+const totalAmount = ref();
+const type = ref('deposit');
+const months = ref([]);
+const selectedMonths = ref([]);
 const filteredValueCount = ref(0);
 
 // Define the status options
@@ -77,28 +39,96 @@ const statusOption = [
     { name: wTrans('public.failed'), value: 'failed' }
 ];
 
-// const getResults = async () => {
-//     loading.value = true;
+const getCurrentMonthYear = () => {
+    const date = new Date();
+    return `${dayjs(date).format('MMMM YYYY')}`;
+};
 
-//     try {
-//         const response = await axios.get('/member/getAccountListingData?type=all');
-//         transactions.value = response.data.transactions;
+// Fetch settlement months from API
+const getTransactionMonths = async () => {
+    try {
+        const response = await axios.get('/getTransactionMonths');
+        months.value = response.data.months;
 
-//     } catch (error) {
-//     console.error('Error In Fetch Data:', error);
-//         } finally {
-//         loading.value = false;
-//     }
+        if (months.value.length) {
+            selectedMonths.value = [getCurrentMonthYear()];
+        }
+    } catch (error) {
+        console.error('Error transaction months:', error);
+    }
+};
 
-// };
+getTransactionMonths()
 
-// getResults();
+const getResults = async (selectedMonths = []) => {
+    loading.value = true;
+
+    try {
+        // Create the base URL with the type parameter directly in the URL
+        let url = `/transaction/getTransactionData?type=${type.value}`;
+
+        // Convert the array to a comma-separated string if not empty
+        if (selectedMonths && selectedMonths.length > 0) {
+            const selectedMonthString = selectedMonths.map(month => dayjs(month, 'MMMM YYYY').format('MM/YYYY')).join(',');
+            url += `&selectedMonths=${selectedMonthString}`;
+        }
+
+        // Make the API call with the constructed URL
+        const response = await axios.get(url);
+        transactions.value = response.data.transactions;
+        totalAmount.value = response.data.totalAmount;
+
+    } catch (error) {
+        console.error('Error fetching data:', error);
+    } finally {
+        loading.value = false;
+    }
+};
+
+watch(selectedMonths, (newMonths) => {
+    getResults(newMonths);
+    // console.log(newMonths)
+});
 
 const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
     name: { value: null, matchMode: FilterMatchMode.CONTAINS },
     email: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    status: { value: null, matchMode: FilterMatchMode.EQUALS },
 });
+
+const recalculateTotals = () => {
+    const globalFilterValue = filters.value.global?.value?.toLowerCase();
+
+    const filtered = transactions.value.filter(transaction => {
+        const matchesGlobalFilter = globalFilterValue 
+            ? [
+                transaction.name, 
+                transaction.email, 
+                transaction.to_meta_login, 
+            ].some(field => {
+                // Convert field to string and check if it includes the global filter value
+                const fieldValue = field !== undefined && field !== null ? field.toString() : '';
+                return fieldValue.toLowerCase().includes(globalFilterValue);
+            }) 
+            : true; // If no global filter is set, match all
+
+        // Apply individual field filters (name, email, status)
+        const matchesNameFilter = !filters.value.name?.value || transaction.name.startsWith(filters.value.name.value);
+        const matchesEmailFilter = !filters.value.email?.value || transaction.email.startsWith(filters.value.email.value);
+        const matchesStatusFilter = !filters.value.status?.value || transaction.status === filters.value.status.value;
+
+        // Only return transactions that match both global and specific filters
+        return matchesGlobalFilter && matchesNameFilter && matchesEmailFilter && matchesStatusFilter;
+    });
+
+    // Calculate the total for successful transactions
+    totalAmount.value = filtered.filter(item => item.status === 'successful').reduce((acc, item) => acc + parseFloat(item.transaction_amount || 0), 0);
+};
+
+watch(filters, () => {
+    recalculateTotals();
+}, { deep: true });
 
 const clearFilterGlobal = () => {
     filters.value['global'].value = null;
@@ -109,8 +139,9 @@ const clearFilter = () => {
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
         name: { value: null, matchMode: FilterMatchMode.CONTAINS },
         email: { value: null, matchMode: FilterMatchMode.CONTAINS },
+        status: { value: null, matchMode: FilterMatchMode.EQUALS },
     };
-
+    selectedMonths.value = [getCurrentMonthYear()];
 };
 
 watchEffect(() => {
@@ -164,13 +195,13 @@ const copyToClipboard = (text) => {
     <AuthenticatedLayout :title="`${$t('public.transactions')}&nbsp;-&nbsp;${$t('public.sidebar_deposit')}`">
         <div class="flex flex-col justify-center items-center px-3 py-5 self-stretch rounded-lg bg-white shadow-card md:p-6 md:gap-6">
             <div class="flex flex-col pb-3 gap-3 items-center self-stretch md:flex-row md:gap-0 md:justify-between md:pb-0">
-                <span class="text-gray-950 font-semibold self-stretch">{{ $t('public.all_deposit') }}</span>
+                <span class="text-gray-950 font-semibold self-stretch md:self-auto">{{ $t('public.all_deposit') }}</span>
                 <div class="flex flex-col gap-3 items-center self-stretch md:flex-row md:gap-5">
                     <div class="relative w-full md:w-60">
                         <div class="absolute top-2/4 -mt-[9px] left-4 text-gray-500">
                             <IconSearch size="20" stroke-width="1.25" />
                         </div>
-                        <InputText v-model="filters['global'].value" :placeholder="$t('public.keyword_search')" class="font-normal pl-12 w-full md:w-60" />
+                        <InputText v-model="filters['global'].value" :placeholder="$t('public.keyword_search')" size="search" class="font-normal w-full md:w-60" />
                         <div
                             v-if="filters['global'].value !== null"
                             class="absolute top-2/4 -mt-2 right-4 text-gray-300 hover:text-gray-400 select-none cursor-pointer"
@@ -185,7 +216,14 @@ const copyToClipboard = (text) => {
                     </Button>
                 </div>
             </div>
+            
+            <div v-if="months.length === 0" class="flex flex-col gap-2 items-center justify-center">
+                <Loader />
+                <span class="text-sm text-gray-700">{{ $t('public.loading') }}</span>
+            </div>
+
             <DataTable
+                v-else
                 v-model:filters="filters"
                 :value="transactions"
                 :paginator="transactions?.length > 0 && filteredValueCount > 0"
@@ -194,7 +232,7 @@ const copyToClipboard = (text) => {
                 :rowsPerPageOptions="[10, 20, 50, 100]"
                 paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
                 :currentPageReportTemplate="$t('public.paginator_caption')"
-                :globalFilterFields="['name', 'email', 'transaction_amount']"
+                :globalFilterFields="['name', 'email', 'to_meta_login']"
                 ref="dt"
                 :loading="loading"
                 selectionMode="single"
@@ -204,24 +242,38 @@ const copyToClipboard = (text) => {
                 <template #header>
                     <div class="flex flex-col justify-between items-center pb-5 gap-3 self-stretch md:flex-row md:pb-6">
                         <div class="flex flex-col items-center gap-3 self-stretch md:flex-row md:gap-5">
-                            <!-- <Select
-                                v-model="accountType"
-                                :options="accountTypes"
-                                filter
-                                :filterFields="['name']"
-                                optionLabel="name"
-                                optionValue="value"
-                                :placeholder="$t('public.filter_by_account_type')"
-                                class="w-full md:w-60"
-                                scroll-height="236px"
-                            /> -->
+                            <MultiSelect
+                                v-model="selectedMonths"
+                                :options="months"
+                                :placeholder="$t('public.month_placeholder')"
+                                :maxSelectedLabels="1"
+                                :selectedItemsLabel="`${selectedMonths.length} ${$t('public.months_selected')}`"
+                                class="w-full md:w-60 h-12 font-normal"
+                            >
+                                <template #header>
+                                    <div class="absolute flex left-10 top-2">
+                                        {{ $t('public.select_all') }}
+                                    </div>
+                                </template>
+                                <template #value>
+                                    <span v-if="selectedMonths.length === 1">
+                                        {{ dayjs(selectedMonths[0]).format('MMMM YYYY') }}
+                                    </span>
+                                    <span v-else-if="selectedMonths.length > 1">
+                                        {{ selectedMonths.length }} {{ $t('public.months_selected') }}
+                                    </span>
+                                    <span v-else>
+                                        {{ $t('public.month_placeholder') }}
+                                    </span>
+                                </template>
+                            </MultiSelect>
                             <Select
-                                v-model="status"
+                                v-model="filters['status'].value"
                                 :options="statusOption"
                                 optionLabel="name"
                                 optionValue="value"
                                 :placeholder="$t('public.filter_by_status')"
-                                class="w-full md:w-60"
+                                class="w-full md:w-60 font-normal"
                                 scroll-height="236px"
                             />
                         </div>
@@ -246,11 +298,11 @@ const copyToClipboard = (text) => {
                 <template #loading>
                     <div class="flex flex-col gap-2 items-center justify-center">
                         <Loader />
-                        <span class="text-sm text-gray-700">{{ $t('public.loading_transactions_caption') }}</span>
+                        <span class="text-sm text-gray-700">{{ $t('public.loading') }}</span>
                     </div>
                 </template>
                 <template v-if="transactions?.length > 0 && filteredValueCount > 0">
-                    <Column field="name" sortable :header="$t('public.name')" class="w-1/2 md:w-[20%] max-w-0">
+                    <Column field="name" sortable :header="$t('public.name')" class="w-1/2 md:w-[20%] max-w-0 px-3">
                         <template #body="slotProps">
                             <div class="flex flex-col items-start max-w-full">
                                 <div class="font-semibold truncate max-w-full">
@@ -276,14 +328,14 @@ const copyToClipboard = (text) => {
                             </div>
                         </template>
                     </Column>
-                    <Column field="meta_login" :header="$t('public.account')" class="hidden md:table-cell w-[15%]">
+                    <Column field="to_meta_login" :header="$t('public.account')" class="hidden md:table-cell w-[15%]">
                         <template #body="slotProps">
                             <div class="text-gray-950 text-sm">
-                                {{ slotProps.data.meta_login }}
+                                {{ slotProps.data.to_meta_login }}
                             </div>
                         </template>
                     </Column>
-                    <Column field="transaction_amount" :header="`${$t('public.amount')}&nbsp;($)`" sortable class="w-1/2 md:w-[15%]">
+                    <Column field="transaction_amount" :header="`${$t('public.amount')}&nbsp;($)`" sortable class="w-1/2 md:w-[15%] px-3">
                         <template #body="slotProps">
                             <div class="text-gray-950 text-sm">
                                 {{ formatAmount(slotProps.data.transaction_amount) }}
@@ -292,15 +344,17 @@ const copyToClipboard = (text) => {
                     </Column>
                     <Column field="status" :header="`${$t('public.status')}&nbsp;($)`" class="hidden md:table-cell w-[15%]">
                         <template #body="slotProps">
-                            <StatusBadge :variant="slotProps.data.status" :value="$t('public.' + slotProps.data.status)"/>
+                            <div class="flex items-center">
+                                <StatusBadge :variant="slotProps.data.status" :value="$t('public.' + slotProps.data.status)" />
+                            </div>
                         </template>
                     </Column>
                     <ColumnGroup type="footer">
                         <Row>
                             <Column class="hidden md:table-cell" :footer="$t('public.total') + '&nbsp;($)&nbsp;:'" :colspan="5" footerStyle="text-align:right" />
-                            <Column class="hidden md:table-cell" :colspan="6" :footer="formatAmount(0)" />
+                            <Column class="hidden md:table-cell" :colspan="6" :footer="formatAmount(totalAmount)" />
                             <Column class="md:hidden" :footer="$t('public.total') + '&nbsp;($)&nbsp;:'" :colspan="1" footerStyle="text-align:right" />
-                            <Column class="md:hidden" :colspan="2" :footer="formatAmount(0)" />
+                            <Column class="md:hidden" :colspan="2" :footer="formatAmount(totalAmount)" />
                         </Row>
                     </ColumnGroup>
                 </template>

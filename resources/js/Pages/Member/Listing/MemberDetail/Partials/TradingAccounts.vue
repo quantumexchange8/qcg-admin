@@ -25,43 +25,20 @@ const getTradingAccounts = async () => {
     try {
         const response = await axios.get(`/member/getTradingAccounts?id=${props.user_id}`);
 
-        tradingAccounts.value = response.data.tradingAccounts;
-        // console.log(tradingAccounts);
+        // Check if the tradingAccounts array is empty
+        if (response.data.tradingAccounts && response.data.tradingAccounts.length > 0) {
+            tradingAccounts.value = response.data.tradingAccounts;
+        } else {
+            // Handle the case where tradingAccounts is empty
+            tradingAccounts.value = [];
+            // console.warn('No trading accounts found for the user.');
+        }
     } catch (error) {
         console.error('Error get trading accounts:', error);
     } finally {
         isLoading.value = false;
     }
 };
-// const getTradingAccounts = async () => {
-//     // Replace with dummy data
-//     tradingAccounts.value = [
-//         {
-//             id: 1,
-//             meta_login: '8000759',
-//             account_type: 'premium_account',
-//             account_type_color: '3498db',
-//             balance: 10000,
-//             equity: 15000,
-//             asset_master_name: 'Asset Master 1',
-//             remaining_days: 30,
-//             leverage: 50,
-//             updated_at: new Date().toISOString() // Set to current date
-//         },
-//         {
-//             id: 2,
-//             meta_login: '8000447',
-//             account_type: 'standard_account',
-//             account_type_color: 'e74c3c',
-//             balance: 2000,
-//             equity: 2500,
-//             credit: 500,
-//             leverage: 100,
-//             updated_at: new Date(new Date().setDate(new Date().getDate() - 100)).toISOString() // Set to 100 days ago
-//         }
-//     ];
-// };
-
 getTradingAccounts();
 
 // Function to check if an account is inactive for 90 days
@@ -133,7 +110,7 @@ const requireConfirmation = (action_type, meta_login) => {
     </div>
     <div v-else-if="isLoading" class="flex flex-col gap-2 items-center justify-center">
         <Loader />
-        <span class="text-sm text-gray-700">{{ $t('public.loading_transactions_caption') }}</span>
+        <span class="text-sm text-gray-700">{{ $t('public.loading') }}</span>
     </div>
 
     <div v-else class="grid md:grid-cols-2 gap-3 md:gap-5">

@@ -1,10 +1,10 @@
 <script setup>
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
+import Password from 'primevue/password';
 import { useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import Button from "@/Components/Button.vue";
 
 const passwordInput = ref(null);
 const currentPasswordInput = ref(null);
@@ -31,75 +31,75 @@ const updatePassword = () => {
         },
     });
 };
+
+const resetForm = () => {
+    form.reset();
+}
 </script>
 
 <template>
-    <section>
-        <header>
-            <h2 class="text-lg font-medium text-gray-900">Update Password</h2>
+    <div class="w-full h-full flex flex-col items-center p-3 gap-8 rounded-lg bg-white shadow-card md:p-6">
+        <div class="w-full flex flex-col justify-center items-start gap-1">
+            <span class="text-gray-950 font-bold">{{ $t('public.reset_password') }}</span>
+            <span class="text-gray-500 text-xs">{{ $t('public.reset_password_caption') }}</span>
+        </div>
 
-            <p class="mt-1 text-sm text-gray-600">
-                Ensure your account is using a long, random password to stay secure.
-            </p>
-        </header>
+        <form class="w-full">
+            <div class="flex flex-col gap-5 items-center self-stretch w-full">
+                <div class="flex flex-col gap-1 w-full">
+                    <InputLabel for="current_password" :value="$t('public.current_password')" />
+                    <Password
+                        ref="currentPasswordInput"
+                        v-model="form.current_password"
+                        toggleMask
+                        placeholder="••••••••"
+                        :invalid="!!form.errors.current_password"
+                    />
+                    <InputError :message="form.errors.current_password" />
+                </div>
 
-        <form @submit.prevent="updatePassword" class="mt-6 space-y-6">
-            <div>
-                <InputLabel for="current_password" value="Current Password" />
+                <div class="flex flex-col gap-1 w-full">
+                    <InputLabel for="password" :value="$t('public.password')" />
+                    <Password
+                        ref="passwordInput"
+                        v-model="form.password"
+                        toggleMask
+                        placeholder="••••••••"
+                        :invalid="!!form.errors.password"
+                    />
+                    <InputError :message="form.errors.password" />
+                    <span class="text-xs text-gray-500">{{ $t('public.password_rule') }}</span>
+                </div>
 
-                <TextInput
-                    id="current_password"
-                    ref="currentPasswordInput"
-                    v-model="form.current_password"
-                    type="password"
-                    class="mt-1 block w-full"
-                    autocomplete="current-password"
-                />
-
-                <InputError :message="form.errors.current_password" class="mt-2" />
+                <div class="flex flex-col gap-1 w-full">
+                    <InputLabel for="password_confirmation" :value="$t('public.confirm_password')" />
+                    <Password
+                        v-model="form.password_confirmation"
+                        toggleMask
+                        placeholder="••••••••"
+                        :invalid="!!form.errors.password_confirmation"
+                    />
+                    <InputError :message="form.errors.password_confirmation" />
+                </div>
             </div>
 
-            <div>
-                <InputLabel for="password" value="New Password" />
-
-                <TextInput
-                    id="password"
-                    ref="passwordInput"
-                    v-model="form.password"
-                    type="password"
-                    class="mt-1 block w-full"
-                    autocomplete="new-password"
-                />
-
-                <InputError :message="form.errors.password" class="mt-2" />
-            </div>
-
-            <div>
-                <InputLabel for="password_confirmation" value="Confirm Password" />
-
-                <TextInput
-                    id="password_confirmation"
-                    v-model="form.password_confirmation"
-                    type="password"
-                    class="mt-1 block w-full"
-                    autocomplete="new-password"
-                />
-
-                <InputError :message="form.errors.password_confirmation" class="mt-2" />
-            </div>
-
-            <div class="flex items-center gap-4">
-                <PrimaryButton :disabled="form.processing">Save</PrimaryButton>
-
-                <Transition
-                    enter-active-class="transition ease-in-out"
-                    enter-from-class="opacity-0"
-                    leave-active-class="transition ease-in-out"
-                    leave-to-class="opacity-0"
+            <div class="flex justify-end items-center pt-10 md:pt-7 gap-4 self-stretch">
+                <Button
+                    type="button"
+                    variant="gray-tonal"
+                    :disabled="form.processing"
+                    @click="resetForm"
                 >
-                    <p v-if="form.recentlySuccessful" class="text-sm text-gray-600">Saved.</p>
-                </Transition>
+                    {{ $t('public.cancel') }}
+                </Button>
+                <Button
+                    variant="primary-flat"
+                    :disabled="form.processing"
+                    @click="updatePassword"
+                >
+                    {{ $t('public.reset_password') }}
+                </Button>
             </div>
         </form>
-    </section>
+    </div>
 </template>

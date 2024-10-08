@@ -35,7 +35,7 @@ const submitForm = () => {
     <form>
         <div class="flex flex-col gap-5 items-center self-stretch py-4 md:py-6">
             <div class="flex flex-col items-start gap-2 self-stretch">
-                <InputLabel for="password" :value="$t('public.password')" />
+                <InputLabel for="password" :value="$t('public.password')" :invalid="!!form.errors.password" />
                 <Password
                     v-model="form.password"
                     toggleMask
@@ -47,7 +47,7 @@ const submitForm = () => {
                 <span class="self-stretch text-gray-500 text-xs">{{ $t('public.password_rule') }}</span>
             </div>
             <div class="flex flex-col items-start gap-2 self-stretch">
-                <InputLabel for="password_confirmation" :value="$t('public.confirm_password')" />
+                <InputLabel for="password_confirmation" :value="$t('public.confirm_password')" :invalid="!!form.errors.password" />
                 <Password
                     v-model="form.password_confirmation"
                     toggleMask

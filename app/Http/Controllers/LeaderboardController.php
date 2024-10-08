@@ -208,7 +208,6 @@ class LeaderboardController extends Controller
                 'name' => $profile->user->first_name,
                 'email' => $profile->user->email,
                 'sales_calculation_mode' => $profile->sales_calculation_mode == 'personal_sales' ? 'personal' : 'group',
-                'bonus_badge' => $profile->sales_calculation_mode == 'personal_sales' ? 'gray' : 'info',
                 'sales_category' => $profile->sales_category,
                 'target_amount' => $profile->target_amount,
                 'incentive_amount' => $incentive_amount,
@@ -294,20 +293,36 @@ class LeaderboardController extends Controller
                 return response()->json(['error' => 'Invalid period'], 400);
         }
 
-        // $user = User::find($leaderboard_profile->user_id);
+        $user = User::find($leaderboard_profile->user_id);
 
-        // if (empty($user->bonus_wallet)) {
-        //     Wallet::create([
-        //         'user_id' => $user->id,
-        //         'type' => 'bonus_wallet',
-        //         'address' => str_replace('AID', 'BW', $user->id_number),
-        //         'balance' => 0
-        //     ]);
-        // }
+        if (empty($user->incentive_wallet)) {
+            Wallet::create([
+                'user_id' => $user->id,
+                'type' => 'incentive_wallet',
+                'address' => str_replace('AID', 'BW', $user->id_number),
+                'balance' => 0
+            ]);
+        }
 
         return redirect()->back()->with('toast', value: [
             "title" => trans('public.toast_create_incentive_profile_success'),
             "type" => "success"
+        ]);
+    }
+
+    public function getAgents()
+    {
+        $users = User::where('role', 'agent')
+            ->get()
+            ->map(function ($user) {
+                return [
+                    'value' => $user->id,
+                    'name' => $user->first_name,
+                ];
+            });
+
+        return response()->json([
+            'users' => $users,
         ]);
     }
 

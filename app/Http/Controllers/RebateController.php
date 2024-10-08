@@ -8,20 +8,15 @@ use App\Models\AccountType;
 use Illuminate\Http\Request;
 use App\Models\RebateAllocation;
 use Illuminate\Support\Facades\Auth;
+use App\Models\AccountTypeSymbolGroup;
+use App\Http\Controllers\GeneralController;
 
 class RebateController extends Controller
 {
     public function index()
     {
-        $accountTypes = AccountType::all()->map(function($accountType) {
-            return [
-                'value' => $accountType->id,
-                'name' => $accountType->name,
-            ];
-        });
-
         return Inertia::render('RebateSetting/RebateSetting', [
-            'accountTypes' => $accountTypes,
+            'accountTypes' => (new GeneralController())->getAccountTypes(true),
         ]);
     }
 
@@ -52,9 +47,9 @@ class RebateController extends Controller
         $company_profile->user->maximum_level = $levels['max'];
 
         // Fetch rebate details
-        $rebate_details = RebateAllocation::with('symbol_group:id,display')
-            ->where('user_id', $userId)
-            ->where('account_type_id', $request->account_type_id)
+        $rebate_details = AccountTypeSymbolGroup::with('symbol_group:id,display')
+            ->where('account_type', $request->account_type_id)
+            ->whereHas('symbol_group')
             ->get();
 
         return response()->json([
@@ -69,9 +64,9 @@ class RebateController extends Controller
         $amounts = $request->amount;
 
         foreach ($ids as $index => $id) {
-            RebateAllocation::find($id)->update([
+            AccountTypeSymbolGroup::find($id)->update([
                 'amount' => $amounts[$index],
-                'edited_by' => Auth::id()
+                // 'edited_by' => Auth::id()
             ]);
         }
 
@@ -120,6 +115,7 @@ class RebateController extends Controller
                     'id' => $agent->id,
                     // 'profile_photo' => $agent->getFirstMediaUrl('profile_photo'),
                     'name' => $agent->first_name,
+                    'email' => $agent->email,
                     'hierarchy_list' => $agent->hierarchyList,
                     'upline_id' => $agent->upline_id,
                     'level' => 1,
@@ -170,6 +166,7 @@ class RebateController extends Controller
                         'id' => $agent->id,
                         // 'profile_photo' => $agent->getFirstMediaUrl('profile_photo'),
                         'name' => $agent->first_name,
+                        'email' => $agent->email,
                         'hierarchy_list' => $agent->hierarchyList,
                         'upline_id' => $agent->upline_id,
                         'level' => $this->calculateLevel($agent->hierarchyList),
@@ -300,6 +297,7 @@ class RebateController extends Controller
                     'id' => $agent->id,
                     // 'profile_photo' => $agent->getFirstMediaUrl('profile_photo'),
                     'name' => $agent->first_name,
+                    'email' => $agent->email,
                     'hierarchy_list' => $agent->hierarchyList,
                     'upline_id' => $agent->upline_id,
                     'level' => $this->calculateLevel($agent->hierarchyList),
