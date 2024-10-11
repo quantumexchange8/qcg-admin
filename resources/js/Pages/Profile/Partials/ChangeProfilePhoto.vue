@@ -86,7 +86,7 @@ const handleUploadProfilePhoto = (event) => {
                 </Button>
             </div>
 
-            <span class="text-xs text-gray-500">{{ $t('public.change_profile_help_text') }}</span>
+            <span class="text-xs text-gray-500">{{ $t('public.file_size_limit') }}</span>
         </div>
     </div>
 </template>

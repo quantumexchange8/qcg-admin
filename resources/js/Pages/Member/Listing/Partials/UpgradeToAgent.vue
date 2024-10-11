@@ -174,7 +174,7 @@ const closeDialog = () => {
 
                 <!-- symbol groups -->
                 <div
-                    v-if="rebateDetails.length > 0"
+                    v-if="rebateDetails?.length > 0"
                     v-for="(rebateDetail, index) in filteredRebateDetails"
                     class="flex justify-center items-center w-full self-stretch py-2 text-gray-950"
                 >

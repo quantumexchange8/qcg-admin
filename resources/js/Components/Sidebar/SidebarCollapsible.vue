@@ -15,6 +15,7 @@ const props = defineProps({
     active: {
         type: Boolean,
     },
+    pendingCounts: Number,
 })
 
 const { active } = props
@@ -40,7 +41,7 @@ const leave = (el) => {
 
 <template>
     <div class="relative w-full focus:outline-none">
-        <SidebarLink @click="isOpen = !isOpen" :title="title" :active="active">
+        <SidebarLink @click="isOpen = !isOpen" :title="title" :active="active" :pendingCounts="pendingCounts">
             <template #icon>
                 <slot name="icon">
                     <EmptyCircleIcon

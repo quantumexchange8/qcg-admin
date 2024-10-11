@@ -21,8 +21,9 @@ class NetworkController extends Controller
         if ($request->filled('search')) {
             $search = '%' . $request->input('search') . '%';
             $parent = User::whereNotIn('role', ['super-admin', 'admin'])
-                ->where('id_no', 'LIKE', $search)
+                ->where('name', 'LIKE', $search)
                 ->orWhere('email', 'LIKE', $search)
+                ->orWhere('id_no', 'LIKE', $search)
                 ->first();
 
             $parent_id = $parent->id;

@@ -41,12 +41,12 @@ const team_id = ref(null)
 
 const tabs = ref([
     {   
-        title: wTrans('public.member'),
+        title: 'member',
         type: 'member',
         total: props.totalMembers,
     },
     {   
-        title: wTrans('public.agent'),
+        title: 'agent',
         type: 'agent',
         total: props.totalAgents,
     },
@@ -159,7 +159,7 @@ const handleFilter = (e) => {
                                     :value="index"
                                     @click="updateType({ index })"
                                 >
-                                    {{ `${tab.title}&nbsp;(${tab.total})` }}
+                                    {{ `${$t('public.' + tab.title)}&nbsp;(${tab.total})` }}
                             </Tab>
                             </TabList>
                         </Tabs>

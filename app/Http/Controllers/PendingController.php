@@ -48,8 +48,8 @@ class PendingController extends Controller
                     'amount' => $transaction->amount,
                     'transaction_charges' => $transaction->transaction_charges,
                     'transaction_amount' => $transaction->transaction_amount,
-                    'wallet_name' => $transaction->payment_account->payment_account_name,
-                    'wallet_address' => $transaction->payment_account->account_no,
+                    'wallet_name' => $transaction->payment_account?->payment_account_name,
+                    'wallet_address' => $transaction->payment_account?->account_no,
                 ];
             });
 
@@ -95,6 +95,7 @@ class PendingController extends Controller
                     'new_wallet_amount' => $rebate_wallet->balance += $transaction->amount,
                 ]);
 
+                $rebate_wallet->balance += $transaction->amount;
                 $rebate_wallet->save();
             }
 
@@ -108,6 +109,7 @@ class PendingController extends Controller
                     'new_wallet_amount' => $incentive_wallet->balance += $transaction->amount,
                 ]);
 
+                $incentive_wallet->balance += $transaction->amount;
                 $incentive_wallet->save();
             }
 
@@ -168,8 +170,8 @@ class PendingController extends Controller
                     'amount' => $transaction->amount,
                     'transaction_charges' => $transaction->transaction_charges,
                     'transaction_amount' => $transaction->transaction_amount,
-                    'wallet_name' => $transaction->payment_account->payment_account_name,
-                    'wallet_address' => $transaction->payment_account->account_no,
+                    'wallet_name' => $transaction->payment_account?->payment_account_name,
+                    'wallet_address' => $transaction->payment_account?->account_no,
                 ];
             });
 

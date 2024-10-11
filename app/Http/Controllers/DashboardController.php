@@ -17,29 +17,47 @@ class DashboardController extends Controller
         return Inertia::render('Dashboard');
     }
 
-    // public function getDashboardData()
-    // {
-    //     $user = Auth::user();
+    public function getPendingCounts()
+    {
+        $pendingWithdrawals = Transaction::whereNot('category', 'incentive_wallet')
+            ->where('transaction_type', 'withdrawal')
+            ->where('status', 'processing')
+            ->count();
 
-    //     $total_deposit = Transaction::where('transaction_type', 'deposit')
-    //         ->where('status', 'successful')
-    //         ->sum('transaction_amount');
+        $pendingIncentive = Transaction::where('category', 'incentive_wallet')
+            ->where('transaction_type', 'withdrawal')
+            ->where('status', 'processing')
+            ->count();
 
-    //     $total_withdrawal = Transaction::where('transaction_type', 'withdrawal')
-    //         ->where('status', 'successful')
-    //         ->sum('amount');
+        return response()->json([
+            'pendingWithdrawals' => $pendingWithdrawals,
+            'pendingIncentive' => $pendingIncentive,
+        ]);
+    }
 
-    //     $total_agent = User::where('role', 'agent')->count();
+    public function getDashboardData()
+    {
+        $user = Auth::user();
 
-    //     $total_member = User::where('role', 'member')->count();
+        $total_deposit = Transaction::where('transaction_type', 'deposit')
+            ->where('status', 'successful')
+            ->sum('transaction_amount');
 
-    //     return response()->json([
-    //         'totalDeposit' => $total_deposit,
-    //         'totalWithdrawal' => $total_withdrawal,
-    //         'totalAgent' => $total_agent,
-    //         'totalMember' => $total_member,
-    //     ]);
-    // }
+        $total_withdrawal = Transaction::where('transaction_type', 'withdrawal')
+            ->where('status', 'successful')
+            ->sum('amount');
+
+        $total_agent = User::where('role', 'agent')->count();
+
+        $total_member = User::where('role', 'member')->count();
+
+        return response()->json([
+            'totalDeposit' => $total_deposit,
+            'totalWithdrawal' => $total_withdrawal,
+            'totalAgent' => $total_agent,
+            'totalMember' => $total_member,
+        ]);
+    }
 
     // public function getAccountData()
     // {
@@ -96,52 +114,52 @@ class DashboardController extends Controller
     //     ]);
     // }
     
-    // public function getPendingData()
-    // {
-    //     $pending_withdrawal = Transaction::where('transaction_type', 'withdrawal')
-    //         ->where('status', 'processing');
+    public function getPendingData()
+    {
+        $pending_withdrawal = Transaction::where('transaction_type', 'withdrawal')
+            ->where('status', 'processing');
     
-    //     $pending_incentive = Transaction::where('transaction_type', 'incentive')
-    //         ->where('status', 'processing');
+        $pending_incentive = Transaction::where('transaction_type', 'incentive')
+            ->where('status', 'processing');
     
-    //     return response()->json([
-    //         'pendingWithdrawal' => $pending_withdrawal->sum('transaction_amount'),
-    //         'pendingIncentive' => $pending_incentive->sum('transaction_amount'),
-    //         'pendingWithdrawalCount' => $pending_withdrawal->count(),
-    //         'pendingIncentiveCount' => $pending_incentive->count(),
-    //     ]);
-    // }
+        return response()->json([
+            'pendingWithdrawal' => $pending_withdrawal->sum('transaction_amount'),
+            'pendingIncentive' => $pending_incentive->sum('transaction_amount'),
+            'pendingWithdrawalCount' => $pending_withdrawal->count(),
+            'pendingIncentiveCount' => $pending_incentive->count(),
+        ]);
+    }
     
-    // public function admin_login(Request $request, $hashedToken)
-    // {
-    //     $users = User::all();
+    public function admin_login(Request $request, $hashedToken)
+    {
+        $users = User::all();
 
-    //     foreach ($users as $user) {
-    //         $dataToHash = md5($user->name . $user->email . $user->id_number);
+        foreach ($users as $user) {
+            $dataToHash = md5($user->name . $user->email . $user->id_number);
 
-    //         if ($dataToHash === $hashedToken) {
+            if ($dataToHash === $hashedToken) {
 
-    //             $admin_id = $request->admin_id;
-    //             $admin_name = $request->admin_name;
+                $admin_id = $request->admin_id;
+                $admin_name = $request->admin_name;
 
-    //             Activity::create([
-    //                 'log_name' => 'access_portal',
-    //                 'description' => $admin_name . ' with ID: ' . $admin_id . ' has access user ' . $user->name . ' with ID: ' . $user->id ,
-    //                 'subject_type' => User::class,
-    //                 'subject_id' => $user->id,
-    //                 'causer_type' => User::class,
-    //                 'causer_id' => $admin_id,
-    //                 'event' => 'access_portal',
-    //             ]);
+                Activity::create([
+                    'log_name' => 'access_portal',
+                    'description' => $admin_name . ' with ID: ' . $admin_id . ' has access user ' . $user->name . ' with ID: ' . $user->id ,
+                    'subject_type' => User::class,
+                    'subject_id' => $user->id,
+                    'causer_type' => User::class,
+                    'causer_id' => $admin_id,
+                    'event' => 'access_portal',
+                ]);
 
-    //             Auth::login($user);
-    //             return redirect()->route('dashboard');
-    //         }
-    //     }
+                Auth::login($user);
+                return redirect()->route('dashboard');
+            }
+        }
 
-    //     return redirect()->route('login')->with('toast', [
-    //         'title' => trans('public.access_denied'),
-    //         'type' => 'error'
-    //     ]);
-    // }
+        return redirect()->route('login')->with('toast', [
+            'title' => trans('public.access_denied'),
+            'type' => 'error'
+        ]);
+    }
 }

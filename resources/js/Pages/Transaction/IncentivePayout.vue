@@ -358,7 +358,7 @@ const copyToClipboard = (text) => {
                     </div>
                 </template>
                 <template v-if="transactions?.length > 0 && filteredValueCount > 0">
-                    <Column field="name" sortable :header="$t('public.name')" class="w-1/2 md:w-[25%] max-w-0 px-3">
+                    <Column field="name" sortable :header="$t('public.name')" class="w-1/2 md:w-[20%] max-w-0 px-3">
                         <template #body="slotProps">
                             <div class="flex flex-col items-start max-w-full">
                                 <div class="font-semibold truncate max-w-full">
@@ -377,7 +377,7 @@ const copyToClipboard = (text) => {
                             </div>
                         </template>
                     </Column>
-                    <Column field="mode" :header="$t('public.mode')" class="hidden md:table-cell w-[15%]">
+                    <Column field="mode" :header="$t('public.mode')" class="hidden md:table-cell w-[20%]">
                         <template #body="slotProps">
                             <div class="text-gray-950 text-sm">
                                 {{ $t('public.' + slotProps.data.mode) }}

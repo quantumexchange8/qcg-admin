@@ -82,7 +82,7 @@ class MemberController extends Controller
         ]);
     }
     
-    public function addNewMember(Request $request)
+    public function addNewMember(AddMemberRequest $request)
     {
         $upline_id = $request->upline['value'];
         $upline = User::find($upline_id);
@@ -95,10 +95,10 @@ class MemberController extends Controller
 
         $dial_code = $request->dial_code;
         $country = Country::find($dial_code['id']);
-        $default_agent_id = User::where('id_number', 'AID00000')->first()->id;
+        // $default_agent_id = User::where('id_number', 'AID00000')->first()->id;
 
         $user = User::create([
-            'name' => $request->name,
+            'first_name' => $request->name,
             'email' => $request->email,
             'country' => $request->country,
             'dial_code' => $dial_code['phone_code'],
@@ -109,14 +109,15 @@ class MemberController extends Controller
             'nationality' => $country->nationality,
             'hierarchyList' => $hierarchyList,
             'password' => Hash::make($request->password),
-            'role' => $upline_id == $default_agent_id ? 'agent' : 'member',
+            // 'role' => $upline_id == $default_agent_id ? 'agent' : 'member',
+            'role' => 'member',
             'kyc_approval' => 'verified',
         ]);
 
         $user->setReferralId();
 
         $id_no = ($user->role == 'agent' ? 'AID' : 'MID') . Str::padLeft($user->id - 2, 5, "0");
-        $user->id_number = $id_no;
+        // $user->id_number = $id_no;
         $user->save();
 
         if ($upline->teamHasUser) {
@@ -127,7 +128,7 @@ class MemberController extends Controller
             Wallet::create([
                 'user_id' => $user->id,
                 'type' => 'rebate_wallet',
-                'address' => str_replace('AID', 'RB', $user->id_number),
+                // 'address' => str_replace('AID', 'RB', $user->id_number),
                 'balance' => 0
             ]);
 
@@ -154,11 +155,13 @@ class MemberController extends Controller
     {
         $user = User::find($request->id);
 
-        $user->status = $user->status == 'active' ? 'inactive' : 'active';
+        // $user->status = $user->status == 'active' ? 'inactive' : 'active';
+        $user->status = $user->status == 1 ? 0 : 1;
         $user->save();
 
         return back()->with('toast', [
-            'title' => $user->status == 'active' ? trans("public.toast_member_has_activated") : trans("public.toast_member_has_deactivated"),
+            // 'title' => $user->status == 'active' ? trans("public.toast_member_has_activated") : trans("public.toast_member_has_deactivated"),
+            'title' => $user->status == 1 ? trans("public.toast_member_has_activated") : trans("public.toast_member_has_deactivated"),
             'type' => 'success',
         ]);
     }
@@ -170,20 +173,27 @@ class MemberController extends Controller
         if (!$user) {
             return response()->json(['error' => 'User not found'], 404);
         }
-
+    
         $availableUpline = $user->upline;
-
+    
         while ($availableUpline && $availableUpline->role != 'agent') {
             $availableUpline = $availableUpline->upline;
         }
-
-        // $availableUpline->profile_photo = $availableUpline->getFirstMediaUrl('profile_photo');
-
+    
+        if (!$availableUpline) {
+            return response()->json(['error' => 'No valid upline found'], 404);
+        }
+    
         $uplineRebate = RebateAllocation::with('symbol_group:id,display')
-            ->where('user_id', $availableUpline->id);
-
-        $availableAccountTypeId = $uplineRebate->get()->pluck('account_type_id')->toArray();
-
+            ->where('user_id', $availableUpline->id)
+            ->get();
+    
+        $availableAccountTypeId = [];
+    
+        if (!$uplineRebate->isEmpty()) {
+            $availableAccountTypeId = $uplineRebate->pluck('account_type_id')->toArray();
+        }
+    
         $accountTypeSel = AccountType::whereIn('id', $availableAccountTypeId)
             ->select('id', 'name')
             ->get()
@@ -193,14 +203,14 @@ class MemberController extends Controller
                     'name' => $accountType->name,
                 ];
             });
-
+    
         return response()->json([
             'availableUpline' => $availableUpline,
-            'rebateDetails' => $uplineRebate->get(),
+            'rebateDetails' => $uplineRebate,
             'accountTypeSel' => $accountTypeSel,
         ]);
     }
-
+    
     public function upgradeAgent(Request $request)
     {
         $user_id = $request->user_id;
@@ -309,14 +319,14 @@ class MemberController extends Controller
             'role' => $user->role,
             'id_number' => $user->id_number,
             'status' => $user->status,
-            // 'profile_photo' => $user->getFirstMediaUrl('profile_photo'),
+            'profile_photo' => $user->getFirstMediaUrl('profile_photo'),
             'team_id' => $user->teamHasUser->team_id ?? null,
             'team_name' => $user->teamHasUser->team->name ?? null,
             'team_color' => $user->teamHasUser->team->color ?? null,
             'upline_name' => $user->upline->first_name ?? null,
             'total_direct_member' => $user->directChildren->where('role', 'member')->count(),
             'total_direct_agent' => $user->directChildren->where('role', 'agent')->count(),
-            // 'kyc_verification' => $user->getFirstMedia('kyc_verification'),
+            'kyc_verification' => $user->getFirstMedia('kyc_verification'),
             'kyc_approved_at' => $user->kyc_approved_at,
         ];
 
@@ -636,6 +646,8 @@ class MemberController extends Controller
         $user->tradingUsers()->delete();
         $user->paymentAccounts()->delete();
         $user->rebateAllocations()->delete();
+        $user->rebate_wallet()->delete();
+        $user->incentive_wallet()->delete();
         $user->delete();
 
         return redirect()->back()->with('toast', [

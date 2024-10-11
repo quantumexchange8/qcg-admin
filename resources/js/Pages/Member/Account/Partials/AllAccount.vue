@@ -25,34 +25,6 @@ const loading = ref(false);
 const dt = ref(null);
 
 const accounts = ref();
-// const accounts = ref(
-//     [
-//         { 
-//             name: 'John Doe', 
-//             email: 'john.doe@example.com', 
-//             deleted_at: '2024-01-01T02:30:51Z', 
-//             meta_login: '8000798', 
-//             balance: 500.75, 
-//             equity: 1000.50
-//         },
-//         { 
-//             name: 'Jane Smith', 
-//             email: 'jane.smith@example.com', 
-//             deleted_at: '2024-02-01T05:10:34Z', 
-//             meta_login: '8000486', 
-//             balance: 750.00, 
-//             equity: 1200.00
-//         },
-//         { 
-//             name: 'Michael Brown', 
-//             email: 'michael.brown@example.com', 
-//             deleted_at: '2024-03-01T07:03:30Z', 
-//             meta_login: '8000153', 
-//             balance: 300.25, 
-//             equity: 800.00
-//         }
-//     ]
-// );
 const filteredValueCount = ref(0);
 const accountTypes = ref(props.accountTypes);
 const accountType = ref(null)

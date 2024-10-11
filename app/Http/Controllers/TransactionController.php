@@ -117,12 +117,12 @@ class TransactionController extends Controller
                 $result['to_wallet_address'] = $transaction->to_wallet_address;
                 $result['to_meta_login'] = $transaction->to_meta_login;
                 $result['to_wallet_id'] = $transaction->to_wallet ? $transaction->to_wallet->id : null;
-                $result['to_wallet_name'] = $transaction->to_wallet ? $transaction->to_wallet->name : null;
+                $result['from_wallet_name'] = $transaction->to_wallet ? ($transaction->to_wallet->type === 'rebate_wallet' ? 'rebate' : 'incentive') : null;
             } elseif ($type === 'withdrawal') {
                 $result['to_wallet_address'] = $transaction->to_wallet_address;
                 $result['from_meta_login'] = $transaction->from_meta_login;
                 $result['from_wallet_id'] = $transaction->from_wallet ? $transaction->from_wallet->id : null;
-                $result['from_wallet_name'] = $transaction->from_wallet ? $transaction->from_wallet->type : null;
+                $result['from_wallet_name'] = $transaction->from_wallet ? ($transaction->from_wallet->type === 'rebate_wallet' ? 'rebate' : 'incentive') : null;
                 $result['wallet_id'] = $transaction->payment_account ? $transaction->payment_account->id : null;
                 $result['wallet_name'] = $transaction->payment_account ? $transaction->payment_account->payment_account_name : null;
                 $result['wallet_address'] = $transaction->payment_account ? $transaction->payment_account->account_no : null;
@@ -131,9 +131,9 @@ class TransactionController extends Controller
                 $result['from_meta_login'] = $transaction->from_meta_login;
                 $result['to_meta_login'] = $transaction->to_meta_login;
                 $result['from_wallet_id'] = $transaction->from_wallet ? $transaction->from_wallet->id : null;
-                $result['from_wallet_name'] = $transaction->from_wallet ? $transaction->from_wallet->name : null;
+                $result['from_wallet_name'] = $transaction->from_wallet ? ($transaction->from_wallet->type === 'rebate_wallet' ? 'rebate' : 'incentive') : null;
                 $result['to_wallet_id'] = $transaction->to_wallet ? $transaction->to_wallet->id : null;
-                $result['to_wallet_name'] = $transaction->to_wallet ? $transaction->to_wallet->name : null;
+                $result['from_wallet_name'] = $transaction->to_wallet ? ($transaction->to_wallet->type === 'rebate_wallet' ? 'rebate' : 'incentive') : null;
             }
 
             return $result;
@@ -148,14 +148,16 @@ class TransactionController extends Controller
                 }
                 // Check for rebate
                 elseif ($request->from === 'rebate') {
-                    return $result['from_wallet_name'] === 'rebate_wallet';
+                    return $result['from_wallet_name'] === 'rebate';
                 }
                 // Check for incentive
                 elseif ($request->from === 'incentive') {
-                    return $result['from_wallet_name'] === 'incentive_wallet';
+                    return $result['from_wallet_name'] === 'incentive';
                 }
                 return true; // If no specific filter, include all
             });
+
+            $data = $data->values();
         }
 
         $totalAmount = 0;

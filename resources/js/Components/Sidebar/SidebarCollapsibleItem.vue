@@ -2,6 +2,7 @@
 import { Link } from '@inertiajs/vue3'
 import {EmptyCircleIcon} from "@/Components/Icons/outline.jsx";
 import {sidebarState} from "@/Composables/index.js";
+import Badge from "@/Components/Badge.vue";
 
 const props = defineProps({
     href: String,
@@ -13,7 +14,8 @@ const props = defineProps({
     external: {
         type: Boolean,
         default: false,
-    }
+    },
+    pendingCounts: Number,
 })
 
 const { external } = props
@@ -51,6 +53,13 @@ const Tag = external ? 'a' : Link
             </div>
             <div v-show="sidebarState.isOpen || sidebarState.isHovered" class="font-medium">
                 {{ title }}
+            </div>
+            <div v-if="pendingCounts > 0" class="ml-auto">
+                <Badge variant="numberBadge">
+                    <span class="text-white text-xs">
+                        {{ pendingCounts }}
+                    </span>
+                </Badge>
             </div>
         </component>
     </li>

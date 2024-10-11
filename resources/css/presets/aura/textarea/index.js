@@ -28,8 +28,8 @@ export default {
 
             // States
             {
-                // 'hover:border-gray-300': !context.disabled && !props.invalid,
-                'focus:outline-none focus:outline-offset-0 focus:ring-0 focus:ring-primary-500 focus:z-10 focus:border-gray-300': !context.disabled,
+                'focus:z-10 hover:border-primary-500 focus:border-primary-500 focus:shadow-focus': !context.disabled && !props.invalid,
+                'focus:outline-none focus:outline-offset-0 focus:ring-0 focus:ring-primary-500': !context.disabled,
                 'bg-gray-200 select-none pointer-events-none cursor-default': context.disabled
             },
 
@@ -37,7 +37,7 @@ export default {
             { filled: parent.instance?.$name == 'FloatLabel' && props.modelValue !== null && props.modelValue?.length !== 0 },
 
             // Misc
-            'appearance-none',
+            'appearance-none shadow-input',
             'transition-colors duration-200'
         ]
     })

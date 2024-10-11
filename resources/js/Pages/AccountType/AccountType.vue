@@ -80,7 +80,7 @@ watchEffect(() => {
                     </template>
                     <Column field="name" :header="$t('public.name')" sortable class="w-full md:w-[20%] max-w-0 px-3" headerClass="text-nowrap">
                         <template #body="slotProps">
-                            <div class="font-semibold max-w-full">
+                            <div class="text-gray-950 text-sm truncate">
                                 {{ slotProps.data.name }}
                             </div>
                         </template>

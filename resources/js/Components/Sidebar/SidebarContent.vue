@@ -19,30 +19,28 @@ import {
     IconComponents,
 } from '@tabler/icons-vue';
 
-// const pendingWithdrawals = ref(0);
-// const pendingPammAllocate = ref(0);
-// const pendingBonusWithdrawal = ref(0);
+const pendingWithdrawals = ref(0);
+const pendingIncentive = ref(0);
 
-// const getPendingCounts = async () => {
-//     try {
-//         const response = await axios.get('/getPendingCounts');
-//         pendingWithdrawals.value = response.data.pendingWithdrawals
-//         pendingPammAllocate.value = response.data.pendingPammAllocate
-//         pendingBonusWithdrawal.value = response.data.pendingBonusWithdrawal
-//     } catch (error) {
-//         console.error('Error pending counts:', error);
-//     }
-// };
+const getPendingCounts = async () => {
+    try {
+        const response = await axios.get('/getPendingCounts');
+        pendingWithdrawals.value = response.data.pendingWithdrawals
+        pendingIncentive.value = response.data.pendingIncentive
+    } catch (error) {
+        console.error('Error pending counts:', error);
+    }
+};
 
-// onMounted(() => {
-//     getPendingCounts();
-// })
+onMounted(() => {
+    getPendingCounts();
+})
 
-// watchEffect(() => {
-//     if (usePage().props.toast !== null) {
-//         getPendingCounts();
-//     }
-// });
+watchEffect(() => {
+    if (usePage().props.toast !== null) {
+        getPendingCounts();
+    }
+});
 </script>
 
 <template>
@@ -66,6 +64,7 @@ import {
         <SidebarCollapsible
             :title="$t('public.request')"
             :active="route().current('pending.*')"
+            :pendingCounts="pendingWithdrawals + pendingIncentive"
         >
             <template #icon>
                 <IconClockDollar :size="20" stroke-width="1.25" />
@@ -75,12 +74,14 @@ import {
                 :title="$t('public.withdrawal')"
                 :href="route('pending.index', { type: 'withdrawal' })"
                 :active="route().current('pending.index') && route().params.type === 'withdrawal'"
+                :pendingCounts="pendingWithdrawals"
             />
 
             <SidebarCollapsibleItem
                 :title="$t('public.incentive')"
                 :href="route('pending.index', { type: 'incentive' })"
                 :active="route().current('pending.index') && route().params.type === 'incentive'"
+                :pendingCounts="pendingIncentive"
             />
 
         </SidebarCollapsible>
@@ -106,11 +107,11 @@ import {
                 :active="route().current('member.network')"
             />
 
-            <!-- <SidebarCollapsibleItem
+            <SidebarCollapsibleItem
                 :title="$t('public.sidebar_forum')"
                 :href="route('member.forum')"
                 :active="route().current('member.forum')"
-            /> -->
+            />
 
             <SidebarCollapsibleItem
                 :title="$t('public.sidebar_account_listing')"

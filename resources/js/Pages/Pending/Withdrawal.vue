@@ -3,7 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { usePage, useForm } from "@inertiajs/vue3";
 import { transactionFormat } from "@/Composables/index.js";
 import { IconCircleXFilled, IconSearch, IconDownload } from "@tabler/icons-vue";
-import { ref, watchEffect } from "vue";
+import { ref, watch, watchEffect } from "vue";
 import Loader from "@/Components/Loader.vue";
 import DefaultProfilePhoto from "@/Components/DefaultProfilePhoto.vue";
 import DataTable from "primevue/datatable";
@@ -25,68 +25,6 @@ const { formatAmount, formatDate } = transactionFormat();
 
 const loading = ref(false);
 const dt = ref();
-// const pendingWithdrawals = ref([
-//     { 
-//         id: 1, 
-//         user_profile_photo: 'https://via.placeholder.com/100', 
-//         user_name: 'John Doe', 
-//         user_email: 'john.doe@example.com', 
-//         created_at: '2024-09-05T12:34:56Z', 
-//         from: 'rebate_wallet', 
-//         amount: '150.00', 
-//         balance: '200.00', 
-//         wallet_name: 'Main Wallet', 
-//         wallet_address: '1234 Placeholder Ave' 
-//     },
-//     { 
-//         id: 2, 
-//         user_profile_photo: 'https://via.placeholder.com/100', 
-//         user_name: 'Jane Smith', 
-//         user_email: 'jane.smith@example.com', 
-//         created_at: '2024-09-04T15:20:30Z', 
-//         from: '80001234', 
-//         amount: '75.00', 
-//         balance: '100.00', 
-//         wallet_name: 8000412, 
-//         wallet_address: '5678 Dummy St' 
-//     },
-//     { 
-//         id: 3, 
-//         user_profile_photo: 'https://via.placeholder.com/100', 
-//         user_name: 'Alice Johnson', 
-//         user_email: 'alice.johnson@example.com', 
-//         created_at: '2024-09-03T10:10:10Z', 
-//         from: 'rebate_wallet', 
-//         amount: '120.00', 
-//         balance: '180.00', 
-//         wallet_name: 8001547, 
-//         wallet_address: '9101 Example Ave' 
-//     },
-//     { 
-//         id: 4, 
-//         user_profile_photo: 'https://via.placeholder.com/100', 
-//         user_name: 'Bob Brown', 
-//         user_email: 'bob.brown@example.com', 
-//         created_at: '2024-09-02T08:15:45Z', 
-//         from: '80005678', 
-//         amount: '200.00', 
-//         balance: '250.00', 
-//         wallet_name: 8000518, 
-//         wallet_address: '2345 Business Rd' 
-//     },
-//     { 
-//         id: 5, 
-//         user_profile_photo: 'https://via.placeholder.com/100', 
-//         user_name: 'Carol White', 
-//         user_email: 'carol.white@example.com', 
-//         created_at: '2024-09-01T14:22:35Z', 
-//         from: 'rebate_wallet', 
-//         amount: '90.00', 
-//         balance: '130.00', 
-//         wallet_name: 'rebate_wallet', 
-//         wallet_address: '6789 Invest St' 
-//     }
-// ]);
 const pendingWithdrawals = ref();
 const totalAmount = ref();
 const filteredValueCount = ref(0);
@@ -122,11 +60,42 @@ const clearFilterGlobal = () => {
     filters.value['global'].value = null;
 }
 
-// watchEffect(() => {
-//     if (usePage().props.toast !== null) {
-//         getResults();
-//     }
-// });
+const recalculateTotals = () => {
+    const globalFilterValue = filters.value.global?.value?.toLowerCase();
+
+    const filtered = pendingWithdrawals.value.filter(pendingWithdrawal => {
+        const matchesGlobalFilter = globalFilterValue 
+            ? [
+                pendingWithdrawal.user_name, 
+                pendingWithdrawal.user_email, 
+            ].some(field => {
+                // Convert field to string and check if it includes the global filter value
+                const fieldValue = field !== undefined && field !== null ? field.toString() : '';
+                return fieldValue.toLowerCase().includes(globalFilterValue);
+            }) 
+            : true; // If no global filter is set, match all
+
+        // Apply individual field filters (name, email, status)
+        const matchesNameFilter = !filters.value.user_name?.value || pendingWithdrawal.user_name.startsWith(filters.value.user_name.value);
+        const matchesEmailFilter = !filters.value.user_email?.value || pendingWithdrawal.user_email.startsWith(filters.value.user_email.value);
+
+        // Only return pendingWithdrawals that match both global and specific filters
+        return matchesGlobalFilter && matchesNameFilter && matchesEmailFilter;
+    });
+
+    // Calculate the total for successful pendingWithdrawals
+    totalAmount.value = filtered.reduce((acc, item) => acc + parseFloat(item.transaction_amount || 0), 0);
+};
+
+watch(filters, () => {
+    recalculateTotals();
+}, { deep: true });
+
+watchEffect(() => {
+    if (usePage().props.toast !== null) {
+        getResults();
+    }
+});
 
 const visible = ref(false);
 const pendingData = ref({});

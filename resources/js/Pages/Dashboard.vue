@@ -64,21 +64,21 @@ const dataOverviews = computed(() => [
     },
 ]);
 
-// const getDashboardData = async () => {
-//     try {
-//         const response = await axios.get('/dashboard/getDashboardData');
-//         totalDeposit.value = response.data.totalDeposit;
-//         totalWithdrawal.value = response.data.totalWithdrawal;
-//         totalAgent.value = response.data.totalAgent;
-//         totalMember.value = response.data.totalMember;
-//     } catch (error) {
-//         console.error('Error pending counts:', error);
-//     } finally {
-//         counterDuration.value = 1
-//     }
-// };
+const getDashboardData = async () => {
+    try {
+        const response = await axios.get('/getDashboardData');
+        totalDeposit.value = response.data.totalDeposit;
+        totalWithdrawal.value = response.data.totalWithdrawal;
+        totalAgent.value = response.data.totalAgent;
+        totalMember.value = response.data.totalMember;
+    } catch (error) {
+        console.error('Error pending counts:', error);
+    } finally {
+        counterDuration.value = 1
+    }
+};
 
-// getDashboardData();
+getDashboardData();
 
 const updateBalEquity = () => {
     counterEquity.value.reset();
@@ -100,21 +100,21 @@ const updateBalEquity = () => {
 
 // getAccountData();
 
-// const getPendingData = async () => {
-//     try {
-//         const response = await axios.get('/getPendingData');
-//         pendingWithdrawal.value = parseFloat(response.data.pendingWithdrawal);
-//         pendingWithdrawalCount.value = parseFloat(response.data.pendingWithdrawalCount);
-//         pendingIncentive.value = parseFloat(response.data.pendingIncentive);
-//         pendingIncentiveCount.value = parseFloat(response.data.pendingIncentiveCount);
-//     } catch (error) {
-//         console.error('Error pending data:', error);
-//     } finally {
-//         counterDuration.value = 1
-//     }
-// };
+const getPendingData = async () => {
+    try {
+        const response = await axios.get('/getPendingData');
+        pendingWithdrawal.value = response.data.pendingWithdrawal;
+        pendingWithdrawalCount.value = response.data.pendingWithdrawalCount;
+        pendingIncentive.value = response.data.pendingIncentive;
+        pendingIncentiveCount.value = response.data.pendingIncentiveCount;
+    } catch (error) {
+        console.error('Error pending data:', error);
+    } finally {
+        counterDuration.value = 1
+    }
+};
 
-// getPendingData();
+getPendingData();
 
 // watchEffect(() => {
 //     if (usePage().props.toast !== null || usePage().props.notification !== null) {
@@ -173,7 +173,12 @@ const updateBalEquity = () => {
                     />
                     <span class="self-stretch text-gray-700 text-center text-sm font-medium">{{ item.label }}</span>
                     <div class="self-stretch text-gray-950 text-center text-lg font-semibold md:text-xxl">
-                        $&nbsp;<Vue3autocounter ref="counter" :startAmount="0" :endAmount="item.total" :duration="counterDuration" separator="," decimalSeparator="." :decimals="2" :autoinit="true" />
+                        <template v-if="item.icon === DepositIcon || item.icon === WithdrawalIcon">
+                            $&nbsp;<Vue3autocounter ref="counter" :startAmount="0" :endAmount="Number(item.total)" :duration="counterDuration" separator="," decimalSeparator="." :decimals="2" :autoinit="true" />
+                        </template>
+                        <template v-else>
+                            {{ formatAmount(item.total, 0) }}
+                        </template>
                     </div>
                 </div>
             </div>
@@ -218,12 +223,13 @@ const updateBalEquity = () => {
                                 type="button"
                                 iconOnly
                                 v-slot="{ iconSizeClasses }"
+                                :href="route('pending.index', { type: 'withdrawal' })"
                             >
                                 <IconChevronRight size="16" stroke-width="1.25" color="#374151" />
                             </Button>
                         </div>
                         <span class="self-stretch text-gray-950 text-xl font-semibold md:text-xxl">
-                            $&nbsp;<Vue3autocounter ref="counter" :startAmount="0" :endAmount="pendingWithdrawal" :duration="counterDuration" separator="," decimalSeparator="." :decimals="2" :autoinit="true" />
+                            $&nbsp;<Vue3autocounter ref="counter" :startAmount="0" :endAmount="Number(pendingWithdrawal)" :duration="counterDuration" separator="," decimalSeparator="." :decimals="2" :autoinit="true" />
                         </span>
                         <div class="flex items-center gap-2">
                             <Badge variant="numberBadge" class="text-white text-xs">{{ pendingWithdrawalCount }}</Badge>
@@ -240,12 +246,13 @@ const updateBalEquity = () => {
                                 type="button"
                                 iconOnly
                                 v-slot="{ iconSizeClasses }"
+                                :href="route('pending.index', { type: 'incentive' })"
                             >
                                 <IconChevronRight size="16" stroke-width="1.25" color="#374151" />
                             </Button>
                         </div>
                         <span class="self-stretch text-gray-950 text-xl font-semibold md:text-xxl">
-                            $&nbsp;<Vue3autocounter ref="counter" :startAmount="0" :endAmount="pendingIncentive" :duration="counterDuration" separator="," decimalSeparator="." :decimals="2" :autoinit="true" />
+                            $&nbsp;<Vue3autocounter ref="counter" :startAmount="0" :endAmount="Number(pendingIncentive)" :duration="counterDuration" separator="," decimalSeparator="." :decimals="2" :autoinit="true" />
                         </span>
                         <div class="flex items-center gap-2">
                             <Badge variant="numberBadge" class="text-white text-xs">{{ pendingIncentiveCount }}</Badge>

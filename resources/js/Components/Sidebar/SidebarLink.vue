@@ -3,6 +3,7 @@ import { Link } from '@inertiajs/vue3'
 import { sidebarState } from '@/Composables'
 import { EmptyCircleIcon } from '@/Components/Icons/outline'
 import Badge from '@/Components/Badge.vue';
+import { IconAlertTriangleFilled } from '@tabler/icons-vue';
 
 const props = defineProps({
     href: {
@@ -89,6 +90,7 @@ const Tag = !props.external ? Link : 'a'
         >
             {{ title }}
         </span>
+        <IconAlertTriangleFilled v-if="pendingCounts > 0" size="16" stroke-width="1.25" color="#FF9800" />
         <slot name="arrow" />
     </button>
 </template>

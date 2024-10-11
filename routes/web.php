@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Session;
 use App\Http\Controllers\TeamController;
+use App\Http\Controllers\ForumController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\RebateController;
 use App\Http\Controllers\GeneralController;
@@ -53,12 +54,11 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
      *          Dashboard
      * ==============================
      */
-    Route::prefix('dashboard')->group(function() {
-        Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-        Route::get('/getDashboardData', [DashboardController::class, 'getDashboardData'])->name('getDashboardData');
-        Route::get('/getAccountData', [DashboardController::class, 'getAccountData'])->name('dashboard.getAccountData');
-        Route::get('/getPendingData', [DashboardController::class, 'getPendingData'])->name('dashboard.getPendingData');    
-    });
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/getDashboardData', [DashboardController::class, 'getDashboardData'])->name('dashboard.getDashboardData');
+    Route::get('/getAccountData', [DashboardController::class, 'getAccountData'])->name('dashboard.getAccountData');
+    Route::get('/getPendingData', [DashboardController::class, 'getPendingData'])->name('dashboard.getPendingData');    
+    Route::get('/getPendingCounts', [DashboardController::class, 'getPendingCounts'])->name('dashboard.getPendingCounts');    
 
     /**
      * ==============================
@@ -68,7 +68,7 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
     Route::prefix('pending')->group(function () {
         Route::get('/{type}', [PendingController::class, 'index'])->where('type', 'withdrawal|incentive')->name('pending.index');
         Route::get('/getPendingWithdrawalData', [PendingController::class, 'getPendingWithdrawalData'])->name('pending.getPendingWithdrawalData');
-        Route::get('/getPendingRevokeData', [PendingController::class, 'getPendingRevokeData'])->name('pending.getPendingRevokeData');
+        Route::get('/getPendingIncentiveData', [PendingController::class, 'getPendingIncentiveData'])->name('pending.getPendingIncentiveData');
 
         Route::post('withdrawalApproval', [PendingController::class, 'withdrawalApproval'])->name('pending.withdrawalApproval');
         Route::post('revokeApproval', [PendingController::class, 'revokeApproval'])->name('pending.revokeApproval');
@@ -105,6 +105,12 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
         // network
         Route::get('/network', [NetworkController::class, 'network'])->name('member.network');
         Route::get('/getDownlineData', [NetworkController::class, 'getDownlineData'])->name('member.getDownlineData');
+
+        // forum
+        Route::get('/forum', [ForumController::class, 'index'])->name('member.forum');
+        Route::get('/getPosts', [ForumController::class, 'getPosts'])->name('member.getPosts');
+
+        Route::post('/createPost', [ForumController::class, 'createPost'])->name('member.createPost');
 
         // account listing
         Route::get('/account_listing', [TradingAccountController::class, 'index'])->name('member.account_listing');
@@ -217,8 +223,12 @@ Route::get('/components/buttons', function () {
     return Inertia::render('Components/Buttons');
 })->name('components.buttons');
 
-Route::get('/test/component', function () {
+Route::get('/test', function () {
     return Inertia::render('Welcome');
-})->name('test.component');
+})->name('test');
+
+Route::get('/error', function () {
+    return Inertia::render('Errors/504');
+})->name('error');
 
 require __DIR__.'/auth.php';

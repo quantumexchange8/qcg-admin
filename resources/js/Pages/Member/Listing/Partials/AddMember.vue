@@ -255,7 +255,7 @@ const selectedCountry = ref();
                         {{ $t('public.kyc_verification') }}
                     </div>
                     <div class="flex flex-col gap-3 items-start self-stretch">
-                        <span class="text-xs text-gray-500">{{ $t('public.kyc_caption') }}</span>
+                        <span class="text-xs text-gray-500">{{ $t('public.file_size_limit') }}</span>
                         <FileUpload
                             class="w-full"
                             name="kyc_verification"
@@ -273,7 +273,7 @@ const selectedCountry = ref();
                                             @click="chooseCallback()"
                                         >
                                             <IconUpload size="20" stroke-width="1.25" />
-                                            {{ $t('public.kyc_choose') }}
+                                            {{ $t('public.choose') }}
                                         </Button>
                                     </div>
                                 </div>

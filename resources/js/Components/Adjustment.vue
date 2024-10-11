@@ -51,7 +51,7 @@ onMounted(getResults);
 
 const form = useForm({
     user_id: props.member ? props.member.id : '',
-    meta_login: '',
+    meta_login: props.account ? props.account.meta_login : '',
     action: '',
     amount: 0,
     remarks: '',
