@@ -12,21 +12,23 @@ import debounce from "lodash/debounce.js";
 import dayjs from "dayjs";
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
-import AccountTypeActions from "@/Pages/AccountType/Partials/AccountTypeActions.vue"
+import CreateAdminRole from "@/Pages/AdminRole/Partials/CreateAdminRole.vue";
+import AdminRoleActions from "@/Pages/AdminRole/Partials/AdminRoleActions.vue";
 
 const props = defineProps({
-    leverages: Array,
+    totalAdminRoles: Number,
+    permissionsList: Array,
 })
 
-const accountTypes = ref();
+const admins = ref();
 const loading = ref(false);
 
-const getAccountTypes = async () => {
+const getAdminRole = async () => {
     loading.value = true;
 
     try {
-        const response = await axios.get('/accountType/getAccountTypes');
-        accountTypes.value = response.data.accountTypes;
+        const response = await axios.get('/adminRole/getAdminRole');
+        admins.value = response.data.admins;
     } catch (error) {
         console.error('Error getting account types:', error);
     } finally {
@@ -35,80 +37,77 @@ const getAccountTypes = async () => {
 }
 
 onMounted(() => {
-    getAccountTypes();
+    getAdminRole();
 })
 
 watchEffect(() => {
     if (usePage().props.toast !== null) {
-        getAccountTypes();
+        getAdminRole();
     }
 });
 
 </script>
 
 <template>
-    <AuthenticatedLayout :title="$t('public.sidebar_account_type')">
+    <AuthenticatedLayout :title="$t('public.sidebar_admin_role')">
         <div class="w-full flex flex-col items-center gap-5">
             <div class="flex flex-col justify-center items-center px-3 py-5 gap-5 self-stretch rounded-lg bg-white shadow-card md:p-6 md:gap-6">
                 <div class="flex flex-col items-center gap-3 self-stretch md:flex-row md:justify-between">
-                    <span class="self-stretch md:self-auto text-gray-950 font-semibold">{{ $t('public.all_account_type') }}</span>
-                    <Button
-                        type="button"
-                        size="base"
-                        variant="primary-flat"
-                        class="w-full md:w-auto"
-                        :href="route('accountType.syncAccountTypes')"
-                    >
-                        <IconRefresh size="20" stroke-width="1.25" />
-                        {{ $t('public.synchronise') }}
-                    </Button>
+                    <span class="self-stretch md:self-auto text-gray-950 font-semibold">{{ $t('public.all_admin_role') }}</span>
+                    <CreateAdminRole :permissionsList="props.permissionsList" />
+                </div>
+                <div v-if="totalAdminRoles <= 0">
+                    <Empty 
+                        :title="$t('public.empty_admin_role_title')" 
+                        :message="$t('public.empty_admin_role_message')" 
+                    />
                 </div>
                 <DataTable
-                    :value="accountTypes"
+                    v-else
+                    :value="admins"
                     removableSort
                     ref="dt"
                     :loading="loading"
                     table-style="min-width:fit-content"
                 >
+                    <template #empty><Empty :title="$t('public.empty_admin_role_title')" :message="$t('public.empty_admin_role_message')" /></template>
                     <template #loading>
                         <div class="flex flex-col gap-2 items-center justify-center">
                             <Loader />
                             <span class="text-sm text-gray-700">{{ $t('public.loading') }}</span>
                         </div>
                     </template>
-                    <Column field="name" :header="$t('public.name')" sortable class="w-full md:w-[20%] max-w-0 px-3" headerClass="text-nowrap">
+                    <Column field="first_name" :header="$t('public.name')" sortable class="w-full md:w-[25%] max-w-0 px-3" headerClass="text-nowrap">
                         <template #body="slotProps">
-                            <div class="text-gray-950 text-sm truncate">
-                                {{ slotProps.data.name }}
+                            <div class="flex flex-col items-start max-w-full">
+                                <div class="text-gray-950 text-sm font-semibold truncate max-w-full">
+                                    {{ slotProps.data.first_name }}
+                                </div>
+                                <div class="text-gray-500 text-xs truncate max-w-full">
+                                    {{ slotProps.data.email }}
+                                </div>
                             </div>
                         </template>
                     </Column>
-                    <Column field="maximum_account_number" :header="$t('public.max_account')" sortable class="hidden md:table-cell w-[20%] px-3" headerClass="text-nowrap">
+                    <Column field="created_at" :header="$t('public.created_date')" sortable class="hidden md:table-cell w-[25%] px-3" headerClass="text-nowrap">
                         <template #body="slotProps">
                             <div class="text-gray-950 text-sm">
-                                {{ slotProps.data.maximum_account_number }}
+                                {{ dayjs(slotProps.data.created_at).format('YYYY/MM/DD') }}
                             </div>
                         </template>
                     </Column>
-                    <Column field="trade_delay" :header="$t('public.trade_delay')" class="hidden md:table-cell w-[20%] px-3" headerClass="text-nowrap">
+                    <Column field="role" :header="$t('public.role')" class="hidden md:table-cell w-[25%] px-3" headerClass="text-nowrap">
                         <template #body="slotProps">
-                            <div class="text-gray-950 text-sm">
-                                {{ slotProps.data.trade_delay }}
+                            <div class="text-gray-950 text-sm capitalize">
+                                {{ slotProps.data.role }}
                             </div>
                         </template>
                     </Column>
-                    <Column field="total_account" :header="$t('public.total_account')" sortable class="hidden md:table-cell w-[20%] px-3" headerClass="text-nowrap">
+                    <Column field="action" class="w-full md:w-[25%] px-3">
                         <template #body="slotProps">
-                            <div class="text-gray-950 text-sm">
-                                {{ slotProps.data.total_account }}
-                            </div>
-                        </template>
-                    </Column>
-                    <Column field="action" class="w-full md:w-[20%] px-3">
-                        <template #body="slotProps">
-                            <AccountTypeActions 
-                                :accountType="slotProps.data"
-                                :leverages="props.leverages"
+                            <AdminRoleActions 
+                                :admin="slotProps.data"
+                                :permissionsList="props.permissionsList"
                             />
                         </template>
                     </Column>

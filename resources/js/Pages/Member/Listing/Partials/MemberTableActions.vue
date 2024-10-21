@@ -20,6 +20,7 @@ import { router } from "@inertiajs/vue3";
 import { useConfirm } from "primevue/useconfirm";
 import { trans, wTrans } from "laravel-vue-i18n";
 import Dialog from "primevue/dialog";
+import TransferUpline from '@/Pages/Member/Listing/Partials/TransferUpline.vue';
 import UpgradeToAgent from "@/Pages/Member/Listing/Partials/UpgradeToAgent.vue";
 import Adjustment from "@/Components/Adjustment.vue";
 import ResetPassowrd from "@/Pages/Member/Listing/Partials/ResetPassword.vue";
@@ -268,10 +269,10 @@ const handleMemberStatus = () => {
         }"
     >
         <template v-if="dialogType === 'transfer_upline'">
-            <!-- <TransferUpline
+            <TransferUpline
                 :member="member"
                 @update:visible="visible = false"
-            /> -->
+            />
         </template>
         <template v-if="dialogType === 'upgrade_to_agent'">
             <UpgradeToAgent

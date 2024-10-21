@@ -28,7 +28,11 @@ class UpdateTradingUser
         $tradingUser->account_type_id = $accountType->id;
         $tradingUser->leverage = $data['leverageInCents'] / 100;
         $tradingUser->registration = $data['registrationTimestamp'];
-        $tradingUser->last_access = Carbon::createFromTimestamp($data['lastConnectionTimestamp'] / 1000)->toDateTimeString();
+        
+        if (isset($data['lastConnectionTimestamp'])) {
+            $tradingUser->last_access = Carbon::createFromTimestamp($data['lastConnectionTimestamp'] / 1000)->toDateTimeString();
+        }
+        
         $tradingUser->balance = $data['balance'] / 100;
         $tradingUser->credit = $data['nonWithdrawableBonus'] / 100;
 

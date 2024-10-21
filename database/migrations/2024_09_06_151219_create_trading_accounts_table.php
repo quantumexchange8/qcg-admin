@@ -24,6 +24,7 @@ return new class extends Migration {
             $table->double('commission')->nullable();
             $table->decimal('floating', 13)->nullable();
             $table->decimal('equity', 13)->nullable();
+            $table->decimal('cash_equity', 13)->nullable();
             $table->integer('so_activation')->nullable();
             $table->integer('so_time')->nullable();
             $table->double('so_level')->nullable();

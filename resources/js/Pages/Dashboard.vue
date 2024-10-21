@@ -2,7 +2,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import Button from '@/Components/Button.vue';
 import { usePage } from "@inertiajs/vue3";
-import { transactionFormat } from "@/Composables/index.js";
+import { transactionFormat, usePermission } from "@/Composables/index.js";
 import { 
     IconRefresh, 
     IconChevronRight, 
@@ -14,13 +14,14 @@ import {
     AgentIcon,
     MemberIcon,
 } from '@/Components/Icons/outline.jsx';
-import { computed, ref, watchEffect } from "vue";
+import { computed, ref, watchEffect, onMounted } from "vue";
 import { trans } from "laravel-vue-i18n";
 import Vue3autocounter from 'vue3-autocounter';
 import Badge from '@/Components/Badge.vue';
 
 const user = usePage().props.auth.user;
 const { formatAmount } = transactionFormat();
+const { hasRole, hasPermission } = usePermission();
 
 const counterDuration = ref(10);
 
@@ -66,7 +67,7 @@ const dataOverviews = computed(() => [
 
 const getDashboardData = async () => {
     try {
-        const response = await axios.get('/getDashboardData');
+        const response = await axios.get('dashboard/getDashboardData');
         totalDeposit.value = response.data.totalDeposit;
         totalWithdrawal.value = response.data.totalWithdrawal;
         totalAgent.value = response.data.totalAgent;
@@ -88,7 +89,7 @@ const updateBalEquity = () => {
 
 // const getAccountData = async () => {
 //     try {
-//         const response = await axios.get('/getAccountData');
+//         const response = await axios.get('dashboard/getAccountData');
 //         balance.value = response.data.totalBalance;
 //         equity.value = response.data.totalEquity;
 
@@ -102,7 +103,7 @@ const updateBalEquity = () => {
 
 const getPendingData = async () => {
     try {
-        const response = await axios.get('/getPendingData');
+        const response = await axios.get('dashboard/getPendingData');
         pendingWithdrawal.value = response.data.pendingWithdrawal;
         pendingWithdrawalCount.value = response.data.pendingWithdrawalCount;
         pendingIncentive.value = response.data.pendingIncentive;
@@ -124,10 +125,50 @@ getPendingData();
 //     }
 // });
 
+const navigateToFirstAvailablePage = () => {
+    if (!hasPermission('access_dashboard')) {
+        if (hasPermission('access_withdrawal_request')) {
+            window.location.href = route('pending.withdrawal');
+        } else if (hasPermission('access_incentive_request')) {
+            window.location.href = route('pending.incentive');
+        } else if (hasPermission('access_member_listing')) {
+            window.location.href = route('member.listing');
+        } else if (hasPermission('access_member_network')) {
+            window.location.href = route('member.network');
+        } else if (hasPermission('access_member_forum')) {
+            window.location.href = route('member.forum');
+        } else if (hasPermission('access_account_listing')) {
+            window.location.href = route('member.account_listing');
+        } else if (hasPermission('access_sales_team')) {
+            window.location.href = route('team');
+        } else if (hasPermission('access_rebate_setting')) {
+            window.location.href = route('rebate_setting');
+        } else if (hasPermission('access_leaderboard')) {
+            window.location.href = route('leaderboard');
+        } else if (hasPermission('access_deposit')) {
+            window.location.href = route('transaction.deposit');
+        } else if (hasPermission('access_withdrawal')) {
+            window.location.href = route('transaction.withdrawal');
+        } else if (hasPermission('access_transfer')) {
+            window.location.href = route('transaction.transfer');
+        } else if (hasPermission('access_rebate_payout')) {
+            window.location.href = route('transaction.rebate');
+        } else if (hasPermission('access_incentive_payout')) {
+            window.location.href = route('transaction.incentive');
+        } else if (hasPermission('access_account_type')) {
+            window.location.href = route('accountType');
+        } else if (hasPermission('access_admin_role')) {
+            window.location.href = route('adminRole');
+        }
+    }
+};
+
+onMounted(navigateToFirstAvailablePage);
+
 </script>
 
 <template>
-    <AuthenticatedLayout :title="$t('public.dashboard')">
+    <AuthenticatedLayout v-if="hasRole('super-admin') || hasPermission('access_dashboard')" :title="$t('public.dashboard')">
         <div class="w-full flex flex-col items-center gap-5">
             <!-- greeting banner -->
             <div class="relative h-[120px] py-2.5 pl-3 pr-[99px] self-stretch rounded-lg bg-white shadow-card md:h-40 md:py-[26px] md:px-0 xl:py-[52px] overflow-hidden">
@@ -223,7 +264,7 @@ getPendingData();
                                 type="button"
                                 iconOnly
                                 v-slot="{ iconSizeClasses }"
-                                :href="route('pending.index', { type: 'withdrawal' })"
+                                :href="route('pending.withdrawal')"
                             >
                                 <IconChevronRight size="16" stroke-width="1.25" color="#374151" />
                             </Button>
@@ -246,7 +287,7 @@ getPendingData();
                                 type="button"
                                 iconOnly
                                 v-slot="{ iconSizeClasses }"
-                                :href="route('pending.index', { type: 'incentive' })"
+                                :href="route('pending.incentive')"
                             >
                                 <IconChevronRight size="16" stroke-width="1.25" color="#374151" />
                             </Button>
@@ -262,7 +303,6 @@ getPendingData();
 
                 </div>
             </div>
-
         </div>
     </AuthenticatedLayout>
 </template>

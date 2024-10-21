@@ -97,29 +97,6 @@ class GeneralController extends Controller
         ]);
     }
 
-    public function getAgents($returnAsArray = false)
-    {
-        $has_team = TeamHasUser::pluck('user_id');
-        $users = User::where('role', 'agent')
-            ->whereNotIn('id', $has_team)
-            ->get()
-            ->map(function ($user) {
-                return [
-                    'value' => $user->id,
-                    'name' => $user->first_name,
-                    // 'profile_photo' => $user->getFirstMediaUrl('profile_photo')
-                ];
-            });
-
-        if ($returnAsArray) {
-            return $users;
-        }
-
-        return response()->json([
-            'users' => $users,
-        ]);
-    }
-
     public function getTransactionMonths($returnAsArray = false)
     {
         $transactionDates = Transaction::pluck('created_at');

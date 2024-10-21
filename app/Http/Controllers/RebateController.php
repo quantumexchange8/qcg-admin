@@ -22,7 +22,7 @@ class RebateController extends Controller
 
     public function getCompanyProfileData(Request $request)
     {
-        $userId = 82;
+        $userId = 1992;
 
         $company_profile = RebateAllocation::with(['user' => function ($query) {
             $query->withCount(['directChildren as direct_agent' => function ($q) {
@@ -47,8 +47,9 @@ class RebateController extends Controller
         $company_profile->user->maximum_level = $levels['max'];
 
         // Fetch rebate details
-        $rebate_details = AccountTypeSymbolGroup::with('symbol_group:id,display')
-            ->where('account_type', $request->account_type_id)
+        $rebate_details = RebateAllocation::with('symbol_group:id,display')
+            ->where('user_id', $userId)
+            ->where('account_type_id', $request->account_type_id)
             ->whereHas('symbol_group')
             ->get();
 
@@ -64,9 +65,9 @@ class RebateController extends Controller
         $amounts = $request->amount;
 
         foreach ($ids as $index => $id) {
-            AccountTypeSymbolGroup::find($id)->update([
+            RebateAllocation::find($id)->update([
                 'amount' => $amounts[$index],
-                // 'edited_by' => Auth::id()
+                'edited_by' => Auth::id()
             ]);
         }
 
@@ -88,28 +89,35 @@ class RebateController extends Controller
         $users = User::whereIn('id', $upline->getChildrenIds())->get();
         $minLevel = PHP_INT_MAX;
         $maxLevel = PHP_INT_MIN;
-
+    
         foreach ($users as $user) {
             $levels = explode('-', trim($user->hierarchyList, '-'));
+    
+            // Combine the first three IDs into a single entry if they exist
+            $processedLevels = (count($levels) > 1)
+                ? array_merge([implode('-', array_slice($levels, 0, 3))], array_slice($levels, 3))
+                : $levels;
+    
+            // Check if the user ID exists in the original levels
             if (in_array($user_id, array_map('intval', $levels))) {
-                $levelCount = count($levels);
+                $levelCount = count($processedLevels);  // Correct level counting
                 $minLevel = min($minLevel, $levelCount);
                 $maxLevel = max($maxLevel, $levelCount);
             }
         }
-
+    
         return [
             'min' => $minLevel == PHP_INT_MAX ? 0 : $minLevel,
             'max' => $maxLevel == PHP_INT_MIN ? 0 : $maxLevel
         ];
     }
-
+    
     public function getAgents(Request $request)
     {
         $type_id = $request->type_id;
 
         //level 1 children
-        $lv1_agents = User::where('upline_id', 82)->where('role', 'agent')
+        $lv1_agents = User::where('upline_id', 1992)->where('role', 'agent')
             ->get()->map(function($agent) {
                 return [
                     'id' => $agent->id,
@@ -196,7 +204,7 @@ class RebateController extends Controller
             return 0;
         }
 
-        $split = explode('-82-', $hierarchyList);
+        $split = explode('-1992-', $hierarchyList);
         return substr_count($split[1], '-') + 1;
     }
 
@@ -227,22 +235,31 @@ class RebateController extends Controller
             'upline_cryptocurrency' => floatval($upline_rebate[4]->amount),
         ];
 
-        $downline = $user->directChildren()->where('role', 'agent')->first();
+        $downlines = $user->directChildren()->where('role', 'agent')->get(); // Get all downline agents
 
-        if ($downline) {
-            $downline_rebate = User::find($downline->id)->rebateAllocations()->where('account_type_id', $type_id)->get();
-
-            if (!$downline_rebate->isEmpty()) {
-                $rebates += [
-                    'downline_forex' => floatval($downline_rebate[0]->amount),
-                    'downline_stocks' => floatval($downline_rebate[1]->amount),
-                    'downline_indices' => floatval($downline_rebate[2]->amount),
-                    'downline_commodities' => floatval($downline_rebate[3]->amount),
-                    'downline_cryptocurrency' => floatval($downline_rebate[4]->amount),
-                ];
+        if (!$downlines->isEmpty()) {
+            $rebates['downline_forex'] = 0;
+            $rebates['downline_stocks'] = 0;
+            $rebates['downline_indices'] = 0;
+            $rebates['downline_commodities'] = 0;
+            $rebates['downline_cryptocurrency'] = 0;
+                
+            foreach ($downlines as $downline) {
+                // Fetch rebates for each downline agent
+                $downline_rebate = User::find($downline->id)->rebateAllocations()->where('account_type_id', $type_id)->get();
+        
+                // Check if the downline rebate exists and is not empty
+                if (!$downline_rebate->isEmpty()) {
+                    // Directly assign and accumulate the maximum values
+                    $rebates['downline_forex'] = max($rebates['downline_forex'], floatval($downline_rebate[0]->amount ?? 0));
+                    $rebates['downline_stocks'] = max($rebates['downline_stocks'], floatval($downline_rebate[1]->amount ?? 0));
+                    $rebates['downline_indices'] = max($rebates['downline_indices'], floatval($downline_rebate[2]->amount ?? 0));
+                    $rebates['downline_commodities'] = max($rebates['downline_commodities'], floatval($downline_rebate[3]->amount ?? 0));
+                    $rebates['downline_cryptocurrency'] = max($rebates['downline_cryptocurrency'], floatval($downline_rebate[4]->amount ?? 0));
+                }
             }
         }
-
+        
         return $rebates;
     }
 
@@ -255,8 +272,8 @@ class RebateController extends Controller
         $selected_agent = User::where('id', $selected_agent_id)->first();
 
         // determine is the selected agent other than level 1
-        if ($selected_agent->upline_id !== 82) {
-            $split_hierarchy = explode('-82-', $selected_agent->hierarchyList);
+        if ($selected_agent->upline_id !== 1992) {
+            $split_hierarchy = explode('-1992-', $selected_agent->hierarchyList);
             $upline_ids = explode('-', $split_hierarchy[1]);
 
             array_pop($upline_ids);
@@ -344,6 +361,7 @@ class RebateController extends Controller
         foreach ($rebates as $rebate) {
             if (isset($data[$rebate->symbol_group_id])) {
                 $rebate->amount = $data[$rebate->symbol_group_id];
+                $rebate->edited_by = Auth::id();
                 $rebate->save();
             }
         }

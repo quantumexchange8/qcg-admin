@@ -27,10 +27,10 @@ defineProps({
 const { formatAmount, formatDate } = transactionFormat();
 
 const counterDuration = ref(10);
-const totalDeposit = ref(0.00);
-const totalWithdrawal = ref(0.00);
-const totalFeeCharges = ref(0.00);
-const totalNetBalance = ref(0.00);
+const totalDeposit = ref(99999);
+const totalWithdrawal = ref(99999);
+const totalFeeCharges = ref(99999);
+const totalNetBalance = ref(99999);
 const teams = ref([]);
 const total = ref();
 const isLoading = ref(false);
@@ -110,11 +110,11 @@ const getResults = async (selectedDate = []) => {
         totalWithdrawal.value = total.value.total_withdrawal;
         totalFeeCharges.value = total.value.total_charges;
         totalNetBalance.value = total.value.total_net_balance;
-        counterDuration.value = 1;
     } catch (error) {
         console.error('Error fetching team:', error);
     } finally {
-        isLoading.value = false
+        isLoading.value = false;
+        counterDuration.value = 1;
     }
 };
 
@@ -172,11 +172,11 @@ const refreshTeam = async (teamId) => {
         totalDeposit.value = total.value.total_deposit;
         totalWithdrawal.value = total.value.total_withdrawal;
         totalFeeCharges.value = total.value.total_charges;
-        counterDuration.value = 1;
     } catch (error) {
         console.error('Error fetching team:', error);
     } finally {
         refreshingTeam[teamId] = false; // Indicate that the refresh is complete
+        counterDuration.value = 1;
     }
 }
 </script>
@@ -298,7 +298,7 @@ const refreshTeam = async (teamId) => {
                                         </span>
                                     </div>
                                     <div class="w-full flex flex-col items-start gap-1">
-                                        <span class="self-stretch truncate text-gray-500 text-xs">{{ $t('public.team_fee_charges') }}</span>
+                                        <span class="self-stretch truncate text-gray-500 text-xs">{{ `${$t('public.team_fee_charges')}&nbsp;(%)` }}</span>
                                         <span class="self-stretch truncate text-gray-950 font-semibold">
                                             <div class="h-3 bg-gray-200 rounded-full w-30"></div>
                                         </span>
@@ -371,7 +371,7 @@ const refreshTeam = async (teamId) => {
                                         <span class="self-stretch truncate text-gray-950 font-semibold">$&nbsp;{{ formatAmount(team.withdrawal) }}</span>
                                     </div>
                                     <div class="w-full flex flex-col items-start gap-1">
-                                        <span class="self-stretch truncate text-gray-500 text-xs">{{ $t('public.team_fee_charges') }}</span>
+                                        <span class="self-stretch truncate text-gray-500 text-xs">{{ `${$t('public.team_fee_charges')}&nbsp;(${formatAmount(team.fee_charges)}%)` }}</span>
                                         <span class="self-stretch truncate text-gray-950 font-semibold">$&nbsp;{{ formatAmount(team.transaction_fee_charges) }}</span>
                                     </div>
                                     <div class="w-full flex flex-col items-start gap-1">

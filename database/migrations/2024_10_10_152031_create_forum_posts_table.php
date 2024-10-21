@@ -17,6 +17,8 @@ return new class extends Migration
             $table->string('display_name')->nullable();
             $table->string('subject')->nullable();
             $table->longText('message')->nullable();
+            $table->integer('total_likes_count')->nullable()->default(0);
+            $table->integer('total_dislikes_count')->nullable()->default(0);
             $table->softDeletes();
             $table->timestamps();
 

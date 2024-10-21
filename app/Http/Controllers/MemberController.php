@@ -49,8 +49,8 @@ class MemberController extends Controller
     {
         $role = $request->role;
     
-        $query = User::with(['teamHasUser'])
-            ->whereNot('role', 'super-admin')
+        $users = User::with(['teamHasUser.team'])
+            // ->whereNot('role', 'super-admin')
             ->when($role, function ($query, $role) {
                 return $query->where('role', $role);
             })
@@ -76,12 +76,12 @@ class MemberController extends Controller
         $agentCount = User::where('role', 'agent')->count();
     
         return response()->json([
-            'users' => $query,
+            'users' => $users,
             'total_members' => $memberCount,
             'total_agents' => $agentCount,
         ]);
     }
-    
+        
     public function addNewMember(AddMemberRequest $request)
     {
         $upline_id = $request->upline['value'];
@@ -121,16 +121,17 @@ class MemberController extends Controller
         $user->save();
 
         if ($upline->teamHasUser) {
-            $user->assignedTeam($upline->teamHasUser->group_id);
+            $user->assignedTeam($upline->teamHasUser->team_id);
         }
 
+        Wallet::create([
+            'user_id' => $user->id,
+            'type' => 'rebate_wallet',
+            // 'address' => str_replace('AID', 'RB', $user->id_number),
+            'balance' => 0
+        ]);
+
         if ($user->role == 'agent') {
-            Wallet::create([
-                'user_id' => $user->id,
-                'type' => 'rebate_wallet',
-                // 'address' => str_replace('AID', 'RB', $user->id_number),
-                'balance' => 0
-            ]);
 
             $uplineRebates = RebateAllocation::where('user_id', $user->upline_id)->get();
 
@@ -155,18 +156,126 @@ class MemberController extends Controller
     {
         $user = User::find($request->id);
 
-        // $user->status = $user->status == 'active' ? 'inactive' : 'active';
-        $user->status = $user->status == 1 ? 0 : 1;
+        $user->status = $user->status == 'active' ? 'inactive' : 'active';
+        // $user->status = $user->status == 1 ? 0 : 1;
         $user->save();
 
         return back()->with('toast', [
-            // 'title' => $user->status == 'active' ? trans("public.toast_member_has_activated") : trans("public.toast_member_has_deactivated"),
-            'title' => $user->status == 1 ? trans("public.toast_member_has_activated") : trans("public.toast_member_has_deactivated"),
+            'title' => trans($user->status === 'active' ? 'public.toast_member_has_activated' : 'public.toast_member_has_deactivated'),
             'type' => 'success',
         ]);
     }
 
+    public function getAvailableUplines(Request $request)
+    {
+        $role = $request->input('role', ['agent', 'member']);
+    
+        $memberId = $request->input('id');
 
+        // Fetch the member and get their children (downline) IDs
+        $member = User::findOrFail($memberId);
+        $excludedIds = $member->getChildrenIds();
+        $excludedIds[] = $memberId;
+    
+        // Fetch uplines who are not in the excluded list
+        $uplines = User::whereIn('role', (array) $role)
+            ->whereNotIn('id', $excludedIds)
+            ->get()
+            ->map(function ($user) {
+                return [
+                    'value' => $user->id,
+                    'name' => $user->first_name,
+                ];
+            });
+    
+        // Return the uplines as JSON
+        return response()->json([
+            'uplines' => $uplines
+        ]);
+    }
+    
+    public function transferUpline(Request $request)
+    {
+        // Validate the incoming request data
+        $request->validate([
+            'user_id'   => 'required|exists:users,id',
+            'upline_id' => 'required|exists:users,id',
+            'role'      => 'required|in:agent,member',
+        ]);
+    
+        // Find the user to be transferred
+        $user = User::findOrFail($request->input('user_id'));
+    
+        // Check if the new upline is valid and not the same as the current one
+        if ($user->upline_id === $request->input('upline_id')) {
+            return back()->with('toast', [
+                'title' => trans('public.transfer_same_upline_warning'),
+                'type'  => 'warning',
+            ]);
+        }
+    
+        // Find the new upline
+        $newUpline = User::findOrFail($request->input('upline_id'));
+    
+        // Step 1: Update the user's hierarchyList to reflect the new upline's hierarchy and ID
+        $user->hierarchyList = $newUpline->hierarchyList . $newUpline->id . '-';
+        $user->upline_id = $newUpline->id;
+    
+        // Save the updated hierarchyList and upline_id for the user
+        $user->save();
+
+        // Step 2: If the role is 'agent' for the transferred user, set their RebateAllocation amounts to 0
+        if ($request->role === 'agent') {
+            // Retrieve all RebateAllocations for the user
+            $rebateAllocations = RebateAllocation::where('user_id', $user->id)->get();
+    
+            // Set the amount of each RebateAllocation to 0
+            foreach ($rebateAllocations as $rebateAllocation) {
+                $rebateAllocation->amount = 0; // Set amount to 0
+                $rebateAllocation->save();      // Save the updated record
+            }
+        }
+        
+        // Step 3: Update related users' hierarchyList and their RebateAllocation amounts if they are agents
+        $relatedUsers = User::where('hierarchyList', 'like', '%-' . $user->id . '-%')->get();
+    
+        foreach ($relatedUsers as $relatedUser) {
+            $userIdSegment = '-' . $user->id . '-';
+    
+            // Find the position of `-user_id-` in the related user's hierarchyList
+            $pos = strpos($relatedUser->hierarchyList, $userIdSegment);
+    
+            if ($pos !== false) {
+                // Extract the part after the user's ID segment (tail part)
+                $tailHierarchy = substr($relatedUser->hierarchyList, $pos + strlen($userIdSegment));
+    
+                // Prepend the user's new hierarchyList + user ID to the tail part
+                $relatedUser->hierarchyList = $user->hierarchyList . $user->id . '-' . $tailHierarchy;
+            }
+    
+            // Save the updated hierarchyList for the related user
+            $relatedUser->save();
+    
+            // Step 4: If the related user is an agent, set their RebateAllocation amounts to 0
+            if ($relatedUser->role === 'agent') {
+                // Retrieve all RebateAllocations for the related user
+                $rebateAllocations = RebateAllocation::where('user_id', $relatedUser->id)->get();
+    
+                // Set the amount of each RebateAllocation to 0
+                foreach ($rebateAllocations as $rebateAllocation) {
+                    $rebateAllocation->amount = 0; // Set amount to 0
+                    $rebateAllocation->save();      // Save the updated record
+                }
+            }
+        }
+    
+        // Return a success response
+        return back()->with('toast', [
+            'title' => trans('public.toast_transfer_upline_success'),
+            'type'  => 'success',
+        ]);
+    }
+                
     public function getAvailableUplineData(Request $request)
     {
         $user = User::with('upline')->find($request->user_id);
@@ -553,29 +662,37 @@ class MemberController extends Controller
 
     public function getTradingAccounts(Request $request)
     {
-        // $cTraderService = new CTraderService;
-
-        // $conn = $cTraderService->connectionStatus();
-        // if ($conn['code'] != 0) {
-        //     return back()
-        //         ->with('toast', [
-        //             'title' => 'Connection Error',
-        //             'type' => 'error'
-        //         ]);
-        // }
-
-        // try {
-        //     $cTraderService->getUserInfo($request->meta_login);
-        // } catch (\Throwable $e) {
-        //     Log::error($e->getMessage());
-
-        //     return back()
-        //         ->with('toast', [
-        //             'title' => 'No Account Found',
-        //             'type' => 'error'
-        //         ]);
-        // }
-
+        $user = User::find($request->id);
+        $tradingAccounts = $user->tradingAccounts;
+    
+        // Proceed only if there are associated trading accounts
+        if ($tradingAccounts->isNotEmpty()) {
+            $cTraderService = new CTraderService();
+    
+            // Check connection status
+            $conn = $cTraderService->connectionStatus();
+            if ($conn['code'] != 0) {
+                return back()->with('toast', [
+                    'title' => 'Connection Error',
+                    'type' => 'error'
+                ]);
+            }
+    
+            // Iterate through trading accounts to get user info
+            foreach ($tradingAccounts as $tradingAccount) {
+                try {
+                    // Get user info from cTrader service using the meta_login
+                    $cTraderService->getUserInfo($tradingAccount->meta_login);
+                } catch (\Throwable $e) {
+                    Log::error("Error fetching user info for {$tradingAccount->meta_login}: " . $e->getMessage());
+                    return back()->with('toast', [
+                        'title' => 'Error Fetching Account Info',
+                        'type' => 'error'
+                    ]);
+                }
+            }
+        }
+    
         // Fetch trading accounts based on user ID
         $tradingAccounts = TradingAccount::query()
             ->where('user_id', $request->id)
@@ -589,17 +706,16 @@ class MemberController extends Controller
                     'credit' => $trading_account->credit,
                     'equity' => $trading_account->equity,
                     'leverage' => $trading_account->margin_leverage,
-                    // 'account_type_color' => $trading_account->accountType->color,
                     'updated_at' => $trading_account->updated_at,
                 ];
             });
-
+    
         // Return the response as JSON
         return response()->json([
             'tradingAccounts' => $tradingAccounts,
         ]);
     }
-
+        
     public function getAdjustmentHistoryData(Request $request)
     {
         $adjustment_history = Transaction::where('user_id', $request->id)
@@ -618,38 +734,92 @@ class MemberController extends Controller
 
     public function deleteMember(Request $request)
     {
+        // Find the user by ID
         $user = User::find($request->id);
-
+    
+        if (!$user) {
+            return back()->with('toast', [
+                'title' => 'User Not Found',
+                'type' => 'error'
+            ]);
+        }
+    
+        // Check for associated trading accounts and users
+        $tradingAccounts = $user->tradingAccounts;
+        $tradingUsers = $user->tradingUsers;
+    
+        // Proceed with cTrader logic only if both trading accounts and trading users are not empty
+        if ($tradingAccounts->isNotEmpty() && $tradingUsers->isNotEmpty()) {
+            $cTraderService = new CTraderService();
+    
+            // Check connection status
+            $conn = $cTraderService->connectionStatus();
+            if ($conn['code'] != 0) {
+                return back()->with('toast', [
+                    'title' => 'Connection Error',
+                    'type' => 'error'
+                ]);
+            }
+    
+            // Iterate through trading accounts and users
+            foreach ($tradingAccounts as $tradingAccount) {
+                // Get user info from cTrader service
+                try {
+                    $cTraderService->getUserInfo($tradingAccount->meta_login);
+                } catch (\Throwable $e) {
+                    Log::error($e->getMessage());
+                    return back()->with('toast', [
+                        'title' => 'No Account Found',
+                        'type' => 'error'
+                    ]);
+                }
+    
+                // Check if the account has a balance or equity
+                if ($tradingAccount->balance > 0 || $tradingAccount->equity > 0 || $tradingAccount->credit > 0 || $tradingAccount->cash_equity > 0) {
+                    return back()->with('toast', [
+                        'title' => trans('public.account_have_balance'),
+                        'type' => 'error'
+                    ]);
+                }
+    
+                // Attempt to delete the trading account
+                try {
+                    $cTraderService->deleteTrader($tradingAccount->meta_login);
+                    $tradingAccount->trading_user->delete();
+                    $tradingAccount->delete();
+                } catch (\Throwable $e) {
+                    Log::error('Failed to delete trading account: ' . $e->getMessage());
+                    return back()->with('toast', [
+                        'title' => 'No Account Found',
+                        'type' => 'error'
+                    ]);
+                }
+            }
+        }
+    
+        // If trading accounts or users do not exist, handle user deletion without cTrader logic
         $relatedUsers = User::where('hierarchyList', 'like', '%-' . $user->id . '-%')->get();
-
+    
         foreach ($relatedUsers as $relatedUser) {
             $updatedHierarchyList = str_replace('-' . $user->id . '-', '-', $relatedUser->hierarchyList);
-
             $relatedUser->hierarchyList = $updatedHierarchyList;
-
-            // Split the updated hierarchyList to find the new upline
+    
+            // Update the upline
             $hierarchyArray = array_filter(explode('-', $updatedHierarchyList));
-
-            // Since the last element is the `upline_id`, find the new upline
-            if (!empty($hierarchyArray)) {
-                // Get the last element in the array, which is the new upline_id
-                $newUplineId = end($hierarchyArray);
-                $relatedUser->upline_id = $newUplineId;
-            } else {
-                $relatedUser->upline_id = null;
-            }
+            $relatedUser->upline_id = !empty($hierarchyArray) ? end($hierarchyArray) : null;
+    
             $relatedUser->save();
         }
-
+    
+        // Delete all related data for the user
         $user->transactions()->delete();
-        $user->tradingAccounts()->delete();
-        $user->tradingUsers()->delete();
         $user->paymentAccounts()->delete();
         $user->rebateAllocations()->delete();
         $user->rebate_wallet()->delete();
         $user->incentive_wallet()->delete();
         $user->delete();
-
+    
+        // Return success response for user deletion
         return redirect()->back()->with('toast', [
             'title' => trans('public.toast_delete_member_success'),
             'type' => 'success'

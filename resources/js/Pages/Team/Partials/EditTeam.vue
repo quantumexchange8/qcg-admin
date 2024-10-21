@@ -75,7 +75,7 @@ const submitForm = () => {
                     <div class="flex flex-col items-start gap-2 self-stretch">
                         <InputLabel
                             for="fee_charge"
-                            :value="$t('public.fee_charge')"
+                            :value="`${$t('public.fee_charge')}&nbsp;(%)`"
                             :invalid="!!form.errors.fee_charge"
                         />
                         <InputNumber

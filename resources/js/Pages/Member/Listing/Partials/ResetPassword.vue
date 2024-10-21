@@ -60,7 +60,7 @@ const submitForm = () => {
 
         <div class="flex justify-end items-center pt-6 gap-4 self-stretch">
             <Button
-                variant="gray-tonal"
+                variant="gray-outlined"
                 class="w-full"
                 :disabled="form.processing"
                 @click.prevent="closeDialog"

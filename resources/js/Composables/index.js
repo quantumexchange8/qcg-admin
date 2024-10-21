@@ -1,5 +1,6 @@
 // import { useDark, useToggle } from '@vueuse/core'
 import { reactive } from 'vue'
+import { usePage } from "@inertiajs/vue3";
 
 // export const isDark = useDark()
 // export const toggleDarkMode = useToggle(isDark)
@@ -134,4 +135,19 @@ export function generalFormat() {
     return {
         formatRgbaColor
     };
+}
+
+export function usePermission() {
+    const userRoles = usePage().props.auth.user.roles.map(role => role.name);
+    const userPermissions = usePage().props.permissions;
+
+    const hasAccess = (items, accessList) => {
+        const flatItems = Array.isArray(items) ? items.flat() : [items];
+        return flatItems.some(item => accessList.includes(item));
+    };
+
+    const hasRole = (role) => hasAccess(role, userRoles);
+    const hasPermission = (permission) => hasAccess(permission, userPermissions);
+
+    return { hasRole, hasPermission };
 }

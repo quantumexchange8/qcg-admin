@@ -144,7 +144,6 @@ const closeDialog = () => {
     <div class="flex flex-col items-center justify-center py-5 px-3 gap-5 self-stretch rounded-lg bg-white shadow-card md:p-6 md:gap-6 overflow-x-auto">
         <DataTable
             v-model:editingRows="editingRows"
-            :filters="filters"
             :value="agents"
             tableStyle="min-width: 50rem"
             :globalFilterFields="['name']"
@@ -183,7 +182,7 @@ const closeDialog = () => {
             <template #loading>
                 <div class="flex flex-col gap-2 items-center justify-center">
                     <Loader />
-                    <span class="text-sm text-gray-700">{{ $t('public.loading_users_caption') }}</span>
+                    <span class="text-sm text-gray-700">{{ $t('public.loading') }}</span>
                 </div>
             </template>
             <Column v-if="agents && agents.length" field="level" style="width:10%;" class="px-3">

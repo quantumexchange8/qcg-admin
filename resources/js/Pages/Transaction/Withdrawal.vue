@@ -124,6 +124,7 @@ const recalculateTotals = () => {
             ? [
                 transaction.name, 
                 transaction.email, 
+                transaction.transaction_number, 
                 transaction.from_meta_login, 
                 transaction.from_wallet_name
             ].some(field => {
@@ -253,7 +254,7 @@ const copyToClipboard = (text) => {
                 :rowsPerPageOptions="[10, 20, 50, 100]"
                 paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
                 :currentPageReportTemplate="$t('public.paginator_caption')"
-                :globalFilterFields="['name', 'email', 'from_meta_login', 'from_wallet_name']"
+                :globalFilterFields="['name', 'email', 'transaction_number', 'from_meta_login', 'from_wallet_name']"
                 ref="dt"
                 :loading="loading"
                 selectionMode="single"
@@ -351,10 +352,10 @@ const copyToClipboard = (text) => {
                             </div>
                         </template>
                     </Column>
-                    <Column field="id_number" :header="$t('public.id')" sortable class="hidden md:table-cell w-[15%]">
+                    <Column field="transaction_number" :header="$t('public.id')" sortable class="hidden md:table-cell w-[15%]">
                         <template #body="slotProps">
                             <div class="text-gray-950 text-sm">
-                                {{ slotProps.data.id_number }}
+                                {{ slotProps.data.transaction_number }}
                             </div>
                         </template>
                     </Column>

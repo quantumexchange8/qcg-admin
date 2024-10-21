@@ -11,10 +11,7 @@ class AccountTypeController extends Controller
 {
     public function index()
     {
-        $accountTypeCount = AccountType::count();
-
         return Inertia::render('AccountType/AccountType', [
-            'accountTypeCount' => $accountTypeCount,
             'leverages' => (new GeneralController())->getLeverages(true),
         ]);
     }

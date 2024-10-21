@@ -50,7 +50,7 @@ class TradingAccountController extends Controller
             }
 
             $accounts = $accountQuery
-                ->orderByDesc('last_access')
+                ->orderByDesc('meta_login')
                 ->get()
                 ->map(function ($account) {
                     return [
@@ -145,11 +145,11 @@ class TradingAccountController extends Controller
         $type = $request->type;
         $amount = $request->amount;
 
-        if ($type === 'account_balance' && $action === 'balance_out' && ($trading_account->balance - $trading_account->credit) < $amount) {
+        if ($type === 'account_balance' && $action === 'balance_out' && ($trading_account->cash_equity) < $amount) {
             throw ValidationException::withMessages(['amount' => trans('public.insufficient_balance')]);
         }
 
-        if ($type === 'account_credit' && $action === 'credit_out' && $trading_account->credit < $amount) {
+        if ($type === 'account_credit' && $action === 'credit_out' && $trading_account->cash_equity < $amount) {
             throw ValidationException::withMessages(['amount' => trans('public.insufficient_credit')]);
         }
 
@@ -218,64 +218,64 @@ class TradingAccountController extends Controller
 
     public function accountDelete(Request $request)
     {
-        // $cTraderService = (new CTraderService);
+        $cTraderService = (new CTraderService);
 
-        // $conn = $cTraderService->connectionStatus();
-        // if ($conn['code'] != 0) {
-        //     return back()
-        //         ->with('toast', [
-        //             'title' => 'Connection Error',
-        //             'type' => 'error'
-        //         ]);
-        // }
+        $conn = $cTraderService->connectionStatus();
+        if ($conn['code'] != 0) {
+            return back()
+                ->with('toast', [
+                    'title' => 'Connection Error',
+                    'type' => 'error'
+                ]);
+        }
 
-        // try {
-        //     $cTraderService->getUserInfo($request->meta_login);
-        // } catch (\Throwable $e) {
-        //     Log::error($e->getMessage());
+        try {
+            $cTraderService->getUserInfo($request->meta_login);
+        } catch (\Throwable $e) {
+            Log::error($e->getMessage());
 
-        //     return back()
-        //         ->with('toast', [
-        //             'title' => 'No Account Found',
-        //             'type' => 'error'
-        //         ]);
-        // }
+            return back()
+                ->with('toast', [
+                    'title' => 'No Account Found',
+                    'type' => 'error'
+                ]);
+        }
 
-        // $trading_account = TradingAccount::where('meta_login', $request->meta_login)->first();
+        $trading_account = TradingAccount::where('meta_login', $request->meta_login)->first();
 
-        // if ($trading_account->balance > 0 || $trading_account->equity > 0 || $trading_account->credit > 0) {
-        //     return back()
-        //         ->with('toast', [
-        //             'title' => trans('public.account_have_balance'),
-        //             'type' => 'error'
-        //         ]);
-        // }
+        if ($trading_account->balance > 0 || $trading_account->equity > 0 || $trading_account->credit > 0 || $trading_account->cash_equity > 0) {
+            return back()
+                ->with('toast', [
+                    'title' => trans('public.account_have_balance'),
+                    'type' => 'error'
+                ]);
+        }
 
-        // try {
-        //     $cTraderService->deleteTrader($trading_account->meta_login);
+        try {
+            $cTraderService->deleteTrader($trading_account->meta_login);
 
-        //     $trading_account->trading_user->delete();
-        //     $trading_account->delete();
+            $trading_account->trading_user->delete();
+            $trading_account->delete();
 
             // Return success response with a flag for toast
             return redirect()->back()->with('toast', [
                 'title' => trans('public.toast_delete_trading_account_success'),
                 'type' => 'success',
             ]);
-        // } catch (\Throwable $e) {
-        //     // Log the error and return failure response
-        //     Log::error('Failed to delete trading account: ' . $e->getMessage());
+        } catch (\Throwable $e) {
+            // Log the error and return failure response
+            Log::error('Failed to delete trading account: ' . $e->getMessage());
 
-        //     return back()
-        //         ->with('toast', [
-        //             'title' => 'No Account Found',
-        //             'type' => 'error'
-        //         ]);
-        // }
+            return back()
+                ->with('toast', [
+                    'title' => 'No Account Found',
+                    'type' => 'error'
+                ]);
+        }
     }
 
-    // public function refreshAllAccount(): void
-    // {
-    //     UpdateCTraderAccountJob::dispatch();
-    // }
+    public function refreshAllAccount(): void
+    {
+        UpdateCTraderAccountJob::dispatch();
+    }
 }

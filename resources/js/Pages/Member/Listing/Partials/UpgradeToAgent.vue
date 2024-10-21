@@ -134,7 +134,7 @@ const closeDialog = () => {
                     v-if="availableUpline"
                     class="flex flex-col justify-center items-start p-3 self-stretch bg-gray-50"
                 >
-                    <span class="text-gray-950 font-semibold max-w-[220px] truncate">{{ availableUpline.name }}</span>
+                    <span class="text-gray-950 font-semibold max-w-[220px] truncate">{{ availableUpline.first_name }}</span>
                     <span class="text-gray-500 text-sm max-w-[220px] truncate">{{ availableUpline.id_number }}</span>
                 </div>
 
@@ -215,7 +215,7 @@ const closeDialog = () => {
                 <div class="flex justify-end items-center pt-6 gap-4 self-stretch">
                     <Button
                         type="button"
-                        variant="gray-tonal"
+                        variant="gray-outlined"
                         size="base"
                         class="w-full"
                         @click="closeDialog"

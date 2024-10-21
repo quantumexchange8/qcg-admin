@@ -13,34 +13,29 @@ use App\Models\TradeRebateSummary;
 
 class TransactionController extends Controller
 {
-    public function index($type)
+    public function deposit()
     {
-        // Validate the type
-        $validTypes = ['deposit', 'withdrawal', 'transfer', 'rebate', 'incentive'];
-        if (!in_array($type, $validTypes)) {
-            abort(404); // Handle invalid type
-        }
+        return Inertia::render('Transaction/Deposit');
+    }
 
-        // Handle each type with a switch case
-        switch ($type) {
-            case 'deposit':
-                return Inertia::render('Transaction/Deposit');
-                
-            case 'withdrawal':
-                return Inertia::render('Transaction/Withdrawal');
-                
-            case 'transfer':
-                return Inertia::render('Transaction/Transfer');
-                
-            case 'rebate':
-                return Inertia::render('Transaction/RebatePayout');
-                
-            case 'incentive':
-                return Inertia::render('Transaction/IncentivePayout');
-                
-            default:
-                abort(404); // Fallback in case of invalid type
-        }
+    public function withdrawal()
+    {
+        return Inertia::render('Transaction/Withdrawal');
+    }
+
+    public function transfer()
+    {
+        return Inertia::render('Transaction/Transfer');
+    }
+
+    public function rebate()
+    {
+        return Inertia::render('Transaction/RebatePayout');
+    }
+
+    public function incentive()
+    {
+        return Inertia::render('Transaction/IncentivePayout');
     }
 
     public function getTransactionData(Request $request)
@@ -107,7 +102,7 @@ class TransactionController extends Controller
             $result = $transaction->only($commonFields);
 
             // Add common user fields
-            $result['name'] = $transaction->user ? $transaction->user->name : null;
+            $result['name'] = $transaction->user ? $transaction->user->first_name : null;
             $result['email'] = $transaction->user ? $transaction->user->email : null;
             $result['role'] = $transaction->user ? $transaction->user->role : null;
 

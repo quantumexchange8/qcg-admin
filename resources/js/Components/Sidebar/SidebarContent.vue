@@ -14,17 +14,20 @@ import {
     IconTrophy,
     IconReportMoney,
     IconTool,
-    IconShieldCheckeredFilled,
+    IconShieldCheckered,
     IconCategory2,
     IconComponents,
 } from '@tabler/icons-vue';
+import { usePermission } from "@/Composables/index.js";
+
+const { hasRole, hasPermission } = usePermission();
 
 const pendingWithdrawals = ref(0);
 const pendingIncentive = ref(0);
 
 const getPendingCounts = async () => {
     try {
-        const response = await axios.get('/getPendingCounts');
+        const response = await axios.get(route('dashboard.getPendingCounts'));
         pendingWithdrawals.value = response.data.pendingWithdrawals
         pendingIncentive.value = response.data.pendingIncentive
     } catch (error) {
@@ -54,6 +57,7 @@ watchEffect(() => {
             :title="$t('public.dashboard')"
             :href="route('dashboard')"
             :active="route().current('dashboard')"
+            v-if="hasRole('super-admin') || hasPermission('access_dashboard')"
         >
             <template #icon>
                 <IconSmartHome :size="20" stroke-width="1.25" />
@@ -65,6 +69,10 @@ watchEffect(() => {
             :title="$t('public.request')"
             :active="route().current('pending.*')"
             :pendingCounts="pendingWithdrawals + pendingIncentive"
+            v-if="hasRole('super-admin') || hasPermission([
+                'access_withdrawal_request',
+                'access_incentive_request',
+            ])"
         >
             <template #icon>
                 <IconClockDollar :size="20" stroke-width="1.25" />
@@ -72,16 +80,18 @@ watchEffect(() => {
 
             <SidebarCollapsibleItem
                 :title="$t('public.withdrawal')"
-                :href="route('pending.index', { type: 'withdrawal' })"
-                :active="route().current('pending.index') && route().params.type === 'withdrawal'"
+                :href="route('pending.withdrawal')"
+                :active="route().current('pending.withdrawal')"
                 :pendingCounts="pendingWithdrawals"
+                v-if="hasRole('super-admin') || hasPermission('access_withdrawal_request')"
             />
 
             <SidebarCollapsibleItem
                 :title="$t('public.incentive')"
-                :href="route('pending.index', { type: 'incentive' })"
-                :active="route().current('pending.index') && route().params.type === 'incentive'"
+                :href="route('pending.incentive')"
+                :active="route().current('pending.incentive')"
                 :pendingCounts="pendingIncentive"
+                v-if="hasRole('super-admin') || hasPermission('access_incentive_request')"
             />
 
         </SidebarCollapsible>
@@ -90,6 +100,12 @@ watchEffect(() => {
         <SidebarCollapsible
             :title="$t('public.sidebar_member')"
             :active="route().current('member.*')"
+            v-if="hasRole('super-admin') || hasPermission([
+                'access_member_listing',
+                'access_member_network',
+                'access_member_forum',
+                'access_account_listing',
+            ])"
         >
             <template #icon>
                 <IconUsers :size="20" stroke-width="1.25" />
@@ -99,24 +115,28 @@ watchEffect(() => {
                 :title="$t('public.sidebar_listing')"
                 :href="route('member.listing')"
                 :active="route().current('member.listing') || route().current('member.detail')"
+                v-if="hasRole('super-admin') || hasPermission('access_member_listing')"
             />
 
             <SidebarCollapsibleItem
                 :title="$t('public.sidebar_network')"
                 :href="route('member.network')"
                 :active="route().current('member.network')"
+                v-if="hasRole('super-admin') || hasPermission('access_member_network')"
             />
 
             <SidebarCollapsibleItem
                 :title="$t('public.sidebar_forum')"
                 :href="route('member.forum')"
                 :active="route().current('member.forum')"
+                v-if="hasRole('super-admin') || hasPermission('access_member_forum')"
             />
 
             <SidebarCollapsibleItem
                 :title="$t('public.sidebar_account_listing')"
                 :href="route('member.account_listing')"
                 :active="route().current('member.account_listing')"
+                v-if="hasRole('super-admin') || hasPermission('access_account_listing')"
             />
 
 
@@ -127,6 +147,7 @@ watchEffect(() => {
             :title="$t('public.sales_team')"
             :href="route('team')"
             :active="route().current('team')"
+            v-if="hasRole('super-admin') || hasPermission('access_sales_team')"
         >
             <template #icon>
                 <IconSitemap :size="20" stroke-width="1.25" />
@@ -138,6 +159,7 @@ watchEffect(() => {
             :title="$t('public.rebate_setting')"
             :href="route('rebate_setting')"
             :active="route().current('rebate_setting')"
+            v-if="hasRole('super-admin') || hasPermission('access_rebate_setting')"
         >
             <template #icon>
                 <IconSettingsDollar :size="20" stroke-width="1.25" />
@@ -149,6 +171,7 @@ watchEffect(() => {
             :title="$t('public.leaderboard')"
             :href="route('leaderboard')"
             :active="route().current('leaderboard')"
+            v-if="hasRole('super-admin') || hasPermission('access_leaderboard')"
         >
             <template #icon>
                 <IconTrophy :size="20" stroke-width="1.25" />
@@ -159,7 +182,14 @@ watchEffect(() => {
         <!-- Transaction -->
         <SidebarCollapsible
             :title="$t('public.sidebar_transaction')"
-            :active="route().current('transaction.index', { type: 'deposit' })"
+            :active="route().current('transaction.*')"
+            v-if="hasRole('super-admin') || hasPermission([
+                'access_deposit',
+                'access_withdrawal',
+                'access_transfer',
+                'access_rebate_payout',
+                'access_incentive_payout',
+            ])"
         >
             <template #icon>
                 <IconReportMoney :size="20" stroke-width="1.25" />
@@ -167,32 +197,37 @@ watchEffect(() => {
 
             <SidebarCollapsibleItem
                 :title="$t('public.sidebar_deposit')"
-                :href="route('transaction.index', { type: 'deposit' })"
-                :active="route().current('transaction.index', { type: 'deposit' })"
+                :href="route('transaction.deposit')"
+                :active="route().current('transaction.deposit')"
+                v-if="hasRole('super-admin') || hasPermission('access_deposit')"
             />
 
             <SidebarCollapsibleItem
                 :title="$t('public.sidebar_withdrawal')"
-                :href="route('transaction.index', { type: 'withdrawal' })"
-                :active="route().current('transaction.index', { type: 'withdrawal' })"
+                :href="route('transaction.withdrawal')"
+                :active="route().current('transaction.withdrawal')"
+                v-if="hasRole('super-admin') || hasPermission('access_withdrawal')"
             />
 
             <SidebarCollapsibleItem
                 :title="$t('public.sidebar_transfer')"
-                :href="route('transaction.index', { type: 'transfer' })"
-                :active="route().current('transaction.index', { type: 'transfer' })"
+                :href="route('transaction.transfer')"
+                :active="route().current('transaction.transfer')"
+                v-if="hasRole('super-admin') || hasPermission('access_transfer')"
             />
             
             <SidebarCollapsibleItem
                 :title="$t('public.sidebar_rebate_payout')"
-                :href="route('transaction.index', { type: 'rebate' })"
-                :active="route().current('transaction.index', { type: 'rebate' })"
+                :href="route('transaction.rebate')"
+                :active="route().current('transaction.rebate')"
+                v-if="hasRole('super-admin') || hasPermission('access_rebate_payout')"
             />
 
             <SidebarCollapsibleItem
                 :title="$t('public.sidebar_incentive_payout')"
-                :href="route('transaction.index', { type: 'incentive' })"
-                :active="route().current('transaction.index', { type: 'incentive' })"
+                :href="route('transaction.incentive')"
+                :active="route().current('transaction.incentive')"
+                v-if="hasRole('super-admin') || hasPermission('access_incentive_payout')"
             />
         </SidebarCollapsible>
 
@@ -201,9 +236,22 @@ watchEffect(() => {
             :title="$t('public.sidebar_account_type')"
             :href="route('accountType')"
             :active="route().current('accountType')"
+            v-if="hasRole('super-admin') || hasPermission('access_account_type')"
         >
             <template #icon>
                 <IconTool :size="20" stroke-width="1.25" />
+            </template>
+        </SidebarLink>
+
+        <!-- Admin Role -->
+        <SidebarLink
+            :title="$t('public.sidebar_admin_role')"
+            :href="route('adminRole')"
+            :active="route().current('adminRole')"
+            v-if="hasRole('super-admin') || hasPermission('access_admin_role')"
+        >
+            <template #icon>
+                <IconShieldCheckered :size="20" stroke-width="1.25" />
             </template>
         </SidebarLink>
 

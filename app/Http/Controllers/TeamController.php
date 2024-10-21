@@ -14,6 +14,7 @@ use App\Models\TeamSettlement;
 use App\Models\TradingAccount;
 use App\Services\CTraderService;
 use Illuminate\Support\Facades\Auth;
+use App\Jobs\TeamMemberAssignmentJob;
 use Illuminate\Support\Facades\Validator;
 
 class TeamController extends Controller
@@ -36,11 +37,10 @@ class TeamController extends Controller
             'total_charges' => 0,
         ];
 
-        $startDate = $request->input('startDate') ? Carbon::createFromFormat('Y/m/d', $request->input('startDate'))->startOfDay() : '2024/01/01';
+        $startDate = $request->input('startDate') ? Carbon::createFromFormat('Y/m/d', $request->input('startDate'))->startOfDay() : '2020/01/01';
         $endDate = $request->input('endDate') ? Carbon::createFromFormat('Y/m/d', $request->input('endDate'))->endOfDay() : today()->endOfDay();
 
-        $teams = Team::whereBetween('created_at', [$startDate, $endDate])
-            ->get()
+        $teams = Team::get()
             ->map(function ($team) use ($request, $startDate, $endDate, &$totals) {
                 $teamUserIds = TeamHasUser::where('team_id', $team->id)
                     ->pluck('user_id')
@@ -68,36 +68,36 @@ class TeamController extends Controller
                 $transaction_fee_charges = $team->fee_charges > 0 ? $total_deposit / $team->fee_charges : 0;
                 $net_balance = $total_deposit - $transaction_fee_charges - $total_withdrawal;
 
-                // // Calculate account balance and equity
-                // $teamIds = AccountType::whereNotNull('account_group_id')
-                //     ->pluck('account_group_id')
-                //     ->toArray();
+                // Calculate account balance and equity
+                $teamIds = AccountType::whereNotNull('account_group_id')
+                    ->pluck('account_group_id')
+                    ->toArray();
 
                 $teamBalance = 0;
                 $teamEquity = 0;
 
-                // foreach ($teamIds as $teamId) {
-                //     $startDateFormatted = $startDate->format('Y-m-d\TH:i:s.v');
-                //     $endDateFormatted = $endDate->format('Y-m-d\TH:i:s.v');
+                foreach ($teamIds as $teamId) {
+                    $startDateFormatted = $startDate->format('Y-m-d\TH:i:s.v');
+                    $endDateFormatted = $endDate->format('Y-m-d\TH:i:s.v');
 
-                //     $response = (new CTraderService)->getMultipleTraders($startDateFormatted, $endDateFormatted, $teamId);
+                    $response = (new CTraderService)->getMultipleTraders($startDateFormatted, $endDateFormatted, $teamId);
 
-                //     $accountType = AccountType::where('account_group_id', $teamId)->first();
+                    $accountType = AccountType::where('account_group_id', $teamId)->first();
 
-                //     $meta_logins = TradingAccount::where('account_type_id', $accountType->id)->whereIn('user_id', $teamUserIds)->pluck('meta_login')->toArray();
+                    $meta_logins = TradingAccount::where('account_type_id', $accountType->id)->whereIn('user_id', $teamUserIds)->pluck('meta_login')->toArray();
 
-                //     if (isset($response['trader']) && is_array($response['trader'])) {
-                //         foreach ($response['trader'] as $trader) {
-                //             if (in_array($trader['login'], $meta_logins)) {
-                //                 $moneyDigits = isset($trader['moneyDigits']) ? (int)$trader['moneyDigits'] : 0;
-                //                 $divisor = $moneyDigits > 0 ? pow(10, $moneyDigits) : 1;
+                    if (isset($response['trader']) && is_array($response['trader'])) {
+                        foreach ($response['trader'] as $trader) {
+                            if (in_array($trader['login'], $meta_logins)) {
+                                $moneyDigits = isset($trader['moneyDigits']) ? (int)$trader['moneyDigits'] : 0;
+                                $divisor = $moneyDigits > 0 ? pow(10, $moneyDigits) : 1;
 
-                //                 $teamBalance += $trader['balance'] / $divisor;
-                //                 $teamEquity += $trader['equity'] / $divisor;
-                //             }
-                //         }
-                //     }
-                // }
+                                $teamBalance += $trader['balance'] / $divisor;
+                                $teamEquity += $trader['equity'] / $divisor;
+                            }
+                        }
+                    }
+                }
 
                 // Accumulate the totals
                 $totals['total_net_balance'] += $net_balance;
@@ -112,7 +112,7 @@ class TeamController extends Controller
                     'color' => $team->color,
                     'leader_name' => $team->leader->first_name,
                     'leader_email' => $team->leader->email,
-                    // 'profile_photo' => $team->leader->getFirstMediaUrl('profile_photo'),
+                    'profile_photo' => $team->leader->getFirstMediaUrl('profile_photo'),
                     'member_count' => $team->team_has_user->count(),
                     'deposit' => $total_deposit,
                     'withdrawal' => $total_withdrawal,
@@ -160,9 +160,8 @@ class TeamController extends Controller
         ]);
 
         $children_ids = User::find($agent_id)->getChildrenIds();
-        User::whereIn('id', $children_ids)->chunk(500, function($users) use ($team_id) {
-            $users->each->assignedTeam($team_id);
-        });
+        // Dispatch the job to assign children to the team
+        TeamMemberAssignmentJob::dispatch($children_ids, $team_id);
 
         return back()->with('toast', [
             'title' => trans('public.toast_create_sales_team_success'),
@@ -252,6 +251,25 @@ class TeamController extends Controller
         return back()->with('toast', [
             'title' => trans('public.toast_edit_sales_team_success'),
             'type' => 'success',
+        ]);
+    }
+
+    public function getAgents()
+    {
+        $has_team = Team::pluck('team_leader_id');
+        $users = User::where('role', 'agent')
+            ->whereNotIn('id', $has_team)
+            ->get()
+            ->map(function ($user) {
+                return [
+                    'value' => $user->id,
+                    'name' => $user->first_name,
+                    'total' => count($user->getChildrenIds()),
+                ];
+            });
+
+        return response()->json([
+            'users' => $users,
         ]);
     }
 

@@ -23,6 +23,7 @@ class CreateTradingAccount
         $tradingAccount->credit = $data['nonWithdrawableBonus'] / 100;
         $tradingAccount->margin_leverage = $data['leverageInCents'] / 100;
         $tradingAccount->equity = $data['equity'] / 100;
+        $tradingAccount->cash_equity = $data['cashEquity'] / 100;
         $tradingAccount->account_type_id = $accountType;
         DB::transaction(function () use ($tradingAccount) {
             $tradingAccount->save();

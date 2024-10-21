@@ -105,6 +105,7 @@ const recalculateTotals = () => {
             ? [
                 transaction.name, 
                 transaction.email, 
+                transaction.transaction_number, 
                 transaction.to_meta_login, 
             ].some(field => {
                 // Convert field to string and check if it includes the global filter value
@@ -232,7 +233,7 @@ const copyToClipboard = (text) => {
                 :rowsPerPageOptions="[10, 20, 50, 100]"
                 paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
                 :currentPageReportTemplate="$t('public.paginator_caption')"
-                :globalFilterFields="['name', 'email', 'to_meta_login']"
+                :globalFilterFields="['name', 'email', 'transaction_number', 'to_meta_login']"
                 ref="dt"
                 :loading="loading"
                 selectionMode="single"
@@ -321,10 +322,10 @@ const copyToClipboard = (text) => {
                             </div>
                         </template>
                     </Column>
-                    <Column field="id_number" :header="$t('public.id')" sortable class="hidden md:table-cell w-[15%]">
+                    <Column field="transaction_number" :header="$t('public.id')" sortable class="hidden md:table-cell w-[15%]">
                         <template #body="slotProps">
                             <div class="text-gray-950 text-sm">
-                                {{ slotProps.data.id_number }}
+                                {{ slotProps.data.transaction_number }}
                             </div>
                         </template>
                     </Column>

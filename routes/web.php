@@ -14,6 +14,7 @@ use App\Http\Controllers\GeneralController;
 use App\Http\Controllers\NetworkController;
 use App\Http\Controllers\PendingController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AdminRoleController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AccountTypeController;
 use App\Http\Controllers\LeaderboardController;
@@ -39,7 +40,6 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
     Route::get('/getWalletData', [GeneralController::class, 'getWalletData'])->name('getWalletData');
     Route::get('/getLeverages', [GeneralController::class, 'getLeverages'])->name('getLeverages');
     Route::get('/getTradingAccountData', [GeneralController::class, 'getTradingAccountData'])->name('getTradingAccountData');
-    Route::get('/getAgents', [GeneralController::class, 'getAgents'])->name('getAgents');    
     Route::get('/getTransactionMonths', [GeneralController::class, 'getTransactionMonths'])->name('getTransactionMonths');    
     Route::get('/getSettlementMonths', [GeneralController::class, 'getSettlementMonths'])->name('getSettlementMonths');    
     Route::get('/getAccountTypes', [GeneralController::class, 'getAccountTypes'])->name('getAccountTypes');    
@@ -54,82 +54,101 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
      *          Dashboard
      * ==============================
      */
-    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/getDashboardData', [DashboardController::class, 'getDashboardData'])->name('dashboard.getDashboardData');
-    Route::get('/getAccountData', [DashboardController::class, 'getAccountData'])->name('dashboard.getAccountData');
-    Route::get('/getPendingData', [DashboardController::class, 'getPendingData'])->name('dashboard.getPendingData');    
-    Route::get('/getPendingCounts', [DashboardController::class, 'getPendingCounts'])->name('dashboard.getPendingCounts');    
+    Route::prefix('dashboard')->group(callback: function () {
+        Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/getDashboardData', [DashboardController::class, 'getDashboardData'])->name('dashboard.getDashboardData');
+        Route::get('/getAccountData', [DashboardController::class, 'getAccountData'])->name('dashboard.getAccountData');
+        Route::get('/getPendingData', [DashboardController::class, 'getPendingData'])->name('dashboard.getPendingData');    
+        Route::get('/getPendingCounts', [DashboardController::class, 'getPendingCounts'])->name('dashboard.getPendingCounts');    
+    });
+
 
     /**
      * ==============================
      *           Pending
      * ==============================
      */
-    Route::prefix('pending')->group(function () {
-        Route::get('/{type}', [PendingController::class, 'index'])->where('type', 'withdrawal|incentive')->name('pending.index');
-        Route::get('/getPendingWithdrawalData', [PendingController::class, 'getPendingWithdrawalData'])->name('pending.getPendingWithdrawalData');
-        Route::get('/getPendingIncentiveData', [PendingController::class, 'getPendingIncentiveData'])->name('pending.getPendingIncentiveData');
+    Route::prefix('pending')->middleware('role_and_permission:admin,access_withdrawal_request,access_incentive_request')->group(callback: function () {
+        Route::get('withdrawal', [PendingController::class, 'withdrawal'])->name('pending.withdrawal')->middleware('role_and_permission:admin,access_withdrawal_request');
+        Route::get('incentive', [PendingController::class, 'incentive'])->name('pending.incentive')->middleware('role_and_permission:admin,access_incentive_request');
+        Route::get('/getPendingWithdrawalData', [PendingController::class, 'getPendingWithdrawalData'])->name('pending.getPendingWithdrawalData')->middleware('role_and_permission:admin,access_withdrawal_request');
+        Route::get('/getPendingIncentiveData', [PendingController::class, 'getPendingIncentiveData'])->name('pending.getPendingIncentiveData')->middleware('role_and_permission:admin,access_incentive_request');
 
         Route::post('withdrawalApproval', [PendingController::class, 'withdrawalApproval'])->name('pending.withdrawalApproval');
-        Route::post('revokeApproval', [PendingController::class, 'revokeApproval'])->name('pending.revokeApproval');
     });
 
-    Route::prefix('member')->group(function () {
-        // listing
-        Route::get('/listing', [MemberController::class, 'listing'])->name('member.listing');
-        Route::get('/getMemberListingData', [MemberController::class, 'getMemberListingData'])->name('member.getMemberListingData');
-        Route::get('/getFilterData', [MemberController::class, 'getFilterData'])->name('member.getFilterData');
-        Route::get('/getAvailableUplineData', [MemberController::class, 'getAvailableUplineData'])->name('member.getAvailableUplineData');
-        Route::get('/access_portal/{user}', [MemberController::class, 'access_portal'])->name('member.access_portal');
-
-        Route::post('/addNewMember', [MemberController::class, 'addNewMember'])->name('member.addNewMember');
-        Route::post('/updateMemberStatus', [MemberController::class, 'updateMemberStatus'])->name('member.updateMemberStatus');
-        Route::post('/upgradeAgent', [MemberController::class, 'upgradeAgent'])->name('member.upgradeAgent');
-        Route::post('/uploadKyc', [MemberController::class, 'uploadKyc'])->name('member.uploadKyc');
-        Route::post('/resetPassword', [MemberController::class, 'resetPassword'])->name('member.resetPassword');
-        Route::post('/walletAdjustment', [MemberController::class, 'walletAdjustment'])->name('member.walletAdjustment');
-
-        Route::delete('/deleteMember', [MemberController::class, 'deleteMember'])->name('member.deleteMember');
-
-        // details
-        Route::get('/detail/{id_number}', [MemberController::class, 'detail'])->name('member.detail');
-        Route::get('/getUserData', [MemberController::class, 'getUserData'])->name('member.getUserData');
-        Route::get('/getFinancialInfoData', [MemberController::class, 'getFinancialInfoData'])->name('member.getFinancialInfoData');
-        Route::get('/getTradingAccounts', [MemberController::class, 'getTradingAccounts'])->name('member.getTradingAccounts');
-        Route::get('/getAdjustmentHistoryData', [MemberController::class, 'getAdjustmentHistoryData'])->name('member.getAdjustmentHistoryData');
-
-        Route::post('/updateMemberInfo', [MemberController::class, 'updateMemberInfo'])->name('member.updateMemberInfo');
-        Route::post('/updateCryptoWalletInfo', [MemberController::class, 'updateCryptoWalletInfo'])->name('member.updateCryptoWalletInfo');
-        Route::post('/updateKYCStatus', [MemberController::class, 'updateKYCStatus'])->name('member.updateKYCStatus');
-
-        // network
-        Route::get('/network', [NetworkController::class, 'network'])->name('member.network');
-        Route::get('/getDownlineData', [NetworkController::class, 'getDownlineData'])->name('member.getDownlineData');
-
-        // forum
-        Route::get('/forum', [ForumController::class, 'index'])->name('member.forum');
-        Route::get('/getPosts', [ForumController::class, 'getPosts'])->name('member.getPosts');
-
-        Route::post('/createPost', [ForumController::class, 'createPost'])->name('member.createPost');
-
-        // account listing
-        Route::get('/account_listing', [TradingAccountController::class, 'index'])->name('member.account_listing');
-        Route::get('/getAccountListingData', [TradingAccountController::class, 'getAccountListingData'])->name('member.getAccountListingData');
-        Route::get('/getTradingAccountData', [TradingAccountController::class, 'getTradingAccountData'])->name('member.getTradingAccountData');
-
-        Route::post('/accountAdjustment', [TradingAccountController::class, 'accountAdjustment'])->name('member.accountAdjustment');
-        Route::post('/refreshAllAccount', [TradingAccountController::class, 'refreshAllAccount'])->name('member.refreshAllAccount');
-        Route::delete('/accountDelete', [TradingAccountController::class, 'accountDelete'])->name('member.accountDelete');
+    Route::prefix('member')->middleware('role_and_permission:admin,access_member_listing,access_member_network,access_member_forum,access_account_listing')->group(function () {
+    
+        // Middleware for member listing actions
+        Route::middleware('role_and_permission:admin,access_member_listing')->group(function () {
+            // Listing Routes
+            Route::get('/listing', [MemberController::class, 'listing'])->name('member.listing');
+            Route::get('/getMemberListingData', [MemberController::class, 'getMemberListingData'])->name('member.getMemberListingData');
+            Route::get('/getAvailableUplines', [MemberController::class, 'getAvailableUplines'])->name('member.getAvailableUplines');
+            Route::get('/getFilterData', [MemberController::class, 'getFilterData'])->name('member.getFilterData');
+            Route::get('/getAvailableUplineData', [MemberController::class, 'getAvailableUplineData'])->name('member.getAvailableUplineData');
+            Route::get('/access_portal/{user}', [MemberController::class, 'access_portal'])->name('member.access_portal');
+    
+            Route::post('/addNewMember', [MemberController::class, 'addNewMember'])->name('member.addNewMember');
+            Route::post('/updateMemberStatus', [MemberController::class, 'updateMemberStatus'])->name('member.updateMemberStatus');
+            Route::post('/transferUpline', [MemberController::class, 'transferUpline'])->name('member.transferUpline');
+            Route::post('/upgradeAgent', [MemberController::class, 'upgradeAgent'])->name('member.upgradeAgent');
+            Route::post('/uploadKyc', [MemberController::class, 'uploadKyc'])->name('member.uploadKyc');
+            Route::post('/resetPassword', [MemberController::class, 'resetPassword'])->name('member.resetPassword');
+            Route::post('/walletAdjustment', [MemberController::class, 'walletAdjustment'])->name('member.walletAdjustment');
+            Route::delete('/deleteMember', [MemberController::class, 'deleteMember'])->name('member.deleteMember');
+    
+            // Details Routes
+            Route::get('/detail/{id_number}', [MemberController::class, 'detail'])->name('member.detail');
+            Route::get('/getUserData', [MemberController::class, 'getUserData'])->name('member.getUserData');
+            Route::get('/getFinancialInfoData', [MemberController::class, 'getFinancialInfoData'])->name('member.getFinancialInfoData');
+            Route::get('/getTradingAccounts', [MemberController::class, 'getTradingAccounts'])->name('member.getTradingAccounts');
+            Route::get('/getAdjustmentHistoryData', [MemberController::class, 'getAdjustmentHistoryData'])->name('member.getAdjustmentHistoryData');
+    
+            Route::post('/updateMemberInfo', [MemberController::class, 'updateMemberInfo'])->name('member.updateMemberInfo');
+            Route::post('/updateCryptoWalletInfo', [MemberController::class, 'updateCryptoWalletInfo'])->name('member.updateCryptoWalletInfo');
+            Route::post('/updateKYCStatus', [MemberController::class, 'updateKYCStatus'])->name('member.updateKYCStatus');
+        });
+    
+        // Network Routes
+        Route::middleware('role_and_permission:admin,access_member_network')->group(function () {
+            Route::get('/network', [NetworkController::class, 'network'])->name('member.network');
+            Route::get('/getDownlineData', [NetworkController::class, 'getDownlineData'])->name('member.getDownlineData');
+        });
+    
+        // Forum Routes
+        Route::middleware('role_and_permission:admin,access_member_forum')->group(function () {
+            Route::get('/forum', [ForumController::class, 'index'])->name('member.forum');
+            Route::get('/getPosts', [ForumController::class, 'getPosts'])->name('member.getPosts');
+            Route::get('/getAgents', [ForumController::class, 'getAgents'])->name('member.getAgents');
+    
+            Route::post('/createPost', [ForumController::class, 'createPost'])->name('member.createPost');
+            Route::post('/updatePostPermission', [ForumController::class, 'updatePostPermission'])->name('member.updatePostPermission');
+            Route::post('/updateLikeCounts', [ForumController::class, 'updateLikeCounts'])->name('member.updateLikeCounts');
+            Route::delete('/deletePost', [ForumController::class, 'deletePost'])->name('member.deletePost');
+        });
+    
+        // Account Listing Routes
+        Route::middleware('role_and_permission:admin,access_account_listing')->group(function () {
+            Route::get('/account_listing', [TradingAccountController::class, 'index'])->name('member.account_listing');
+            Route::get('/getAccountListingData', [TradingAccountController::class, 'getAccountListingData'])->name('member.getAccountListingData');
+            Route::get('/getTradingAccountData', [TradingAccountController::class, 'getTradingAccountData'])->name('member.getTradingAccountData');
+    
+            Route::post('/accountAdjustment', [TradingAccountController::class, 'accountAdjustment'])->name('member.accountAdjustment');
+            Route::post('/refreshAllAccount', [TradingAccountController::class, 'refreshAllAccount'])->name('member.refreshAllAccount');
+            Route::delete('/accountDelete', [TradingAccountController::class, 'accountDelete'])->name('member.accountDelete');
+        });
     });
-
+    
     /**
      * ==============================
      *          Team
      * ==============================
      */
-    Route::prefix('team')->group(function () {
+    Route::prefix('team')->middleware('role_and_permission:admin,access_sales_team')->group(function () {
         Route::get('/', [TeamController::class, 'index'])->name('team');
         Route::get('/getTeams', [TeamController::class, 'getTeams'])->name('team.getTeams');
+        Route::get('/getAgents', [TeamController::class, 'getAgents'])->name('team.getAgents');
         Route::get('/refreshTeam', [TeamController::class, 'refreshTeam'])->name('team.refreshTeam');
         Route::get('/getTeamTransaction', [TeamController::class, 'getTeamTransaction'])->name('team.getTeamTransaction');
         Route::get('/getSettlementReport', [TeamController::class, 'getSettlementReport'])->name('team.getSettlementReport');
@@ -145,7 +164,7 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
      *        Rebate Setting
      * ==============================
      */
-    Route::prefix('rebate')->group(function () {
+    Route::prefix('rebate')->middleware('role_and_permission:admin,access_rebate_setting')->group(function () {
         Route::get('/', [RebateController::class, 'index'])->name('rebate_setting');
         Route::get('/getCompanyProfileData', [RebateController::class, 'getCompanyProfileData'])->name('rebate.getCompanyProfileData');
         Route::get('/getRebateStructureData', [RebateController::class, 'getRebateStructureData'])->name('rebate.getRebateStructureData');
@@ -161,7 +180,7 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
      *          Leaderboard
      * ==============================
      */
-    Route::prefix('leaderboard')->group(function () {
+    Route::prefix('leaderboard')->middleware('role_and_permission:admin,access_leaderboard')->group(function () {
         Route::get('/', [LeaderboardController::class, 'index'])->name('leaderboard');
         Route::get('/getIncentiveProfiles', [LeaderboardController::class, 'getIncentiveProfiles'])->name('leaderboard.getIncentiveProfiles');
         Route::get('/getAgents', [LeaderboardController::class, 'getAgents'])->name('leaderboard.getAgents');
@@ -179,12 +198,16 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
      *          Transaction
      * ==============================
      */
-    Route::prefix('transaction')->group(function () {
-        Route::get('transaction/{type}', [TransactionController::class, 'index'])->name('transaction.index');
-        Route::get('/getTransactionListingData', [TransactionController::class, 'getTransactionListingData'])->name('transaction.getTransactionListingData');
-        Route::get('/getTransactionData', [TransactionController::class, 'getTransactionData'])->name('transaction.getTransactionData');
-        Route::get('/getRebatePayoutData', [TransactionController::class, 'getRebatePayoutData'])->name('transaction.getRebatePayoutData');
-        Route::get('/getIncentivePayoutData', [TransactionController::class, 'getIncentivePayoutData'])->name('transaction.getIncentivePayoutData');
+    Route::prefix('transaction')->middleware('role_and_permission:admin,access_deposit,access_withdrawal,access_transfer,access_rebate_payout,access_incentive_payout')->group(function () {
+        Route::get('deposit', [TransactionController::class, 'deposit'])->name('transaction.deposit')->middleware('role_and_permission:admin,access_deposit');
+        Route::get('withdrawal', [TransactionController::class, 'withdrawal'])->name('transaction.withdrawal')->middleware('role_and_permission:admin,access_withdrawal');
+        Route::get('transfer', [TransactionController::class, 'transfer'])->name('transaction.transfer')->middleware('role_and_permission:admin,access_transfer');
+        Route::get('rebate', [TransactionController::class, 'rebate'])->name('transaction.rebate')->middleware('role_and_permission:admin,access_rebate_payout');
+        Route::get('incentive', [TransactionController::class, 'incentive'])->name('transaction.incentive')->middleware('role_and_permission:admin,access_incentive_payout');
+
+        Route::get('/getTransactionData', [TransactionController::class, 'getTransactionData'])->name('transaction.getTransactionData')->middleware('role_and_permission:admin,access_deposit,access_withdrawal,access_transfer');
+        Route::get('/getRebatePayoutData', [TransactionController::class, 'getRebatePayoutData'])->name('transaction.getRebatePayoutData')->middleware('role_and_permission:admin,access_rebate_payout');
+        Route::get('/getIncentivePayoutData', [TransactionController::class, 'getIncentivePayoutData'])->name('transaction.getIncentivePayoutData')->middleware('role_and_permission:admin,access_incentive_payout');
     });
 
     /**
@@ -192,7 +215,7 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
      *        Account Type
      * ==============================
      */
-    Route::prefix('accountType')->group(function () {
+    Route::prefix('accountType')->middleware('role_and_permission:admin,access_account_type')->group(function () {
         Route::get('/', [AccountTypeController::class, 'index'])->name('accountType');
         Route::get('/getAccountTypes', [AccountTypeController::class, 'getAccountTypes'])->name('accountType.getAccountTypes');
         Route::get('/syncAccountTypes', [AccountTypeController::class, 'syncAccountTypes'])->name('accountType.syncAccountTypes');
@@ -202,6 +225,22 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
 
     });
 
+    /**
+     * ==============================
+     *          Admin Role
+     * ==============================
+     */
+    Route::prefix('adminRole')->middleware('role_and_permission:admin,access_admin_role')->group(function () {
+        Route::get('/', [AdminRoleController::class, 'index'])->name('adminRole');
+        Route::get('/getAdminRole', [AdminRoleController::class, 'getAdminRole'])->name('adminRole.getAdminRole');
+
+        Route::post('/firstStep', [AdminRoleController::class, 'firstStep'])->name('adminRole.firstStep');
+        Route::post('/addNewAdmin', [AdminRoleController::class, 'addNewAdmin'])->name('adminRole.addNewAdmin');
+        Route::post('/updateAdminStatus', [AdminRoleController::class, 'updateAdminStatus'])->name('adminRole.updateAdminStatus');
+        Route::post('/adminUpdatePermissions', [AdminRoleController::class, 'adminUpdatePermissions'])->name('adminRole.adminUpdatePermissions');
+        Route::post('/editAdmin', [AdminRoleController::class, 'editAdmin'])->name('adminRole.editAdmin');
+        Route::delete('/deleteAdmin', [AdminRoleController::class, 'deleteAdmin'])->name('adminRole.deleteAdmin');
+    });
 
     /**
      * ==============================

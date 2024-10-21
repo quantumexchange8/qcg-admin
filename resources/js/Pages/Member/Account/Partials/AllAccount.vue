@@ -102,7 +102,7 @@ const handleFilter = (e) => {
         :rowsPerPageOptions="[10, 20, 50, 100]"
         paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
         :currentPageReportTemplate="$t('public.paginator_caption')"
-        :globalFilterFields="['name', 'email', 'balance', 'equity']"
+        :globalFilterFields="['name', 'email', 'meta_login', 'balance', 'equity']"
         ref="dt"
         :loading="loading"
         selectionMode="single"

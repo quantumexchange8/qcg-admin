@@ -16,11 +16,12 @@ class NetworkController extends Controller
     public function getDownlineData(Request $request)
     {
         $upline_id = $request->upline_id;
-        $parent_id = $request->parent_id ?: 82;
+        $parent_id = $request->parent_id ?: 1991;
 
         if ($request->filled('search')) {
             $search = '%' . $request->input('search') . '%';
-            $parent = User::whereNotIn('role', ['super-admin', 'admin'])
+            $parent = User::query()
+                // ->whereIn('role', ['agent', 'member'])
                 ->where('name', 'LIKE', $search)
                 ->orWhere('email', 'LIKE', $search)
                 ->orWhere('id_no', 'LIKE', $search)
@@ -31,7 +32,7 @@ class NetworkController extends Controller
         }
 
         $parent = User::with(['directChildren:id,first_name,id_no,upline_id,role,hierarchyList'])
-            ->whereNotIn('role', ['super-admin', 'admin'])
+            // ->whereIn('role', ['agent', 'member'])
             ->select('id', 'first_name', 'id_no', 'upline_id', 'role', 'hierarchyList')
             ->find($parent_id);
 

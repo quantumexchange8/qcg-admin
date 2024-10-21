@@ -14,17 +14,16 @@ use Illuminate\Support\Facades\Auth;
 
 class PendingController extends Controller
 {
-    public function index($type)
+    public function withdrawal()
     {
-        if ($type === 'withdrawal') {
-            return Inertia::render('Pending/Withdrawal');
-        } elseif ($type === 'incentive') {
-            return Inertia::render('Pending/Incentive');
-        }
-        
-        abort(404); // Return 404 if the type doesn't match
+        return Inertia::render('Pending/Withdrawal');
     }
-    
+
+    public function incentive()
+    {
+        return Inertia::render('Pending/Incentive');
+    }
+
     public function getPendingWithdrawalData()
     {
         $pendingWithdrawals = Transaction::with([

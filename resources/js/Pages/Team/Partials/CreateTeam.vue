@@ -21,7 +21,7 @@ const { formatAmount, formatDate } = transactionFormat();
 const agents = ref();
 const getAgents = async () => {
     try {
-        const agentResponse = await axios.get('/getAgents');
+        const agentResponse = await axios.get('/team/getAgents');
         agents.value = agentResponse.data.users;
     } catch (error) {
         console.error('Error fetching agents:', error);
@@ -37,6 +37,15 @@ const form = useForm({
     agent: '',
     team_members: null,
 })
+
+// Watch for changes to the selected agent
+watch(() => form.agent, () => {
+    if (form.agent) {
+        form.team_members = form.agent.total; // Update team_members with total
+    } else {
+        form.team_members = null; // Reset if no agent is selected
+    }
+});
 
 const submitForm = () => {
     form.color = color.value;
@@ -94,7 +103,7 @@ const submitForm = () => {
                         <div class="flex flex-col items-start gap-2 self-stretch">
                             <InputLabel
                                 for="fee_charge"
-                                :value="$t('public.fee_charge')"
+                                :value="`${$t('public.fee_charge')}&nbsp;(%)`"
                                 :invalid="!!form.errors.fee_charge"
                             />
                             <InputNumber
@@ -176,7 +185,6 @@ const submitForm = () => {
                                 v-model="form.team_members"
                                 :min="0"
                                 :step="100"
-                                :minFractionDigits="2"
                                 fluid
                                 :invalid="!!form.errors.team_members"
                                 class="w-full"
