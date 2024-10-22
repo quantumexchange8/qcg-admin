@@ -168,8 +168,8 @@ onMounted(navigateToFirstAvailablePage);
 </script>
 
 <template>
-    <AuthenticatedLayout v-if="hasRole('super-admin') || hasPermission('access_dashboard')" :title="$t('public.dashboard')">
-        <div class="w-full flex flex-col items-center gap-5">
+    <AuthenticatedLayout :title="$t('public.dashboard')">
+        <div v-if="hasRole('super-admin') || hasPermission('access_dashboard')" class="w-full flex flex-col items-center gap-5">
             <!-- greeting banner -->
             <div class="relative h-[120px] py-2.5 pl-3 pr-[99px] self-stretch rounded-lg bg-white shadow-card md:h-40 md:py-[26px] md:px-0 xl:py-[52px] overflow-hidden">
                 <div class="w-full flex flex-col items-start md:items-center">

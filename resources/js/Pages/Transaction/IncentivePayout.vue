@@ -35,49 +35,6 @@ const months = ref([]);
 const selectedMonths = ref([]);
 const filteredValueCount = ref(0);
 
-// // Dummy data for transactions
-// transactions.value = [
-//     {
-//         name: "John Doe",
-//         email: "john@example.com",
-//         created_at: dayjs().subtract(1, 'day').toString(),
-//         id_number: "ID12345",
-//         meta_login: "MetaLogin001",
-//         incentive_amount: 1500.00,
-//         status: "successful",
-//         deleted_at: dayjs().subtract(1, 'day').toString(),
-//         from_wallet_address: 'test1from',
-//         to_wallet_address: 'test1to',
-//         remarks: 'test1'
-//     },
-//     {
-//         name: "Jane Smith",
-//         email: "jane@example.com",
-//         created_at: dayjs().subtract(3, 'days').toString(),
-//         id_number: "ID67890",
-//         meta_login: "MetaLogin002",
-//         incentive_amount: 2500.50,
-//         status: "processing",
-//         deleted_at: dayjs().subtract(3, 'days').toString(),
-//         from_wallet_address: 'test2from',
-//         to_wallet_address: 'test2to',
-//         remarks: 'test2'
-//     },
-//     {
-//         name: "Michael Johnson",
-//         email: "michael@example.com",
-//         created_at: dayjs().subtract(7, 'days').toString(),
-//         id_number: "ID11111",
-//         meta_login: "MetaLogin003",
-//         incentive_amount: 3200.75,
-//         status: "failed",
-//         deleted_at: dayjs().subtract(7, 'days').toString(),
-//         from_wallet_address: 'test3from',
-//         to_wallet_address: 'test3to',
-//         remarks: 'test3'
-//     }
-// ];
-
 const modes = ref([
     { name: wTrans('public.personal'), value: 'personal' },
     { name: wTrans('public.group'), value: 'group' },

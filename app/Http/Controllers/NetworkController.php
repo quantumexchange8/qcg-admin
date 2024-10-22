@@ -22,7 +22,7 @@ class NetworkController extends Controller
             $search = '%' . $request->input('search') . '%';
             $parent = User::query()
                 // ->whereIn('role', ['agent', 'member'])
-                ->where('name', 'LIKE', $search)
+                ->where('first_name', 'LIKE', $search)
                 ->orWhere('email', 'LIKE', $search)
                 ->orWhere('id_no', 'LIKE', $search)
                 ->first();

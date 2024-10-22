@@ -194,7 +194,7 @@ class TransactionController extends Controller
         $data = $query->get()->map(function ($item) {
             return [
                 'user_id' => $item->upline_user_id,
-                'name' => $item->upline_user->name,
+                'name' => $item->upline_user->first_name,
                 'email' => $item->upline_user->email,
                 'account_type' => $item->account_type->slug ?? null,
                 'execute_at' => $item->execute_at,

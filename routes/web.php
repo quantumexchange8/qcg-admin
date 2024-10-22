@@ -56,9 +56,9 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
      */
     Route::prefix('dashboard')->group(callback: function () {
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-        Route::get('/getDashboardData', [DashboardController::class, 'getDashboardData'])->name('dashboard.getDashboardData');
-        Route::get('/getAccountData', [DashboardController::class, 'getAccountData'])->name('dashboard.getAccountData');
-        Route::get('/getPendingData', [DashboardController::class, 'getPendingData'])->name('dashboard.getPendingData');    
+        Route::get('/getDashboardData', [DashboardController::class, 'getDashboardData'])->middleware('role_and_permission:admin,access_dashboard')->name('dashboard.getDashboardData');
+        Route::get('/getAccountData', [DashboardController::class, 'getAccountData'])->middleware('role_and_permission:admin,access_dashboard')->name('dashboard.getAccountData');
+        Route::get('/getPendingData', [DashboardController::class, 'getPendingData'])->middleware('role_and_permission:admin,access_dashboard')->name('dashboard.getPendingData');    
         Route::get('/getPendingCounts', [DashboardController::class, 'getPendingCounts'])->name('dashboard.getPendingCounts');    
     });
 

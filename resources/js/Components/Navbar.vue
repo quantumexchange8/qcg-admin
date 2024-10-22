@@ -41,7 +41,7 @@ const changeLanguage = async (langVal) => {
 <template>
     <nav
         aria-label="secondary"
-        class="sticky top-0 z-10 py-2 px-3 md:px-5 bg-white flex items-center gap-3"
+        class="sticky top-0 z-10 py-2 px-2 md:px-5 bg-white flex items-center gap-2 md:gap-3"
     >
         <div
             class="inline-flex justify-center items-center rounded-full hover:bg-gray-100 w-12 h-12 shrink-0 grow-0 hover:select-none hover:cursor-pointer"
@@ -71,7 +71,7 @@ const changeLanguage = async (langVal) => {
                 <IconLanguage size="20" stroke-width="1.25" />
             </div>
             <Link
-                class="w-12 h-12 p-3.5 flex items-center justify-center rounded-full outline-none hover:cursor-pointer hover:bg-gray-100 text-gray-700 focus:bg-gray-100"
+                class="w-12 h-12 p-3.5 hidden md:flex items-center justify-center rounded-full outline-none hover:cursor-pointer hover:bg-gray-100 text-gray-700 focus:bg-gray-100"
                 :href="route('logout')"
                 method="post"
                 as="button"

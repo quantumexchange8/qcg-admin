@@ -27,15 +27,11 @@ watch(()=>props.agents, () => {
     >
         <template #value="slotProps">
             <div v-if="slotProps.value" class="flex items-center gap-3">
-                <div class="flex items-center gap-2">
-                    <div>{{ slotProps.value.name }}</div>
-                </div>
+                <div class="grid grid-cols-1 items-center gap-2">{{ slotProps.value.name }}</div>
             </div>
         </template>
         <template #option="slotProps">
-            <div class="flex items-center gap-2">
-                <div>{{ slotProps.option.name }}</div>
-            </div>
+            <div class="grid grid-cols-1 items-center gap-2">{{ slotProps.option.name }}</div>
         </template>
     </Select>
     <div

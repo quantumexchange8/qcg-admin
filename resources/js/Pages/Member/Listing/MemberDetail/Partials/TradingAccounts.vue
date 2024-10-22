@@ -117,7 +117,7 @@ const requireConfirmation = (action_type, meta_login) => {
         <div
             v-for="tradingAccount in tradingAccounts" :key="tradingAccount.id"
             class="flex flex-col justify-center items-center px-3 py-3 gap-3 rounded-lg border-l-[12px] bg-white shadow-card"
-            :style="{'borderColor': `#${tradingAccount.account_type_color}`}"
+            :style="{'borderColor': `#${tradingAccount.color}`}"
         >
             <div class="flex items-center gap=5 self-stretch">
                 <div class="w-full flex items-center content-center gap-x-4 gap-y-2 flex-wrap">
@@ -126,7 +126,7 @@ const requireConfirmation = (action_type, meta_login) => {
                         v-if="tradingAccount.account_type"
                         class="flex px-2 py-1 justify-center items-center text-white text-xs font-semibold hover:-translate-y-1 transition-all duration-300 ease-in-out rounded-sm"
                         :style="{
-                            backgroundColor: `#${tradingAccount.account_type_color}`,
+                            backgroundColor: `#${tradingAccount.color}`,
                         }"
                     >
                         {{ $t('public.' + tradingAccount.account_type) }}

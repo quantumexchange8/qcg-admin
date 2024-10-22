@@ -394,7 +394,7 @@ class TeamController extends Controller
             ->sum('amount');
 
         // Calculate fee charges and net balance
-        $transaction_fee_charges = $total_deposit / $team->fee_charges;
+        $transaction_fee_charges = $team->fee_charges > 0 ? $total_deposit / $team->fee_charges : 0;
         $net_balance = $total_deposit - $transaction_fee_charges - $total_withdrawal;
 
         // Create a new settlement record
@@ -462,7 +462,7 @@ class TeamController extends Controller
                 ->where('status', 'successful')
                 ->sum('amount');
 
-            $transaction_fee_charges = $total_deposit / $team->fee_charges;
+            $transaction_fee_charges = $team->fee_charges > 0 ? $total_deposit / $team->fee_charges : 0;
             $net_balance = $total_deposit - $transaction_fee_charges - $total_withdrawal;
 
             // // Standard Account and Premium Account group IDs
@@ -509,7 +509,7 @@ class TeamController extends Controller
                 'name' => $team->name,
                 'fee_charges' => $team->fee_charges,
                 'color' => $team->color,
-                'leader_name' => $team->leader->name,
+                'leader_name' => $team->leader->first_name,
                 'leader_email' => $team->leader->email,
                 // 'profile_photo' => $team->leader->getFirstMediaUrl('profile_photo'),
                 'member_count' => $team->team_has_user->count(),
@@ -546,7 +546,7 @@ class TeamController extends Controller
                     ->where('status', 'successful')
                     ->sum('amount');
 
-                $transaction_fee_charges = $total_deposit / $team->fee_charges;
+                $transaction_fee_charges = $team->fee_charges > 0 ? $total_deposit / $team->fee_charges : 0;
                 $net_balance = $total_deposit - $transaction_fee_charges - $total_withdrawal;
 
                 $carry['total_net_balance'] += $net_balance;
