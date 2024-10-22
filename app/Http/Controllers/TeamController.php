@@ -465,44 +465,44 @@ class TeamController extends Controller
             $transaction_fee_charges = $team->fee_charges > 0 ? $total_deposit / $team->fee_charges : 0;
             $net_balance = $total_deposit - $transaction_fee_charges - $total_withdrawal;
 
-            // // Standard Account and Premium Account group IDs
-            // $teamIds = AccountType::whereNotNull('account_group_id')
-            //     ->pluck('account_group_id')
-            //     ->toArray();
+            // Standard Account and Premium Account group IDs
+            $teamIds = AccountType::whereNotNull('account_group_id')
+                ->pluck('account_group_id')
+                ->toArray();
 
             $teamBalance = 0;
             $teamEquity = 0;
 
-            // foreach ($teamIds as $teamId) {
-            //     // Fetch data for each team ID
-            //     $startDateFormatted = $startDate->format('Y-m-d\TH:i:s.v');
-            //     $endDateFormatted = $endDate->format('Y-m-d\TH:i:s.v');
+            foreach ($teamIds as $teamId) {
+                // Fetch data for each team ID
+                $startDateFormatted = $startDate->format('Y-m-d\TH:i:s.v');
+                $endDateFormatted = $endDate->format('Y-m-d\TH:i:s.v');
 
-            //     $response = (new CTraderService)->getMultipleTraders($startDateFormatted, $endDateFormatted, $teamId);
+                $response = (new CTraderService)->getMultipleTraders($startDateFormatted, $endDateFormatted, $teamId);
 
-            //     // Find the corresponding AccountType model
-            //     $accountType = AccountType::where('account_group_id', $teamId)->first();
+                // Find the corresponding AccountType model
+                $accountType = AccountType::where('account_group_id', $teamId)->first();
 
-            //     $meta_logins = TradingAccount::where('account_type_id', $accountType->id)
-            //         ->whereIn('user_id', $teamUserIds)
-            //         ->pluck('meta_login')
-            //         ->toArray();
+                $meta_logins = TradingAccount::where('account_type_id', $accountType->id)
+                    ->whereIn('user_id', $teamUserIds)
+                    ->pluck('meta_login')
+                    ->toArray();
 
-            //     // Assuming the response is an associative array with a 'trader' key
-            //     if (isset($response['trader']) && is_array($response['trader'])) {
-            //         foreach ($response['trader'] as $trader) {
-            //             if (in_array($trader['login'], $meta_logins)) {
-            //                 // Determine the divisor based on moneyDigits
-            //                 $moneyDigits = isset($trader['moneyDigits']) ? (int)$trader['moneyDigits'] : 0;
-            //                 $divisor = $moneyDigits > 0 ? pow(10, $moneyDigits) : 1; // 10^moneyDigits
+                // Assuming the response is an associative array with a 'trader' key
+                if (isset($response['trader']) && is_array($response['trader'])) {
+                    foreach ($response['trader'] as $trader) {
+                        if (in_array($trader['login'], $meta_logins)) {
+                            // Determine the divisor based on moneyDigits
+                            $moneyDigits = isset($trader['moneyDigits']) ? (int)$trader['moneyDigits'] : 0;
+                            $divisor = $moneyDigits > 0 ? pow(10, $moneyDigits) : 1; // 10^moneyDigits
 
-            //                 // Adjust balance and equity based on the divisor
-            //                 $teamBalance += $trader['balance'] / $divisor;
-            //                 $teamEquity += $trader['equity'] / $divisor;
-            //             }
-            //         }
-            //     }
-            // }
+                            // Adjust balance and equity based on the divisor
+                            $teamBalance += $trader['balance'] / $divisor;
+                            $teamEquity += $trader['equity'] / $divisor;
+                        }
+                    }
+                }
+            }
 
             $result = [
                 'id' => $team->id,

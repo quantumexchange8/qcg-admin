@@ -84,22 +84,22 @@ getDashboardData();
 const updateBalEquity = () => {
     counterEquity.value.reset();
     counterBalance.value.reset();
-    // getAccountData();
+    getAccountData();
 }
 
-// const getAccountData = async () => {
-//     try {
-//         const response = await axios.get('dashboard/getAccountData');
-//         balance.value = response.data.totalBalance;
-//         equity.value = response.data.totalEquity;
+const getAccountData = async () => {
+    try {
+        const response = await axios.get('dashboard/getAccountData');
+        balance.value = response.data.totalBalance;
+        equity.value = response.data.totalEquity;
 
-//         accountBalanceDuration.value = 1
-//     } catch (error) {
-//         console.error('Error accounts data:', error);
-//     }
-// };
+        accountBalanceDuration.value = 1
+    } catch (error) {
+        console.error('Error accounts data:', error);
+    }
+};
 
-// getAccountData();
+getAccountData();
 
 const getPendingData = async () => {
     try {
@@ -117,13 +117,13 @@ const getPendingData = async () => {
 
 getPendingData();
 
-// watchEffect(() => {
-//     if (usePage().props.toast !== null || usePage().props.notification !== null) {
-//         getDashboardData();
-//         getAccountData();
-//         getPendingData();
-//     }
-// });
+watchEffect(() => {
+    if (usePage().props.toast !== null || usePage().props.notification !== null) {
+        getDashboardData();
+        getAccountData();
+        getPendingData();
+    }
+});
 
 const navigateToFirstAvailablePage = () => {
     if (!hasPermission('access_dashboard')) {

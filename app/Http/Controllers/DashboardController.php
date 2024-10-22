@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Inertia\Inertia;
+use App\Models\AccountType;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
+use App\Models\TradingAccount;
 use App\Services\CTraderService;
 use Illuminate\Support\Facades\Auth;
 use Spatie\Activitylog\Models\Activity;
@@ -59,60 +61,60 @@ class DashboardController extends Controller
         ]);
     }
 
-    // public function getAccountData()
-    // {
-    //     $from = '2024-01-01T00:00:00.000';
-    //     $to = now()->format('Y-m-d\TH:i:s.v');
+    public function getAccountData()
+    {
+        $from = '2024-01-01T00:00:00.000';
+        $to = now()->format('Y-m-d\TH:i:s.v');
 
-    //     // Standard Account and Premium Account group IDs
-    //     $groupIds = AccountType::whereNotNull('account_group_id')
-    //         ->pluck('account_group_id')
-    //         ->toArray();
+        // Standard Account and Premium Account group IDs
+        $groupIds = AccountType::whereNotNull('account_group_id')
+            ->pluck('account_group_id')
+            ->toArray();
 
-    //     foreach ($groupIds as $groupId) {
-    //         // Fetch data for each group ID
-    //         $response = (new CTraderService)->getMultipleTraders($from, $to, $groupId);
+        foreach ($groupIds as $groupId) {
+            // Fetch data for each group ID
+            $response = (new CTraderService)->getMultipleTraders($from, $to, $groupId);
 
-    //         // Find the corresponding AccountType model
-    //         $accountType = AccountType::where('account_group_id', $groupId)->first();
+            // Find the corresponding AccountType model
+            $accountType = AccountType::where('account_group_id', $groupId)->first();
 
-    //         // Initialize or reset group balance and equity
-    //         $groupBalance = 0;
-    //         $groupEquity = 0;
+            // Initialize or reset group balance and equity
+            $groupBalance = 0;
+            $groupEquity = 0;
 
-    //         $meta_logins = TradingAccount::where('account_type_id', $accountType->id)->pluck('meta_login')->toArray();
+            $meta_logins = TradingAccount::where('account_type_id', $accountType->id)->pluck('meta_login')->toArray();
 
-    //         // Assuming the response is an associative array with a 'trader' key
-    //         if (isset($response['trader']) && is_array($response['trader'])) {
-    //             foreach ($response['trader'] as $trader) {
-    //                 if (in_array($trader['login'], $meta_logins)) {
-    //                     // Determine the divisor based on moneyDigits
-    //                     $moneyDigits = isset($trader['moneyDigits']) ? (int)$trader['moneyDigits'] : 0;
-    //                     $divisor = $moneyDigits > 0 ? pow(10, $moneyDigits) : 1; // 10^moneyDigits
+            // Assuming the response is an associative array with a 'trader' key
+            if (isset($response['trader']) && is_array($response['trader'])) {
+                foreach ($response['trader'] as $trader) {
+                    if (in_array($trader['login'], $meta_logins)) {
+                        // Determine the divisor based on moneyDigits
+                        $moneyDigits = isset($trader['moneyDigits']) ? (int)$trader['moneyDigits'] : 0;
+                        $divisor = $moneyDigits > 0 ? pow(10, $moneyDigits) : 1; // 10^moneyDigits
 
-    //                     // Adjust balance and equity based on the divisor
-    //                     $groupBalance += $trader['balance'] / $divisor;
-    //                     $groupEquity += $trader['equity'] / $divisor;
-    //                 }
-    //             }
+                        // Adjust balance and equity based on the divisor
+                        $groupBalance += $trader['balance'] / $divisor;
+                        $groupEquity += $trader['equity'] / $divisor;
+                    }
+                }
 
-    //             // Update account group balance and equity
-    //             $accountType->account_group_balance = $groupBalance;
-    //             $accountType->account_group_equity = $groupEquity;
-    //             $accountType->save();
-    //         }
-    //     }
+                // Update account group balance and equity
+                $accountType->account_group_balance = $groupBalance;
+                $accountType->account_group_equity = $groupEquity;
+                $accountType->save();
+            }
+        }
 
-    //     // Recalculate total balance and equity from the updated account types
-    //     $totalBalance = AccountType::sum('account_group_balance');
-    //     $totalEquity = AccountType::sum('account_group_equity');
+        // Recalculate total balance and equity from the updated account types
+        $totalBalance = AccountType::sum('account_group_balance');
+        $totalEquity = AccountType::sum('account_group_equity');
 
-    //     // Return the total balance and total equity as a JSON response
-    //     return response()->json([
-    //         'totalBalance' => $totalBalance,
-    //         'totalEquity' => $totalEquity,
-    //     ]);
-    // }
+        // Return the total balance and total equity as a JSON response
+        return response()->json([
+            'totalBalance' => $totalBalance,
+            'totalEquity' => $totalEquity,
+        ]);
+    }
     
     public function getPendingData()
     {
