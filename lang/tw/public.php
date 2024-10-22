@@ -296,7 +296,7 @@ return [
     'select_all' => "全選",
     'toast_create_sales_team_success' => "您已成功創建了一個新銷售團隊!",
     'toast_edit_sales_team_success' => "團隊信息已更新!",
-    'toast_settlement_already_exists' => "本月的結算已經完成！",
+    'toast_settlement_already_exists' => "結算已經標記為完成！",
     'toast_mark_settlement_success' => "您已成功總結上個月的結算！",
     'toast_delete_team_success' => "銷售團隊已被刪除!",
     'rebate_setting' => "返傭設置",

@@ -296,7 +296,7 @@ return [
     'select_all' => "Select All",
     'toast_create_sales_team_success' => "You've successfully created a new sales team!",
     'toast_edit_sales_team_success' => "New changes saved!",
-    'toast_settlement_already_exists' => "Settlement for this month has already been finalized!",
+    'toast_settlement_already_exists' => "Settlement already has been marked as completed!",
     'toast_mark_settlement_success' => "You've successfully marked a new settlement!",
     'toast_delete_team_success' => "Sales team has been removed!",
     'rebate_setting' => "Rebate Setting",
