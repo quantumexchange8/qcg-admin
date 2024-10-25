@@ -55,9 +55,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <GuestLayout>
-        <Head title="Forgot Password" />
-        
+    <GuestLayout :title="$t('public.forgot_password')">
         <div v-if="!submitted" class="w-full flex flex-col items-center justify-center gap-8 pt-8 md:pt-0">
             <div class="flex flex-col items-start gap-3 self-stretch">
                 <div class="self-stretch text-center text-gray-950 text-lg md:text-xl font-bold">{{ $t('public.forgot_password') }}</div>

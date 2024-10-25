@@ -89,7 +89,7 @@ const submit = () => {
                         :href="route('password.request')"
                         class="text-sm text-primary-500 hover:text-primary-600 focus:underline focus:text-primary-600"
                     >
-                        {{ $t('public.forgot_your_password') }}
+                        {{ $t('public.forgot_password') }}
                     </Link>
                 </div>
 

@@ -47,14 +47,15 @@ const submitForm = () => {
                 <span class="self-stretch text-gray-500 text-xs">{{ $t('public.password_rule') }}</span>
             </div>
             <div class="flex flex-col items-start gap-2 self-stretch">
-                <InputLabel for="password_confirmation" :value="$t('public.confirm_password')" :invalid="!!form.errors.password" />
+                <InputLabel for="password_confirmation" :value="$t('public.confirm_password')" :invalid="!!form.errors.password_confirmation" />
                 <Password
                     v-model="form.password_confirmation"
                     toggleMask
                     :feedback="false"
                     placeholder="••••••••"
-                    :invalid="!!form.errors.password"
+                    :invalid="!!form.errors.password_confirmation"
                 />
+                <InputError :message="form.errors.password_confirmation" />
             </div>
         </div>
 

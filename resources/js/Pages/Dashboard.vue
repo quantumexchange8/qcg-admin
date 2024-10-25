@@ -125,46 +125,6 @@ watchEffect(() => {
     }
 });
 
-const navigateToFirstAvailablePage = () => {
-    if (!hasPermission('access_dashboard')) {
-        if (hasPermission('access_withdrawal_request')) {
-            window.location.href = route('pending.withdrawal');
-        } else if (hasPermission('access_incentive_request')) {
-            window.location.href = route('pending.incentive');
-        } else if (hasPermission('access_member_listing')) {
-            window.location.href = route('member.listing');
-        } else if (hasPermission('access_member_network')) {
-            window.location.href = route('member.network');
-        } else if (hasPermission('access_member_forum')) {
-            window.location.href = route('member.forum');
-        } else if (hasPermission('access_account_listing')) {
-            window.location.href = route('member.account_listing');
-        } else if (hasPermission('access_sales_team')) {
-            window.location.href = route('team');
-        } else if (hasPermission('access_rebate_setting')) {
-            window.location.href = route('rebate_setting');
-        } else if (hasPermission('access_leaderboard')) {
-            window.location.href = route('leaderboard');
-        } else if (hasPermission('access_deposit')) {
-            window.location.href = route('transaction.deposit');
-        } else if (hasPermission('access_withdrawal')) {
-            window.location.href = route('transaction.withdrawal');
-        } else if (hasPermission('access_transfer')) {
-            window.location.href = route('transaction.transfer');
-        } else if (hasPermission('access_rebate_payout')) {
-            window.location.href = route('transaction.rebate');
-        } else if (hasPermission('access_incentive_payout')) {
-            window.location.href = route('transaction.incentive');
-        } else if (hasPermission('access_account_type')) {
-            window.location.href = route('accountType');
-        } else if (hasPermission('access_admin_role')) {
-            window.location.href = route('adminRole');
-        }
-    }
-};
-
-onMounted(navigateToFirstAvailablePage);
-
 </script>
 
 <template>

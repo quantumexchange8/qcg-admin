@@ -91,7 +91,7 @@ const clearSearch = () => {
                     <div class="absolute top-2/4 -mt-[9px] left-4 text-gray-500">
                         <IconSearch size="20" stroke-width="1.25" />
                     </div>
-                    <InputText v-model="search" placeholder="Keyword Search" size="search" class="font-normal w-full md:w-60" />
+                    <InputText v-model="search" :placeholder="$t('public.search')" size="search" class="font-normal w-full md:w-60" />
                     <div
                         v-if="search"
                         class="absolute top-2/4 -mt-2 right-4 text-gray-300 hover:text-gray-400 select-none cursor-pointer"

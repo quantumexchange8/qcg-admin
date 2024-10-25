@@ -82,20 +82,7 @@ const clearDate = () => {
 };
 
 const exportCSV = () => {
-    const dtComponent = dt.value;
-
-    // Manually specify the fields to include in the CSV export
-    const exportFields = [
-        { field: 'created_at', header: wTrans('public.date') },
-        { field: 'target_amount', header: wTrans('public.target') },
-        { field: 'achieved_amount', header: wTrans('public.achieved') },
-        { field: 'incentive_rate', header: wTrans('public.rate') },
-        { field: 'incentive_amount', header: `${wTrans('public.amount')} ($)` },
-    ];
-
-    dtComponent.exportCSV({
-        exportColumns: exportFields, // Specify columns for export
-    });
+    dt.value.exportCSV();
 };
 </script>
 

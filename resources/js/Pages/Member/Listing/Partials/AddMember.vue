@@ -235,14 +235,15 @@ const selectedCountry = ref();
                                 <span class="self-stretch text-gray-500 text-xs md:hidden">{{ $t('public.password_rule') }}</span>
                             </div>
                             <div class="space-y-2">
-                                <InputLabel for="password_confirmation" :value="$t('public.confirm_password')" :invalid="!!form.errors.password" />
+                                <InputLabel for="password_confirmation" :value="$t('public.confirm_password')" :invalid="!!form.password_confirmation.password" />
                                 <Password
                                     v-model="form.password_confirmation"
                                     toggleMask
                                     :feedback="false"
                                     placeholder="••••••••"
-                                    :invalid="!!form.errors.password"
+                                    :invalid="!!form.errors.password_confirmation"
                                 />
+                                <InputError :message="form.errors.password_confirmation" />
                             </div>
                         </div>
                         <span class="hidden md:block self-stretch text-gray-500 text-xs">{{ $t('public.password_rule') }}</span>

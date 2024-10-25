@@ -59,12 +59,12 @@ const handleDelete = () => {
                     <InputLabel for="current_password" :value="$t('public.current_password')" />
                     <Password
                         ref="currentPasswordInput"
-                        v-model="form.current_password"
+                        v-model="form.password"
                         toggleMask
                         placeholder="••••••••"
-                        :invalid="!!form.errors.current_password"
+                        :invalid="!!form.errors.password"
                     />
-                    <InputError :message="form.errors.current_password" />
+                    <InputError :message="form.errors.password" />
                 </div>
                 <div class="grid grid-cols-2 justify-items-end items-center gap-4 self-stretch">
                     <Button

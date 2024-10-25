@@ -47,9 +47,7 @@ const goToLoginPage = () => {
 </script>
 
 <template>
-    <GuestLayout>
-        <Head title="Reset Password" />
-
+    <GuestLayout :title="$t('public.reset_password')">
         <div v-if="!isResetSuccessful" class="w-full flex flex-col justify-center items-center gap-8 pt-8 md:pt-0">
             <div class="flex flex-col items-start gap-3 self-stretch">
                 <div class="text-gray-950 text-center text-lg md:text-xl font-semibold self-stretch">{{ $t('public.choose_password') }}</div>

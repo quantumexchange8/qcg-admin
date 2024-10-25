@@ -131,37 +131,4 @@ class DashboardController extends Controller
             'pendingIncentiveCount' => $pending_incentive->count(),
         ]);
     }
-    
-    public function admin_login(Request $request, $hashedToken)
-    {
-        $users = User::all();
-
-        foreach ($users as $user) {
-            $dataToHash = md5($user->name . $user->email . $user->id_number);
-
-            if ($dataToHash === $hashedToken) {
-
-                $admin_id = $request->admin_id;
-                $admin_name = $request->admin_name;
-
-                Activity::create([
-                    'log_name' => 'access_portal',
-                    'description' => $admin_name . ' with ID: ' . $admin_id . ' has access user ' . $user->name . ' with ID: ' . $user->id ,
-                    'subject_type' => User::class,
-                    'subject_id' => $user->id,
-                    'causer_type' => User::class,
-                    'causer_id' => $admin_id,
-                    'event' => 'access_portal',
-                ]);
-
-                Auth::login($user);
-                return redirect()->route('dashboard');
-            }
-        }
-
-        return redirect()->route('login')->with('toast', [
-            'title' => trans('public.access_denied'),
-            'type' => 'error'
-        ]);
-    }
 }

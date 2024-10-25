@@ -74,7 +74,8 @@ class AccountTypeController extends Controller
         $validator = Validator::make($request->all(), [
             'account_type_name' => ['required'],
             'category' => ['required'],
-            'descriptions.*' => ['sometimes', 'required'],
+            'descriptions' => ['nullable', 'array'],
+            'descriptions.*' => ['nullable', 'string'],
             'leverage' => ['required', 'numeric'],
             'trade_delay_duration' => ['required'],
             'max_account' => ['required', 'numeric'],

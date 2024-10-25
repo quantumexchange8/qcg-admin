@@ -108,7 +108,7 @@ class TradingAccountController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'action' => ['required'],
-            'amount' => ['required', 'numeric', 'gt:1'],
+            'amount' => ['required', 'numeric', 'gt:0'],
             'remarks' => ['nullable'],
         ])->setAttributeNames([
             'action' => trans('public.action'),

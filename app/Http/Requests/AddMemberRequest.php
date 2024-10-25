@@ -16,6 +16,7 @@ class AddMemberRequest extends FormRequest
             'dial_code' => ['required'],
             'phone' => ['required', 'max:255', 'unique:' . User::class],
             'password' => ['required', Password::min(8)->letters()->symbols()->numbers()->mixedCase(), 'confirmed'],
+            'password_confirmation' => ['required','same:password'],
             'upline' => ['required'],
         ];
     }
@@ -28,11 +29,12 @@ class AddMemberRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'name' => 'Full Name',
-            'email' => 'Email',
-            'phone' => 'Phone Number',
-            'password' => 'Password',
-            'upline' => 'Upline',
+            'name' => trans('public.full_name'),
+            'email' => trans('public.email'),
+            'phone' => trans('public.phone_number'),
+            'password' => trans('public.password'),
+            'password_confirmation' => trans('public.confirm_password'),
+            'upline' => trans('public.upline'),
         ];
     }
 }

@@ -128,7 +128,7 @@ class TransactionController extends Controller
                 $result['from_wallet_id'] = $transaction->from_wallet ? $transaction->from_wallet->id : null;
                 $result['from_wallet_name'] = $transaction->from_wallet ? ($transaction->from_wallet->type === 'rebate_wallet' ? 'rebate' : 'incentive') : null;
                 $result['to_wallet_id'] = $transaction->to_wallet ? $transaction->to_wallet->id : null;
-                $result['from_wallet_name'] = $transaction->to_wallet ? ($transaction->to_wallet->type === 'rebate_wallet' ? 'rebate' : 'incentive') : null;
+                $result['to_wallet_name'] = $transaction->to_wallet ? ($transaction->to_wallet->type === 'rebate_wallet' ? 'rebate' : 'incentive') : null;
             }
 
             return $result;
@@ -324,4 +324,4 @@ class TransactionController extends Controller
             'totalAmount' => $totalAmount,
         ]);
     }
-    }
+}

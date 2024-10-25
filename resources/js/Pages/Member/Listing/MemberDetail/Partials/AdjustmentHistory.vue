@@ -45,7 +45,7 @@ const toggleExpand = (index) => {
 <template>
 
     <!-- data table -->
-    <div class="flex flex-col items-center justify-center p-6 gap-6 self-stretch rounded-lg shadow-card max-h-[400px] md:bg-white"
+    <div class="flex flex-col items-center justify-center p-6 gap-6 self-stretch rounded-lg shadow-card h-[400px] md:bg-white"
         :class="{
             'bg-white': adjustmentHistories?.length > 0,
         }"
@@ -55,13 +55,12 @@ const toggleExpand = (index) => {
             removableSort
             :loading="loading"
             selectionMode="single"
-            class="hidden md:block"
-            tableClass="min-h-[350px]"
+            class="hidden md:block h-full w-full"
             scrollable
             scrollHeight="350px"
         >
             <template #empty>
-                <Empty :message="$t('public.no_history_yet')">
+                <Empty class="h-[280px]" :message="$t('public.no_history_yet')">
                     <template #image></template>
                 </Empty>
             </template>
@@ -116,7 +115,7 @@ const toggleExpand = (index) => {
         </DataTable>
 
         <div v-if="adjustmentHistories?.length <= 0" class="flex flex-col items-center flex-1 self-stretch md:hidden">
-            <Empty :message="$t('public.no_history_yet')">
+            <Empty class="h-[280px]" :message="$t('public.no_history_yet')">
                 <template #image></template>
             </Empty>
         </div>

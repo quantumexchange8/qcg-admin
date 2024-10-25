@@ -100,7 +100,7 @@ const submitForm = () => {
                             :invalid="!!form.errors.color"
                         />
 
-                        <ColorPicker v-model="color" id="Color"/>
+                        <ColorPicker v-model="color" id="color"/>
 
                         <InputError :message="form.errors.color" />
                     </div>

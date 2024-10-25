@@ -116,7 +116,7 @@ class MemberController extends Controller
 
         $user->setReferralId();
 
-        $id_no = ($user->role == 'agent' ? 'AID' : 'MID') . Str::padLeft($user->id - 2, 5, "0");
+        $id_no = ($user->role == 'agent' ? 'AID' : 'MID') . Str::padLeft($user->id, 5, "0");
         // $user->id_number = $id_no;
         $user->save();
 
@@ -389,12 +389,14 @@ class MemberController extends Controller
         $user->role = 'agent';
         $user->save();
 
-        Wallet::create([
-            'user_id' => $user->id,
-            'type' => 'rebate_wallet',
-            'address' => str_replace('AID', 'RB', $user->id_number),
-            'balance' => 0
-        ]);
+        if (!$user->rebate_wallet) {
+            Wallet::create([
+                'user_id' => $user->id,
+                'type' => 'rebate_wallet',
+                'address' => str_replace('AID', 'RB', $user->id_number),
+                'balance' => 0
+            ]);
+        }
 
         return back()->with('toast', [
             'title' => trans('public.toast_upgrade_to_agent_success'),
@@ -460,19 +462,28 @@ class MemberController extends Controller
     public function updateMemberInfo(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => ['required', 'email', 'max:255', Rule::unique(User::class)->ignore($request->user_id)],
             'name' => ['required', 'regex:/^[a-zA-Z0-9\p{Han}. ]+$/u', 'max:255'],
+            'email' => ['required', 'email', 'max:255', Rule::unique(User::class)->ignore($request->user_id)],
             'dial_code' => ['required'],
             'phone' => ['required', 'max:255'],
             'phone_number' => ['required', 'max:255', Rule::unique(User::class)->ignore($request->user_id)],
         ])->setAttributeNames([
-            'email' => trans('public.email'),
             'name' => trans('public.name'),
+            'email' => trans('public.email'),
             'dial_code' => trans('public.phone_code'),
             'phone' => trans('public.phone'),
             'phone_number' => trans('public.phone_number'),
         ]);
         $validator->validate();
+
+        $user = User::findOrFail($request->user_id);
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+            'dial_code' => $request->dial_code['phone_code'],
+            'phone' => $request->phone,
+            'phone_number' => $request->phone_number,
+        ]);
 
         return redirect()->back()->with('toast', [
             'title' => trans('public.toast_update_member_info_success'),
@@ -553,18 +564,18 @@ class MemberController extends Controller
         ]);
     }
 
-    // public function updateKYCStatus(Request $request)
-    // {
-    //     $user = User::find($request->id);
+    public function updateKYCStatus(Request $request)
+    {
+        $user = User::find($request->id);
 
-    //     $user->kyc_approved_at = null;
-    //     $user->save();
+        $user->kyc_approved_at = null;
+        $user->save();
 
-    //     return redirect()->back()->with('toast', [
-    //         'title' => trans('public.toast_kyc_upload_request'),
-    //         'type' => 'success'
-    //     ]);
-    // }
+        return redirect()->back()->with('toast', [
+            'title' => trans('public.toast_kyc_upload_request'),
+            'type' => 'success'
+        ]);
+    }
 
     public function getFinancialInfoData(Request $request)
     {
@@ -595,7 +606,7 @@ class MemberController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'action' => ['required'],
-            'amount' => ['required', 'numeric', 'gt:1'],
+            'amount' => ['required', 'numeric', 'gt:0'],
             'remarks' => ['nullable'],
         ])->setAttributeNames([
             'action' => trans('public.action'),
@@ -642,9 +653,11 @@ class MemberController extends Controller
     public function resetPassword(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'password' => ['required', Password::min(8)->letters()->numbers()->symbols()->mixedCase(), 'confirmed']
+            'password' => ['required', Password::min(8)->letters()->numbers()->symbols()->mixedCase(), 'confirmed'],
+            'password_confirmation' => ['required','same:password'],
         ])->setAttributeNames([
             'password' => trans('public.password'),
+            'password_confirmation' => trans('public.confirm_password')
         ]);
         $validator->validate();
 
@@ -728,10 +741,10 @@ class MemberController extends Controller
         return response()->json($adjustment_history);
     }
 
-    // public function uploadKyc(Request $request)
-    // {
-    //     dd($request->all());
-    // }
+    public function uploadKyc(Request $request)
+    {
+        dd($request->all());
+    }
 
     public function deleteMember(Request $request)
     {
@@ -749,8 +762,8 @@ class MemberController extends Controller
         $tradingAccounts = $user->tradingAccounts;
         $tradingUsers = $user->tradingUsers;
     
-        // Proceed with cTrader logic only if both trading accounts and trading users are not empty
-        if ($tradingAccounts->isNotEmpty() && $tradingUsers->isNotEmpty()) {
+        // Proceed with cTrader logic only if both trading accounts or trading users are not empty
+        if ($tradingAccounts->isNotEmpty() || $tradingUsers->isNotEmpty()) {
             $cTraderService = new CTraderService();
     
             // Check connection status

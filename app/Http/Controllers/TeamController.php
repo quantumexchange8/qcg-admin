@@ -418,9 +418,9 @@ class TeamController extends Controller
 
     public function deleteTeam(Request $request)
     {
-        Team::destroy($request->id);
-
         TeamHasUser::where('team_id', $request->id)->delete();
+
+        Team::destroy($request->id);
 
         return back()->with('toast', [
             'title' => trans('public.toast_delete_team_success'),

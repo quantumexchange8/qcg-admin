@@ -131,10 +131,10 @@ const form = useForm({
     id: props.accountType.id,
     account_type_name: props.accountType.name,
     category: props.accountType.category,
-    descriptions: { en: '', tw: '' },
+    descriptions: { en: props.accountType.description_en, tw: props.accountType.description_tw },
     leverage: props.accountType.leverage,
     trade_delay_duration: props.accountType.trade_open_duration,
-    max_account: props.accountType.max_account,
+    max_account: props.accountType.maximum_account_number,
     color: props.accountType.color,
 })
 
@@ -295,7 +295,7 @@ const submitForm = () => {
                         <div class="flex flex-col items-start gap-2 self-stretch">
                             <InputLabel for="max_account" :value="$t('public.maximum_account_creation')" :invalid="!!form.errors.max_account"/>
                             <InputText
-                                v-model="form.maximum_account_number"
+                                v-model="form.max_account"
                                 id="max_account"
                                 type="number"
                                 class="w-full"

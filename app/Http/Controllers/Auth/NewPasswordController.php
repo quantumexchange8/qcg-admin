@@ -38,6 +38,7 @@ class NewPasswordController extends Controller
             'token' => 'required',
             'email' => 'required|email',
             'password' => ['required', 'confirmed', 'string', 'min:8', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/'],
+            'password_confirmation' => ['required', 'same:password'],
         ]);
 
         // Here we will attempt to reset the user's password. If it is successful we
