@@ -30,7 +30,7 @@ const totalAmount = ref();
 const type = ref('deposit');
 const months = ref([]);
 const selectedMonths = ref([]);
-const filteredValueCount = ref(0);
+const filteredValue = ref();
 
 // Define the status options
 const statusOption = [
@@ -143,6 +143,7 @@ const clearFilter = () => {
         status: { value: null, matchMode: FilterMatchMode.EQUALS },
     };
     selectedMonths.value = [getCurrentMonthYear()];
+    filteredValue.value = null; 
 };
 
 watchEffect(() => {
@@ -152,11 +153,62 @@ watchEffect(() => {
 });
 
 const handleFilter = (e) => {
-    filteredValueCount.value = e.filteredValue.length;
+    filteredValue.value = e.filteredValue;
 };
 
-const exportCSV = () => {
-    dt.value.exportCSV();
+const exportXLSX = () => {
+    // Retrieve the array from the reactive proxy
+    const data = filteredValue.value;
+
+    // Specify the headers
+    const headers = [
+        trans('public.name'),
+        trans('public.email'),
+        trans('public.date'),
+        trans('public.id'),
+        trans('public.account'),
+        trans('public.amount') + ' ($)',
+        trans('public.status'),
+    ];
+
+    // Map the array data to XLSX rows
+    const rows = data.map(obj => {
+        const toDisplay = obj.to_meta_login ? obj.to_meta_login : trans('public.' + obj.to_wallet_name) || '';
+
+        return [
+            obj.name !== undefined ? obj.name : '',
+            obj.email !== undefined ? obj.email : '',
+            obj.created_at !== undefined ? dayjs(obj.created_at).format('YYYY/MM/DD') : '',
+            obj.transaction_number !== undefined ? obj.transaction_number : '',
+            toDisplay,
+            obj.transaction_amount !== undefined ? obj.transaction_amount : '',
+            obj.status !== undefined ? trans('public.' + obj.status) : ''
+        ];
+    });
+
+    // Combine headers and rows into a single data array
+    const sheetData = [headers, ...rows];
+
+    // Create the XLSX content
+    let csvContent = "data:text/xlsx;charset=utf-8,";
+    
+    sheetData.forEach((rowArray) => {
+        const row = rowArray.join("\t"); // Use tabs for column separation
+        csvContent += row + "\r\n"; // Add a new line after each row
+    });
+
+    // Create a temporary link element
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "export.xlsx");
+
+    // Append the link to the document and trigger the download
+    document.body.appendChild(link);
+    link.click();
+
+    // Clean up by removing the link
+    document.body.removeChild(link);
 };
 
 // dialog
@@ -211,7 +263,7 @@ const copyToClipboard = (text) => {
                             <IconCircleXFilled size="16" />
                         </div>
                     </div>
-                    <Button variant="primary-outlined" @click="exportCSV" class="w-full md:w-auto">
+                    <Button variant="primary-outlined" @click="filteredValue?.length > 0 ? exportXLSX() : null" class="w-full md:w-auto">
                         <IconDownload size="20" stroke-width="1.25" />
                         {{ $t('public.export') }}
                     </Button>
@@ -227,7 +279,7 @@ const copyToClipboard = (text) => {
                 v-else
                 v-model:filters="filters"
                 :value="transactions"
-                :paginator="transactions?.length > 0 && filteredValueCount > 0"
+                :paginator="transactions?.length > 0 && filteredValue?.length > 0"
                 removableSort
                 :rows="10"
                 :rowsPerPageOptions="[10, 20, 50, 100]"
@@ -302,7 +354,7 @@ const copyToClipboard = (text) => {
                         <span class="text-sm text-gray-700">{{ $t('public.loading') }}</span>
                     </div>
                 </template>
-                <template v-if="transactions?.length > 0 && filteredValueCount > 0">
+                <template v-if="transactions?.length > 0 && filteredValue?.length > 0">
                     <Column field="name" sortable :header="$t('public.name')" class="w-1/2 md:w-[20%] max-w-0 px-3">
                         <template #body="slotProps">
                             <div class="flex flex-col items-start max-w-full">
@@ -343,7 +395,7 @@ const copyToClipboard = (text) => {
                             </div>
                         </template>
                     </Column>
-                    <Column field="status" :header="`${$t('public.status')}&nbsp;($)`" class="hidden md:table-cell w-[15%]">
+                    <Column field="status" :header="$t('public.status')" class="hidden md:table-cell w-[15%]">
                         <template #body="slotProps">
                             <div class="flex items-center">
                                 <StatusBadge :variant="slotProps.data.status" :value="$t('public.' + slotProps.data.status)" />

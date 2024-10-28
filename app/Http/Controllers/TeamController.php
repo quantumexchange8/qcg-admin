@@ -50,7 +50,8 @@ class TeamController extends Controller
                     ->whereBetween('approved_at', [$startDate, $endDate])
                     ->where(function ($query) {
                         $query->where('transaction_type', 'deposit')
-                            ->orWhere('transaction_type', 'balance_in');
+                            ->orWhere('transaction_type', 'balance_in')
+                            ->orWhere('transaction_type', 'rebate_in');
                     })
                     ->where('status', 'successful')
                     ->sum('transaction_amount');
@@ -154,11 +155,19 @@ class TeamController extends Controller
         ]);
 
         $team_id = $team->id;
-        TeamHasUser::create([
-            'team_id' => $team_id,
-            'user_id' => $agent_id
-        ]);
+        $teamUser = TeamHasUser::where('user_id', $agent_id)->first();
 
+        if ($teamUser) {
+            $teamUser->update([
+                'team_id' => $team_id,
+            ]);
+        } else {
+            TeamHasUser::create([
+                'team_id' => $team_id,
+                'user_id' => $agent_id,
+            ]);
+        }
+        
         $children_ids = User::find($agent_id)->getChildrenIds();
         // Dispatch the job to assign children to the team
         TeamMemberAssignmentJob::dispatch($children_ids, $team_id);
@@ -171,7 +180,7 @@ class TeamController extends Controller
 
     public function getTeamTransaction(Request $request)
     {
-        $teamId = $request->query('teamId');
+        $teamId = $request->query('team_id');
         $startDate = $request->query('startDate');
         $endDate = $request->query('endDate');
 
@@ -182,7 +191,7 @@ class TeamController extends Controller
         // Start building the query
         $query = Transaction::with('user')
             ->whereIn('user_id', $userIds)
-            ->whereIn('transaction_type', ['deposit', 'withdrawal'])
+            ->whereIn('transaction_type', ['deposit', 'balance_in', 'rebate_in', 'withdrawal', 'balance_out', 'rebate_out'])
             ->where('status', 'successful');
 
         // Apply date range filter if startDate and endDate are provided
@@ -310,7 +319,7 @@ class TeamController extends Controller
 
         foreach ($teamSettlements as $settlement) {
             // Format the month for grouping
-            $month = $settlement->transaction_start_at->format('m/Y');
+            $month = $settlement->transaction_start_at->format('Y-m-d');
 
             // Initialize the month array if it doesn't exist
             if (!isset($settlementReports[$month])) {

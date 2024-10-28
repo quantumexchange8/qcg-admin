@@ -7,6 +7,7 @@ import TieredMenu from "primevue/tieredmenu";
 import dayjs from "dayjs";
 import axios from 'axios';
 import Button from "@/Components/Button.vue";
+import ConfirmationDialog from "@/Components/ConfirmationDialog.vue";
 
 defineProps({
     title: String,
@@ -70,6 +71,7 @@ const changeLanguage = async (langVal) => {
 
         <div class="w-full flex flex-grow flex-col justify-center items-center px-3 pb-8 md:gap-[60px] md:px-8 md:py-12">
             <div class="w-full max-w-[360px] md:flex-1 flex flex-col justify-center items-center">
+                <ConfirmationDialog />
                 <slot />
             </div>
             <div class="text-center text-gray-500 text-xs mt-auto">© {{ dayjs().year() }} Quantum Capital Group. All rights reserved.</div>

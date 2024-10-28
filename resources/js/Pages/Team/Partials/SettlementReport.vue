@@ -18,6 +18,7 @@ import MultiSelect from "primevue/multiselect";
 import Select from "primevue/select";
 import Loader from "@/Components/Loader.vue";
 import Empty from "@/Components/Empty.vue";
+import { trans, wTrans } from "laravel-vue-i18n";
 
 const visible = ref(false);
 const dt = ref();
@@ -100,8 +101,61 @@ const clearGlobal = () => {
     selectedTeam.value = null;
 };
 
-const exportCSV = () => {
-    dt.value.exportCSV();
+const exportXLSX = () => {
+    // Retrieve the array from the reactive proxy
+    const data = dt.value?.value || [];
+    const expandableData = data.flatMap(item => item.team_settlements || []);
+
+    // Specify the headers
+    const headers = [
+        trans('public.month'),
+        `${trans('public.total_fee')} ($)`,
+        `${trans('public.total_balance')} ($)`,
+        trans('public.sales_team'),
+        `${trans('public.deposit')} ($)`,
+        `${trans('public.withdrawal')} ($)`,
+        `${trans('public.fee')} ($)`,
+        `${trans('public.balance')} ($)`,
+    ];
+
+    // Map the main data to rows
+    const mainRows = data.map(obj => [
+        obj.month ? dayjs(obj.month).format('MMMM YYYY') : '',
+        obj.total_fee ?? '',
+        obj.total_balance ?? '',
+        '', '', '', '', ''  // Empty cells for expandable columns
+    ]);
+
+    // Map the expandable data to rows
+    const expandableRows = expandableData.map(obj => [
+        '', '', '',  // Empty cells for non-expandable columns
+        obj.team_name ?? '',
+        obj.team_deposit ?? '',
+        obj.team_withdrawal ?? '',
+        obj.team_fee ?? '',
+        obj.team_balance ?? ''
+    ]);
+
+    // Combine headers, main rows, and expandable rows
+    const sheetData = [headers, ...mainRows, ...expandableRows];
+
+    // Create the XLSX content as tab-separated text
+    let xlsxContent = "data:text/xlsx;charset=utf-8,";
+
+    sheetData.forEach((row) => {
+        xlsxContent += row.join("\t") + "\r\n";  // Join with tabs and add new line
+    });
+
+    // Create a temporary link element to trigger the download
+    const encodedUri = encodeURI(xlsxContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "export.xlsx");
+
+    // Append link, trigger click, and remove link
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 };
 
 const expandAll = () => {
@@ -203,7 +257,7 @@ const collapseAll = () => {
                                 type="button"
                                 variant="primary-outlined"
                                 class="w-full md:w-36"
-                                @click="exportCSV($event)"
+                                @click="settlementReports?.length > 0 ? exportXLSX($event) : null"
                             >
                                 {{ $t('public.export') }}
                                 <IconCloudDownload size="20" stroke-width="1.25" />
@@ -231,9 +285,9 @@ const collapseAll = () => {
                     </div>
                 </template>
                 <Column expander headerClass="hidden md:table-cell" class="w-[5%] md:w-[10%]" />
-                <Column field="settled_at" :header="$t('public.month')" sortable headerClass="hidden md:table-cell" class="w-full px-3 md:w-[30%]">
+                <Column field="month" :header="$t('public.month')" sortable headerClass="hidden md:table-cell" class="w-full px-3 md:w-[30%]">
                     <template #body="slotProps">
-                        <span class="font-semibold md:font-normal">{{ dayjs(slotProps.data.settled_at).format('MMMM YYYY') }}</span>
+                        <span class="font-semibold md:font-normal">{{ dayjs(slotProps.data.month).format('MMMM YYYY') }}</span>
                     </template>
                 </Column>
                 <Column field="total_fee" :header="$t('public.total_fee') + ' ($)'" headerClass="hidden md:table-cell" class="md:w-[30%]">

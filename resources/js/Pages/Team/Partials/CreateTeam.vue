@@ -1,7 +1,8 @@
 <script setup>
 import Button from "@/Components/Button.vue"
+import { usePage } from '@inertiajs/vue3';
 import {IconPlus} from "@tabler/icons-vue";
-import {ref, watch} from "vue";
+import {ref, watch, watchEffect} from "vue";
 import Dialog from "primevue/dialog";
 import InputError from "@/Components/InputError.vue";
 import InputLabel from "@/Components/InputLabel.vue";
@@ -58,6 +59,12 @@ const submitForm = () => {
         },
     })
 }
+
+watchEffect(() => {
+    if (usePage().props.toast !== null) {
+        getAgents();
+    }
+});
 
 </script>
 

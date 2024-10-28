@@ -16,7 +16,7 @@ import Tabs from 'primevue/tabs';
 import TabList from 'primevue/tablist';
 import Tab from 'primevue/tab';
 import Empty from "@/Components/Empty.vue";
-import { wTrans } from "laravel-vue-i18n";
+import { trans, wTrans } from "laravel-vue-i18n";
 import AddMember from "@/Pages/Member/Listing/Partials/AddMember.vue";
 import MemberTableActions from "@/Pages/Member/Listing/Partials/MemberTableActions.vue"
 
@@ -35,7 +35,7 @@ const dt = ref();
 const users = ref();
 const total_members = ref(0);
 const total_agents = ref(0);
-const filteredValueCount = ref(0);
+const filteredValue = ref();
 const teams = ref(props.teams);
 const team_id = ref(null)
 
@@ -101,8 +101,51 @@ onMounted(() => {
     getResults();
 })
 
-const exportCSV = () => {
-    dt.value.exportCSV();
+const exportXLSX = () => {
+    // Retrieve the array from the reactive proxy
+    const data = filteredValue.value;
+
+    // Specify the headers
+    const headers = [
+        trans('public.name'),
+        trans('public.email'),
+        trans('public.id'),
+        trans('public.sales_team'),
+    ];
+
+    // Map the array data to XLSX rows
+    const rows = data.map(obj => {
+        return [
+            obj.name !== undefined ? obj.name : '',
+            obj.email !== undefined ? obj.email : '',
+            obj.id_number !== undefined ? obj.id_number : '',
+            obj.team_name !== undefined ? obj.team_name : '',
+        ];
+    });
+
+    // Combine headers and rows into a single data array
+    const sheetData = [headers, ...rows];
+
+    // Create the XLSX content
+    let csvContent = "data:text/xlsx;charset=utf-8,";
+    
+    sheetData.forEach((rowArray) => {
+        const row = rowArray.join("\t"); // Use tabs for column separation
+        csvContent += row + "\r\n"; // Add a new line after each row
+    });
+
+    // Create a temporary link element
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "export.xlsx");
+
+    // Append the link to the document and trigger the download
+    document.body.appendChild(link);
+    link.click();
+
+    // Clean up by removing the link
+    document.body.removeChild(link);
 };
 
 const filters = ref({
@@ -125,6 +168,7 @@ const clearFilter = () => {
     };
 
     team_id.value = null;
+    filteredValue.value = null;
 };
 
 watch(team_id, (newTeamId) => {
@@ -140,7 +184,7 @@ watchEffect(() => {
 });
 
 const handleFilter = (e) => {
-    filteredValueCount.value = e.filteredValue.length;
+    filteredValue.value = e.filteredValue;
 };
 
 </script>
@@ -167,7 +211,7 @@ const handleFilter = (e) => {
                     <div class="w-full flex flex-col-reverse items-center gap-3 md:w-auto md:flex-row md:gap-5">
                         <Button
                             variant="primary-outlined"
-                            @click="exportCSV()"
+                            @click="filteredValue?.length > 0 ? exportXLSX($event) : null"
                             class="w-full md:w-auto"
                         >
                             <IconDownload size="20" stroke-width="1.25" />
@@ -190,7 +234,7 @@ const handleFilter = (e) => {
                     v-else
                     v-model:filters="filters"
                     :value="users"
-                    :paginator="users?.length > 0 && filteredValueCount > 0"
+                    :paginator="users?.length > 0 && filteredValue?.length > 0"
                     removableSort
                     :rows="10"
                     :rowsPerPageOptions="[10, 20, 50, 100]"
@@ -269,7 +313,7 @@ const handleFilter = (e) => {
                             <span class="text-sm text-gray-700">{{ $t('public.loading') }}</span>
                         </div>
                     </template>
-                    <template v-if="users?.length > 0 && filteredValueCount > 0">
+                    <template v-if="users?.length > 0 && filteredValue?.length > 0">
                         <Column field="name" sortable :header="$t('public.name')" style="width: 25%; max-width: 0;" class="px-3">
                             <template #body="slotProps">
                                 <div class="flex flex-col items-start max-w-full">

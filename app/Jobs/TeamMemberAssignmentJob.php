@@ -27,6 +27,7 @@ class TeamMemberAssignmentJob implements ShouldQueue
     {
         // Assign children to the team
         User::whereIn('id', $this->childrenIds)->chunk(500, function ($users) {
+            info($this->teamId);
             $users->each->assignedTeam($this->teamId);
         });
     }

@@ -17,7 +17,6 @@ import dayjs from "dayjs";
 const { formatAmount } = transactionFormat();
 
 const props = defineProps({
-    dt: Object,
     accountTypes: Array,
 });
 
@@ -25,9 +24,11 @@ const loading = ref(false);
 const dt = ref(null);
 
 const accounts = ref();
-const filteredValueCount = ref(0);
+const filteredValue = ref();
 const accountTypes = ref(props.accountTypes);
 const accountType = ref(null)
+
+const emit = defineEmits(['update:filteredValue']);
 
 const getResults = async () => {
     loading.value = true;
@@ -45,12 +46,6 @@ const getResults = async () => {
 };
 
 getResults();
-
-watch(() => props.dt, (newVal) => {
-    if (newVal) {
-        newVal.value = dt.value; // Pass DataTable ref to parent
-    }
-});
 
 const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -72,6 +67,7 @@ const clearFilter = () => {
     };
 
     accountType.value = null;
+    filteredValue.value = null;
 };
 
 // Watch for changes in accountType and update the filter
@@ -87,7 +83,8 @@ watchEffect(() => {
 });
 
 const handleFilter = (e) => {
-    filteredValueCount.value = e.filteredValue.length;
+    filteredValue.value = e.filteredValue;
+    emit('update:filteredValue', filteredValue.value);
 };
 
 </script>
@@ -96,7 +93,7 @@ const handleFilter = (e) => {
     <DataTable
         v-model:filters="filters"
         :value="accounts"
-        :paginator="accounts?.length > 0 && filteredValueCount > 0"
+        :paginator="accounts?.length > 0 && filteredValue?.length > 0"
         removableSort
         :rows="10"
         :rowsPerPageOptions="[10, 20, 50, 100]"
@@ -160,7 +157,7 @@ const handleFilter = (e) => {
                 <span class="text-sm text-gray-700">{{ $t('public.loading') }}</span>
             </div>
         </template>
-        <template v-if="accounts?.length > 0 && filteredValueCount > 0">
+        <template v-if="accounts?.length > 0 && filteredValue?.length > 0">
             <Column field="name" sortable :header="$t('public.name')" class="hidden md:table-cell w-[20%] max-w-0">
                 <template #body="slotProps">
                     <div class="flex flex-col items-start max-w-full">

@@ -19,6 +19,7 @@ import InputLabel from "@/Components/InputLabel.vue";
 import Chip from "primevue/chip";
 import Textarea from "primevue/textarea";
 import Empty from "@/Components/Empty.vue";
+import { trans, wTrans } from "laravel-vue-i18n";
 
 const user = usePage().props.auth.user;
 const { formatAmount, formatDate } = transactionFormat();
@@ -27,7 +28,7 @@ const loading = ref(false);
 const dt = ref();
 const pendingWithdrawals = ref();
 const totalAmount = ref();
-const filteredValueCount = ref(0);
+const filteredValue = ref();
 
 const getResults = async () => {
     loading.value = true;
@@ -45,10 +46,6 @@ const getResults = async () => {
 
 getResults();
 
-const exportCSV = () => {
-    dt.value.exportCSV();
-};
-
 const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
     user_name: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -58,6 +55,7 @@ const filters = ref({
 
 const clearFilterGlobal = () => {
     filters.value['global'].value = null;
+    filteredValue.value = null;
 }
 
 const recalculateTotals = () => {
@@ -153,7 +151,58 @@ const submit = (transactionId) => {
 };
 
 const handleFilter = (e) => {
-    filteredValueCount.value = e.filteredValue.length;
+    filteredValue.value = e.filteredValue;
+};
+
+const exportXLSX = () => {
+    // Retrieve the array from the reactive proxy
+    const data = filteredValue.value;
+
+    // Specify the headers
+    const headers = [
+        trans('public.name'),
+        trans('public.email'),
+        trans('public.date'),
+        trans('public.from'),
+        trans('public.amount') + ' ($)',
+    ];
+
+    // Map the array data to XLSX rows
+    const rows = data.map(obj => {
+        const fromDisplay = obj.from === 'rebate_wallet' ? trans('public.' + obj.from) : obj.from || '';
+
+        return [
+            obj.user_name !== undefined ? obj.user_name : '',
+            obj.user_email !== undefined ? obj.user_email : '',
+            obj.created_at !== undefined ? dayjs(obj.created_at).format('YYYY/MM/DD') : '',
+            fromDisplay,
+            obj.transaction_amount !== undefined ? obj.transaction_amount : '',
+        ];
+    });
+
+    // Combine headers and rows into a single data array
+    const sheetData = [headers, ...rows];
+
+    // Create the XLSX content
+    let csvContent = "data:text/xlsx;charset=utf-8,";
+    
+    sheetData.forEach((rowArray) => {
+        const row = rowArray.join("\t"); // Use tabs for column separation
+        csvContent += row + "\r\n"; // Add a new line after each row
+    });
+
+    // Create a temporary link element
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "export.xlsx");
+
+    // Append the link to the document and trigger the download
+    document.body.appendChild(link);
+    link.click();
+
+    // Clean up by removing the link
+    document.body.removeChild(link);
 };
 
 </script>
@@ -166,7 +215,7 @@ const handleFilter = (e) => {
                 <DataTable
                     v-model:filters="filters"
                     :value="pendingWithdrawals"
-                    :paginator="pendingWithdrawals?.length > 0 && filteredValueCount > 0"
+                    :paginator="pendingWithdrawals?.length > 0 && filteredValue?.length > 0"
                     removableSort
                     :rows="10"
                     :rowsPerPageOptions="[10, 20, 50, 100]"
@@ -198,7 +247,7 @@ const handleFilter = (e) => {
                                 </div>
                                 <Button
                                     variant="primary-outlined"
-                                    @click="exportCSV($event)"
+                                    @click="filteredValue?.length > 0 ? exportXLSX($event) : null"
                                     class="w-full"
                                 >
                                     <IconDownload size="20" stroke-width="1.25" />
@@ -214,7 +263,7 @@ const handleFilter = (e) => {
                             <span class="text-sm text-gray-700">{{ $t('public.loading') }}</span>
                         </div>
                     </template>
-                    <template v-if="pendingWithdrawals?.length > 0 && filteredValueCount > 0">
+                    <template v-if="pendingWithdrawals?.length > 0 && filteredValue?.length > 0">
                         <Column field="name" sortable :header="$t('public.name')" style="width: 25%; max-width: 0;" class="px-3">
                             <template #body="slotProps">
                                 <div class="flex flex-col items-start max-w-full">
@@ -237,9 +286,9 @@ const handleFilter = (e) => {
                                 {{ slotProps.data.from === 'rebate_wallet' ? $t(`public.${slotProps.data.from}`) : slotProps.data.from }}
                             </template>
                         </Column>
-                        <Column field="amount" :header="`${$t('public.amount')}&nbsp;($)`" sortable style="width: 25%" class="px-3">
+                        <Column field="transaction_amount" :header="`${$t('public.amount')}&nbsp;($)`" sortable style="width: 25%" class="px-3">
                             <template #body="slotProps">
-                                {{ formatAmount(slotProps.data.amount) }}
+                                {{ formatAmount(slotProps.data.transaction_amount) }}
                             </template>
                         </Column>
                         <ColumnGroup type="footer">
@@ -270,7 +319,7 @@ const handleFilter = (e) => {
                                     <span class="self-stretch text-gray-500 text-sm truncate">{{ pendingData.user_email }}</span>
                                 </div>
                                 <div class="min-w-[180px] text-gray-950 font-semibold text-lg self-stretch md:text-right">
-                                    $ {{ formatAmount(pendingData.amount) }}
+                                    $ {{ formatAmount(pendingData.transaction_amount) }}
                                 </div>
                             </div>
 
@@ -349,7 +398,7 @@ const handleFilter = (e) => {
                                     <span class="self-stretch text-gray-500 text-sm truncate">{{ pendingData.user_email }}</span>
                                 </div>
                                 <div class="min-w-[180px] text-gray-950 font-semibold text-lg self-stretch md:text-right">
-                                    $ {{ formatAmount(pendingData.amount) }}
+                                    $ {{ formatAmount(pendingData.transaction_amount) }}
                                 </div>
                             </div>
 

@@ -11,22 +11,24 @@ import DeletedAccount from "@/Pages/Member/Account/Partials/DeletedAccount.vue";
 import Button from "@/Components/Button.vue";
 import { IconRefresh, IconDownload } from "@tabler/icons-vue";
 import { router } from "@inertiajs/vue3";
+import { trans, wTrans } from "laravel-vue-i18n";
+import dayjs from "dayjs";
 
 const props = defineProps({
     accountTypes: Array,
 });
 
-const dt = ref(null);
+const filteredValue = ref(null);
 
 const tabs = ref([
     {
         title: 'all_accounts',
-        component: h(AllAccount, { dt }),
+        component: h(AllAccount),
         type: 'all_accounts'
     },
     {
         title: 'deleted_accounts',
-        component: h(DeletedAccount, { dt }),
+        component: h(DeletedAccount),
         type: 'deleted_accounts'
     },
 ]);
@@ -51,10 +53,55 @@ const refreshAll = () => {
     router.post(route('member.refreshAllAccount'));
 };
 
-const exportCSV = () => {
-    if (dt.value) {
-        dt.value.exportCSV();
-    }
+const exportXLSX = () => {
+    // Retrieve the array from the reactive proxy
+    const data = filteredValue.value;
+
+    // Specify the headers
+    const headers = [
+        trans('public.name'),
+        trans('public.email'),
+        selectedType.value === 'all_accounts' ? trans('public.last_logged_in') : trans('public.deleted_time'),
+        trans('public.account'),
+        `${trans('public.balance')} ($)`,
+        `${trans('public.equity')} ($)`,
+    ];
+
+    // Map the array data to XLSX rows
+    const rows = data.map(obj => {
+        return [
+            obj.name !== undefined ? obj.name : '',
+            obj.email !== undefined ? obj.email : '',
+            selectedType.value === 'all_accounts' ? (obj.last_login !== undefined ? dayjs(obj.last_login).format('YYYY/MM/DD HH:mm:ss') : '' ) : (obj.deleted_at !== undefined ? dayjs(obj.deleted_at).format('YYYY/MM/DD HH:mm:ss') : ''),
+            obj.meta_login !== undefined ? obj.meta_login : '',
+            obj.balance !== undefined ? obj.balance : '',
+            obj.equity !== undefined ? obj.equity : '',
+        ];
+    });
+
+    // Combine headers and rows into a single data array
+    const sheetData = [headers, ...rows];
+
+    // Create the XLSX content
+    let csvContent = "data:text/xlsx;charset=utf-8,";
+    
+    sheetData.forEach((rowArray) => {
+        const row = rowArray.join("\t"); // Use tabs for column separation
+        csvContent += row + "\r\n"; // Add a new line after each row
+    });
+
+    // Create a temporary link element
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "export.xlsx");
+
+    // Append the link to the document and trigger the download
+    document.body.appendChild(link);
+    link.click();
+
+    // Clean up by removing the link
+    document.body.removeChild(link);
 };
 
 </script>
@@ -73,7 +120,7 @@ const exportCSV = () => {
                     </Tabs>
                 </div>
                 <div class="w-full md:w-auto flex flex-col-reverse items-center gap-3 md:flex-row md:gap-5">
-                    <Button variant="primary-outlined" @click="exportCSV" class="w-full md:w-auto">
+                    <Button variant="primary-outlined" @click="filteredValue?.length > 0 ? exportXLSX() : null" class="w-full md:w-auto">
                         <IconDownload size="20" stroke-width="1.25" />
                         {{ $t('public.export') }}
                     </Button>
@@ -87,7 +134,7 @@ const exportCSV = () => {
             <Tabs v-model:value="activeIndex" class="w-full">
                 <TabPanels>
                     <TabPanel :key="activeIndex" :value="activeIndex">
-                        <component :is="tabs[activeIndex].component" :key="tabs[activeIndex].type" :accountTypes="props.accountTypes" />
+                        <component :is="tabs[activeIndex].component" :key="tabs[activeIndex].type" :accountTypes="props.accountTypes" @update:filteredValue="filteredValue = $event" />
                     </TabPanel>
                 </TabPanels>
             </Tabs>

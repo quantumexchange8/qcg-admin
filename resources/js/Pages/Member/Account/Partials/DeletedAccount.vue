@@ -16,7 +16,6 @@ import dayjs from "dayjs";
 const { formatAmount } = transactionFormat();
 
 const props = defineProps({
-    dt: Object,
     accountTypes: Array,
 });
 
@@ -24,37 +23,11 @@ const loading = ref(false);
 const dt = ref(null);
 
 const accounts = ref();
-// const accounts = ref(
-//     [
-//         { 
-//             name: 'John Doe', 
-//             email: 'john.doe@example.com', 
-//             deleted_at: '2024-01-01T02:30:51Z', 
-//             meta_login: '8000798', 
-//             balance: 500.75, 
-//             equity: 1000.50
-//         },
-//         { 
-//             name: 'Jane Smith', 
-//             email: 'jane.smith@example.com', 
-//             deleted_at: '2024-02-01T05:10:34Z', 
-//             meta_login: '8000486', 
-//             balance: 750.00, 
-//             equity: 1200.00
-//         },
-//         { 
-//             name: 'Michael Brown', 
-//             email: 'michael.brown@example.com', 
-//             deleted_at: '2024-03-01T07:03:30Z', 
-//             meta_login: '8000153', 
-//             balance: 300.25, 
-//             equity: 800.00
-//         }
-//     ]
-// );
-const filteredValueCount = ref(0);
+const filteredValue = ref();
 const accountTypes = ref(props.accountTypes);
 const accountType = ref(null)
+
+const emit = defineEmits(['update:filteredValue']);
 
 const getResults = async () => {
     loading.value = true;
@@ -72,12 +45,6 @@ const getResults = async () => {
 };
 
 getResults();
-
-watch(() => props.dt, (newVal) => {
-    if (newVal) {
-        newVal.value = dt.value; // Pass DataTable ref to parent
-    }
-});
 
 const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -99,6 +66,7 @@ const clearFilter = () => {
     };
 
     accountType.value = null;
+    filteredValue.value = null;
 };
 
 // Watch for changes in accountType and update the filter
@@ -113,7 +81,8 @@ watchEffect(() => {
 });
 
 const handleFilter = (e) => {
-    filteredValueCount.value = e.filteredValue.length;
+    filteredValue.value = e.filteredValue;
+    emit('update:filteredValue', filteredValue.value);
 };
 
 </script>
@@ -122,7 +91,7 @@ const handleFilter = (e) => {
     <DataTable
         v-model:filters="filters"
         :value="accounts"
-        :paginator="accounts?.length > 0 && filteredValueCount > 0"
+        :paginator="accounts?.length > 0 && filteredValue?.length > 0"
         removableSort
         :rows="10"
         :rowsPerPageOptions="[10, 20, 50, 100]"
@@ -186,7 +155,7 @@ const handleFilter = (e) => {
                 <span class="text-sm text-gray-700">{{ $t('public.loading') }}</span>
             </div>
         </template>
-        <template v-if="accounts?.length > 0 && filteredValueCount > 0">
+        <template v-if="accounts?.length > 0 && filteredValue?.length > 0">
             <Column field="name" sortable :header="$t('public.name')" class="hidden md:table-cell w-[20%] max-w-0">
                 <template #body="slotProps">
                     <div class="flex flex-col items-start max-w-full">

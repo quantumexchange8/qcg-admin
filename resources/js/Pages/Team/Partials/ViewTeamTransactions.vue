@@ -71,8 +71,6 @@ const getResults = async (dateRanges = null) => {
     }
 };
 
-getResults();
-
 watch(selectedDate, (newDateRange) => {
     if (Array.isArray(newDateRange)) {
         const [startDate, endDate] = newDateRange;
@@ -89,21 +87,59 @@ watch(selectedDate, (newDateRange) => {
     }
 })
 
-const exportCSV = () => {
-    const dtComponent = dt.value;
+getResults([minDate.value, maxDate.value]);
 
-    // Manually specify the fields to include in the CSV export
-    const exportFields = [
-        { field: 'created_at', header: wTrans('public.date') },
-        { field: 'name', header: wTrans('public.name') },
-        { field: 'amount', header: `${wTrans('public.amount')}&nbsp;($)` },
-        { field: 'transaction_charges', header: `${wTrans('public.fee')}&nbsp;($)` },
-        { field: 'transaction_amount', header: `${wTrans('public.balance')}&nbsp;($)` },
+const exportXLSX = () => {
+    // Retrieve the array from the reactive proxy
+    const data = dt.value.value;
+
+    // Specify the headers
+    const headers = [
+        trans('public.name'),
+        trans('public.email'),
+        trans('public.date'),
+        trans('public.type'),
+        `${trans('public.amount')} ($)`,
+        `${trans('public.fee')} ($)`,
+        `${trans('public.balance')} ($)`,
     ];
 
-    dtComponent.exportCSV({
-        exportColumns: exportFields, // Specify columns for export
+    // Map the array data to XLSX rows
+    const rows = data.map(obj => {
+        return [
+            obj.name !== undefined ? obj.name : '',
+            obj.email !== undefined ? obj.email : '',
+            obj.created_at !== undefined ? dayjs(obj.created_at).format('YYYY/MM/DD') : '',
+            obj.transaction_type !== undefined ? obj.transaction_type : '',
+            obj.amount !== undefined ? obj.amount : '',
+            obj.transaction_charges !== undefined ? obj.transaction_charges : '',
+            obj.transaction_amount !== undefined ? obj.transaction_amount : '',
+        ];
     });
+
+    // Combine headers and rows into a single data array
+    const sheetData = [headers, ...rows];
+
+    // Create the XLSX content
+    let csvContent = "data:text/xlsx;charset=utf-8,";
+    
+    sheetData.forEach((rowArray) => {
+        const row = rowArray.join("\t"); // Use tabs for column separation
+        csvContent += row + "\r\n"; // Add a new line after each row
+    });
+
+    // Create a temporary link element
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "export.xlsx");
+
+    // Append the link to the document and trigger the download
+    document.body.appendChild(link);
+    link.click();
+
+    // Clean up by removing the link
+    document.body.removeChild(link);
 };
 </script>
 
@@ -144,7 +180,7 @@ const exportCSV = () => {
 
                         <Button
                             variant="primary-outlined"
-                            @click="exportCSV($event)"
+                            @click="transactions?.length > 0 ? exportXLSX($event) : null"
                             class="w-full md:w-auto"
                         >
                             <IconDownload size="20" stroke-width="1.25" />
@@ -192,7 +228,7 @@ const exportCSV = () => {
                 <Column field="transaction_amount" :header="`${$t('public.balance')}&nbsp;($)`" sortable style="width: 20%" class="hidden md:table-cell w-full max-w-0 truncate">
                     <template #body="slotProps">
                         <span :class="{
-                                'text-success-600': ['deposit', 'balance_in'].includes(slotProps.data.transaction_type),
+                                'text-success-600': ['deposit', 'balance_in', 'rebate_in'].includes(slotProps.data.transaction_type),
                                 'text-error-600': ['withdrawal', 'balance_out', 'rebate_out'].includes(slotProps.data.transaction_type)
                             }"
                         >

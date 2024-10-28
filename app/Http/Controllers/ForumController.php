@@ -126,13 +126,13 @@ class ForumController extends Controller
 
         $agents = User::role('agent')
             ->where('status', 'active')
-            ->select('id', 'first_name', 'email', 'id_no')
+            ->select('id', 'first_name', 'email', 'id_number')
             ->when($request->filled('search'), function ($query) use ($request) {
                 $search = $request->input('search');
                 $query->where(function ($q) use ($search) {
                     $q->where('first_name', 'like', '%' . $search . '%')
                         ->orWhere('email', 'like', '%' . $search . '%')
-                        ->orWhere('id_no', 'like', '%' . $search . '%');
+                        ->orWhere('id_number', 'like', '%' . $search . '%');
                 });
             })
             ->get()

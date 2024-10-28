@@ -33,7 +33,7 @@ const transactions = ref();
 const totalAmount = ref();
 const months = ref([]);
 const selectedMonths = ref([]);
-const filteredValueCount = ref(0);
+const filteredValue = ref();
 
 const modes = ref([
     { name: wTrans('public.personal'), value: 'personal' },
@@ -151,14 +151,62 @@ const clearFilter = () => {
         sales_category: { value: null, matchMode: FilterMatchMode.CONTAINS },
     };
     selectedMonths.value = [getCurrentMonthYear()];
+    filteredValue.value = null; 
 };
 
 const handleFilter = (e) => {
-    filteredValueCount.value = e.filteredValue.length;
+    filteredValue.value = e.filteredValue;
 };
 
-const exportCSV = () => {
-    dt.value.exportCSV();
+const exportXLSX = () => {
+    // Retrieve the array from the reactive proxy
+    const data = filteredValue.value;
+
+    // Specify the headers
+    const headers = [
+        trans('public.name'),
+        trans('public.email'),
+        trans('public.date'),
+        trans('public.mode'),
+        trans('public.sales_category'),
+        trans('public.amount') + ' ($)'
+    ];
+
+    // Map the array data to XLSX rows
+    const rows = data.map(obj => {
+        return [
+            obj.name !== undefined ? obj.name : '',
+            obj.email !== undefined ? obj.email : '',
+            obj.created_at !== undefined ? dayjs(obj.created_at).format('YYYY/MM/DD') : '',
+            obj.mode !== undefined ? trans('public.' + obj.mode) : '',
+            obj.sales_category !== undefined ? trans('public.' + obj.sales_category) : '',
+            obj.incentive_amount !== undefined ? obj.incentive_amount : ''
+        ];
+    });
+
+    // Combine headers and rows into a single data array
+    const sheetData = [headers, ...rows];
+
+    // Create the XLSX content
+    let csvContent = "data:text/xlsx;charset=utf-8,";
+    
+    sheetData.forEach((rowArray) => {
+        const row = rowArray.join("\t"); // Use tabs for column separation
+        csvContent += row + "\r\n"; // Add a new line after each row
+    });
+
+    // Create a temporary link element
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "export.xlsx");
+
+    // Append the link to the document and trigger the download
+    document.body.appendChild(link);
+    link.click();
+
+    // Clean up by removing the link
+    document.body.removeChild(link);
 };
 
 // dialog
@@ -213,7 +261,7 @@ const copyToClipboard = (text) => {
                             <IconCircleXFilled size="16" />
                         </div>
                     </div>
-                    <Button variant="primary-outlined" @click="exportCSV" class="w-full md:w-auto">
+                    <Button variant="primary-outlined" @click="filteredValue?.length > 0 ? exportXLSX() : null" class="w-full md:w-auto">
                         <IconDownload size="20" stroke-width="1.25" />
                         {{ $t('public.export') }}
                     </Button>
@@ -229,7 +277,7 @@ const copyToClipboard = (text) => {
                 v-else
                 v-model:filters="filters"
                 :value="transactions"
-                :paginator="transactions?.length > 0 && filteredValueCount > 0"
+                :paginator="transactions?.length > 0 && filteredValue?.length > 0"
                 removableSort
                 :rows="10"
                 :rowsPerPageOptions="[10, 20, 50, 100]"
@@ -314,7 +362,7 @@ const copyToClipboard = (text) => {
                         <span class="text-sm text-gray-700">{{ $t('public.loading') }}</span>
                     </div>
                 </template>
-                <template v-if="transactions?.length > 0 && filteredValueCount > 0">
+                <template v-if="transactions?.length > 0 && filteredValue?.length > 0">
                     <Column field="name" sortable :header="$t('public.name')" class="w-1/2 md:w-[20%] max-w-0 px-3">
                         <template #body="slotProps">
                             <div class="flex flex-col items-start max-w-full">

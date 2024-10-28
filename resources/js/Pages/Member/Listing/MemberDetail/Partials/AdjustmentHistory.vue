@@ -60,8 +60,10 @@ const toggleExpand = (index) => {
             scrollHeight="350px"
         >
             <template #empty>
-                <Empty class="h-[280px]" :message="$t('public.no_history_yet')">
-                    <template #image></template>
+                <Empty :message="$t('public.no_history_yet')">
+                    <template #image>
+                        <div class="w-60 h-[100px]"></div>
+                    </template>
                 </Empty>
             </template>
             <template #loading>
@@ -115,8 +117,9 @@ const toggleExpand = (index) => {
         </DataTable>
 
         <div v-if="adjustmentHistories?.length <= 0" class="flex flex-col items-center flex-1 self-stretch md:hidden">
-            <Empty class="h-[280px]" :message="$t('public.no_history_yet')">
-                <template #image></template>
+            <Empty :message="$t('public.no_history_yet')">
+                <template #image>
+                </template>
             </Empty>
         </div>
 

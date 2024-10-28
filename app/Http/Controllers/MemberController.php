@@ -33,6 +33,22 @@ class MemberController extends Controller
 {
     public function listing()
     {
+        // // Retrieve all members and agents
+        // $users = User::whereIn('role', ['member', 'agent'])->where('id_number', null)->get();
+
+        // // Iterate over each user to set their id_number
+        // foreach ($users as $user) {
+        //     // Generate id_number based on role
+        //     if ($user->role === 'agent') {
+        //         $user->id_number = 'AID' . Str::padLeft($user->id, 5, "0");
+        //     } elseif ($user->role === 'member') {
+        //         $user->id_number = 'MID' . Str::padLeft($user->id, 5, "0");
+        //     }
+
+        //     // Save the updated id_number back to the database
+        //     $user->save();
+        // }
+
         $totalMembers = User::where('role', 'member')->count();
         $totalAgents = User::where('role', 'agent')->count();
     
@@ -117,7 +133,7 @@ class MemberController extends Controller
         $user->setReferralId();
 
         $id_no = ($user->role == 'agent' ? 'AID' : 'MID') . Str::padLeft($user->id, 5, "0");
-        // $user->id_number = $id_no;
+        $user->id_number = $id_no;
         $user->save();
 
         if ($upline->teamHasUser) {
@@ -127,7 +143,7 @@ class MemberController extends Controller
         Wallet::create([
             'user_id' => $user->id,
             'type' => 'rebate_wallet',
-            // 'address' => str_replace('AID', 'RB', $user->id_number),
+            'address' => 'RB' . Str::padLeft($user->id, 5, "0"),
             'balance' => 0
         ]);
 
