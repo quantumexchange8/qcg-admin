@@ -173,7 +173,7 @@ const exportXLSX = () => {
 
     // Map the array data to XLSX rows
     const rows = data.map(obj => {
-        const toDisplay = obj.to_meta_login ? obj.to_meta_login : trans('public.' + obj.to_wallet_name) || '';
+        const toDisplay = obj.to_meta_login ? obj.to_meta_login : (obj.to_wallet_name ? trans('public.' + obj.to_wallet_name) : '');
 
         return [
             obj.name !== undefined ? obj.name : '',
