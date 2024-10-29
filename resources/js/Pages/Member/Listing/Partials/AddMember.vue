@@ -36,6 +36,10 @@ const form = useForm({
     password_confirmation: '',
 });
 
+const countries = ref(props.countries)
+const uplines = ref(props.uplines)
+const selectedCountry = ref();
+
 const submitForm = () => {
     form.dial_code = selectedCountry.value;
 
@@ -51,26 +55,6 @@ const submitForm = () => {
     });
 };
 
-const countries = ref(props.countries)
-const uplines = ref(props.uplines)
-const selectedCountry = ref();
-// const getResults = async () => {
-//     try {
-//         const response = await axios.get('/member/getFilterData');
-//         countries.value = response.data.countries;
-//         uplines.value = response.data.uplines;
-//     } catch (error) {
-//         console.error('Error changing locale:', error);
-//     }
-// };
-
-// getResults();
-
-// watchEffect(() => {
-//     if (usePage().props.toast !== null) {
-//         getResults();
-//     }
-// });
 </script>
 
 <template>
@@ -137,7 +121,7 @@ const selectedCountry = ref();
                                     :placeholder="$t('public.phone_code')"
                                     class="w-[100px]"
                                     scroll-height="236px"
-                                    :invalid="!!form.errors.phone"
+                                    :invalid="!!form.errors.dial_code"
                                 >
                                     <template #value="slotProps">
                                         <div v-if="slotProps.value" class="flex items-center">

@@ -27,17 +27,6 @@ const selectedCountry = ref();
 const { formatRgbaColor } = generalFormat();
 const { formatAmount } = transactionFormat();
 
-watch(() => props.userDetail, (user) => {
-    form.user_id = props.userDetail.id
-    form.name = props.userDetail.name
-    form.email = props.userDetail.email
-    form.phone = props.userDetail.phone
-});
-
-watch(countries, () => {
-    selectedCountry.value = countries.value.find(country => country.phone_code === props.userDetail.dial_code);
-});
-
 const openDialog = () => {
     visible.value = true
 }
@@ -49,6 +38,17 @@ const form = useForm({
     dial_code: '',
     phone: '',
     phone_number: '',
+});
+
+watch(() => props.userDetail, (user) => {
+    form.user_id = props.userDetail.id
+    form.name = props.userDetail.name
+    form.email = props.userDetail.email
+    form.phone = props.userDetail.phone
+
+    // Set selectedCountry based on dial_code
+    selectedCountry.value = countries.value.find(country => country.phone_code === user.dial_code);
+
 });
 
 const submitForm = () => {
@@ -218,7 +218,7 @@ const submitForm = () => {
                             :placeholder="$t('public.phone_code')"
                             class="w-[100px]"
                             scroll-height="236px"
-                            :invalid="!!form.errors.phone"
+                            :invalid="!!form.errors.dial_code"
                         >
                             <template #value="slotProps">
                                 <div v-if="slotProps.value" class="flex items-center">

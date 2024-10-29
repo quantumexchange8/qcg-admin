@@ -37,8 +37,11 @@ class TeamController extends Controller
             'total_charges' => 0,
         ];
 
-        $startDate = $request->input('startDate') ? Carbon::createFromFormat('Y/m/d', $request->input('startDate'))->startOfDay() : '2020/01/01';
-        $endDate = $request->input('endDate') ? Carbon::createFromFormat('Y/m/d', $request->input('endDate'))->endOfDay() : today()->endOfDay();
+        $startDateInput = $request->input('startDate', '2020/01/01');
+        $endDateInput = $request->input('endDate', today()->endOfDay()->format('Y/m/d'));
+            
+        $startDate = Carbon::createFromFormat('Y/m/d', $startDateInput)->startOfDay();
+        $endDate = Carbon::createFromFormat('Y/m/d', $endDateInput)->endOfDay();
 
         $teams = Team::get()
             ->map(function ($team) use ($request, $startDate, $endDate, &$totals) {
@@ -201,7 +204,7 @@ class TeamController extends Controller
                 ->whereDate('approved_at', '<=', $endDate);
         } else {
             // Apply default start date if no endDate is provided
-            $query->whereDate('approved_at', '>=', '2024-01-01');
+            $query->whereDate('approved_at', '>=', '2020-01-01');
         }
 
         // Execute the query and get the results
@@ -427,7 +430,7 @@ class TeamController extends Controller
 
     public function deleteTeam(Request $request)
     {
-        TeamHasUser::where('team_id', $request->id)->delete();
+        TeamHasUser::where('team_id', $request->id)->update(['team_id' => 1]);
 
         Team::destroy($request->id);
 
@@ -446,7 +449,7 @@ class TeamController extends Controller
                 ->pluck('user_id')
                 ->toArray();
 
-            $startDateInput = $request->input('startDate', now()->startOfYear()->format('Y/m/d'));
+            $startDateInput = $request->input('startDate', '2020/01/01');
             $endDateInput = $request->input('endDate', today()->endOfDay()->format('Y/m/d'));
                 
             $startDate = Carbon::createFromFormat('Y/m/d', $startDateInput)->startOfDay();

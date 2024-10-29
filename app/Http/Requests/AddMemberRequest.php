@@ -14,7 +14,7 @@ class AddMemberRequest extends FormRequest
             'name' => ['required', 'regex:/^[a-zA-Z0-9\p{Han}. ]+$/u', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:' . User::class],
             'dial_code' => ['required'],
-            'phone' => ['required', 'max:255', 'unique:' . User::class],
+            'phone' => ['required', 'regex:/^[0-9]+$/', 'unique:' . User::class],
             'password' => ['required', Password::min(8)->letters()->symbols()->numbers()->mixedCase(), 'confirmed'],
             'password_confirmation' => ['required','same:password'],
             'upline' => ['required'],
@@ -31,6 +31,7 @@ class AddMemberRequest extends FormRequest
         return [
             'name' => trans('public.full_name'),
             'email' => trans('public.email'),
+            'dial_code' => trans('public.phone_code'),
             'phone' => trans('public.phone_number'),
             'password' => trans('public.password'),
             'password_confirmation' => trans('public.confirm_password'),

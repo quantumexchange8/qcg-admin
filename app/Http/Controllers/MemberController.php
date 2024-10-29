@@ -20,14 +20,15 @@ use App\Services\CTraderService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Jobs\TeamMemberAssignmentJob;
 use App\Services\RunningNumberService;
 use App\Http\Requests\AddMemberRequest;
 use App\Services\DropdownOptionService;
 use App\Services\ChangeTraderBalanceType;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
-use Illuminate\Validation\ValidationException;
 use App\Http\Controllers\GeneralController;
+use Illuminate\Validation\ValidationException;
 
 class MemberController extends Controller
 {
@@ -237,6 +238,11 @@ class MemberController extends Controller
         $user->hierarchyList = $newUpline->hierarchyList . $newUpline->id . '-';
         $user->upline_id = $newUpline->id;
     
+        // Update the user's team relationship
+        if ($newUpline->teamHasUser) {
+            $user->assignedTeam($newUpline->teamHasUser->team_id);
+        }
+
         // Save the updated hierarchyList and upline_id for the user
         $user->save();
 
@@ -274,17 +280,22 @@ class MemberController extends Controller
     
             // Step 4: If the related user is an agent, set their RebateAllocation amounts to 0
             if ($relatedUser->role === 'agent') {
-                // Retrieve all RebateAllocations for the related user
-                $rebateAllocations = RebateAllocation::where('user_id', $relatedUser->id)->get();
-    
-                // Set the amount of each RebateAllocation to 0
-                foreach ($rebateAllocations as $rebateAllocation) {
-                    $rebateAllocation->amount = 0; // Set amount to 0
-                    $rebateAllocation->save();      // Save the updated record
-                }
+                RebateAllocation::where('user_id', $relatedUser->id)->update(['amount' => 0]);
             }
         }
     
+        // Step 5 update the related user team has user as transfer upline will change team as well
+        // Get the team_id from the new upline's teamHasUser relationship
+        $team_id = $newUpline->teamHasUse->team_id;
+
+        $relatedUserIds = $relatedUsers->pluck('id')->toArray();
+
+        // If the team_id is valid, dispatch the job
+        if ($team_id) {
+            // Dispatch with all user IDs and team_id, similar to your example
+            TeamMemberAssignmentJob::dispatch($relatedUserIds, $team_id);
+        }
+
         // Return a success response
         return back()->with('toast', [
             'title' => trans('public.toast_transfer_upline_success'),
@@ -481,13 +492,13 @@ class MemberController extends Controller
             'name' => ['required', 'regex:/^[a-zA-Z0-9\p{Han}. ]+$/u', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique(User::class)->ignore($request->user_id)],
             'dial_code' => ['required'],
-            'phone' => ['required', 'max:255'],
-            'phone_number' => ['required', 'max:255', Rule::unique(User::class)->ignore($request->user_id)],
+            'phone' => ['required', 'regex:/^[0-9]+$/'],
+            'phone_number' => ['required', Rule::unique(User::class)->ignore($request->user_id)],
         ])->setAttributeNames([
             'name' => trans('public.name'),
             'email' => trans('public.email'),
             'dial_code' => trans('public.phone_code'),
-            'phone' => trans('public.phone'),
+            'phone' => trans('public.phone_number'),
             'phone_number' => trans('public.phone_number'),
         ]);
         $validator->validate();
@@ -845,6 +856,7 @@ class MemberController extends Controller
         $user->transactions()->delete();
         $user->paymentAccounts()->delete();
         $user->rebateAllocations()->delete();
+        $user->teamHasUser()->delete();
         $user->rebate_wallet()->delete();
         $user->incentive_wallet()->delete();
         $user->delete();
