@@ -178,7 +178,7 @@ watchEffect(() => {
                             $&nbsp;<Vue3autocounter ref="counter" :startAmount="0" :endAmount="Number(item.total)" :duration="counterDuration" separator="," decimalSeparator="." :decimals="2" :autoinit="true" />
                         </template>
                         <template v-else>
-                            {{ formatAmount(item.total, 0) }}
+                            <Vue3autocounter ref="counter" :startAmount="0" :endAmount="Number(item.total)" :duration="counterDuration" separator="," decimalSeparator="." :decimals="0" :autoinit="true" />
                         </template>
                     </div>
                 </div>
