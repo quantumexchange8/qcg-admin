@@ -97,7 +97,7 @@ watch(selectedTeam, (newTeam) => {
 });
 
 const clearGlobal = () => {
-    selectedMonths.value = [];
+    selectedMonths.value = [getCurrentMonthYear()];
     selectedTeam.value = null;
 };
 
