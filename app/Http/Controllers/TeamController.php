@@ -248,7 +248,7 @@ class TeamController extends Controller
     public function editTeam(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'team_name' => ['required', 'string', 'unique:teams,name,' . $request->team_id],
+            'team_name' => ['required', 'string', 'unique:teams,name,' . $request->team_id . ',id,deleted_at,NULL',],
             'fee_charge' => ['required'],
             'color' => ['required'],
         ])->setAttributeNames([
