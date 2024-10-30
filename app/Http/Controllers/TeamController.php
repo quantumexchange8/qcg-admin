@@ -228,7 +228,13 @@ class TeamController extends Controller
         // Calculate total values
         $totalAmount = $transactions->sum('amount');
         $totalFee = $transactions->sum('transaction_charges');
-        $totalBalance = $transactions->sum('transaction_amount');
+        
+        // Calculate total values
+        $totalDeposit = $transactions->whereIn('transaction_type', ['deposit', 'balance_in', 'rebate_in'])->sum('amount');
+        $totalWithdrawals = $transactions->whereIn('transaction_type', ['withdrawal', 'balance_out', 'rebate_out'])->sum('amount');
+
+        // Calculate total balance
+        $totalBalance = $totalDeposit - $totalWithdrawals;
 
         // Return response with totals
         return response()->json([
