@@ -838,6 +838,9 @@ class MemberController extends Controller
             }
         }
     
+        // Get the upline's team ID using the upline relationship
+        $teamId = $user->upline?->teamHasUser->team_id ?? 1;
+
         // If trading accounts or users do not exist, handle user deletion without cTrader logic
         $relatedUsers = User::where('hierarchyList', 'like', '%-' . $user->id . '-%')->get();
     
@@ -849,6 +852,8 @@ class MemberController extends Controller
             $hierarchyArray = array_filter(explode('-', $updatedHierarchyList));
             $relatedUser->upline_id = !empty($hierarchyArray) ? end($hierarchyArray) : null;
     
+            $relatedUser->assignedTeam($teamId);
+
             $relatedUser->save();
         }
     
