@@ -187,7 +187,7 @@ class TransactionController extends Controller
                 ->whereDate('execute_at', '<=', $endDate);
         } else {
             // Apply default start date if no endDate is provided
-            $query->whereDate('execute_at', '>=', '2024-01-01');
+            $query->whereDate('execute_at', '>=', '2020-01-01');
         }
 
         // Fetch and map summarized data from TradeRebateSummary

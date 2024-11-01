@@ -63,7 +63,7 @@ class DashboardController extends Controller
 
     public function getAccountData()
     {
-        $from = '2024-01-01T00:00:00.000';
+        $from = '2020-01-01T00:00:00.000';
         $to = now()->format('Y-m-d\TH:i:s.v');
 
         // Standard Account and Premium Account group IDs

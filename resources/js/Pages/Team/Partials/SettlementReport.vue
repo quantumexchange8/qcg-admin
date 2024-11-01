@@ -1,6 +1,7 @@
 <script setup>
 import Button from "@/Components/Button.vue";
-import { onMounted, ref, watch } from "vue";
+import { onMounted, ref, watch, watchEffect } from "vue";
+import { usePage } from '@inertiajs/vue3';
 import Dialog from "primevue/dialog";
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
@@ -23,7 +24,7 @@ import { trans, wTrans } from "laravel-vue-i18n";
 const visible = ref(false);
 const dt = ref();
 const settlementReports = ref();
-const expandedRows = ref({});
+const expandedRows = ref([{}]);
 const months = ref([]);
 const teams = ref([]);
 const selectedMonths = ref([]);
@@ -104,7 +105,6 @@ const clearGlobal = () => {
 const exportXLSX = () => {
     // Retrieve the array from the reactive proxy
     const data = dt.value?.value || [];
-    const expandableData = data.flatMap(item => item.team_settlements || []);
 
     // Specify the headers
     const headers = [
@@ -118,26 +118,32 @@ const exportXLSX = () => {
         `${trans('public.balance')} ($)`,
     ];
 
-    // Map the main data to rows
-    const mainRows = data.map(obj => [
-        obj.month ? dayjs(obj.month).format('MMMM YYYY') : '',
-        obj.total_fee ?? '',
-        obj.total_balance ?? '',
-        '', '', '', '', ''  // Empty cells for expandable columns
-    ]);
+    // Map the main data to rows with expandable data nested directly after each main row
+    const sheetData = [headers];
 
-    // Map the expandable data to rows
-    const expandableRows = expandableData.map(obj => [
-        '', '', '',  // Empty cells for non-expandable columns
-        obj.team_name ?? '',
-        obj.team_deposit ?? '',
-        obj.team_withdrawal ?? '',
-        obj.team_fee ?? '',
-        obj.team_balance ?? ''
-    ]);
+    data.forEach(obj => {
+        // Add main row
+        const mainRow = [
+            obj.month ? dayjs(obj.month).format('MMMM YYYY') : '',
+            obj.total_fee ?? '',
+            obj.total_balance ?? '',
+            '', '', '', '', ''  // Empty cells for expandable columns
+        ];
+        sheetData.push(mainRow);
 
-    // Combine headers, main rows, and expandable rows
-    const sheetData = [headers, ...mainRows, ...expandableRows];
+        // Add each expandable row associated with this main row
+        (obj.team_settlements || []).forEach(teamSettlement => {
+            const expandableRow = [
+                '', '', '',  // Empty cells for non-expandable columns
+                teamSettlement.team_name ?? '',
+                teamSettlement.team_deposit ?? '',
+                teamSettlement.team_withdrawal ?? '',
+                teamSettlement.team_fee ?? '',
+                teamSettlement.team_balance ?? ''
+            ];
+            sheetData.push(expandableRow);
+        });
+    });
 
     // Create the XLSX content as tab-separated text
     let xlsxContent = "data:text/xlsx;charset=utf-8,";
@@ -164,6 +170,13 @@ const expandAll = () => {
 const collapseAll = () => {
     expandedRows.value = null;
 };
+
+watchEffect(() => {
+    if (usePage().props.toast !== null) {
+        getSettlementMonths();
+        getTeams();
+    }
+});
 
 </script>
 
@@ -193,7 +206,7 @@ const collapseAll = () => {
             <DataTable
                 v-model:expandedRows="expandedRows"
                 :value="settlementReports"
-                dataKey="id"
+                dataKey="month"
                 removable-sort
                 ref="dt"
             >
