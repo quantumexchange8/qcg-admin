@@ -109,7 +109,7 @@ const exportXLSX = () => {
         return [
             obj.name !== undefined ? obj.name : '',
             obj.email !== undefined ? obj.email : '',
-            obj.created_at !== undefined ? dayjs(obj.created_at).format('YYYY/MM/DD') : '',
+            obj.approved_at !== undefined ? dayjs(obj.approved_at).format('YYYY/MM/DD') : '',
             obj.transaction_type !== undefined ? obj.transaction_type : '',
             obj.amount !== undefined ? obj.amount : '',
             obj.transaction_charges !== undefined ? obj.transaction_charges : '',
@@ -210,9 +210,9 @@ const exportXLSX = () => {
                         </div>
                     </template>
                 </Column>
-                <Column field="created_at" :header="$t('public.date')" sortable style="width: 20%" class="hidden md:table-cell">
+                <Column field="approved_at" :header="$t('public.date')" sortable style="width: 20%" class="hidden md:table-cell">
                     <template #body="slotProps">
-                        {{ dayjs(slotProps.data.created_at).format('YYYY/MM/DD') }}
+                        {{ dayjs(slotProps.data.approved_at).format('YYYY/MM/DD') }}
                     </template>
                 </Column>
                 <Column field="amount" :header="`${$t('public.amount')}&nbsp;($)`" sortable style="width: 20%" class="hidden md:table-cell">
@@ -249,7 +249,7 @@ const exportXLSX = () => {
                         <div class="max-w-full truncate flex flex-col items-start gap-1 self-stretch">
                             <span class="max-w-full truncate  self-stretch text-base text-gray-950 font-semibold">{{ slotProps.data.name }}</span>
                             <div class="max-w-full truncate text-gray-500 text-xs">
-                                {{ dayjs(slotProps.data.created_at).format('YYYY/MM/DD') }}
+                                {{ dayjs(slotProps.data.approved_at).format('YYYY/MM/DD') }}
                             </div>
                         </div>
                     </template>

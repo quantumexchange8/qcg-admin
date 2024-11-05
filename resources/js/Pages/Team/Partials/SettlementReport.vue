@@ -165,7 +165,7 @@ const exportXLSX = () => {
 };
 
 const expandAll = () => {
-    expandedRows.value = settlementReports.value.reduce((acc, p) => (acc[p.id] = true) && acc, {});
+    expandedRows.value = settlementReports.value.reduce((acc, p) => (acc[p.month] = true) && acc, {});
 };
 const collapseAll = () => {
     expandedRows.value = null;
@@ -320,23 +320,23 @@ watchEffect(() => {
                         removable-sort
                         class="pl-12 md:pl-16"
                     >
-                        <Column field="team_name" :header="$t('public.sales_team')" class="text-nowrap hidden md:table-cell w-[15%] px-3" />
-                        <Column field="team_deposit" :header="$t('public.deposit') + '&nbsp;($)'" sortable class="hidden md:table-cell w-[20%] px-3">
+                        <Column field="team_name" :header="$t('public.sales_team')" class="text-nowrap hidden md:table-cell w-[15%] px-3 border-transparent" />
+                        <Column field="team_deposit" :header="$t('public.deposit') + '&nbsp;($)'" class="hidden md:table-cell w-[20%] px-3 border-transparent">
                             <template #body="slotProps">
                                 {{ formatAmount(slotProps.data.team_deposit) }}
                             </template>
                         </Column>
-                        <Column field="team_withdrawal" :header="$t('public.withdrawal') + '&nbsp;($)'" sortable class="hidden md:table-cell w-[20%] px-3">
+                        <Column field="team_withdrawal" :header="$t('public.withdrawal') + '&nbsp;($)'" class="hidden md:table-cell w-[20%] px-3 border-transparent">
                             <template #body="slotProps">
                                 {{ formatAmount(slotProps.data.team_withdrawal) }}
                             </template>
                         </Column>
-                        <Column field="team_fee" :header="$t('public.fee') + '&nbsp;($)'" sortable class="hidden md:table-cell w-[20%] px-3">
+                        <Column field="team_fee" :header="$t('public.fee') + '&nbsp;($)'" class="hidden md:table-cell w-[20%] px-3 border-transparent">
                             <template #body="slotProps">
                                 {{ formatAmount(slotProps.data.team_fee) }}
                             </template>
                         </Column>
-                        <Column field="team_balance" :header="$t('public.balance') + '&nbsp;($)'" sortable class="hidden md:table-cell w-[20%] px-3">
+                        <Column field="team_balance" :header="$t('public.balance') + '&nbsp;($)'" class="hidden md:table-cell w-[20%] px-3 border-transparent">
                             <template #body="slotProps">
                                 {{ formatAmount(slotProps.data.team_balance) }}
                             </template>
