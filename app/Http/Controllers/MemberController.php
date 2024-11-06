@@ -17,6 +17,7 @@ use App\Models\TradingAccount;
 use Illuminate\Validation\Rule;
 use App\Models\RebateAllocation;
 use App\Services\CTraderService;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -137,6 +138,13 @@ class MemberController extends Controller
         $user->id_number = $id_no;
         $user->save();
 
+        // create ct id to link ctrader account
+        if (App::environment('production')) {
+            $ctUser = (new CTraderService)->CreateCTID($user->email);
+            $user->ct_user_id = $ctUser['userId'];
+            $user->save();
+        }
+        
         if ($upline->teamHasUser) {
             $user->assignedTeam($upline->teamHasUser->team_id);
         }
