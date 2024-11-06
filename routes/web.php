@@ -40,6 +40,7 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
     Route::get('/getWalletData', [GeneralController::class, 'getWalletData'])->name('getWalletData');
     Route::get('/getLeverages', [GeneralController::class, 'getLeverages'])->name('getLeverages');
     Route::get('/getTradingAccountData', [GeneralController::class, 'getTradingAccountData'])->name('getTradingAccountData');
+    Route::get('/updateAccountData', [GeneralController::class, 'updateAccountData'])->name('updateAccountData');
     Route::get('/getTransactionMonths', [GeneralController::class, 'getTransactionMonths'])->name('getTransactionMonths');    
     Route::get('/getSettlementMonths', [GeneralController::class, 'getSettlementMonths'])->name('getSettlementMonths');    
     Route::get('/getAccountTypes', [GeneralController::class, 'getAccountTypes'])->name('getAccountTypes');    

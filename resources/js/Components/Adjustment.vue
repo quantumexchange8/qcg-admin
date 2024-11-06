@@ -19,13 +19,11 @@ const props = defineProps({
 
 const isLoading = ref(false);
 const walletData = ref(null);
-const accountData = ref(props.account ? [props.account] : []);
-const selectedAccount = ref(accountData.value.length ? accountData.value[0] : null);
+const accountData = ref(null);
+const selectedAccount = ref(null);
 const { formatAmount } = transactionFormat();
 const emit = defineEmits(['update:visible']);
 const getResults = async () => {
-    if (props.account) return; // Skip API call if account data is passed
-
     isLoading.value = true;
 
     try {
@@ -33,6 +31,11 @@ const getResults = async () => {
         if (props.type == 'rebate') {
             response = await axios.get(`/getWalletData?user_id=${props.member.id}`);
             walletData.value = response.data.walletData;
+        } else if (props.account) {
+            response = await axios.get(`/updateAccountData?meta_login=${props.account.meta_login}`);
+            const updatedAccount = response.data;
+            accountData.value = [updatedAccount];
+            selectedAccount.value = updatedAccount;
         } else {
             response = await axios.get(`/getTradingAccountData?user_id=${props.member.id}`);
             accountData.value = response.data.accountData;

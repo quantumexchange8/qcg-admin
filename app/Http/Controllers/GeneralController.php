@@ -77,6 +77,40 @@ class GeneralController extends Controller
         return collect(['accountData' => $accountData]);
     }
 
+    public function updateAccountData(Request $request)
+    {
+        $conn = (new CTraderService)->connectionStatus();
+        if ($conn['code'] != 0) {
+            return collect([
+                'toast' => [
+                    'title' => 'Connection Error',
+                    'type' => 'error'
+                ]
+            ]);
+        }
+        
+        try {
+            // Fetch updated account info using CTraderService
+            (new CTraderService)->getUserInfo($request->meta_login);
+    
+            $updatedAccount = TradingAccount::where('meta_login', $request->meta_login)->first();
+    
+            return response()->json([
+                'meta_login' => $updatedAccount->meta_login,
+                'balance' => $updatedAccount->balance,
+                'credit' => $updatedAccount->credit,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error("Error processing account {$request->meta_login}: " . $e->getMessage());
+    
+            return response()->json([
+                'meta_login' => $request->meta_login,
+                'balance' => 0,
+                'credit' => 0,
+            ]);
+        }
+    }
+    
     public function getLeverages($returnAsArray = false)
     {
         $leverages = SettingLeverage::where('status', 'active')->get()
