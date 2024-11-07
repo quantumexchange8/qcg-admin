@@ -742,7 +742,7 @@ class MemberController extends Controller
         }
     
         // Fetch trading accounts based on user ID
-        $tradingAccounts = TradingAccount::query()
+        $tradingAccounts = TradingAccount::with('trading_user:meta_login,last_access')
             ->where('user_id', $request->id)
             ->get() // Fetch the results from the database
             ->map(function($trading_account) {
@@ -755,7 +755,7 @@ class MemberController extends Controller
                     'credit' => $trading_account->credit,
                     'equity' => $trading_account->equity,
                     'leverage' => $trading_account->margin_leverage,
-                    'updated_at' => $trading_account->updated_at,
+                    'last_access' => $trading_account->trading_user->last_access,
                 ];
             });
     

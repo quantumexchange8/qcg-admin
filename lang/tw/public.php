@@ -137,7 +137,7 @@ return [
     'upgrade' => "升級",
     'toast_upgrade_to_agent_success' => "您已成功升級了一名會員!",
     'rebate_balance' => "返傭餘額",
-    'current_account_balance' => "交易賬戶餘額",
+    'available_account_balance' => "可用交易帳戶餘額",
     'current_account_credit' => "交易賬戶信用額",
     'trading_account' => "交易賬戶",
     'action' => "執行",

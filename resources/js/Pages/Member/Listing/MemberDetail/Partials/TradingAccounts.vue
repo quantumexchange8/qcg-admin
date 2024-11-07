@@ -79,7 +79,7 @@ const requireConfirmation = (action_type, meta_login) => {
                 router.visit(route('member.accountDelete'), {
                     method: 'delete',
                     data: {
-                        id: props.member.id,
+                        meta_login: meta_login,
                     },
                 })
             }
@@ -131,7 +131,7 @@ const requireConfirmation = (action_type, meta_login) => {
                     >
                         {{ $t('public.' + tradingAccount.account_type) }}
                     </div>
-                    <div v-if="isInactive(tradingAccount.updated_at)" class="text-error-500">
+                    <div v-if="isInactive(tradingAccount.last_access)" class="text-error-500">
                         <IconAlertCircleFilled :size="20" stroke-width="1.25" />
                     </div>
                 </div>
