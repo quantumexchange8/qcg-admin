@@ -63,7 +63,6 @@ class TradingAccountController extends Controller
                         'credit' => $account->credit,
                         'leverage' => $account->leverage,
                         'last_login' => $account->last_access,
-                        'last_login_days' => Carbon::parse($account->last_access)->diffInDays(today()),
                         'account_type_id' => $account->accountType->id,
                         'account_type' => $account->accountType->name,
                     ];
@@ -92,7 +91,6 @@ class TradingAccountController extends Controller
                         'leverage' => $account->leverage,
                         'deleted_at' => $account->deleted_at,
                         'last_login' => $account->last_access,
-                        'last_login_days' => Carbon::parse($account->last_access)->diffInDays(today()),
                         'account_type_id' => $account->accountType->id,
                         'account_type' => $account->accountType->name,
                     ];
@@ -145,11 +143,11 @@ class TradingAccountController extends Controller
         $type = $request->type;
         $amount = $request->amount;
 
-        if ($type === 'account_balance' && $action === 'balance_out' && ($trading_account->cash_equity) < $amount) {
+        if ($type === 'account_balance' && $action === 'balance_out' && ($trading_account->balance - $trading_account->credit) < $amount) {
             throw ValidationException::withMessages(['amount' => trans('public.insufficient_balance')]);
         }
 
-        if ($type === 'account_credit' && $action === 'credit_out' && $trading_account->cash_equity < $amount) {
+        if ($type === 'account_credit' && $action === 'credit_out' && $trading_account->credit < $amount) {
             throw ValidationException::withMessages(['amount' => trans('public.insufficient_credit')]);
         }
 

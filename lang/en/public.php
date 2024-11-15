@@ -137,7 +137,7 @@ return [
     'upgrade' => "Upgrade",
     'toast_upgrade_to_agent_success' => "You've successfully upgraded a member!",
     'rebate_balance' => "Rebate Balance",
-    'current_account_balance' => "Current Account Balance",
+    'available_account_balance' => "Available Account Balance",
     'current_account_credit' => "Current Account Credit",
     'trading_account' => "Trading Account",
     'action' => "Action",

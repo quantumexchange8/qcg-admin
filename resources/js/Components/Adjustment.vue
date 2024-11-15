@@ -28,14 +28,14 @@ const getResults = async () => {
 
     try {
         let response;
-        if (props.type == 'rebate') {
-            response = await axios.get(`/getWalletData?user_id=${props.member.id}`);
-            walletData.value = response.data.walletData;
-        } else if (props.account) {
+        if (props.account) {
             response = await axios.get(`/updateAccountData?meta_login=${props.account.meta_login}`);
             const updatedAccount = response.data;
             accountData.value = [updatedAccount];
             selectedAccount.value = updatedAccount;
+        } else if (props.type == 'rebate') {
+            response = await axios.get(`/getWalletData?user_id=${props.member.id}`);
+            walletData.value = response.data.walletData;
         } else {
             response = await axios.get(`/getTradingAccountData?user_id=${props.member.id}`);
             accountData.value = response.data.accountData;
@@ -156,7 +156,7 @@ const submitForm = () => {
                     {{
                         type === 'rebate' 
                         ? $t('public.rebate_balance') 
-                        : `#${selectedAccount ? selectedAccount.meta_login : '' } - ${type === 'account_balance' ? $t('public.current_account_balance') : $t('public.current_account_credit')}`
+                        : `#${selectedAccount ? selectedAccount.meta_login : '' } - ${type === 'account_balance' ? $t('public.available_account_balance') : $t('public.current_account_credit')}`
                     }}
                 </div>
                 <div v-if="isLoading" class="animate-pulse">

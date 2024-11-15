@@ -56,7 +56,7 @@ class GeneralController extends Controller
 
                 return [
                     'meta_login' => $updatedAccount->meta_login,
-                    'balance' => $updatedAccount->balance,
+                    'balance' => $updatedAccount->balance - $updatedAccount->credit,
                     'credit' => $updatedAccount->credit,
                 ];
             } catch (\Throwable $e) {
@@ -97,7 +97,7 @@ class GeneralController extends Controller
     
             return response()->json([
                 'meta_login' => $updatedAccount->meta_login,
-                'balance' => $updatedAccount->balance,
+                'balance' => $updatedAccount->balance - $updatedAccount->credit,
                 'credit' => $updatedAccount->credit,
             ]);
         } catch (\Throwable $e) {

@@ -16,7 +16,7 @@ class CTraderService
     private string $host = "https://live-quantumcapital.webapi.ctrader.com";
     private string $port = "8443";
     private string $login = "10012";
-    private string $password = "6i5MQa";
+    private string $password = "Test1234.";
     private string $baseURL = "https://live-quantumcapital.webapi.ctrader.com:8443";
     private string $token = "3979de07-ad19-4f23-a281-e7e35c9a32af";
     private string $brokerName = "quantumcapitalglobal";

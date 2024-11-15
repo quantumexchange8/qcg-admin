@@ -3,6 +3,7 @@ import { usePage } from "@inertiajs/vue3";
 import { IconCircleXFilled, IconSearch, IconFilterOff } from "@tabler/icons-vue";
 import { ref, watch, watchEffect } from "vue";
 import Loader from "@/Components/Loader.vue";
+import Dialog from "primevue/dialog";
 import DataTable from "primevue/datatable";
 import InputText from "primevue/inputtext";
 import Column from "primevue/column";
@@ -19,6 +20,8 @@ const props = defineProps({
     accountTypes: Array,
 });
 
+const visible = ref(false);
+const data = ref({});
 const loading = ref(false);
 const dt = ref(null);
 
@@ -26,6 +29,11 @@ const accounts = ref();
 const filteredValue = ref();
 const accountTypes = ref(props.accountTypes);
 const accountType = ref(null)
+
+const openDialog = (rowData) => {
+    visible.value = true;
+    data.value = rowData;
+};
 
 const emit = defineEmits(['update:filteredValue']);
 
@@ -102,6 +110,7 @@ const handleFilter = (e) => {
         :loading="loading"
         selectionMode="single"
         @filter="handleFilter"
+        @row-click="(event) => openDialog(event.data)"
     >
         <template #header>
             <div class="flex flex-col justify-between items-center pb-5 gap-3 self-stretch md:flex-row md:pb-6">
@@ -190,14 +199,14 @@ const handleFilter = (e) => {
                     </div>
                 </template>
             </Column>
-            <Column field="balance" :header="$t('public.balance')" sortable class="hidden md:table-cell w-[20%]">
+            <Column field="balance" :header="`${$t('public.balance')}&nbsp;($)`" sortable class="hidden md:table-cell w-[20%]">
                 <template #body="slotProps">
                     <div class="text-gray-950 text-sm">
                         {{ formatAmount(slotProps.data.balance) }}
                     </div>
                 </template>
             </Column>
-            <Column field="equity" :header="$t('public.equity')" sortable class="hidden md:table-cell w-[20%]">
+            <Column field="equity" :header="`${$t('public.equity')}&nbsp;($)`" sortable class="hidden md:table-cell w-[20%]">
                 <template #body="slotProps">
                     <div class="text-gray-950 text-sm">
                         {{ formatAmount(slotProps.data.equity) }}
@@ -206,4 +215,46 @@ const handleFilter = (e) => {
             </Column>
         </template>
     </DataTable>
+    <Dialog v-model:visible="visible" modal :header="$t('public.account_details')" class="dialog-xs md:dialog-md">
+        <div class="flex flex-col justify-center items-center gap-3 self-stretch pt-4 md:pt-6">
+            <div class="flex flex-col justify-between items-center p-3 gap-3 self-stretch bg-gray-50 md:flex-row">
+                <div class="flex flex-col items-start w-full truncate">
+                    <span class="w-full truncate text-gray-950 font-semibold">{{ data.name }}</span>
+                    <span class="w-full truncate text-gray-500 text-sm">{{ data.email }}</span>
+                </div>
+            </div>
+            
+            <div class="flex flex-col items-center p-3 gap-3 self-stretch bg-gray-50">
+                <div class="w-full flex flex-col items-start gap-1 md:flex-row">
+                    <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.account') }}</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{  data.meta_login }}</span>
+                </div>
+                <div class="w-full flex flex-col items-start gap-1 md:flex-row">
+                    <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.balance') }}</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium">$&nbsp;{{ data.balance }}</span>
+                </div>
+                <div class="w-full flex flex-col items-start gap-1 md:flex-row">
+                    <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.equity') }}</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium">$&nbsp;{{ data.equity }}</span>
+                </div>
+                <div class="w-full flex flex-col items-start gap-1 md:flex-row">
+                    <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.credit') }}</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium">$&nbsp;{{ data.credit }}</span>
+                </div>
+                <div class="w-full flex flex-col items-start gap-1 md:flex-row">
+                    <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.leverage') }}</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium">1:{{ data.leverage }}</span>
+                </div>
+            </div>
+
+            <div class="flex flex-col items-center p-3 gap-3 self-stretch bg-gray-50">
+                <div class="w-full flex flex-col items-start gap-1 md:flex-row">
+                    <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.deleted_time') }}</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium">    
+                        {{ dayjs(data.deleted_at).format('YYYY/MM/DD HH:mm:ss') }} ({{ dayjs().diff(dayjs(data.deleted_at), 'day') }} {{ $t('public.days') }})
+                    </span>
+                </div>
+            </div>
+        </div>
+    </Dialog>
 </template>
