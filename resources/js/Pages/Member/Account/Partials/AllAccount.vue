@@ -1,6 +1,6 @@
 <script setup>
 import { usePage } from "@inertiajs/vue3";
-import { IconCircleXFilled, IconSearch, IconFilterOff } from "@tabler/icons-vue";
+import { IconCircleXFilled, IconSearch, IconFilterOff, IconAlertCircleFilled } from "@tabler/icons-vue";
 import { ref, watch, watchEffect } from "vue";
 import Loader from "@/Components/Loader.vue";
 import Dialog from "primevue/dialog";
@@ -196,8 +196,9 @@ const handleFilter = (e) => {
             </Column>
             <Column field="meta_login" :header="$t('public.account')" sortable class="hidden md:table-cell w-[15%]">
                 <template #body="slotProps">
-                    <div class="text-gray-950 text-sm">
+                    <div class="text-gray-950 text-sm flex gap-2 items-center">
                         {{ slotProps.data.meta_login }}
+                        <IconAlertCircleFilled  :size="20" stroke-width="1.25" class="text-error-500" v-if="slotProps.data.is_active" v-tooltip.top="$t('public.trading_account_inactive_warning')"/>
                     </div>
                 </template>
             </Column>

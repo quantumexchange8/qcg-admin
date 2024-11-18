@@ -27,9 +27,11 @@ class NetworkController extends Controller
                 ->orWhere('id_number', 'LIKE', $search)
                 ->first();
 
-            $parent_id = $parent->id;
-            $upline_id = $parent->upline_id;
-        }
+                if ($parent) {
+                    $parent_id = $parent->id;
+                    $upline_id = $parent->upline_id;
+                }
+            }
 
         $parent = User::with(['directChildren:id,first_name,id_number,upline_id,role,hierarchyList'])
             // ->whereIn('role', ['agent', 'member'])

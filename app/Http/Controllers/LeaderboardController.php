@@ -36,7 +36,7 @@ class LeaderboardController extends Controller
 
         if (!empty($search)) {
             $bonusQuery->whereHas('user', function ($query) use ($search) {
-                $query->where('name', 'like', '%' . $search . '%')
+                $query->where('first_name', 'like', '%' . $search . '%')
                     ->orWhere('email', 'like', '%' . $search . '%')
                     ->orWhere('id_number', 'like', '%' . $search . '%');
             });

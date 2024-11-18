@@ -132,6 +132,7 @@ const form = useForm({
     id: '',
     action: '',
     remarks: '',
+    type: 'incentive',
 })
 
 const submit = (transactionId) => {

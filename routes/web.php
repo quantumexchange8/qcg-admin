@@ -153,6 +153,7 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
         Route::get('/refreshTeam', [TeamController::class, 'refreshTeam'])->name('team.refreshTeam');
         Route::get('/getTeamTransaction', [TeamController::class, 'getTeamTransaction'])->name('team.getTeamTransaction');
         Route::get('/getSettlementReport', [TeamController::class, 'getSettlementReport'])->name('team.getSettlementReport');
+        Route::get('/getTeamSettlementMonth', [TeamController::class, 'getTeamSettlementMonth'])->name('team.getTeamSettlementMonth');
 
         Route::post('/createTeam', [TeamController::class, 'createTeam'])->name('team.createTeam');
         Route::post('/editTeam', [TeamController::class, 'editTeam'])->name('team.editTeam');

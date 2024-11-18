@@ -34,25 +34,27 @@ class TradingAccountController extends Controller
         if ($request->type == 'all') {
             $accountQuery = TradingUser::with([
                 'userData:id,first_name,email',
-                'trading_account:id,meta_login,equity',
-                'accountType:id,name'
-            ]);
-
-            if ($request->last_logged_in_days) {
-                switch ($request->last_logged_in_days) {
-                    case 'greater_than_90_days':
-                        $accountQuery->whereDate('last_access', '<=', today()->subDays(90));
-                        break;
-
-                    default:
-                        $accountQuery->whereDate('last_access', '<=', today());
+                'trading_account:id,meta_login,equity', // load trading_account
+                'accountType:id,name',
+                'trading_account.transactions' => function ($query) {
+                    // Fetch only the latest relevant transaction (deposit/withdrawal in the last 90 days)
+                    $query->whereIn('transaction_type', ['deposit', 'withdrawal'])
+                          ->where('created_at', '>=', now()->subDays(90))
+                          ->latest() // order by latest transaction
+                          ->limit(1); // limit to the most recent transaction
                 }
-            }
-
+            ]);
+        
             $accounts = $accountQuery
                 ->orderByDesc('meta_login')
                 ->get()
                 ->map(function ($account) {
+                    // Access the latest transaction directly from the eager-loaded transactions
+                    $lastTransaction = $account->trading_account->transactions->first(); // Get the latest transaction
+        
+                    // Check if the account is active based on last transaction or last access
+                    $isActive = $lastTransaction || $account->last_access >= now()->subDays(90);
+        
                     return [
                         'id' => $account->id,
                         'meta_login' => $account->meta_login,
@@ -65,10 +67,10 @@ class TradingAccountController extends Controller
                         'last_login' => $account->last_access,
                         'account_type_id' => $account->accountType->id,
                         'account_type' => $account->accountType->name,
+                        'is_active' => $isActive,
                     ];
                 });
-        } 
-        else {
+        } else {
             $accountQuery = TradingUser::onlyTrashed()
                 ->with([
                     'userData:id,first_name,email',

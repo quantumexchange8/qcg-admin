@@ -67,7 +67,7 @@ class TeamController extends Controller
                             ->orWhere('transaction_type', 'rebate_out');
                     })
                     ->where('status', 'successful')
-                    ->sum('amount');
+                    ->sum('transaction_amount');
 
                 $transaction_fee_charges = $team->fee_charges > 0 ? $total_deposit / $team->fee_charges : 0;
                 $net_balance = $total_deposit - $transaction_fee_charges - $total_withdrawal;
@@ -367,14 +367,28 @@ class TeamController extends Controller
 
     public function markSettlementReport(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'month' => ['required'],
+            'id' => ['required', 'exists:teams,id'],
+        ])->setAttributeNames([
+            'month' => trans('public.month'),
+            'id' => trans('public.id'),
+        ]);
+        $validator->validate();
+
         $team = Team::find($request->id);
         $teamUserIds = TeamHasUser::where('team_id', $request->id)
             ->pluck('user_id')
             ->toArray();
 
-        // First day and last day of the previous month
-        $startDate = Carbon::now()->subMonth()->startOfMonth();
-        $endDate = Carbon::now()->subMonth()->endOfMonth();
+        // Parse the provided month string (e.g., "September 2024") into a Carbon instance
+        $month = Carbon::createFromFormat('F Y', $request->month);
+
+        // Get the start date (first day) of the selected month
+        $startDate = $month->copy()->startOfMonth();
+
+        // Get the end date (last day) of the selected month
+        $endDate = $month->copy()->endOfMonth();
 
         // Check if a settlement for this team and month has already been processed
         $existingSettlement = TeamSettlement::where('team_id', $request->id)
@@ -390,17 +404,18 @@ class TeamController extends Controller
             ]);
         }
 
-        // Calculate total deposits for the team users in the last month
+        // Calculate total deposits for the team users in the selected month
         $total_deposit = Transaction::whereIn('user_id', $teamUserIds)
             ->whereBetween('approved_at', [$startDate, $endDate])
             ->where(function ($query) {
                 $query->where('transaction_type', 'deposit')
-                    ->orWhere('transaction_type', 'balance_in');
+                    ->orWhere('transaction_type', 'balance_in')
+                    ->orWhere('transaction_type', 'rebate_in');
             })
             ->where('status', 'successful')
             ->sum('transaction_amount');
 
-        // Calculate total withdrawals for the team users in the last month
+        // Calculate total withdrawals for the team users in the selected month
         $total_withdrawal = Transaction::whereIn('user_id', $teamUserIds)
             ->whereBetween('approved_at', [$startDate, $endDate])
             ->where(function ($query) {
@@ -434,6 +449,46 @@ class TeamController extends Controller
         ]);
     }
 
+    public function getTeamSettlementMonth(Request $request)
+    {
+        // Get the team by ID
+        $team = Team::find($request->id);
+        if (!$team) {
+            return response()->json(['error' => 'Team not found'], 404);
+        }
+    
+        // Get the start date from the team's created_at and the end date as the start of the previous month
+        $startDate = Carbon::parse($team->created_at)->startOfMonth();
+        $endDate = Carbon::now()->subMonth()->startOfMonth(); // End before the current month
+    
+        // Generate a list of months from the start date to the end date
+        $months = collect();
+        $current = $startDate;
+        while ($current <= $endDate) {
+            $months->push($current->format('F Y'));
+            $current->addMonth();
+        }
+    
+        // Get settled months for the team
+        $settledMonths = TeamSettlement::where('team_id', $team->id)
+            ->pluck('transaction_start_at')
+            ->map(function ($date) {
+                return Carbon::parse($date)->format('F Y');
+            });
+    
+        // Map months to include marked status
+        $result = $months->map(function ($month) use ($settledMonths) {
+            return [
+                'month' => $month,
+                'marked' => $settledMonths->contains($month), // Mark if settlement exists
+            ];
+        });
+    
+        return response()->json([
+            'months' => $result,
+        ]);
+    }
+        
     public function deleteTeam(Request $request)
     {
         TeamHasUser::where('team_id', $request->id)->update(['team_id' => 1]);
@@ -465,7 +520,8 @@ class TeamController extends Controller
                 ->whereBetween('approved_at', [$startDate, $endDate])
                 ->where(function ($query) {
                     $query->where('transaction_type', 'deposit')
-                        ->orWhere('transaction_type', 'balance_in');
+                        ->orWhere('transaction_type', 'balance_in')
+                        ->orWhere('transaction_type', 'rebate_in');
                 })
                 ->where('status', 'successful')
                 ->sum('transaction_amount');
@@ -549,7 +605,8 @@ class TeamController extends Controller
                     ->whereBetween('approved_at', [$startDate, $endDate])
                     ->where(function ($query) {
                         $query->where('transaction_type', 'deposit')
-                            ->orWhere('transaction_type', 'balance_in');
+                            ->orWhere('transaction_type', 'balance_in')
+                            ->orWhere('transaction_type', 'rebate_in');
                     })
                     ->where('status', 'successful')
                     ->sum('transaction_amount');

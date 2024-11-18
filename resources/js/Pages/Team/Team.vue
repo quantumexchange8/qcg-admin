@@ -71,7 +71,7 @@ const selectedDate = ref([minDate.value, maxDate.value]);
 
 // Clear date selection
 const clearDate = () => {
-    selectedDate.value = [];
+    selectedDate.value = null;
 };
 
 watch(selectedDate, (newDateRange) => {
@@ -85,6 +85,8 @@ watch(selectedDate, (newDateRange) => {
         } else {
             getResults([]);
         }
+    } else if (newDateRange === null) {
+        getResults([]);
     } else {
         console.warn('Invalid date range format:', newDateRange);
     }
@@ -135,12 +137,12 @@ const refreshTeam = async (teamId) => {
         refreshingTeam[teamId] = true;
         let response;
 
-        // Destructure selectedDate safely
-        const [startDate, endDate] = selectedDate.value.length ? selectedDate.value : [null, null];
+        // Destructure selectedDate safely, defaulting to null if selectedDate is not valid
+        const [startDate, endDate] = (Array.isArray(selectedDate.value) && selectedDate.value.length > 0) ? selectedDate.value : [null, null];
 
         let url = `/team/refreshTeam`;
 
-        // If dates are available, construct the URL with dates
+        // If both startDate and endDate are available, add them to the URL
         if (startDate && endDate) {
             url += `?startDate=${formatDate(startDate)}&endDate=${formatDate(endDate)}`;
         } else if (startDate || endDate) {
@@ -151,7 +153,7 @@ const refreshTeam = async (teamId) => {
 
         // Add teamId to the URL if it exists
         if (teamId) {
-            url += `${selectedDate.value.length > 0 ? '&' : '?'}team_id=${teamId}`;
+            url += `${url.includes('?') ? '&' : '?'}team_id=${teamId}`;
         }
 
         // Make the API call
@@ -178,7 +180,7 @@ const refreshTeam = async (teamId) => {
         refreshingTeam[teamId] = false; // Indicate that the refresh is complete
         counterDuration.value = 1;
     }
-}
+};
 </script>
 
 <template>

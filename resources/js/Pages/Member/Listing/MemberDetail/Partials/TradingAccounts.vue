@@ -41,22 +41,6 @@ const getTradingAccounts = async () => {
 };
 getTradingAccounts();
 
-// Function to check if an account is inactive for 90 days
-function isInactive(date) {
-  const updatedAtDate = new Date(date);
-  const currentDate = new Date();
-
-  // Get only the date part (remove time)
-  const updatedAtDay = new Date(updatedAtDate.getFullYear(), updatedAtDate.getMonth(), updatedAtDate.getDate());
-  const currentDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
-
-  // Calculate the difference in days by direct subtraction
-  const diffDays = (currentDay - updatedAtDay) / (1000 * 60 * 60 * 24);
-
-  // Determine if inactive (more than 90 days)
-  return diffDays > 90;
-}
-
 watchEffect(() => {
     if (usePage().props.toast !== null) {
         getTradingAccounts();
@@ -131,9 +115,7 @@ const requireConfirmation = (action_type, meta_login) => {
                     >
                         {{ $t('public.' + tradingAccount.account_type) }}
                     </div>
-                    <div v-if="isInactive(tradingAccount.last_access)" class="text-error-500">
-                        <IconAlertCircleFilled :size="20" stroke-width="1.25" />
-                    </div>
+                    <IconAlertCircleFilled :size="20" stroke-width="1.25" class="text-error-500" v-if="tradingAccount.is_active" v-tooltip.top="$t('public.trading_account_inactive_warning')" />
                 </div>
                 <Button
                     type="button"

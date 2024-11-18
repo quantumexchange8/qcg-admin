@@ -45,7 +45,7 @@ const selectedDate = ref([minDate.value, maxDate.value]);
 
 // Clear date selection
 const clearDate = () => {
-    selectedDate.value = [];
+    selectedDate.value = null;
 };
 
 const getResults = async (dateRanges = null) => {
@@ -80,12 +80,15 @@ watch(selectedDate, (newDateRange) => {
         } else if (startDate || endDate) {
             getResults([startDate || endDate, endDate || startDate]);
         } else {
-            getResults();
+            getResults([]);
         }
+    } else if (newDateRange === null) {
+        // Handle the case when selectedDate is null
+        getResults([]);
     } else {
         console.warn('Invalid date range format:', newDateRange);
     }
-})
+});
 
 getResults([minDate.value, maxDate.value]);
 

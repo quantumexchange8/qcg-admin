@@ -132,6 +132,7 @@ const form = useForm({
     id: '',
     action: '',
     remarks: '',
+    type: 'withdrawal',
 })
 
 const submit = (transactionId) => {

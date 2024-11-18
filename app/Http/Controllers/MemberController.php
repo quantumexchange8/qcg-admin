@@ -513,7 +513,7 @@ class MemberController extends Controller
 
         $user = User::findOrFail($request->user_id);
         $user->update([
-            'name' => $request->name,
+            'first_name' => $request->name,
             'email' => $request->email,
             'dial_code' => $request->dial_code['phone_code'],
             'phone' => $request->phone,
@@ -660,7 +660,7 @@ class MemberController extends Controller
 
         Transaction::create([
             'user_id' => $wallet->user_id,
-            'category' => 'wallet',
+            'category' => 'rebate_wallet',
             'transaction_type' => $action,
             'from_wallet_id' => $action == 'rebate_out' ? $wallet->id : null,
             'to_wallet_id' => $action == 'rebate_in' ? $wallet->id : null,
@@ -741,30 +741,50 @@ class MemberController extends Controller
             }
         }
     
-        // Fetch trading accounts based on user ID
-        $tradingAccounts = TradingAccount::with('trading_user:meta_login,last_access')
-            ->where('user_id', $request->id)
-            ->get() // Fetch the results from the database
-            ->map(function($trading_account) {
-                return [
-                    'id' => $trading_account->id,
-                    'meta_login' => $trading_account->meta_login,
-                    'account_type' => $trading_account->accountType->slug,
-                    'color' => $trading_account->accountType->color,
-                    'balance' => $trading_account->balance,
-                    'credit' => $trading_account->credit,
-                    'equity' => $trading_account->equity,
-                    'leverage' => $trading_account->margin_leverage,
-                    'last_access' => $trading_account->trading_user->last_access,
-                ];
-            });
+        // Fetch trading accounts based on user ID with eager loading
+        $tradingAccounts = TradingAccount::with([
+            'trading_user:id,meta_login,last_access',
+            'transactions' => function ($query) {
+                // Fetch only the latest relevant transaction (deposit or withdrawal in the last 90 days)
+                $query->whereIn('transaction_type', ['deposit', 'withdrawal'])
+                    ->where('created_at', '>=', now()->subDays(90))
+                    ->latest()  // Order by latest transaction
+                    ->limit(1);  // Limit to the most recent transaction
+            },
+            'accountType:id,slug,color'  // Load account type info
+        ])
+        ->where('user_id', $request->id)
+        ->get()  // Fetch the results from the database
+        ->map(function ($trading_account) {
+            // Access the latest transaction directly from the eager-loaded transactions
+            $lastTransaction = $trading_account->transactions->first(); // Get the latest transaction
+    
+            // Get the last access date of the trading user
+            $lastAccess = $trading_account->trading_user->last_access;
+    
+            // Determine if the account is active (had a transaction or access in the last 90 days)
+            $isActive = ($lastTransaction || $lastAccess >= now()->subDays(90)) ? true : false;
+    
+            return [
+                'id' => $trading_account->id,
+                'meta_login' => $trading_account->meta_login,
+                'account_type' => $trading_account->accountType->slug,
+                'color' => $trading_account->accountType->color,
+                'balance' => $trading_account->balance,
+                'credit' => $trading_account->credit,
+                'equity' => $trading_account->equity,
+                'leverage' => $trading_account->margin_leverage,
+                'last_access' => $lastAccess,
+                'is_active' => $isActive,
+            ];
+        });
     
         // Return the response as JSON
         return response()->json([
             'tradingAccounts' => $tradingAccounts,
         ]);
     }
-        
+                    
     public function getAdjustmentHistoryData(Request $request)
     {
         $adjustment_history = Transaction::where('user_id', $request->id)
@@ -883,7 +903,7 @@ class MemberController extends Controller
 
     public function access_portal(User $user)
     {
-        $dataToHash = $user->name . $user->email . $user->id_number;
+        $dataToHash = $user->first_name . $user->email . $user->id_number;
         $hashedToken = md5($dataToHash);
 
         $currentHost = $_SERVER['HTTP_HOST'];
@@ -902,7 +922,7 @@ class MemberController extends Controller
 
         $params = [
             'admin_id' => Auth::id(),
-            'admin_name' => Auth::user()->name,
+            'admin_name' => Auth::user()->first_name,
         ];
 
         $redirectUrl = $url . "?" . http_build_query($params);

@@ -62,90 +62,86 @@ class PendingController extends Controller
 
     public function withdrawalApproval(Request $request)
     {
+        $type = $request->type;
+
         $action = $request->action;
-
+    
         $status = $action == 'approve' ? 'successful' : 'rejected';
-
+    
         $transaction = Transaction::find($request->id);
-
+    
         if ($transaction->status != 'processing') {
             return redirect()->back()->with('toast', [
                 'title' => 'Invalid action. Please try again.',
                 'type' => 'warning'
             ]);
         }
-
+    
         $transaction->update([
             'remarks' => $request->remarks,
             'status' => $status,
             'approved_at' => now(),
             'handle_by' => Auth::id()
         ]);
-
+    
         if ($transaction->status == 'rejected') {
-
-            if ($transaction->category == 'rebate_wallet') {
-                $rebate_wallet = Wallet::where('user_id', $transaction->user_id)
-                    ->where('type', 'rebate_wallet')
-                    ->first();
-
-                $transaction->update([
-                    'old_wallet_amount' => $rebate_wallet->balance,
-                    'new_wallet_amount' => $rebate_wallet->balance += $transaction->amount,
-                ]);
-
-                $rebate_wallet->balance += $transaction->amount;
-                $rebate_wallet->save();
-            }
-
-            if ($transaction->category == 'incentive_wallet') {
-                $incentive_wallet = Wallet::where('user_id', $transaction->user_id)
-                    ->where('type', 'incentive_wallet')
-                    ->first();
-
-                $transaction->update([
-                    'old_wallet_amount' => $incentive_wallet->balance,
-                    'new_wallet_amount' => $incentive_wallet->balance += $transaction->amount,
-                ]);
-
-                $incentive_wallet->balance += $transaction->amount;
-                $incentive_wallet->save();
-            }
-
-            if ($transaction->category == 'trading_account') {
-
-                try {
-                    $trade = (new CTraderService)->createTrade($transaction->from_meta_login, $transaction->amount, $transaction->remarks, ChangeTraderBalanceType::DEPOSIT);
-
+            if ($transaction->from_wallet_id) {
+                // Handle wallet update logic
+                $wallet = Wallet::where('id', $transaction->from_wallet_id)->first();
+                
+                if ($wallet) {
+                    $old_balance = $wallet->balance;
+                    $new_balance = $old_balance + $transaction->amount;
+                    
+                    $wallet->update(['balance' => $new_balance]);
+                    
                     $transaction->update([
-                        'ticket' => $trade->getTicket(),
+                        'old_wallet_amount' => $old_balance,
+                        'new_wallet_amount' => $new_balance,
                     ]);
+                }
+            } elseif ($transaction->from_meta_login) {
+                // Handle trading account logic
+                try {
+                    $trade = (new CTraderService)->createTrade(
+                        $transaction->from_meta_login,
+                        $transaction->amount,
+                        $transaction->remarks,
+                        ChangeTraderBalanceType::DEPOSIT
+                    );
+        
+                    $transaction->update(['ticket' => $trade->getTicket()]);
                 } catch (\Throwable $e) {
                     if ($e->getMessage() == "Not found") {
-                        TradingUser::firstWhere('meta_login', $transaction->from_meta_login)->update(['acc_status' => 'Inactive']);
+                        TradingUser::firstWhere('meta_login', $transaction->from_meta_login)
+                            ->update(['acc_status' => 'Inactive']);
                     } else {
                         Log::error($e->getMessage());
                     }
-                    return back()
-                        ->with('toast', [
-                            'title' => 'Trading account error',
-                            'type' => 'error'
-                        ]);
+        
+                    return back()->with('toast', [
+                        'title' => 'Trading account error',
+                        'type' => 'error'
+                    ]);
                 }
             }
-
+        
             return redirect()->back()->with('toast', [
-                'title' => trans('public.toast_reject_withdrawal_request_success'),
+                'title' => $type === 'withdrawal'
+                    ? trans('public.toast_reject_withdrawal_request_success')
+                    : trans('public.toast_reject_incentive_request_success'),
                 'type' => 'success'
             ]);
         } else {
             return redirect()->back()->with('toast', [
-                'title' => trans('public.toast_approve_withdrawal_request_success'),
+                'title' => $type === 'withdrawal'
+                    ? trans('public.toast_approve_withdrawal_request_success')
+                    : trans('public.toast_approve_incentive_request_success'),
                 'type' => 'success'
             ]);
         }
     }
-
+    
     public function getPendingIncentiveData()
     {
         $pendingincentives = Transaction::with([

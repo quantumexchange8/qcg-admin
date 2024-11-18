@@ -40,4 +40,13 @@ class TradingUser extends Model
         return $this->hasOne(AccountType::class, 'id', 'account_type');
     }
 
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class, 'user_id', 'id')
+                    ->where(function ($query) {
+                        $query->where('from_meta_login', $this->meta_login)
+                              ->orWhere('to_meta_login', $this->meta_login);
+                    });
+    }
+
 }
