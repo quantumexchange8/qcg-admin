@@ -179,7 +179,7 @@ const handleFilter = (e) => {
                     </div>
                 </template>
             </Column>
-            <Column field="last_logged_in" :header="$t('public.last_logged_in')" sortable class="w-full md:w-[20%] max-w-0" headerClass="hidden md:table-cell">
+            <Column field="last_login" :header="$t('public.last_logged_in')" sortable class="w-full md:w-[20%] max-w-0" headerClass="hidden md:table-cell">
                 <template #body="slotProps">
                     <div class="flex flex-col items-start max-w-full">
                         <div class="text-gray-950 text-sm font-semibold truncate max-w-full md:hidden">
