@@ -32,11 +32,6 @@ const selectedTeam = ref();
 
 const {formatAmount} = transactionFormat();
 
-const getCurrentMonthYear = () => {
-    const date = new Date();
-    return `${dayjs(date).format('MMMM YYYY')}`;
-};
-
 // Fetch settlement months from API
 const getSettlementMonths = async () => {
     try {
@@ -44,7 +39,7 @@ const getSettlementMonths = async () => {
         months.value = response.data.months;
 
         if (months.value.length) {
-            selectedMonths.value = [getCurrentMonthYear()];
+            selectedMonths.value = [months.value[months.value.length - 1]];
         }
     } catch (error) {
         console.error('Error transaction months:', error);
@@ -98,7 +93,9 @@ watch(selectedTeam, (newTeam) => {
 });
 
 const clearGlobal = () => {
-    selectedMonths.value = [getCurrentMonthYear()];
+    if (months.value.length) {
+        selectedMonths.value = [months.value[months.value.length - 1]];
+    }
     selectedTeam.value = null;
 };
 

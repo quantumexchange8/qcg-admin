@@ -227,14 +227,6 @@ class GeneralController extends Controller
             ->unique()
             ->values();
 
-        // Get the current month and year
-        $currentMonthYear = Carbon::now()->format('F Y');
-
-        // Add the current month and year if it's not already present
-        if (!$months->contains($currentMonthYear)) {
-            $months->push($currentMonthYear);
-        }
-
         if ($returnAsArray) {
             return $months;
         }
