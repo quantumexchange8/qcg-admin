@@ -763,8 +763,9 @@ class MemberController extends Controller
             $lastAccess = $trading_account->trading_user->last_access;
     
             // Determine if the account is active (had a transaction or access in the last 90 days)
-            $isActive = ($lastTransaction || $lastAccess >= now()->subDays(90)) ? true : false;
-    
+            $isActive = ($lastTransaction && $lastTransaction->created_at >= now()->subDays(90) && $lastTransaction->created_at <= now()) 
+                        || ($lastAccess && $lastAccess >= now()->subDays(90) && $lastAccess <= now());
+        
             return [
                 'id' => $trading_account->id,
                 'meta_login' => $trading_account->meta_login,

@@ -198,7 +198,7 @@ const handleFilter = (e) => {
                 <template #body="slotProps">
                     <div class="text-gray-950 text-sm flex gap-2 items-center">
                         {{ slotProps.data.meta_login }}
-                        <IconAlertCircleFilled  :size="20" stroke-width="1.25" class="text-error-500" v-if="slotProps.data.is_active" v-tooltip.top="$t('public.trading_account_inactive_warning')"/>
+                        <IconAlertCircleFilled  :size="20" stroke-width="1.25" class="text-error-500" v-if="!slotProps.data.is_active" v-tooltip.top="$t('public.trading_account_inactive_warning')"/>
                     </div>
                 </template>
             </Column>

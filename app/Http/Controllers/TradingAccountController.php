@@ -53,8 +53,9 @@ class TradingAccountController extends Controller
                     $lastTransaction = $account->trading_account->transactions->first(); // Get the latest transaction
         
                     // Check if the account is active based on last transaction or last access
-                    $isActive = $lastTransaction || $account->last_access >= now()->subDays(90);
-        
+                    $isActive = ($lastTransaction && $lastTransaction->created_at >= now()->subDays(90) && $lastTransaction->created_at <= now()) 
+                    || ($account->last_access && $account->last_access >= now()->subDays(90) && $account->last_access <= now());
+                        
                     return [
                         'id' => $account->id,
                         'meta_login' => $account->meta_login,
