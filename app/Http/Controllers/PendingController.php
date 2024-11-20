@@ -36,14 +36,28 @@ class PendingController extends Controller
             ->latest()
             ->get()
             ->map(function ($transaction) {
+                // Check if from_meta_login exists and fetch the latest balance
+                if ($transaction->from_meta_login) {
+                    // Only call getUserInfo in production
+                    if (app()->environment('production')) {
+                        // Call getUserInfo to ensure the balance is up to date
+                        (new CTraderService())->getUserInfo($transaction->from_meta_login); // Pass the from_meta_login object
+                    }
+                    
+                    // After calling getUserInfo, fetch the latest balance
+                    $balance = $transaction->from_meta_login->balance ?? 0;
+                } else {
+                    // Fallback to using the wallet balance if from_meta_login is not available
+                    $balance = $transaction->from_wallet->balance ?? 0;
+                }
+    
                 return [
                     'id' => $transaction->id,
                     'created_at' => $transaction->created_at,
                     'user_name' => $transaction->user->first_name,
                     'user_email' => $transaction->user->email,
-                    // 'user_profile_photo' => $transaction->user->getFirstMediaUrl('profile_photo'),
                     'from' => $transaction->from_meta_login ? $transaction->from_meta_login : 'rebate_wallet',
-                    'balance' => $transaction->from_meta_login ? $transaction->from_meta_login->balance ?? 0 : $transaction->from_wallet->balance ?? 0,
+                    'balance' => $balance, // Get balance after ensuring it's updated
                     'amount' => $transaction->amount,
                     'transaction_charges' => $transaction->transaction_charges,
                     'transaction_amount' => $transaction->transaction_amount,
@@ -51,15 +65,15 @@ class PendingController extends Controller
                     'wallet_address' => $transaction->payment_account?->account_no,
                 ];
             });
-
+    
         $totalAmount = $pendingWithdrawals->sum('amount');
-
+    
         return response()->json([
             'pendingWithdrawals' => $pendingWithdrawals,
             'totalAmount' => $totalAmount,
         ]);
     }
-
+            
     public function withdrawalApproval(Request $request)
     {
         $type = $request->type;
@@ -154,14 +168,28 @@ class PendingController extends Controller
             ->latest()
             ->get()
             ->map(function ($transaction) {
+                // Check if from_meta_login exists and fetch the latest balance
+                if ($transaction->from_meta_login) {
+                    // Only call getUserInfo in production
+                    if (app()->environment('production')) {
+                        // Call getUserInfo to ensure the balance is up to date
+                        (new CTraderService())->getUserInfo($transaction->from_meta_login); // Pass the from_meta_login object
+                    }
+    
+                    // After the getUserInfo call, we can safely fetch the latest balance
+                    $balance = $transaction->from_meta_login->balance ?? 0;
+                } else {
+                    // Fallback to using the wallet balance if from_meta_login is not available
+                    $balance = $transaction->from_wallet->balance ?? 0;
+                }
+    
                 return [
                     'id' => $transaction->id,
                     'created_at' => $transaction->created_at,
                     'user_name' => $transaction->user->first_name,
                     'user_email' => $transaction->user->email,
-                    // 'user_profile_photo' => $transaction->user->getFirstMediaUrl('profile_photo'),
                     'from' => $transaction->from_meta_login ? $transaction->from_meta_login : 'incentive',
-                    'balance' => $transaction->from_meta_login ? $transaction->from_meta_login->balance ?? 0 : $transaction->from_wallet->balance ?? 0,
+                    'balance' => $balance,
                     'amount' => $transaction->amount,
                     'transaction_charges' => $transaction->transaction_charges,
                     'transaction_amount' => $transaction->transaction_amount,
@@ -169,9 +197,9 @@ class PendingController extends Controller
                     'wallet_address' => $transaction->payment_account?->account_no,
                 ];
             });
-
+    
         $totalAmount = $pendingincentives->sum('amount');
-
+    
         return response()->json([
             'pendingincentives' => $pendingincentives,
             'totalAmount' => $totalAmount,
