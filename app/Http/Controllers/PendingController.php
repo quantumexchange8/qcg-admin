@@ -128,7 +128,7 @@ class PendingController extends Controller
                 } catch (\Throwable $e) {
                     if ($e->getMessage() == "Not found") {
                         TradingUser::firstWhere('meta_login', $transaction->from_meta_login)
-                            ->update(['acc_status' => 'Inactive']);
+                            ->update(['acc_status' => 'inactive']);
                     } else {
                         Log::error($e->getMessage());
                     }

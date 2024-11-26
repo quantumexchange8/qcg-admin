@@ -9,6 +9,7 @@ import { router } from "@inertiajs/vue3";
 import { useConfirm } from "primevue/useconfirm";
 import { trans, wTrans } from "laravel-vue-i18n";
 import Loader from "@/Components/Loader.vue";
+import TradingAccountAction from '@/Pages/Member/Listing/MemberDetail/Partials/TradingAccountAction.vue';
 
 const props = defineProps({
     user_id: Number
@@ -117,16 +118,9 @@ const requireConfirmation = (action_type, meta_login) => {
                     </div>
                     <IconAlertCircleFilled :size="20" stroke-width="1.25" class="text-error-500" v-if="!tradingAccount.is_active" v-tooltip.top="$t('public.trading_account_inactive_warning')" />
                 </div>
-                <Button
-                    type="button"
-                    variant="error-text"
-                    size="sm"
-                    pill
-                    iconOnly
-                    @click="requireConfirmation('delete_trading_account', tradingAccount.meta_login)"
-                >
-                    <IconTrashX size="16" />
-                </Button>
+                <TradingAccountAction
+                    :account="tradingAccount"
+                />
             </div>
             <div class="grid grid-cols-2 gap-2 self-stretch md:grid-cols-4">
                 <div class="w-full flex flex-col items-center gap-1 flex-grow">

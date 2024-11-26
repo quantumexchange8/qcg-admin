@@ -713,33 +713,33 @@ class MemberController extends Controller
         $user = User::find($request->id);
         $tradingAccounts = $user->tradingAccounts;
     
-        // Proceed only if there are associated trading accounts
-        if ($tradingAccounts->isNotEmpty()) {
-            $cTraderService = new CTraderService();
+        // // Proceed only if there are associated trading accounts
+        // if ($tradingAccounts->isNotEmpty()) {
+        //     $cTraderService = new CTraderService();
     
-            // Check connection status
-            $conn = $cTraderService->connectionStatus();
-            if ($conn['code'] != 0) {
-                return back()->with('toast', [
-                    'title' => 'Connection Error',
-                    'type' => 'error'
-                ]);
-            }
+        //     // Check connection status
+        //     $conn = $cTraderService->connectionStatus();
+        //     if ($conn['code'] != 0) {
+        //         return back()->with('toast', [
+        //             'title' => 'Connection Error',
+        //             'type' => 'error'
+        //         ]);
+        //     }
     
-            // Iterate through trading accounts to get user info
-            foreach ($tradingAccounts as $tradingAccount) {
-                try {
-                    // Get user info from cTrader service using the meta_login
-                    $cTraderService->getUserInfo($tradingAccount->meta_login);
-                } catch (\Throwable $e) {
-                    Log::error("Error fetching user info for {$tradingAccount->meta_login}: " . $e->getMessage());
-                    return back()->with('toast', [
-                        'title' => 'Error Fetching Account Info',
-                        'type' => 'error'
-                    ]);
-                }
-            }
-        }
+        //     // Iterate through trading accounts to get user info
+        //     foreach ($tradingAccounts as $tradingAccount) {
+        //         try {
+        //             // Get user info from cTrader service using the meta_login
+        //             $cTraderService->getUserInfo($tradingAccount->meta_login);
+        //         } catch (\Throwable $e) {
+        //             Log::error("Error fetching user info for {$tradingAccount->meta_login}: " . $e->getMessage());
+        //             return back()->with('toast', [
+        //                 'title' => 'Error Fetching Account Info',
+        //                 'type' => 'error'
+        //             ]);
+        //         }
+        //     }
+        // }
     
         // Fetch trading accounts based on user ID with eager loading
         $tradingAccounts = TradingAccount::with([
@@ -777,6 +777,7 @@ class MemberController extends Controller
                 'leverage' => $trading_account->margin_leverage,
                 'last_access' => $lastAccess,
                 'is_active' => $isActive,
+                'status' => $trading_account->status,
             ];
         });
     

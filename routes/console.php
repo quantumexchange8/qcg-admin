@@ -9,3 +9,4 @@ use Illuminate\Support\Facades\Schedule;
 // })->purpose('Display an inspiring quote')->hourly();
 
 Schedule::command('distribute:sales-incentive')->weekly();
+Schedule::command('tradingAccount:check-status')->daily();

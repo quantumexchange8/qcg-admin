@@ -34,7 +34,7 @@ class TradingAccountController extends Controller
         if ($request->type == 'all') {
             $accountQuery = TradingUser::with([
                 'userData:id,first_name,email',
-                'trading_account:id,meta_login,equity', // load trading_account
+                'trading_account:id,meta_login,equity,status', // load trading_account
                 'accountType:id,name',
                 'trading_account.transactions' => function ($query) {
                     // Fetch only the latest relevant transaction (deposit/withdrawal in the last 90 days)
@@ -69,6 +69,7 @@ class TradingAccountController extends Controller
                         'account_type_id' => $account->accountType->id,
                         'account_type' => $account->accountType->name,
                         'is_active' => $isActive,
+                        'status' => $account->trading_account->status,
                     ];
                 });
         } else {
@@ -204,7 +205,7 @@ class TradingAccountController extends Controller
 
             // Handle specific error cases
             if ($e->getMessage() == "Not found") {
-                TradingUser::firstWhere('meta_login', $trading_account->meta_login)->update(['acc_status' => 'Inactive']);
+                TradingUser::firstWhere('meta_login', $trading_account->meta_login)->update(['acc_status' => 'inactive']);
             } else {
                 Log::error($e->getMessage());
             }
@@ -273,6 +274,20 @@ class TradingAccountController extends Controller
                     'type' => 'error'
                 ]);
         }
+    }
+
+    public function updateAccountStatus(Request $request)
+    {
+        $account = TradingAccount::where('meta_login', $request->meta_login)->first();
+
+        $account->status = $account->status == 'active' ? 'inactive' : 'active';
+        // $account->status = $account->status == 1 ? 0 : 1;
+        $account->save();
+
+        return back()->with('toast', [
+            'title' => trans($account->status === 'active' ? 'public.toast_trading_account_has_activated' : 'public.toast_trading_account_has_deactivated'), //this not yet done
+            'type' => 'success',
+        ]);
     }
 
     public function refreshAllAccount(): void

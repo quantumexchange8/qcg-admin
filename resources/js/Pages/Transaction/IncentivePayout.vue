@@ -399,7 +399,7 @@ const copyToClipboard = (text) => {
                     <Column field="incentive_amount" :header="`${$t('public.amount')}&nbsp;($)`" sortable class="w-1/2 md:w-[20%] px-3">
                         <template #body="slotProps">
                             <div class="text-gray-950 text-sm">
-                                {{ formatAmount(slotProps.data.incentive_amount) }}
+                                {{ formatAmount(slotProps.data.incentive_amount || 0) }}
                             </div>
                         </template>
                     </Column>

@@ -14,6 +14,7 @@ import Empty from "@/Components/Empty.vue";
 import Action from "@/Pages/Member/Account/Partials/Action.vue"
 import { transactionFormat } from "@/Composables/index.js";
 import dayjs from "dayjs";
+import StatusBadge from '@/Components/StatusBadge.vue';
 
 const { formatAmount } = transactionFormat();
 
@@ -170,10 +171,10 @@ const handleFilter = (e) => {
             <Column field="name" sortable :header="$t('public.name')" class="hidden md:table-cell w-[20%] max-w-0">
                 <template #body="slotProps">
                     <div class="flex flex-col items-start max-w-full">
-                        <div class="font-semibold truncate max-w-full">
+                        <div class="font-semibold max-w-full truncate">
                             {{ slotProps.data.name }}
                         </div>
-                        <div class="text-gray-500 text-xs truncate max-w-full">
+                        <div class="text-gray-500 text-xs max-w-full truncate">
                             {{ slotProps.data.email }}
                         </div>
                     </div>
@@ -181,46 +182,60 @@ const handleFilter = (e) => {
             </Column>
             <Column field="last_login" :header="$t('public.last_logged_in')" sortable class="w-full md:w-[20%] max-w-0" headerClass="hidden md:table-cell">
                 <template #body="slotProps">
-                    <div class="flex flex-col items-start max-w-full">
-                        <div class="text-gray-950 text-sm font-semibold truncate max-w-full md:hidden">
-                            {{ slotProps.data.meta_login }}
-                        </div>
-                        <div class="flex items-center gap-1 truncate max-w-full">
-                            <div class="text-gray-500 text-xs md:hidden">{{ $t('public.last_logged_in') }}:</div>
-                            <div class="text-gray-700 md:text-gray-950 text-xs md:text-sm font-medium md:font-normal truncate max-w-full">
-                                {{ dayjs(slotProps.data.last_login).format('YYYY/MM/DD HH:mm:ss') }}
-                            </div>
+                    <div class="text-gray-950 text-sm font-semibold truncate max-w-full md:hidden">
+                        {{ slotProps.data.meta_login }}
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <div class="text-gray-500 text-xs md:hidden">{{ $t('public.last_logged_in') }}</div>
+                        <div class="text-gray-500 text-xs md:hidden">:</div>
+                        <div class="text-gray-700 md:text-gray-950 text-xs md:text-sm font-medium md:font-normal">
+                            {{ dayjs(slotProps.data.last_login).format('YYYY/MM/DD HH:mm:ss') }}
                         </div>
                     </div>
                 </template>
             </Column>
-            <Column field="meta_login" :header="$t('public.account')" sortable class="hidden md:table-cell w-[15%]">
+            <Column field="meta_login" :header="$t('public.account')" sortable class="hidden md:table-cell w-[10%] max-w-0">
                 <template #body="slotProps">
-                    <div class="text-gray-950 text-sm flex gap-2 items-center">
+                    <div class="text-gray-950 text-sm flex flex-wrap gap-1 items-center break-all">
                         {{ slotProps.data.meta_login }}
                         <IconAlertCircleFilled  :size="20" stroke-width="1.25" class="text-error-500" v-if="!slotProps.data.is_active" v-tooltip.top="$t('public.trading_account_inactive_warning')"/>
                     </div>
                 </template>
             </Column>
-            <Column field="balance" :header="`${$t('public.balance')}&nbsp;($)`" sortable class="hidden md:table-cell w-[15%]">
+            <Column field="balance" :header="`${$t('public.balance')}&nbsp;($)`" sortable class="hidden md:table-cell w-[10%]">
                 <template #body="slotProps">
                     <div class="text-gray-950 text-sm">
-                        {{ formatAmount(slotProps.data.balance) }}
+                        {{ formatAmount(slotProps.data.balance || 0) }}
                     </div>
                 </template>
             </Column>
-            <Column field="equity" :header="`${$t('public.equity')}&nbsp;($)`" sortable class="hidden md:table-cell w-[15%]">
+            <Column field="equity" :header="`${$t('public.equity')}&nbsp;($)`" sortable class="hidden md:table-cell w-[10%]">
                 <template #body="slotProps">
                     <div class="text-gray-950 text-sm">
-                        {{ formatAmount(slotProps.data.equity) }}
+                        {{ formatAmount((slotProps.data?.equity || 0) - (slotProps.data?.credit || 0)) }}
                     </div>
                 </template>
             </Column>
-            <Column field="action" class="w-full md:w-[15%]" headerClass="hidden md:table-cell">
+            <Column field="credit" :header="`${$t('public.credit')}&nbsp;($)`" sortable class="hidden md:table-cell w-[10%]">
                 <template #body="slotProps">
-                    <Action 
-                        :account="slotProps.data"
-                    />
+                    <div class="text-gray-950 text-sm">
+                        {{ formatAmount(slotProps.data.credit || 0) }}
+                    </div>
+                </template>
+            </Column>
+            <Column field="status" :header="`${$t('public.status')}`" sortable class="hidden md:table-cell w-[10%]">
+                <template #body="slotProps">
+                    <StatusBadge :variant="slotProps.data.status" :value="$t('public.' + slotProps.data.status)" />
+                </template>
+            </Column>
+            <Column field="action" class="w-full md:w-[10%]" headerClass="hidden md:table-cell">
+                <template #body="slotProps">
+                    <div class="w-full flex flex-wrap items-center justify-center">
+                        <StatusBadge :variant="slotProps.data.status" :value="$t('public.' + slotProps.data.status)" class="md:hidden" />
+                        <Action 
+                            :account="slotProps.data"
+                        />
+                    </div>
                 </template>
             </Column>
         </template>
@@ -230,31 +245,31 @@ const handleFilter = (e) => {
         <div class="flex flex-col justify-center items-center gap-3 self-stretch pt-4 md:pt-6">
             <div class="flex flex-col justify-between items-center p-3 gap-3 self-stretch bg-gray-50 md:flex-row">
                 <div class="flex flex-col items-start w-full truncate">
-                    <span class="w-full truncate text-gray-950 font-semibold">{{ data.name }}</span>
-                    <span class="w-full truncate text-gray-500 text-sm">{{ data.email }}</span>
+                    <span class="w-full truncate text-gray-950 font-semibold">{{ data?.name }}</span>
+                    <span class="w-full truncate text-gray-500 text-sm">{{ data?.email }}</span>
                 </div>
             </div>
             
             <div class="flex flex-col items-center p-3 gap-3 self-stretch bg-gray-50">
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.account') }}</span>
-                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{  data.meta_login }}</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ data?.meta_login || '-' }}</span>
                 </div>
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.balance') }}</span>
-                    <span class="w-full truncate text-gray-950 text-sm font-medium">$&nbsp;{{ data.balance }}</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium">$&nbsp;{{ formatAmount(data?.balance || 0) }}</span>
                 </div>
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.equity') }}</span>
-                    <span class="w-full truncate text-gray-950 text-sm font-medium">$&nbsp;{{ data.equity }}</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium">$&nbsp;{{ formatAmount((data?.equity || 0) - (data?.credit || 0)) }}</span>
                 </div>
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.credit') }}</span>
-                    <span class="w-full truncate text-gray-950 text-sm font-medium">$&nbsp;{{ data.credit }}</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium">$&nbsp;{{ formatAmount(data?.credit || 0) }}</span>
                 </div>
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.leverage') }}</span>
-                    <span class="w-full truncate text-gray-950 text-sm font-medium">1:{{ data.leverage }}</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium">1:{{ data?.leverage }}</span>
                 </div>
             </div>
 

@@ -74,7 +74,7 @@ watch(selectedDate, (newDateRange) => {
         }
     } else if (newDateRange === null) {
         // Handle the case when selectedDate is null
-        getResults([]);
+        getResults();
     } else {
         console.warn('Invalid date range format:', newDateRange);
     }

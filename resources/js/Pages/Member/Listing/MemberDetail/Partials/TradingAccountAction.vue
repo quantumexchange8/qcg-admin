@@ -9,6 +9,7 @@ import {
 import Button from "@/Components/Button.vue";
 import { h, ref, watch } from "vue";
 import TieredMenu from "primevue/tieredmenu";
+import ToggleSwitch from 'primevue/toggleswitch';
 import { router } from "@inertiajs/vue3";
 import { useConfirm } from "primevue/useconfirm";
 import { trans, wTrans } from "laravel-vue-i18n";
@@ -134,10 +135,6 @@ const requireConfirmation = (action_type, meta_login) => {
     });
 };
 
-const toggle = (event) => {
-    menu.value.toggle(event);
-};
-
 const handleAccountStatus = () => {
     if (props.account.status === 'active') {
         requireConfirmation('deactivate_trading_account', props.account.meta_login)
@@ -150,18 +147,11 @@ const handleAccountStatus = () => {
 
 <template>
     <div class="flex gap-3 items-center justify-center">
-        <Button
-            variant="gray-text"
-            size="sm"
-            type="button"
-            iconOnly
-            pill
-            @click="toggle"
-            aria-haspopup="true"
-            aria-controls="overlay_tmenu"
-        >
-            <IconSettingsDollar size="16" stroke-width="1.25" />
-        </Button>
+        <ToggleSwitch
+            v-model="checked"
+            readonly
+            @click="handleAccountStatus"
+        />
         <TieredMenu ref="menu" id="overlay_tmenu" :model="items" popup>
             <template #item="{ item, props, hasSubmenu }">
                 <div

@@ -421,7 +421,7 @@ const copyToClipboard = (text) => {
                     <Column field="transaction_amount" :header="`${$t('public.amount')}&nbsp;($)`" sortable class="w-1/2 md:w-[15%] px-3">
                         <template #body="slotProps">
                             <div class="text-gray-950 text-sm">
-                                {{ formatAmount(slotProps.data.transaction_amount) }}
+                                {{ formatAmount(slotProps.data.transaction_amount || 0) }}
                             </div>
                         </template>
                     </Column>

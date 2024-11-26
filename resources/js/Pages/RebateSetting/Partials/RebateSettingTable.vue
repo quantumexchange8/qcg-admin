@@ -1,11 +1,11 @@
 <script setup>
-import {ref, watch, watchEffect} from "vue";
+import { ref, watch, watchEffect } from "vue";
 import InputText from 'primevue/inputtext';
 import Button from '@/Components/Button.vue';
-import {useForm, usePage} from '@inertiajs/vue3';
+import { useForm, usePage } from '@inertiajs/vue3';
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
-import {FilterMatchMode} from "@primevue/core/api";
+import { FilterMatchMode } from "@primevue/core/api";
 import Loader from "@/Components/Loader.vue";
 import Select from "primevue/select";
 import {
@@ -137,6 +137,12 @@ const submitForm = (submitData) => {
 const closeDialog = () => {
     visible.value = false;
 }
+
+watchEffect(() => {
+    if (usePage().props.toast !== null) {
+        getResults(accountType.value);
+    }
+});
 
 </script>
 
