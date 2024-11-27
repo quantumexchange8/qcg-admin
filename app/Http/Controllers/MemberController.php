@@ -14,6 +14,7 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\PaymentAccount;
 use App\Models\TradingAccount;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 use App\Models\RebateAllocation;
 use App\Services\CTraderService;
@@ -713,59 +714,64 @@ class MemberController extends Controller
         $user = User::find($request->id);
         $tradingAccounts = $user->tradingAccounts;
     
-        // // Proceed only if there are associated trading accounts
-        // if ($tradingAccounts->isNotEmpty()) {
-        //     $cTraderService = new CTraderService();
-    
-        //     // Check connection status
-        //     $conn = $cTraderService->connectionStatus();
-        //     if ($conn['code'] != 0) {
-        //         return back()->with('toast', [
-        //             'title' => 'Connection Error',
-        //             'type' => 'error'
-        //         ]);
-        //     }
-    
-        //     // Iterate through trading accounts to get user info
-        //     foreach ($tradingAccounts as $tradingAccount) {
-        //         try {
-        //             // Get user info from cTrader service using the meta_login
-        //             $cTraderService->getUserInfo($tradingAccount->meta_login);
-        //         } catch (\Throwable $e) {
-        //             Log::error("Error fetching user info for {$tradingAccount->meta_login}: " . $e->getMessage());
-        //             return back()->with('toast', [
-        //                 'title' => 'Error Fetching Account Info',
-        //                 'type' => 'error'
-        //             ]);
-        //         }
-        //     }
-        // }
-    
+        if (App::environment('production')) {
+            // Proceed only if there are associated trading accounts
+            if ($tradingAccounts->isNotEmpty()) {
+                $cTraderService = new CTraderService();
+        
+                // Check connection status
+                $conn = $cTraderService->connectionStatus();
+                if ($conn['code'] != 0) {
+                    return back()->with('toast', [
+                        'title' => 'Connection Error',
+                        'type' => 'error'
+                    ]);
+                }
+        
+                // Iterate through trading accounts to get user info
+                foreach ($tradingAccounts as $tradingAccount) {
+                    try {
+                        // Get user info from cTrader service using the meta_login
+                        $cTraderService->getUserInfo($tradingAccount->meta_login);
+                    } catch (\Throwable $e) {
+                        Log::error("Error fetching user info for {$tradingAccount->meta_login}: " . $e->getMessage());
+                        return back()->with('toast', [
+                            'title' => 'Error Fetching Account Info',
+                            'type' => 'error'
+                        ]);
+                    }
+                }
+            }
+        }
+
+        $inactiveThreshold = now()->subDays(90)->startOfDay();
+
         // Fetch trading accounts based on user ID with eager loading
         $tradingAccounts = TradingAccount::with([
             'trading_user:id,meta_login,last_access',
-            'transactions' => function ($query) {
-                // Fetch only the latest relevant transaction (deposit or withdrawal in the last 90 days)
-                $query->whereIn('transaction_type', ['deposit', 'withdrawal'])
-                    ->where('created_at', '>=', now()->subDays(90))
-                    ->latest()  // Order by latest transaction
-                    ->limit(1);  // Limit to the most recent transaction
-            },
             'accountType:id,slug,color'  // Load account type info
         ])
         ->where('user_id', $request->id)
         ->get()  // Fetch the results from the database
-        ->map(function ($trading_account) {
-            // Access the latest transaction directly from the eager-loaded transactions
-            $lastTransaction = $trading_account->transactions->first(); // Get the latest transaction
-    
+        ->map(function ($trading_account) use ($inactiveThreshold) {
+            // Access the latest transaction directly from transactions
+            $lastTransaction = $trading_account->transactions()
+                                            ->whereIn('transaction_type', ['deposit', 'withdrawal'])
+                                            ->where('created_at', '>=', $inactiveThreshold)
+                                            ->latest()  // Order by latest transaction
+                                            ->first();  // Get the latest transaction (or null if none)
+
             // Get the last access date of the trading user
             $lastAccess = $trading_account->trading_user->last_access;
+
+            // Determine if the account is active based on:
+            // 1. Account creation date (within the last 90 days),
+            // 2. Last transaction date (within the last 90 days),
+            // 3. Last access date (within the last 90 days)
+            $isActive = $trading_account->created_at >= $inactiveThreshold || // Account created within last 90 days
+                    ($lastTransaction && $lastTransaction->created_at >= $inactiveThreshold) || // Last transaction within 90 days
+                    ($lastAccess && $lastAccess >= $inactiveThreshold && $lastAccess <= $inactiveThreshold->endOfDay()); // Last access within 90 days
     
-            // Determine if the account is active (had a transaction or access in the last 90 days)
-            $isActive = ($lastTransaction && $lastTransaction->created_at >= now()->subDays(90) && $lastTransaction->created_at <= now()) 
-                        || ($lastAccess && $lastAccess >= now()->subDays(90) && $lastAccess <= now());
-        
             return [
                 'id' => $trading_account->id,
                 'meta_login' => $trading_account->meta_login,

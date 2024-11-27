@@ -32,30 +32,34 @@ class TradingAccountController extends Controller
     public function getAccountListingData(Request $request)
     {
         if ($request->type == 'all') {
+
+            $inactiveThreshold = now()->subDays(90)->startOfDay();
+
             $accountQuery = TradingUser::with([
                 'userData:id,first_name,email',
                 'trading_account:id,meta_login,equity,status', // load trading_account
                 'accountType:id,name',
-                'trading_account.transactions' => function ($query) {
-                    // Fetch only the latest relevant transaction (deposit/withdrawal in the last 90 days)
-                    $query->whereIn('transaction_type', ['deposit', 'withdrawal'])
-                          ->where('created_at', '>=', now()->subDays(90))
-                          ->latest() // order by latest transaction
-                          ->limit(1); // limit to the most recent transaction
-                }
             ]);
         
             $accounts = $accountQuery
                 ->orderByDesc('meta_login')
                 ->get()
-                ->map(function ($account) {
+                ->map(function ($account) use ($inactiveThreshold): array {
                     // Access the latest transaction directly from the eager-loaded transactions
-                    $lastTransaction = $account->trading_account->transactions->first(); // Get the latest transaction
-        
-                    // Check if the account is active based on last transaction or last access
-                    $isActive = ($lastTransaction && $lastTransaction->created_at >= now()->subDays(90) && $lastTransaction->created_at <= now()) 
-                    || ($account->last_access && $account->last_access >= now()->subDays(90) && $account->last_access <= now());
-                        
+                    $lastTransaction = $account->trading_account->transactions()
+                                                            ->whereIn('transaction_type', ['deposit', 'withdrawal'])
+                                                            ->where('created_at', '>=', $inactiveThreshold)
+                                                            ->latest()  // Order by latest transaction
+                                                            ->first();  // Get the latest transaction (or null if none)
+
+                    // Determine if the account is active based on:
+                    // 1. Account creation date (within the last 90 days),
+                    // 2. Last transaction date (within the last 90 days),
+                    // 3. Last access date (within the last 90 days).
+                    $isActive = $account->created_at >= $inactiveThreshold || // Account created within last 90 days
+                                ($lastTransaction && $lastTransaction->created_at >= $inactiveThreshold) || // Last transaction within 90 days
+                                ($account->last_access && $account->last_access >= $inactiveThreshold && $account->last_access <= $inactiveThreshold->endOfDay()); // Last access within 90 days
+                            
                     return [
                         'id' => $account->id,
                         'meta_login' => $account->meta_login,
@@ -279,17 +283,82 @@ class TradingAccountController extends Controller
     public function updateAccountStatus(Request $request)
     {
         $account = TradingAccount::where('meta_login', $request->meta_login)->first();
+    
+        // If the account is inactive, immediately activate it and return
+        if ($account->status === 'inactive') {
+            $account->status = 'active';
+            $account->save();
+    
+            // Check if the TradingUser's acc_status is inactive, and update it only if needed
+            if ($account->trading_user->acc_status == 'inactive') {
+                $account->trading_user->acc_status = 'active';
+                $account->trading_user->save();
+            }
 
-        $account->status = $account->status == 'active' ? 'inactive' : 'active';
-        // $account->status = $account->status == 1 ? 0 : 1;
-        $account->save();
+            return back()->with('toast', [
+                'title' => trans('public.toast_trading_account_has_activated'),
+                'type' => 'success',
+            ]);
+        } elseif ($account->status === 'active') {
+            $inactiveThreshold = now()->subDays(90);
+    
+            // Check if the account has any positive balances
+            $hasPositiveBalance = $account->balance > 0 || $account->equity > 0 || $account->credit > 0 || $account->cash_equity > 0;
+    
+            // Check if the account was created recently (within the last 90 days)
+            $isRecentlyCreated = $account->created_at->diffInDays(now()) <= 90;
+    
+            // Return warning if recently created or has a positive balance
+            if ($isRecentlyCreated) {
+                return back()->with('toast', [
+                    'title' => trans('public.toast_trading_account_created_recently'),
+                    'type' => 'warning',
+                ]);
+            }
+    
+            if ($hasPositiveBalance) {
+                return back()->with('toast', [
+                    'title' => trans('public.toast_trading_account_has_balance'),
+                    'type' => 'warning',
+                ]);
+            }
+    
+            // Check for recent transactions
+            $lastTransaction = $account->transactions()
+                                    ->whereIn('transaction_type', ['deposit', 'withdrawal'])
+                                    ->where('created_at', '>=', $inactiveThreshold)
+                                    ->latest()
+                                    ->first();
+    
+            // Get the last access date of the trading user
+            $lastAccess = $account->trading_user->last_access;
+    
+            if (($lastTransaction && $lastTransaction->created_at >= $inactiveThreshold) ||
+                ($lastAccess && $lastAccess >= $inactiveThreshold && $lastAccess <= now())) {
+                // Recent activity -> cannot deactivate
+                return back()->with('toast', [
+                    'title' => trans('public.toast_trading_account_has_recent_activity'),
+                    'type' => 'warning',
+                ]);
+            }
+            
+            // No recent activity -> deactivate account
+            $account->status = 'inactive';
+            $account->save();
+            
+            // Check if the TradingUser's acc_status is different, and update it only if needed
+            if ($account->trading_user->acc_status == 'active') {
+                $account->trading_user->acc_status = 'inactive';
+                $account->trading_user->save();
+            }
 
-        return back()->with('toast', [
-            'title' => trans($account->status === 'active' ? 'public.toast_trading_account_has_activated' : 'public.toast_trading_account_has_deactivated'), //this not yet done
-            'type' => 'success',
-        ]);
+            return back()->with('toast', [
+                'title' => trans('public.toast_trading_account_has_deactivated'),
+                'type' => 'success',
+            ]);
+        }
     }
-
+            
     public function refreshAllAccount(): void
     {
         UpdateCTraderAccountJob::dispatch();

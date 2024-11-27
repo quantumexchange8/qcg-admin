@@ -14,45 +14,48 @@ class UpdateTradingAccountStatusCommand extends Command
 
     public function handle()
     {
-        $inactiveThreshold = now()->subDays(90);
-        $cTraderService = new CTraderService(); // Initialize the CTraderService
+        $inactiveThreshold = now()->subDays(90)->startOfDay();
 
+        $cTraderService = new CTraderService(); // Initialize the CTraderService
+    
         // Fetch all trading accounts
         $tradingAccounts = TradingAccount::with([
             'trading_user', 
-            'transactions' => function ($query) use ($inactiveThreshold) {
-                $query->whereIn('transaction_type', ['deposit', 'withdrawal'])
-                      ->where('created_at', '>=', $inactiveThreshold)
-                      ->latest() // Sort by created_at descending
-                      ->limit(1); // Limit to the most recent transaction
-            }
         ])->get();
-
+    
         foreach ($tradingAccounts as $account) {
             // Ensure that we refresh the user data before processing
             if ($account->trading_user) {
                 $cTraderService->getUserInfo($account->trading_user->meta_login); // Update user data
             }
-
+    
             // Get the latest transaction if it exists
-            $lastTransaction = $account->transactions->first();
-            
+            // Access the latest transaction directly from transactions
+            $lastTransaction = $account->transactions()
+                                            ->whereIn('transaction_type', ['deposit', 'withdrawal'])
+                                            ->where('created_at', '>=', $inactiveThreshold)
+                                            ->latest()  // Order by latest transaction
+                                            ->first();  // Get the latest transaction (or null if none)
+    
             // Check if the account has any positive balances
             $hasPositiveBalance = $account->balance > 0 || $account->equity > 0 || $account->credit > 0 || $account->cash_equity > 0;
-
+    
+            // Check if the account's creation date is within the last 90 days
+            $isRecentlyCreated = $account->created_at >= $inactiveThreshold;
+    
             // Determine if the account is active
-            // If there is a positive balance, the account stays active regardless of other factors
-            $isActive = $hasPositiveBalance || 
+            $isActive = $isRecentlyCreated || 
+                        $hasPositiveBalance || 
                         ($lastTransaction && $lastTransaction->created_at >= $inactiveThreshold) ||
                         ($account->trading_user->last_access && $account->trading_user->last_access >= $inactiveThreshold);
-
+    
             // Only update if the status has changed
             if ($account->status !== ($isActive ? 'active' : 'inactive')) {
                 // Update account status
                 $account->status = $isActive ? 'active' : 'inactive';
                 $account->save(); // Save only if there is a change
             }
-
+    
             // Update trading user status only if it has changed
             if ($account->trading_user && $account->trading_user->acc_status !== ($isActive ? 'active' : 'inactive')) {
                 $account->trading_user->acc_status = $isActive ? 'active' : 'inactive';

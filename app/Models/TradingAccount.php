@@ -38,7 +38,7 @@ class TradingAccount extends Model
 
     public function transactions(): HasMany
     {
-        return $this->hasMany(Transaction::class, 'user_id', 'id')
+        return $this->hasMany(Transaction::class, 'user_id', 'user_id')
                     ->where(function ($query) {
                         $query->where('from_meta_login', $this->meta_login)
                               ->orWhere('to_meta_login', $this->meta_login);

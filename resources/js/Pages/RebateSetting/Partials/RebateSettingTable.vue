@@ -214,7 +214,7 @@ watchEffect(() => {
             </Column>
             <Column v-if="agents && agents.length" field="1" class="hidden md:table-cell" style="width:10%;">
                 <template #header>
-                    <span>{{ $t('public.forex') }}</span>
+                    <span class="w-12 truncate lg:w-auto">{{ $t('public.forex') }}</span>
                 </template>
                 <template #body="slotProps">
                     {{ slotProps.data[1]['1'] }}
@@ -233,7 +233,7 @@ watchEffect(() => {
             </Column>
             <Column v-if="agents && agents.length" field="2" class="hidden md:table-cell" style="width:10%;">
                 <template #header>
-                    <span>{{ $t('public.stocks') }}</span>
+                    <span class="w-12 truncate lg:w-auto">{{ $t('public.stocks') }}</span>
                 </template>
                 <template #body="slotProps">
                     {{ slotProps.data[1]['2'] }}
@@ -252,7 +252,7 @@ watchEffect(() => {
             </Column>
             <Column v-if="agents && agents.length" field="3" class="hidden md:table-cell" style="width:10%;">
                 <template #header>
-                    <span>{{ $t('public.indices') }}</span>
+                    <span class="w-12 truncate lg:w-auto">{{ $t('public.indices') }}</span>
                 </template>
                 <template #body="slotProps">
                     {{ slotProps.data[1]['3'] }}

@@ -14,7 +14,6 @@ import Empty from "@/Components/Empty.vue";
 import Action from "@/Pages/Member/Account/Partials/Action.vue"
 import { transactionFormat } from "@/Composables/index.js";
 import dayjs from "dayjs";
-import StatusBadge from '@/Components/StatusBadge.vue';
 
 const { formatAmount } = transactionFormat();
 
@@ -180,12 +179,12 @@ const handleFilter = (e) => {
                     </div>
                 </template>
             </Column>
-            <Column field="last_login" :header="$t('public.last_logged_in')" sortable class="w-full md:w-[20%] max-w-0" headerClass="hidden md:table-cell">
+            <Column field="last_login" :header="$t('public.last_logged_in')" sortable class="w-full md:w-[20%] max-w-0" headerClass="hidden md:table-cell truncate">
                 <template #body="slotProps">
                     <div class="text-gray-950 text-sm font-semibold truncate max-w-full md:hidden">
                         {{ slotProps.data.meta_login }}
                     </div>
-                    <div class="flex items-center gap-1">
+                    <div class="w-1/2 flex items-center gap-1">
                         <div class="text-gray-500 text-xs md:hidden">{{ $t('public.last_logged_in') }}</div>
                         <div class="text-gray-500 text-xs md:hidden">:</div>
                         <div class="text-gray-700 md:text-gray-950 text-xs md:text-sm font-medium md:font-normal">
@@ -194,48 +193,40 @@ const handleFilter = (e) => {
                     </div>
                 </template>
             </Column>
-            <Column field="meta_login" :header="$t('public.account')" sortable class="hidden md:table-cell w-[10%] max-w-0">
+            <Column field="meta_login" :header="$t('public.account')" sortable class="hidden md:table-cell w-[12%] max-w-0" headerClass="truncate">
                 <template #body="slotProps">
-                    <div class="text-gray-950 text-sm flex flex-wrap gap-1 items-center break-all">
+                    <div class="text-gray-950 text-sm flex flex-wrap gap-1 items-center truncate">
                         {{ slotProps.data.meta_login }}
-                        <IconAlertCircleFilled  :size="20" stroke-width="1.25" class="text-error-500" v-if="!slotProps.data.is_active" v-tooltip.top="$t('public.trading_account_inactive_warning')"/>
+                        <IconAlertCircleFilled  :size="20" stroke-width="1.25" class="text-error-500 grow-0 shrink-0" v-if="!slotProps.data.is_active" v-tooltip.top="$t('public.trading_account_inactive_warning')"/>
                     </div>
                 </template>
             </Column>
-            <Column field="balance" :header="`${$t('public.balance')}&nbsp;($)`" sortable class="hidden md:table-cell w-[10%]">
+            <Column field="balance" :header="`${$t('public.balance')}&nbsp;($)`" sortable class="hidden md:table-cell w-[12%] max-w-0" headerClass="truncate">
                 <template #body="slotProps">
-                    <div class="text-gray-950 text-sm">
+                    <div class="text-gray-950 text-sm truncate">
                         {{ formatAmount(slotProps.data.balance || 0) }}
                     </div>
                 </template>
             </Column>
-            <Column field="equity" :header="`${$t('public.equity')}&nbsp;($)`" sortable class="hidden md:table-cell w-[10%]">
+            <Column field="equity" :header="`${$t('public.equity')}&nbsp;($)`" sortable class="hidden md:table-cell w-[12%] max-w-0" headerClass="truncate">
                 <template #body="slotProps">
-                    <div class="text-gray-950 text-sm">
+                    <div class="text-gray-950 text-sm truncate">
                         {{ formatAmount((slotProps.data?.equity || 0) - (slotProps.data?.credit || 0)) }}
                     </div>
                 </template>
             </Column>
-            <Column field="credit" :header="`${$t('public.credit')}&nbsp;($)`" sortable class="hidden md:table-cell w-[10%]">
+            <Column field="credit" :header="`${$t('public.credit')}&nbsp;($)`" sortable class="hidden md:table-cell w-[12%] max-w-0" headerClass="truncate">
                 <template #body="slotProps">
-                    <div class="text-gray-950 text-sm">
+                    <div class="text-gray-950 text-sm truncate">
                         {{ formatAmount(slotProps.data.credit || 0) }}
                     </div>
                 </template>
             </Column>
-            <Column field="status" :header="`${$t('public.status')}`" sortable class="hidden md:table-cell w-[10%]">
+            <Column field="action" class="w-full md:w-[12%]" headerClass="hidden md:table-cell">
                 <template #body="slotProps">
-                    <StatusBadge :variant="slotProps.data.status" :value="$t('public.' + slotProps.data.status)" />
-                </template>
-            </Column>
-            <Column field="action" class="w-full md:w-[10%]" headerClass="hidden md:table-cell">
-                <template #body="slotProps">
-                    <div class="w-full flex flex-wrap items-center justify-center">
-                        <StatusBadge :variant="slotProps.data.status" :value="$t('public.' + slotProps.data.status)" class="md:hidden" />
-                        <Action 
-                            :account="slotProps.data"
-                        />
-                    </div>
+                    <Action 
+                        :account="slotProps.data"
+                    />
                 </template>
             </Column>
         </template>
