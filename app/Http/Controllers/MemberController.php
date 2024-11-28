@@ -765,7 +765,6 @@ class MemberController extends Controller
             // Determine if the account is active based on:
             // 1. Account creation date (within the last 90 days),
             // 2. Last transaction date (within the last 90 days),
-            // 3. Last access date (within the last 90 days)
             $isActive = $trading_account->created_at >= $inactiveThreshold || // Account created within last 90 days
                     ($lastTransaction && $lastTransaction->created_at >= $inactiveThreshold); // Last transaction within 90 days
     

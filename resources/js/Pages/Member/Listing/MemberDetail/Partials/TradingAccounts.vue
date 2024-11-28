@@ -125,7 +125,7 @@ const requireConfirmation = (action_type, meta_login) => {
             <div class="grid grid-cols-2 gap-2 self-stretch md:grid-cols-4">
                 <div class="w-full flex flex-col items-center gap-1 flex-grow">
                     <span class="self-stretch text-gray-500 text-xs">{{ $t('public.balance') }}:</span>
-                    <span class="self-stretch text-gray-950 text-sm font-medium truncate w-full">$&nbsp;{{ formatAmount(tradingAccount?.balance || '-') }}</span>
+                    <span class="self-stretch text-gray-950 text-sm font-medium truncate w-full">$&nbsp;{{ formatAmount(tradingAccount?.balance || 0) }}</span>
                 </div>
                 <div class="w-full flex flex-col items-center gap-1 flex-grow">
                     <span class="self-stretch text-gray-500 text-xs">{{ $t('public.equity') }}:</span>
@@ -135,7 +135,7 @@ const requireConfirmation = (action_type, meta_login) => {
                     <span class="self-stretch text-gray-500 text-xs">{{ tradingAccount.account_type === 'premium_account' ? $t('public.pamm') : $t('public.credit') }}:</span>
                     <div class="self-stretch text-gray-950 text-sm font-medium truncate w-full">
                         <span v-if="tradingAccount.account_type === 'premium_account'">{{ tradingAccount.asset_master_name ?? '-' }}</span>
-                        <span v-else>$&nbsp;{{ formatAmount(tradingAccount?.credit || '-') }}</span>
+                        <span v-else>$&nbsp;{{ formatAmount(tradingAccount?.credit || 0) }}</span>
                     </div>
                 </div>
                 <div class="w-full flex flex-col items-center gap-1 flex-grow">

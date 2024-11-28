@@ -130,7 +130,7 @@ watchEffect(() => {
                                     'text-error-600': slotProps.data.transaction_type === 'withdrawal' || slotProps.data.transaction_type === 'balance_out',
                                     }"
                                 >
-                                    {{ formatAmount(slotProps.data?.transaction_amount || '-') }}
+                                    {{ formatAmount(slotProps.data?.transaction_amount || 0) }}
                                 </div>
                             </template>
                         </Column>
