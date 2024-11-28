@@ -191,7 +191,7 @@ watchEffect(() => {
                     <span class="text-sm text-gray-700">{{ $t('public.loading') }}</span>
                 </div>
             </template>
-            <Column v-if="agents && agents.length" field="level" style="width:10%;" class="px-3">
+            <Column v-if="agents && agents.length" field="level" style="width:10%;" class="px-3" headerClass="truncate">
                 <template #header>
                     <span>{{ $t('public.level') }}</span>
                 </template>

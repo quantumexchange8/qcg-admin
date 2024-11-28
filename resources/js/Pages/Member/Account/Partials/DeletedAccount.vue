@@ -184,7 +184,7 @@ const handleFilter = (e) => {
                         <div class="text-gray-950 text-sm font-semibold truncate max-w-full md:hidden">
                             {{ slotProps.data?.meta_login || '-' }}
                         </div>
-                        <div class="flex items-center gap-1 w-1/2">
+                        <div class="flex items-center gap-1 w-full md:w-1/2">
                             <div class="text-gray-500 text-xs md:hidden">{{ $t('public.deleted_time') }}:</div>
                             <div class="text-gray-700 md:text-gray-950 text-xs md:text-sm font-medium md:font-normal w-1/2">
                                 {{ dayjs(slotProps.data.deleted_at).format('YYYY/MM/DD HH:mm:ss') }}

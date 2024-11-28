@@ -179,7 +179,7 @@ const handleFilter = (e) => {
                     <div class="text-gray-950 text-sm font-semibold truncate max-w-full md:hidden">
                         {{ slotProps.data.meta_login }}
                     </div>
-                    <div class="w-1/2 flex items-center gap-1">
+                    <div class="w-full md:w-1/2 flex items-center gap-1">
                         <div class="text-gray-500 text-xs md:hidden">{{ $t('public.last_logged_in') }}</div>
                         <div class="text-gray-500 text-xs md:hidden">:</div>
                         <div class="text-gray-700 md:text-gray-950 text-xs md:text-sm font-medium md:font-normal">
