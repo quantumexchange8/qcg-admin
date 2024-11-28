@@ -399,16 +399,16 @@ const copyToClipboard = (text) => {
                     <Column field="incentive_amount" :header="`${$t('public.amount')}&nbsp;($)`" sortable class="w-1/2 md:w-[20%] px-3">
                         <template #body="slotProps">
                             <div class="text-gray-950 text-sm">
-                                {{ formatAmount(slotProps.data.incentive_amount || 0) }}
+                                {{ formatAmount(slotProps.data?.incentive_amount || 0) }}
                             </div>
                         </template>
                     </Column>
                     <ColumnGroup type="footer">
                         <Row>
                             <Column class="hidden md:table-cell" :footer="$t('public.total') + '&nbsp;($)&nbsp;:'" :colspan="4" footerStyle="text-align:right" />
-                            <Column class="hidden md:table-cell" :colspan="5" :footer="formatAmount(totalAmount)" />
+                            <Column class="hidden md:table-cell" :colspan="5" :footer="formatAmount(totalAmount ? totalAmount : 0)" />
                             <Column class="md:hidden" :footer="$t('public.total') + '&nbsp;($)&nbsp;:'" :colspan="1" footerStyle="text-align:right" />
-                            <Column class="md:hidden" :colspan="2" :footer="formatAmount(totalAmount)" />
+                            <Column class="md:hidden" :colspan="2" :footer="formatAmount(totalAmount ? totalAmount : 0)" />
                         </Row>
                     </ColumnGroup>
                 </template>
@@ -424,7 +424,7 @@ const copyToClipboard = (text) => {
                     <span class="w-full truncate text-gray-500 text-sm">{{ data.email }}</span>
                 </div>
                 <div class="flex items-center self-stretch">
-                    <span class="w-full truncate text-gray-950 text-lg font-semibold">{{ `$&nbsp;${formatAmount(data.incentive_amount)}` }}</span>
+                    <span class="w-full truncate text-gray-950 text-lg font-semibold">{{ `$&nbsp;${formatAmount(data?.incentive_amount || 0)}` }}</span>
                 </div>
             </div>
             
@@ -443,15 +443,15 @@ const copyToClipboard = (text) => {
                 </div>
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.target') }}</span>
-                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ data.target_amount }}</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ data?.target_amount || 0 }}</span>
                 </div>
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.achieved') }}</span>
-                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ data.achieved_amount }}</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ data?.achieved_amount || 0 }}</span>
                 </div>
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.incentive_rate') }}</span>
-                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ data.incentive_rate }}</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ data?.incentive_rate || 0 }}</span>
                 </div>
             </div>
 

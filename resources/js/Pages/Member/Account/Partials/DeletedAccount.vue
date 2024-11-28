@@ -82,11 +82,12 @@ watch(accountType, (newVal) => {
     filters.value['account_type_id'].value = newVal ? newVal : null;
 });
 
-watchEffect(() => {
-    if (usePage().props.toast !== null) {
-        getResults();
+watch(() => usePage().props.toast, (newToast) => {
+        if (newToast !== null) {
+            getResults();
+        }
     }
-});
+);
 
 const handleFilter = (e) => {
     filteredValue.value = e.filteredValue;
@@ -181,11 +182,11 @@ const handleFilter = (e) => {
                 <template #body="slotProps">
                     <div class="flex flex-col items-start max-w-full">
                         <div class="text-gray-950 text-sm font-semibold truncate max-w-full md:hidden">
-                            {{ slotProps.data.meta_login }}
+                            {{ slotProps.data?.meta_login || '-' }}
                         </div>
-                        <div class="flex items-center gap-1 truncate max-w-full">
+                        <div class="flex items-center gap-1 w-1/2">
                             <div class="text-gray-500 text-xs md:hidden">{{ $t('public.deleted_time') }}:</div>
-                            <div class="text-gray-700 md:text-gray-950 text-xs md:text-sm font-medium md:font-normal truncate max-w-full">
+                            <div class="text-gray-700 md:text-gray-950 text-xs md:text-sm font-medium md:font-normal w-1/2">
                                 {{ dayjs(slotProps.data.deleted_at).format('YYYY/MM/DD HH:mm:ss') }}
                             </div>
                         </div>
@@ -195,21 +196,21 @@ const handleFilter = (e) => {
             <Column field="meta_login" :header="$t('public.account')" sortable class="hidden md:table-cell w-[20%]">
                 <template #body="slotProps">
                     <div class="text-gray-950 text-sm">
-                        {{ slotProps.data.meta_login }}
+                        {{ slotProps.data?.meta_login || '-' }}
                     </div>
                 </template>
             </Column>
             <Column field="balance" :header="`${$t('public.balance')}&nbsp;($)`" sortable class="hidden md:table-cell w-[20%]">
                 <template #body="slotProps">
                     <div class="text-gray-950 text-sm">
-                        {{ formatAmount(slotProps.data.balance) }}
+                        {{ formatAmount(slotProps.data?.balance || 0) }}
                     </div>
                 </template>
             </Column>
             <Column field="equity" :header="`${$t('public.equity')}&nbsp;($)`" sortable class="hidden md:table-cell w-[20%]">
                 <template #body="slotProps">
                     <div class="text-gray-950 text-sm">
-                        {{ formatAmount(slotProps.data.equity) }}
+                        {{ formatAmount(slotProps.data?.equity || 0) }}
                     </div>
                 </template>
             </Column>
@@ -219,31 +220,31 @@ const handleFilter = (e) => {
         <div class="flex flex-col justify-center items-center gap-3 self-stretch pt-4 md:pt-6">
             <div class="flex flex-col justify-between items-center p-3 gap-3 self-stretch bg-gray-50 md:flex-row">
                 <div class="flex flex-col items-start w-full truncate">
-                    <span class="w-full truncate text-gray-950 font-semibold">{{ data.name }}</span>
-                    <span class="w-full truncate text-gray-500 text-sm">{{ data.email }}</span>
+                    <span class="w-full truncate text-gray-950 font-semibold">{{ data?.name }}</span>
+                    <span class="w-full truncate text-gray-500 text-sm">{{ data?.email }}</span>
                 </div>
             </div>
             
             <div class="flex flex-col items-center p-3 gap-3 self-stretch bg-gray-50">
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.account') }}</span>
-                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{  data.meta_login }}</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{  data?.meta_login || '-' }}</span>
                 </div>
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.balance') }}</span>
-                    <span class="w-full truncate text-gray-950 text-sm font-medium">$&nbsp;{{ data.balance }}</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium">$&nbsp;{{ formatAmount(data?.balance || 0) }}</span>
                 </div>
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.equity') }}</span>
-                    <span class="w-full truncate text-gray-950 text-sm font-medium">$&nbsp;{{ data.equity }}</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium">$&nbsp;{{ formatAmount((data?.equity || 0) - (data?.credit || 0)) }}</span>
                 </div>
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.credit') }}</span>
-                    <span class="w-full truncate text-gray-950 text-sm font-medium">$&nbsp;{{ data.credit }}</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium">$&nbsp;{{ formatAmount(data?.credit || 0) }}</span>
                 </div>
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.leverage') }}</span>
-                    <span class="w-full truncate text-gray-950 text-sm font-medium">1:{{ data.leverage }}</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium">1:{{ data?.leverage }}</span>
                 </div>
             </div>
 

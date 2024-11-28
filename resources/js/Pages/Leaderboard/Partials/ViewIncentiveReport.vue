@@ -183,7 +183,7 @@ const exportXLSX = () => {
                     </div>
                     <div v-if="bonuses?.length > 0" class="flex items-center gap-3 self-stretch md:hidden">
                         <span class="text-gray-500 text-sm font-normal">{{ $t('public.total') }}:</span>
-                        <span class="text-gray-950 font-semibold">$&nbsp;{{ formatAmount(totalBonusAmount) }}</span>
+                        <span class="text-gray-950 font-semibold">$&nbsp;{{ formatAmount(totalBonusAmount || 0) }}</span>
                     </div>
                 </div>
             </template>
@@ -203,22 +203,22 @@ const exportXLSX = () => {
                 </Column>
                 <Column field="target_amount" :header="`${$t('public.target')}&nbsp;(${profile.sales_category === 'trade_volume' ? 'Ł' : '$'})`" style="width: 20%" class="hidden md:table-cell">
                     <template #body="slotProps">
-                        {{ formatAmount(slotProps.data.target_amount) }}
+                        {{ formatAmount(slotProps.data.target_amount || 0) }}
                     </template>
                 </Column>
                 <Column field="achieved_amount" :header="`${$t('public.achieved')}&nbsp;(${profile.sales_category === 'trade_volume' ? 'Ł' : '$'})`" style="width: 20%" class="hidden md:table-cell">
                     <template #body="slotProps">
-                        {{ formatAmount(slotProps.data.achieved_amount) }}
+                        {{ formatAmount(slotProps.data.achieved_amount || 0) }}
                     </template>
                 </Column>
                 <Column field="incentive_rate" :header="`${$t('public.rate')}&nbsp;(${profile.sales_category === 'trade_volume' ? '$' : '%'})`" style="width: 20%" class="hidden md:table-cell">
                     <template #body="slotProps">
-                        {{ formatAmount(slotProps.data.incentive_rate) }}
+                        {{ formatAmount(slotProps.data.incentive_rate || 0) }}
                     </template>
                 </Column>
                 <Column field="incentive_amount" :header="`${$t('public.incentive')}&nbsp;($)`" sortable style="width: 20%" class="hidden md:table-cell">
                     <template #body="slotProps">
-                        {{ formatAmount(slotProps.data.incentive_amount) }}
+                        {{ formatAmount(slotProps.data.incentive_amount || 0) }}
                     </template>
                 </Column>
                 <ColumnGroup type="footer">
@@ -233,11 +233,11 @@ const exportXLSX = () => {
                             <span class="self-stretch text-gray-950 font-semibold">{{ dayjs(slotProps.data.created_at).format('YYYY/MM/DD') }}</span>
                             <div class="flex items-center gap-1 text-gray-700 text-xs">
                                 <div>
-                                    <span v-if="profile.sales_category !== 'trade_volume'">$&nbsp;</span>{{ formatAmount(slotProps.data.achieved_amount) }}<span v-if="profile.sales_category === 'trade_volume'">&nbsp;Ł</span>
+                                    <span v-if="profile.sales_category !== 'trade_volume'">$&nbsp;</span>{{ formatAmount(slotProps.data.achieved_amount || 0) }}<span v-if="profile.sales_category === 'trade_volume'">&nbsp;Ł</span>
                                 </div>
                                 <span class="text-gray-500">|</span>
                                 <div>
-                                    <span v-if="profile.sales_category !== 'trade_volume'">$&nbsp;</span>{{ formatAmount(slotProps.data.target_amount) }}<span v-if="profile.sales_category === 'trade_volume'">&nbsp;Ł</span>
+                                    <span v-if="profile.sales_category !== 'trade_volume'">$&nbsp;</span>{{ formatAmount(slotProps.data.target_amount || 0) }}<span v-if="profile.sales_category === 'trade_volume'">&nbsp;Ł</span>
                                 </div>
                             </div>
                         </div>
@@ -246,11 +246,11 @@ const exportXLSX = () => {
                 <Column style="width: 50%" class="md:hidden" headerClass="hidden">
                     <template #body="slotProps">
                         <div class="flex flex-col items-end gap-1">
-                            <span class="self-stretch text-gray-950 text-right font-semibold">$&nbsp;{{ formatAmount(slotProps.data.incentive_amount) }}</span>
+                            <span class="self-stretch text-gray-950 text-right font-semibold">$&nbsp;{{ formatAmount(slotProps.data.incentive_amount || 0) }}</span>
                             <div class="flex justify-end items-center gap-1 self-stretch text-xs">
                                 <span class="text-gray-700">{{ $t('public.rate') }}:</span>
                                 <div class="text-gray-500 text-right">
-                                    <span v-if="profile.sales_category === 'trade_volume'">$&nbsp;</span>{{ formatAmount(slotProps.data.incentive_rate) }}<span v-if="profile.sales_category !== 'trade_volume'">&nbsp;%</span>
+                                    <span v-if="profile.sales_category === 'trade_volume'">$&nbsp;</span>{{ formatAmount(slotProps.data.incentive_rate || 0) }}<span v-if="profile.sales_category !== 'trade_volume'">&nbsp;%</span>
                                 </div>
                             </div>
                         </div>

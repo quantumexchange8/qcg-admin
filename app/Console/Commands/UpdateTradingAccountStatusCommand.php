@@ -46,8 +46,7 @@ class UpdateTradingAccountStatusCommand extends Command
             // Determine if the account is active
             $isActive = $isRecentlyCreated || 
                         $hasPositiveBalance || 
-                        ($lastTransaction && $lastTransaction->created_at >= $inactiveThreshold) ||
-                        ($account->trading_user->last_access && $account->trading_user->last_access >= $inactiveThreshold);
+                        ($lastTransaction && $lastTransaction->created_at >= $inactiveThreshold);
     
             // Only update if the status has changed
             if ($account->status !== ($isActive ? 'active' : 'inactive')) {

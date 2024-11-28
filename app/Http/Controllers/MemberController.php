@@ -114,7 +114,6 @@ class MemberController extends Controller
 
         $dial_code = $request->dial_code;
         $country = Country::find($dial_code['id']);
-        // $default_agent_id = User::where('id_number', 'AID00000')->first()->id;
 
         $user = User::create([
             'first_name' => $request->name,
@@ -128,7 +127,6 @@ class MemberController extends Controller
             'nationality' => $country->nationality,
             'hierarchyList' => $hierarchyList,
             'password' => Hash::make($request->password),
-            // 'role' => $upline_id == $default_agent_id ? 'agent' : 'member',
             'role' => 'member',
             'kyc_approval' => 'verified',
         ]);
@@ -769,8 +767,7 @@ class MemberController extends Controller
             // 2. Last transaction date (within the last 90 days),
             // 3. Last access date (within the last 90 days)
             $isActive = $trading_account->created_at >= $inactiveThreshold || // Account created within last 90 days
-                    ($lastTransaction && $lastTransaction->created_at >= $inactiveThreshold) || // Last transaction within 90 days
-                    ($lastAccess && $lastAccess >= $inactiveThreshold && $lastAccess <= $inactiveThreshold->endOfDay()); // Last access within 90 days
+                    ($lastTransaction && $lastTransaction->created_at >= $inactiveThreshold); // Last transaction within 90 days
     
             return [
                 'id' => $trading_account->id,

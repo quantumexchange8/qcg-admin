@@ -493,6 +493,9 @@ class TeamController extends Controller
     {
         TeamHasUser::where('team_id', $request->id)->update(['team_id' => 1]);
 
+        // Delete the related TeamSettlement records
+        TeamSettlement::where('team_id', $request->id)->delete();
+
         Team::destroy($request->id);
 
         return back()->with('toast', [

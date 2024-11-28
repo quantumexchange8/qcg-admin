@@ -5,7 +5,7 @@ export default {
             'rounded',
 
             // Size
-            'max-w-[300px]',
+            'min-w-[12rem] max-w-[300px]',
             'py-2',
 
             // Colors

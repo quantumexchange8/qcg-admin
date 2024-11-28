@@ -377,21 +377,21 @@ const copyToClipboard = (text) => {
                     <Column field="transaction_number" :header="$t('public.id')" sortable class="hidden md:table-cell w-[15%]">
                         <template #body="slotProps">
                             <div class="text-gray-950 text-sm">
-                                {{ slotProps.data.transaction_number }}
+                                {{ slotProps.data?.transaction_number || '-' }}
                             </div>
                         </template>
                     </Column>
                     <Column field="to_meta_login" :header="$t('public.account')" class="hidden md:table-cell w-[15%]">
                         <template #body="slotProps">
                             <div class="text-gray-950 text-sm">
-                                {{ slotProps.data.to_meta_login }}
+                                {{ slotProps.data?.to_meta_login || '-' }}
                             </div>
                         </template>
                     </Column>
                     <Column field="transaction_amount" :header="`${$t('public.amount')}&nbsp;($)`" sortable class="w-1/2 md:w-[15%] px-3">
                         <template #body="slotProps">
                             <div class="text-gray-950 text-sm">
-                                {{ formatAmount(slotProps.data.transaction_amount || 0) }}
+                                {{ formatAmount(slotProps.data?.transaction_amount || 0) }}
                             </div>
                         </template>
                     </Column>
@@ -405,9 +405,9 @@ const copyToClipboard = (text) => {
                     <ColumnGroup type="footer">
                         <Row>
                             <Column class="hidden md:table-cell" :footer="$t('public.total') + '&nbsp;($)&nbsp;:'" :colspan="5" footerStyle="text-align:right" />
-                            <Column class="hidden md:table-cell" :colspan="6" :footer="formatAmount(totalAmount)" />
+                            <Column class="hidden md:table-cell" :colspan="6" :footer="formatAmount(totalAmount ? totalAmount : 0)" />
                             <Column class="md:hidden" :footer="$t('public.total') + '&nbsp;($)&nbsp;:'" :colspan="1" footerStyle="text-align:right" />
-                            <Column class="md:hidden" :colspan="2" :footer="formatAmount(totalAmount)" />
+                            <Column class="md:hidden" :colspan="2" :footer="formatAmount(totalAmount ? totalAmount : 0)" />
                         </Row>
                     </ColumnGroup>
                 </template>
@@ -423,7 +423,7 @@ const copyToClipboard = (text) => {
                     <span class="w-full truncate text-gray-500 text-sm">{{ data.email }}</span>
                 </div>
                 <div class="flex items-center self-stretch">
-                    <span class="w-full truncate text-gray-950 text-lg font-semibold">{{ `$&nbsp;${formatAmount(data.transaction_amount)}` }}</span>
+                    <span class="w-full truncate text-gray-950 text-lg font-semibold">{{ `$&nbsp;${formatAmount(data?.transaction_amount || 0)}` }}</span>
                 </div>
             </div>
             
@@ -434,11 +434,11 @@ const copyToClipboard = (text) => {
                 </div>
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.transaction_id') }}</span>
-                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ data.transaction_number }}</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ data?.transaction_number || '-' }}</span>
                 </div>
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.account') }}</span>
-                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ data.to_meta_login }}</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ data?.to_meta_login || '-' }}</span>
                 </div>
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.status') }}</span>
@@ -449,18 +449,18 @@ const copyToClipboard = (text) => {
             <div class="flex flex-col items-center p-3 gap-3 self-stretch bg-gray-50">
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.sent_address') }}</span>
-                    <span class="w-full truncate text-gray-950 text-sm font-medium" @click="copyToClipboard(data.from_wallet_address)">{{ data.from_wallet_address }}</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium" @click="copyToClipboard(data.from_wallet_address)">{{ data?.from_wallet_address || '-' }}</span>
                 </div>
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.receiving_address') }}</span>
-                    <span class="w-full truncate text-gray-950 text-sm font-medium" @click="copyToClipboard(data.to_wallet_address)">{{ data.to_wallet_address }}</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium" @click="copyToClipboard(data.to_wallet_address)">{{ data?.to_wallet_address || '-' }}</span>
                 </div>
             </div>
 
             <div class="flex flex-col items-center p-3 gap-3 self-stretch bg-gray-50">
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.remarks') }}</span>
-                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ data.remarks }}</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ data?.remarks || '-' }}</span>
                 </div>
             </div>
         </div>

@@ -366,27 +366,27 @@ const refreshTeam = async (teamId) => {
                                 <div class="w-full grid grid-cols-2 gap-2 self-stretch xl:grid-cols-3">
                                     <div class="w-full flex flex-col items-start gap-1">
                                         <span class="self-stretch truncate text-gray-500 text-xs">{{ $t('public.team_deposit') }}</span>
-                                        <span class="self-stretch truncate text-gray-950 font-semibold">$&nbsp;{{ formatAmount(team.deposit) }}</span>
+                                        <span class="self-stretch truncate text-gray-950 font-semibold">$&nbsp;{{ formatAmount(team?.deposit || 0) }}</span>
                                     </div>
                                     <div class="w-full flex flex-col items-start gap-1">
                                         <span class="self-stretch truncate text-gray-500 text-xs">{{ $t('public.team_withdrawal') }}</span>
-                                        <span class="self-stretch truncate text-gray-950 font-semibold">$&nbsp;{{ formatAmount(team.withdrawal) }}</span>
+                                        <span class="self-stretch truncate text-gray-950 font-semibold">$&nbsp;{{ formatAmount(team?.withdrawal || 0) }}</span>
                                     </div>
                                     <div class="w-full flex flex-col items-start gap-1">
-                                        <span class="self-stretch truncate text-gray-500 text-xs">{{ `${$t('public.team_fee_charges')}&nbsp;(${formatAmount(team.fee_charges)}%)` }}</span>
-                                        <span class="self-stretch truncate text-gray-950 font-semibold">$&nbsp;{{ formatAmount(team.transaction_fee_charges) }}</span>
+                                        <span class="self-stretch truncate text-gray-500 text-xs">{{ `${$t('public.team_fee_charges')}&nbsp;(${formatAmount(team?.fee_charges || 0)}%)` }}</span>
+                                        <span class="self-stretch truncate text-gray-950 font-semibold">$&nbsp;{{ formatAmount(team?.transaction_fee_charges || 0) }}</span>
                                     </div>
                                     <div class="w-full flex flex-col items-start gap-1">
                                         <span class="self-stretch truncate text-gray-500 text-xs">{{ $t('public.team_net_balance') }}</span>
-                                        <span class="self-stretch truncate text-gray-950 font-semibold">$&nbsp;{{ formatAmount(team.net_balance) }}</span>
+                                        <span class="self-stretch truncate text-gray-950 font-semibold">$&nbsp;{{ formatAmount(team?.net_balance || 0) }}</span>
                                     </div>
                                     <div class="w-full flex flex-col items-start gap-1">
                                         <span class="self-stretch truncate text-gray-500 text-xs">{{ $t('public.team_account_balance') }}</span>
-                                        <span class="self-stretch truncate text-gray-950 font-semibold">$&nbsp;{{ formatAmount(team.account_balance) }}</span>
+                                        <span class="self-stretch truncate text-gray-950 font-semibold">$&nbsp;{{ formatAmount(team?.account_balance || 0) }}</span>
                                     </div>
                                     <div class="w-full flex flex-col items-start gap-1">
                                         <span class="self-stretch truncate text-gray-500 text-xs">{{ $t('public.team_account_equity') }}</span>
-                                        <span class="self-stretch truncate text-gray-950 font-semibold">$&nbsp;{{ formatAmount(team.account_equity) }}</span>
+                                        <span class="self-stretch truncate text-gray-950 font-semibold">$&nbsp;{{ formatAmount(team?.account_equity || 0) }}</span>
                                     </div>
                                 </div>
                             </div>

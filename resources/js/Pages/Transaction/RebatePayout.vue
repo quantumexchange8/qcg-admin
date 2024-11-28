@@ -385,23 +385,23 @@ const copyToClipboard = (text) => {
                     <Column field="volume" :header="`${$t('public.volume')}&nbsp;(Ł)`" sortable class="hidden md:table-cell w-[20%]">
                         <template #body="slotProps">
                             <div class="text-gray-950 text-sm">
-                                {{ formatAmount(slotProps.data.volume) }}
+                                {{ formatAmount(slotProps.data?.volume || 0) }}
                             </div>
                         </template>
                     </Column>
                     <Column field="rebate" :header="`${$t('public.amount')}&nbsp;($)`" sortable class="w-1/2 md:w-[20%] px-3">
                         <template #body="slotProps">
                             <div class="text-gray-950 text-sm">
-                                {{ formatAmount(slotProps.data.rebate) }}
+                                {{ formatAmount(slotProps.data?.rebate || 0) }}
                             </div>
                         </template>
                     </Column>
                     <ColumnGroup type="footer">
                         <Row>
                             <Column class="hidden md:table-cell" :footer="$t('public.total') + '&nbsp;($)&nbsp;:'" :colspan="4" footerStyle="text-align:right" />
-                            <Column class="hidden md:table-cell" :colspan="5" :footer="formatAmount(totalAmount)" />
+                            <Column class="hidden md:table-cell" :colspan="5" :footer="formatAmount(totalAmount ? totalAmount : 0)" />
                             <Column class="md:hidden" :footer="$t('public.total') + '&nbsp;($)&nbsp;:'" :colspan="1" footerStyle="text-align:right" />
-                            <Column class="md:hidden" :colspan="2" :footer="formatAmount(totalAmount)" />
+                            <Column class="md:hidden" :colspan="2" :footer="formatAmount(totalAmount ? totalAmount : 0)" />
                         </Row>
                     </ColumnGroup>
                 </template>
@@ -417,7 +417,7 @@ const copyToClipboard = (text) => {
                     <span class="w-full truncate text-gray-500 text-sm">{{ data.email }}</span>
                 </div>
                 <div class="flex items-center self-stretch">
-                    <span class="w-full truncate text-gray-950 text-lg font-semibold">{{ `$&nbsp;${formatAmount(data.rebate)}` }}</span>
+                    <span class="w-full truncate text-gray-950 text-lg font-semibold">{{ `$&nbsp;${formatAmount(data?.rebate || 0)}` }}</span>
                 </div>
             </div>
             
@@ -432,7 +432,7 @@ const copyToClipboard = (text) => {
                 </div>
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.total_volume') }}</span>
-                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ formatAmount(data.volume) }}&nbsp;Ł</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ formatAmount(data?.volume || 0) }}&nbsp;Ł</span>
                 </div>
             </div>
 
@@ -443,12 +443,12 @@ const copyToClipboard = (text) => {
                         <div class="w-full truncate flex flex-col items-start gap-1">
                             <span class="w-full truncate text-gray-950 font-semibold" style="text-transform: capitalize;" >{{ $t('public.' + product.name) }}</span>
                             <div class="w-full truncate flex items-center gap-1 self-stretch text-xs">
-                                <span class="truncate text-gray-700">{{ formatAmount(product.volume) }}</span>
+                                <span class="truncate text-gray-700">{{ formatAmount(product?.volume || 0) }}</span>
                                 <span class="truncate text-gray-500">|</span>
-                                <span class="truncate text-gray-700">{{ formatAmount(product.net_rebate) }}</span>
+                                <span class="truncate text-gray-700">{{ formatAmount(product?.net_rebate || 0) }}</span>
                             </div>
                         </div>
-                        <span class="w-[100px] truncate text-gray-950 text-right font-semibold">$&nbsp;{{ formatAmount(product.rebate) }}</span>
+                        <span class="w-[100px] truncate text-gray-950 text-right font-semibold">$&nbsp;{{ formatAmount(product?.rebate || 0) }}</span>
                     </div>
                 </div>
 
@@ -473,13 +473,13 @@ const copyToClipboard = (text) => {
                         <span class="text-gray-950 text-sm" style="text-transform: capitalize;" >{{ $t('public.' + product.name) }}</span>
                     </div>
                     <div class="flex items-center px-3">
-                        <span class="text-gray-950 text-sm">{{ formatAmount(product.volume) }}</span>
+                        <span class="text-gray-950 text-sm">{{ formatAmount(product?.volume || 0) }}</span>
                     </div>
                     <div class="flex items-center px-3">
-                        <span class="text-gray-950 text-sm">{{ formatAmount(product.net_rebate) }}</span>
+                        <span class="text-gray-950 text-sm">{{ formatAmount(product?.net_rebate || 0) }}</span>
                     </div>
                     <div class="flex items-center px-3">
-                        <span class="text-gray-950 text-sm">{{ formatAmount(product.rebate) }}</span>
+                        <span class="text-gray-950 text-sm">{{ formatAmount(product?.rebate || 0) }}</span>
                     </div>
                 </div>
             </div>

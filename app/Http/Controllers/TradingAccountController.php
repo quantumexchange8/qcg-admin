@@ -35,31 +35,48 @@ class TradingAccountController extends Controller
 
             $inactiveThreshold = now()->subDays(90)->startOfDay();
 
-            $accountQuery = TradingUser::with([
-                'userData:id,first_name,email',
-                'trading_account:id,meta_login,equity,status', // load trading_account
-                'accountType:id,name',
-            ]);
-        
-            $accounts = $accountQuery
+            // Step 1: Get the latest transaction for each meta_login using ROW_NUMBER()
+            $subQuery = DB::table(function ($query) use ($inactiveThreshold) {
+                $query->select('meta_login', 'transaction_type', 'created_at')
+                    ->from(function ($subQuery) use ($inactiveThreshold) {
+                        // Get the transactions where either from_meta_login or to_meta_login matches the meta_login
+                        $subQuery->select('from_meta_login as meta_login', 'transaction_type', 'created_at')
+                            ->from('transactions')
+                            ->whereIn('transaction_type', ['deposit', 'withdrawal'])
+                            ->where('created_at', '>=', $inactiveThreshold)
+                            ->unionAll(
+                                DB::table('transactions')
+                                    ->select('to_meta_login as meta_login', 'transaction_type', 'created_at')
+                                    ->whereIn('transaction_type', ['deposit', 'withdrawal'])
+                                    ->where('created_at', '>=', $inactiveThreshold)
+                            );
+                    }, 'meta_logins')
+                    ->addSelect(DB::raw('ROW_NUMBER() OVER (PARTITION BY meta_login ORDER BY created_at DESC) as row_num'));
+            }, 'latest_transactions')
+            ->where('row_num', 1)  // Only take the latest row
+            ->select('meta_login', 'transaction_type', 'created_at');
+            
+            // Step 2: Join with trading_users to get the complete account data
+            $accounts = TradingUser::with([
+                    'userData:id,first_name,email',
+                    'trading_account:id,meta_login,equity,status',
+                    'accountType:id,name',
+                ])
+                ->leftJoinSub(
+                    $subQuery, // Join the subquery
+                    'latest_transactions',
+                    function ($join) {
+                        $join->on('trading_users.meta_login', '=', 'latest_transactions.meta_login');
+                    }
+                )
+                ->select('trading_users.*', 'latest_transactions.created_at as last_transaction_at')
                 ->orderByDesc('meta_login')
                 ->get()
                 ->map(function ($account) use ($inactiveThreshold): array {
-                    // Access the latest transaction directly from the eager-loaded transactions
-                    $lastTransaction = $account->trading_account->transactions()
-                                                            ->whereIn('transaction_type', ['deposit', 'withdrawal'])
-                                                            ->where('created_at', '>=', $inactiveThreshold)
-                                                            ->latest()  // Order by latest transaction
-                                                            ->first();  // Get the latest transaction (or null if none)
-
-                    // Determine if the account is active based on:
-                    // 1. Account creation date (within the last 90 days),
-                    // 2. Last transaction date (within the last 90 days),
-                    // 3. Last access date (within the last 90 days).
-                    $isActive = $account->created_at >= $inactiveThreshold || // Account created within last 90 days
-                                ($lastTransaction && $lastTransaction->created_at >= $inactiveThreshold) || // Last transaction within 90 days
-                                ($account->last_access && $account->last_access >= $inactiveThreshold && $account->last_access <= $inactiveThreshold->endOfDay()); // Last access within 90 days
-                            
+                    // Determine if the account is active based on transaction activity
+                    $isActive = $account->created_at >= $inactiveThreshold || 
+                                ($account->last_transaction_at && $account->last_transaction_at >= $inactiveThreshold);
+            
                     return [
                         'id' => $account->id,
                         'meta_login' => $account->meta_login,
@@ -75,7 +92,8 @@ class TradingAccountController extends Controller
                         'is_active' => $isActive,
                         'status' => $account->trading_account->status,
                     ];
-                });
+                }
+            );
         } else {
             $accountQuery = TradingUser::onlyTrashed()
                 ->with([

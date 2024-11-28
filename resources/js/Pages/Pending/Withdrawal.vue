@@ -284,12 +284,12 @@ const exportXLSX = () => {
                         </Column>
                         <Column field="from" :header="$t('public.from')" style="width: 25%" class="hidden md:table-cell">
                             <template #body="slotProps">
-                                {{ slotProps.data.from === 'rebate_wallet' ? $t(`public.${slotProps.data.from}`) : slotProps.data.from }}
+                                {{ slotProps.data.from === 'rebate_wallet' ? ($t(`public.${slotProps.data.from}`) || '-') : (slotProps.data.from || '-') }}
                             </template>
                         </Column>
                         <Column field="transaction_amount" :header="`${$t('public.amount')}&nbsp;($)`" sortable style="width: 25%" class="px-3">
                             <template #body="slotProps">
-                                {{ formatAmount(slotProps.data.transaction_amount) }}
+                                {{ formatAmount(slotProps.data?.transaction_amount || 0) }}
                             </template>
                         </Column>
                         <ColumnGroup type="footer">
@@ -320,7 +320,7 @@ const exportXLSX = () => {
                                     <span class="self-stretch text-gray-500 text-sm truncate">{{ pendingData.user_email }}</span>
                                 </div>
                                 <div class="min-w-[180px] text-gray-950 font-semibold text-lg self-stretch md:text-right">
-                                    $ {{ formatAmount(pendingData.transaction_amount) }}
+                                    $ {{ formatAmount(pendingData?.transaction_amount || 0) }}
                                 </div>
                             </div>
 
@@ -338,7 +338,7 @@ const exportXLSX = () => {
                                         {{ $t('public.from') }}
                                     </div>
                                     <div class="text-gray-950 text-sm font-medium">
-                                        {{ pendingData.from === 'rebate_wallet' ? $t(`public.${pendingData.from}`) : pendingData.from }}
+                                        {{ pendingData.from === 'rebate_wallet' ? ($t(`public.${pendingData.from}`) || '-') : (pendingData.from || '-') }}
                                     </div>
                                 </div>
                                 <div class="flex flex-col md:flex-row md:items-center gap-1 self-stretch">
@@ -346,7 +346,7 @@ const exportXLSX = () => {
                                         {{ $t('public.balance') }}
                                     </div>
                                     <div class="text-gray-950 text-sm font-medium">
-                                        $ {{ formatAmount(pendingData.balance) }}
+                                        $ {{ formatAmount(pendingData?.balance || 0) }}
                                     </div>
                                 </div>
                             </div>
@@ -357,7 +357,7 @@ const exportXLSX = () => {
                                         {{ $t('public.wallet_name') }}
                                     </div>
                                     <div class="text-gray-950 text-sm font-medium">
-                                        {{ pendingData.wallet_name }}
+                                        {{ pendingData?.wallet_name || '-' }}
                                     </div>
                                 </div>
                                 <div class="flex flex-col md:flex-row md:items-center gap-1 self-stretch">
@@ -365,7 +365,7 @@ const exportXLSX = () => {
                                         {{ $t('public.receiving_address') }}
                                     </div>
                                     <div class="text-gray-950 text-sm break-words font-medium">
-                                        {{ pendingData.wallet_address }}
+                                        {{ pendingData?.wallet_address || '-' }}
                                     </div>
                                 </div>
                             </div>
@@ -399,7 +399,7 @@ const exportXLSX = () => {
                                     <span class="self-stretch text-gray-500 text-sm truncate">{{ pendingData.user_email }}</span>
                                 </div>
                                 <div class="min-w-[180px] text-gray-950 font-semibold text-lg self-stretch md:text-right">
-                                    $ {{ formatAmount(pendingData.transaction_amount) }}
+                                    $ {{ formatAmount(pendingData?.transaction_amount || 0) }}
                                 </div>
                             </div>
 

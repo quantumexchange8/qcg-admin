@@ -8,7 +8,7 @@ import {
     IconCircleCheckFilled,
 } from "@tabler/icons-vue";
 import Button from "@/Components/Button.vue";
-import { computed, h, ref } from "vue";
+import { computed, h, ref, watch } from "vue";
 import TieredMenu from "primevue/tieredmenu";
 import { router, useForm } from "@inertiajs/vue3";
 import { useConfirm } from "primevue/useconfirm";
@@ -151,6 +151,18 @@ const submitForm = () => {
     });
 };
 
+const filteredItems = ref(items.value); // Initialize with all items
+
+// Watch for changes to props.team
+watch(() => props.team, (newTeam) => {
+    if (newTeam) {
+        // Only filter if team is available
+        filteredItems.value = newTeam.id !== 1 
+            ? items.value 
+            : items.value.filter(item => item.label !== 'settlement');
+    }
+}, { immediate: true }); // Run the watcher immediately to handle the initial state
+
 </script>
 <template>
     <Button
@@ -166,7 +178,7 @@ const submitForm = () => {
     >
         <IconDotsVertical size="16" stroke-width="1.25" color="#667085" />
     </Button>
-    <TieredMenu ref="menu" id="overlay_tmenu" :model="items" popup>
+    <TieredMenu ref="menu" id="overlay_tmenu" :model="filteredItems" popup>
         <template #item="{ item, props, hasSubmenu }">
             <div
                 class="flex items-center gap-3 self-stretch"

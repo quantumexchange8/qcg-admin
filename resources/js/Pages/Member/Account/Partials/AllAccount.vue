@@ -78,17 +78,12 @@ const clearFilter = () => {
     filteredValue.value = null;
 };
 
-// Watch for changes in accountType and update the filter
-watch(accountType, (newVal) => {
-    filters.value['account_type_id'].value = newVal ? newVal : null;
-});
-
-
-watchEffect(() => {
-    if (usePage().props.toast !== null) {
-        getResults();
+watch(() => usePage().props.toast, (newToast) => {
+        if (newToast !== null) {
+            getResults();
+        }
     }
-});
+);
 
 const handleFilter = (e) => {
     filteredValue.value = e.filteredValue;

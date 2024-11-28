@@ -93,9 +93,9 @@ class RebateController extends Controller
         foreach ($users as $user) {
             $levels = explode('-', trim($user->hierarchyList, '-'));
     
-            // Combine the first three IDs into a single entry if they exist
+            // Combine the first two IDs into a single entry if they exist
             $processedLevels = (count($levels) > 1)
-                ? array_merge([implode('-', array_slice($levels, 0, 3))], array_slice($levels, 3))
+                ? array_merge([implode('-', array_slice($levels, 0, 2))], array_slice($levels, 2))
                 : $levels;
     
             // Check if the user ID exists in the original levels

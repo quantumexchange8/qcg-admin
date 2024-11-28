@@ -1,5 +1,6 @@
 <script setup>
 import {
+    IconDotsVertical,
     IconSettingsDollar,
     IconTrashX,
     IconChevronRight,
@@ -9,6 +10,7 @@ import {
 import Button from "@/Components/Button.vue";
 import { h, ref, watch } from "vue";
 import TieredMenu from "primevue/tieredmenu";
+import ToggleSwitch from 'primevue/toggleswitch';
 import { router } from "@inertiajs/vue3";
 import { useConfirm } from "primevue/useconfirm";
 import { trans, wTrans } from "laravel-vue-i18n";
@@ -28,6 +30,7 @@ const adjustmentType = ref('')
 const items = ref([
     {
         label: 'account_balance',
+        icon: h(IconSettingsDollar),
         command: () => {
             visible.value = true;
             dialogType.value = 'adjustment';
@@ -37,6 +40,7 @@ const items = ref([
     },
     {
         label: 'account_credit',
+        icon: h(IconSettingsDollar),
         command: () => {
             visible.value = true;
             dialogType.value = 'adjustment';
@@ -45,13 +49,18 @@ const items = ref([
         },
     },
     {
-        label: 'account_status',
+        label: 'delete_trading_account',
+        icon: h(IconTrashX),
         command: () => {
-            handleAccountStatus();
+            requireConfirmation('delete_trading_account', props.account.meta_login)
         },
     },
 
 ]);
+
+const toggle = (event) => {
+    menu.value.toggle(event);
+};
 
 const checked = ref(props.account.status === 'active')
 
@@ -134,10 +143,6 @@ const requireConfirmation = (action_type, meta_login) => {
     });
 };
 
-const toggle = (event) => {
-    menu.value.toggle(event);
-};
-
 const handleAccountStatus = () => {
     if (props.account.status === 'active') {
         requireConfirmation('deactivate_trading_account', props.account.meta_login)
@@ -150,6 +155,11 @@ const handleAccountStatus = () => {
 
 <template>
     <div class="flex gap-3 items-center justify-center">
+        <ToggleSwitch
+            v-model="checked"
+            readonly
+            @click="handleAccountStatus"
+        />
         <Button
             variant="gray-text"
             size="sm"
@@ -160,14 +170,22 @@ const handleAccountStatus = () => {
             aria-haspopup="true"
             aria-controls="overlay_tmenu"
         >
-            <IconSettingsDollar size="16" stroke-width="1.25" />
+            <IconDotsVertical size="16" stroke-width="1.25" color="#667085" />
         </Button>
+
         <TieredMenu ref="menu" id="overlay_tmenu" :model="items" popup>
             <template #item="{ item, props, hasSubmenu }">
                 <div
                     class="flex items-center gap-3 self-stretch"
                     v-bind="props.action"
                 >
+                <component
+                    :is="item.icon"
+                    size="20"
+                    stroke-width="1.25"
+                    class="grow-0 shrink-0"
+                    :class="{'text-error-500': item.label === 'delete_trading_account'}"
+                />
                     <span class="text-gray-700 text-sm">{{ $t(`public.${item.label}`) }}</span>
                     <!-- Conditionally render submenu indicator if the item has a submenu -->
                     <span v-if="hasSubmenu" class="ml-auto text-gray-500">
@@ -176,19 +194,6 @@ const handleAccountStatus = () => {
                 </div>
             </template>
         </TieredMenu>
-
-        <Button
-            type="button"
-            variant="error-text"
-            size="sm"
-            pill
-            iconOnly
-            @click="requireConfirmation('delete_trading_account', props.account.meta_login)"
-
-        >
-            <IconTrashX size="16" stroke-width="1.25" />
-        </Button>
-
     </div>
 
     <Dialog

@@ -30,4 +30,10 @@ class Team extends Model
     {
         return $this->hasMany(TeamHasUser::class, 'team_id', 'id');
     }
+
+    public function team_settlement(): HasMany
+    {
+        return $this->hasMany(TeamSettlement::class, 'team_id', 'id');
+    }
+
 }

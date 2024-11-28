@@ -100,7 +100,8 @@ class LeaderboardController extends Controller
                         ->whereBetween('approved_at', [$startDate, $endDate])
                         ->where(function ($query) {
                             $query->where('transaction_type', 'deposit')
-                                ->orWhere('transaction_type', 'balance_in');
+                                ->orWhere('transaction_type', 'balance_in')
+                                ->orWhere('transaction_type', 'rebate_in');
                         })
                         ->where('status', 'successful')
                         ->sum('transaction_amount');
@@ -113,7 +114,8 @@ class LeaderboardController extends Controller
                         ->whereBetween('approved_at', [$startDate, $endDate])
                         ->where(function ($query) {
                             $query->where('transaction_type', 'deposit')
-                                ->orWhere('transaction_type', 'balance_in');
+                                ->orWhere('transaction_type', 'balance_in')
+                                ->orWhere('transaction_type', 'rebate_in');
                         })
                         ->where('status', 'successful')
                         ->sum('transaction_amount');
@@ -153,7 +155,8 @@ class LeaderboardController extends Controller
                         ->whereBetween('approved_at', [$startDate, $endDate])
                         ->where(function ($query) {
                             $query->where('transaction_type', 'deposit')
-                                ->orWhere('transaction_type', 'balance_in');
+                                ->orWhere('transaction_type', 'balance_in')
+                                ->orWhere('transaction_type', 'rebate_in');
                         })
                         ->where('status', 'successful')
                         ->sum('transaction_amount');
@@ -166,7 +169,8 @@ class LeaderboardController extends Controller
                         ->whereBetween('approved_at', [$startDate, $endDate])
                         ->where(function ($query) {
                             $query->where('transaction_type', 'deposit')
-                                ->orWhere('transaction_type', 'balance_in');
+                                ->orWhere('transaction_type', 'balance_in')
+                                ->orWhere('transaction_type', 'rebate_in');
                         })
                         ->where('status', 'successful')
                         ->sum('transaction_amount');
@@ -228,7 +232,7 @@ class LeaderboardController extends Controller
         }
 
         return response()->json([
-            'incentiveProfiles' => $formattedProfiles,
+            'incentiveProfiles' => $formattedProfiles->values(),
             'totalRecords' => $totalRecords,
             'currentPage' => $profiles->currentPage(),
         ]);

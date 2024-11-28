@@ -129,7 +129,7 @@ const submitForm = () => {
                                 class="text-xs font-semibold"
                                 :style="{ color: `#${userDetail.team_color}` }"
                             >
-                                {{ userDetail.team_name }}
+                                {{ userDetail?.team_name || '-' }}
                             </div>
                         </div>
                     </div>

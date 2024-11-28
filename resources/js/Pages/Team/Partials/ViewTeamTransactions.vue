@@ -220,12 +220,12 @@ const exportXLSX = () => {
                 </Column>
                 <Column field="amount" :header="`${$t('public.amount')}&nbsp;($)`" sortable style="width: 20%" class="hidden md:table-cell">
                     <template #body="slotProps">
-                        {{ formatAmount(slotProps.data.amount) }}
+                        {{ formatAmount(slotProps.data?.amount || 0) }}
                     </template>
                 </Column>
                 <Column field="transaction_charges" :header="`${$t('public.fee')}&nbsp;($)`" sortable style="width: 20%" class="hidden md:table-cell">
                     <template #body="slotProps">
-                        {{ formatAmount(slotProps.data.transaction_charges) }}
+                        {{ formatAmount(slotProps.data?.transaction_charges || 0) }}
                     </template>
                 </Column>
                 <Column field="transaction_amount" :header="`${$t('public.balance')}&nbsp;($)`" sortable style="width: 20%" class="hidden md:table-cell w-full max-w-0 truncate">
@@ -235,7 +235,7 @@ const exportXLSX = () => {
                                 'text-error-600': ['withdrawal', 'balance_out', 'rebate_out'].includes(slotProps.data.transaction_type)
                             }"
                         >
-                            {{ formatAmount(slotProps.data.transaction_amount) }}
+                            {{ formatAmount(slotProps.data?.transaction_amount || 0) }}
                         </span>
                     </template>
                 </Column>
@@ -268,12 +268,12 @@ const exportXLSX = () => {
                                     'text-error-600': ['withdrawal', 'balance_out', 'rebate_out'].includes(slotProps.data.transaction_type)
                                 }"
                             >
-                                $&nbsp;{{ formatAmount(slotProps.data.transaction_amount) }}
+                                $&nbsp;{{ formatAmount(slotProps.data?.transaction_amount || 0) }}
                             </span>
                             <div v-if="slotProps.data.transaction_charges" class="max-w-full truncate flex justify-end items-center gap-1 self-stretch text-xs">
                                 <span class="max-w-full truncate text-gray-500">{{ $t('public.fee') }}:</span>
                                 <div class="max-w-full truncate text-gray-700 text-right">
-                                    $&nbsp;{{ formatAmount(slotProps.data.transaction_charges) }}
+                                    $&nbsp;{{ formatAmount(slotProps.data?.transaction_charges || 0) }}
                                 </div>
                             </div>
                         </div>

@@ -243,7 +243,6 @@ const handleFilter = (e) => {
                     :globalFilterFields="['name', 'email']"
                     ref="dt"
                     :loading="loading"
-                    selectionMode="single"
                     @filter="handleFilter"
                 >
                     <template #header>

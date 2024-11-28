@@ -54,7 +54,6 @@ const toggleExpand = (index) => {
             :value="adjustmentHistories"
             removableSort
             :loading="loading"
-            selectionMode="single"
             class="hidden md:block h-full w-full"
             scrollable
             scrollHeight="350px"
@@ -85,8 +84,8 @@ const toggleExpand = (index) => {
                     <span class="hidden md:block">{{ $t('public.account') }}</span>
                 </template>
                 <template #body="slotProps">
-                    <span v-if="slotProps.data.transaction_type === 'balance_in' || slotProps.data.transaction_type === 'credit_in'">{{ slotProps.data.to_meta_login }}</span>
-                    <span v-else-if="slotProps.data.transaction_type === 'balance_out' || slotProps.data.transaction_type === 'credit_out'">{{ slotProps.data.from_meta_login }}</span>
+                    <span v-if="slotProps.data.transaction_type === 'balance_in' || slotProps.data.transaction_type === 'credit_in'">{{ slotProps.data?.to_meta_login || '-' }}</span>
+                    <span v-else-if="slotProps.data.transaction_type === 'balance_out' || slotProps.data.transaction_type === 'credit_out'">{{ slotProps.data?.from_meta_login || '-' }}</span>
                     <span v-else>-</span>
                 </template>
             </Column>
@@ -103,7 +102,7 @@ const toggleExpand = (index) => {
                     <span class="hidden md:block">{{ $t('public.amount') }} ($)</span>
                 </template>
                 <template #body="slotProps">
-                    {{ formatAmount(slotProps.data.transaction_amount) }}
+                    {{ formatAmount(slotProps.data?.transaction_amount || 0) }}
                 </template>
             </Column>
             <Column field="remarks" style="width: 20%" headerClass="hidden md:table-cell">
@@ -111,7 +110,7 @@ const toggleExpand = (index) => {
                     <span class="hidden md:block">{{ $t('public.remarks') }}</span>
                 </template>
                 <template #body="slotProps">
-                    {{ slotProps.data.remarks }}
+                    {{ slotProps.data?.remarks || '-' }}
                 </template>
             </Column>
         </DataTable>
@@ -133,10 +132,10 @@ const toggleExpand = (index) => {
             >
                 <div class="flex justify-between items-center self-stretch">
                     <span v-if="history.transaction_type === 'balance_in' || history.transaction_type === 'credit_in'" class="text-gray-700 text-xs">
-                        {{ history.to_meta_login }}
+                        {{ history?.to_meta_login || '-' }}
                     </span>
                     <span v-else-if="history.transaction_type === 'balance_out' || history.transaction_type === 'credit_out'" class="text-gray-700 text-xs">
-                        {{ history.from_meta_login }}
+                        {{ history?.from_meta_login || '-' }}
                     </span>
                     <span v-else class="text-gray-700 text-xs">-</span>
                     <span class="text-gray-700 text-xs"> {{ dayjs(history.created_at).format('YYYY/MM/DD') }}</span>
@@ -145,11 +144,11 @@ const toggleExpand = (index) => {
                     <span class="text-gray-950 font-semibold">
                         {{ $t(`public.${history.transaction_type}`) }}
                     </span>
-                    <span class="text-gray-950 font-semibold truncate">$&nbsp;{{ formatAmount(history.transaction_type === 'deposit' ? history.transaction_amount : history.amount) }}</span>
+                    <span class="text-gray-950 font-semibold truncate">$&nbsp;{{ formatAmount(history.transaction_type === 'deposit' ? (history.transaction_amount || 0) : (history.amount || 0)) }}</span>
                 </div>
                 <div v-if="history.isExpanded" class="grid grid-cols-[auto_1fr] items-center gap-1">
                     <span class="text-gray-500 text-xs">{{ $t('public.remark') }}:</span>
-                    <span class="text-gray-700 text-xs truncate">{{ history.remarks }}</span>
+                    <span class="text-gray-700 text-xs truncate">{{ history?.remarks || '-' }}</span>
                 </div>
             </div>
         </div>

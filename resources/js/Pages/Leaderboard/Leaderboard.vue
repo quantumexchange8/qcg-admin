@@ -205,7 +205,7 @@ watchEffect(() => {
                             <!-- Target amount -->
                             <div class="w-full min-w-[120px] flex flex-col items-center py-3 px-2 gap-1 bg-gray-50">
                                 <span class="self-stretch text-center text-lg font-semibold text-primary-600">
-                                    $&nbsp;{{ (formatAmount(profile.incentive_amount)) }}
+                                    $&nbsp;{{ (formatAmount(profile.incentive_amount || 0)) }}
                                 </span>
                                 <span class="self-stretch text-center text-sm text-gray-500">
                                     {{ `${$t('public.incentive')}&nbsp;${profile.sales_category === 'trade_volume' ? `(${profile.incentive_rate})` : `(${profile.incentive_rate}%)`}` }}
@@ -214,7 +214,7 @@ watchEffect(() => {
 
                             <!-- Target amount -->
                             <div class="w-full min-w-[120px] flex flex-col items-center py-3 px-2 gap-1 bg-gray-50">
-                                <span class="self-stretch text-center text-lg font-semibold text-gray-950">{{ formatAmount(profile.achieved_percentage) + '%' }}</span>
+                                <span class="self-stretch text-center text-lg font-semibold text-gray-950">{{ formatAmount(profile.achieved_percentage || 0) + '%' }}</span>
                                 <span class="self-stretch text-center text-xs text-gray-500">{{ $t('public.achieved') }}</span>
                             </div>
                         </div>

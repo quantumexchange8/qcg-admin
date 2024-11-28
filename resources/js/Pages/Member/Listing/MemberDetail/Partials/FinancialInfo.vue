@@ -118,7 +118,7 @@ watchEffect(() => {
                         <Column field="meta_login" :header="$t('public.account')" style="width: 25%" class="px-3">
                             <template #body="slotProps">
                                 <div class="text-gray-950 text-sm break-all">
-                                    {{ slotProps.data.from_meta_login ?? slotProps.data.to_meta_login }}
+                                    {{ slotProps.data?.from_meta_login || slotProps.data?.to_meta_login || '-' }}
                                 </div>
                             </template>
                         </Column>
@@ -130,7 +130,7 @@ watchEffect(() => {
                                     'text-error-600': slotProps.data.transaction_type === 'withdrawal' || slotProps.data.transaction_type === 'balance_out',
                                     }"
                                 >
-                                    {{ formatAmount(slotProps.data.transaction_amount) }}
+                                    {{ formatAmount(slotProps.data?.transaction_amount || '-') }}
                                 </div>
                             </template>
                         </Column>
