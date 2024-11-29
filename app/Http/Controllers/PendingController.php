@@ -158,7 +158,7 @@ class PendingController extends Controller
     
     public function getPendingIncentiveData()
     {
-        $pendingincentives = Transaction::with([
+        $pendingIncentives = Transaction::with([
             'user:id,email,first_name',
             'payment_account:id,payment_account_name,account_no',
         ])
@@ -198,10 +198,10 @@ class PendingController extends Controller
                 ];
             });
     
-        $totalAmount = $pendingincentives->sum('amount');
+        $totalAmount = $pendingIncentives->sum('amount');
     
         return response()->json([
-            'pendingincentives' => $pendingincentives,
+            'pendingIncentives' => $pendingIncentives,
             'totalAmount' => $totalAmount,
         ]);
     }
