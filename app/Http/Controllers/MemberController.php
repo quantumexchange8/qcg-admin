@@ -137,6 +137,8 @@ class MemberController extends Controller
         $user->id_number = $id_no;
         $user->save();
 
+        $user->syncRoles('member');
+
         // create ct id to link ctrader account
         if (App::environment('production')) {
             $ctUser = (new CTraderService)->CreateCTID($user->email);
@@ -156,6 +158,7 @@ class MemberController extends Controller
         ]);
 
         if ($user->role == 'agent') {
+            $user->syncRoles('agent');
 
             $uplineRebates = RebateAllocation::where('user_id', $user->upline_id)->get();
 
@@ -422,6 +425,9 @@ class MemberController extends Controller
         $user->id_number = $request->id_number;
         $user->role = 'agent';
         $user->save();
+
+        // Overwrite existing roles and assign 'agent' role
+        $user->syncRoles('agent'); // This will remove any other roles and assign only 'agent'
 
         if (!$user->rebate_wallet) {
             Wallet::create([
@@ -896,6 +902,14 @@ class MemberController extends Controller
         $user->teamHasUser()->delete();
         $user->rebate_wallet()->delete();
         $user->incentive_wallet()->delete();
+        // Remove roles and permissions
+        if ($user->roles()->exists()) {
+            $user->roles()->detach(); // Detach all roles
+        }
+    
+        if ($user->permissions()->exists()) {
+            $user->permissions()->detach(); // Detach all permissions
+        }
         $user->delete();
     
         // Return success response for user deletion
