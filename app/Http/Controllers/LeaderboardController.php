@@ -61,6 +61,8 @@ class LeaderboardController extends Controller
 
             $today = Carbon::today();
 
+            $useLastPayoutDate = $profile->created_at->eq($profile->last_payout_date);
+
             // Set start and end dates based on calculation period
             if ($profile->calculation_period == 'every_sunday') {
                 // Start of the current week (Monday) and end of the current week (Sunday)
@@ -94,14 +96,17 @@ class LeaderboardController extends Controller
                 $endDate = $today->copy()->endOfMonth();
             }
 
+            if ($useLastPayoutDate) {
+                $startDate = $profile->last_payout_date->copy()->startOfDay();
+            }
+
             if ($profile->sales_calculation_mode == 'personal_sales') {
                 if ($profile->sales_category == 'gross_deposit') {
                     $gross_deposit = Transaction::where('user_id', $profile->user_id)
                         ->whereBetween('approved_at', [$startDate, $endDate])
                         ->where(function ($query) {
                             $query->where('transaction_type', 'deposit')
-                                ->orWhere('transaction_type', 'balance_in')
-                                ->orWhere('transaction_type', 'rebate_in');
+                                ->orWhere('transaction_type', 'balance_in');
                         })
                         ->where('status', 'successful')
                         ->sum('transaction_amount');
@@ -114,8 +119,7 @@ class LeaderboardController extends Controller
                         ->whereBetween('approved_at', [$startDate, $endDate])
                         ->where(function ($query) {
                             $query->where('transaction_type', 'deposit')
-                                ->orWhere('transaction_type', 'balance_in')
-                                ->orWhere('transaction_type', 'rebate_in');
+                                ->orWhere('transaction_type', 'balance_in');
                         })
                         ->where('status', 'successful')
                         ->sum('transaction_amount');
@@ -155,8 +159,7 @@ class LeaderboardController extends Controller
                         ->whereBetween('approved_at', [$startDate, $endDate])
                         ->where(function ($query) {
                             $query->where('transaction_type', 'deposit')
-                                ->orWhere('transaction_type', 'balance_in')
-                                ->orWhere('transaction_type', 'rebate_in');
+                                ->orWhere('transaction_type', 'balance_in');
                         })
                         ->where('status', 'successful')
                         ->sum('transaction_amount');
@@ -169,8 +172,7 @@ class LeaderboardController extends Controller
                         ->whereBetween('approved_at', [$startDate, $endDate])
                         ->where(function ($query) {
                             $query->where('transaction_type', 'deposit')
-                                ->orWhere('transaction_type', 'balance_in')
-                                ->orWhere('transaction_type', 'rebate_in');
+                                ->orWhere('transaction_type', 'balance_in');
                         })
                         ->where('status', 'successful')
                         ->sum('transaction_amount');
