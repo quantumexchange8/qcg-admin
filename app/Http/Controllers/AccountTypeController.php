@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Inertia\Inertia;
 use App\Models\AccountType;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class AccountTypeController extends Controller
@@ -102,6 +103,7 @@ class AccountTypeController extends Controller
         $account_type->trade_open_duration = $request->trade_delay_duration;
         $account_type->maximum_account_number = $request->max_account;
         $account_type->status = 'active';
+        $account_type->edited_by = Auth::id();
         $account_type->save();
 
         return back()->with('toast', [

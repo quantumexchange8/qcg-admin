@@ -2,14 +2,15 @@
 
 namespace App\Services;
 
-use AleeDhillon\MetaFive\Entities\Trade;
 use App\Models\User as UserModel;
-use App\Services\Data\CreateTradingAccount;
-use App\Services\Data\CreateTradingUser;
-use App\Services\Data\UpdateTradingAccount;
-use App\Services\Data\UpdateTradingUser;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
+use AleeDhillon\MetaFive\Entities\Trade;
+use App\Services\Data\CreateTradingUser;
+use App\Services\Data\UpdateTradingUser;
+use App\Services\Data\CreateTradingAccount;
+use App\Services\Data\UpdateTradingAccount;
+use App\Services\Data\UpdateAccountTypeGroupIds;
 
 class CTraderService
 {
@@ -146,6 +147,20 @@ class CTraderService
     {
         return Http::acceptJson()->get($this->baseURL . "/v2/webserv/traders/?from=$from&to=$to&groupId=$groupId&token=$this->token");
     }
+
+    public function getTraderGroups()
+    {
+        return Http::acceptJson()->get($this->baseURL . "/v2/webserv/tradergroups?token=$this->token");
+    }
+
+    public function getAccountTypeGroupIds(): void
+    {
+        $data = $this->getTraderGroups();
+        if ($data) {
+            (new UpdateAccountTypeGroupIds)->execute($data);
+        }
+    }
+
 }
 
 class CTraderAccessRights

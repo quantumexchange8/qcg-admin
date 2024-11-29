@@ -199,7 +199,7 @@ const exportXLSX = () => {
         return [
             obj.name !== undefined ? obj.name : '',
             obj.email !== undefined ? obj.email : '',
-            obj.created_at !== undefined ? dayjs(obj.created_at).format('YYYY/MM/DD') : '',
+            obj.approved_at !== undefined ? dayjs(obj.approved_at).format('YYYY/MM/DD') : '',
             obj.transaction_number !== undefined ? obj.transaction_number : '',
             fromDisplay,
             obj.transaction_amount !== undefined ? obj.transaction_amount : '',
@@ -397,10 +397,10 @@ const copyToClipboard = (text) => {
                             </div>
                         </template>
                     </Column>
-                    <Column field="created_at" :header="$t('public.date')" sortable class="hidden md:table-cell w-full md:w-[20%] max-w-0">
+                    <Column field="approved_at" :header="$t('public.date')" sortable class="hidden md:table-cell w-full md:w-[20%] max-w-0">
                         <template #body="slotProps">
                             <div class="text-gray-950 text-sm truncate max-w-full">
-                                {{ dayjs(slotProps.data.created_at).format('YYYY/MM/DD') }}
+                                {{ dayjs(slotProps.data.approved_at).format('YYYY/MM/DD') }}
                             </div>
                         </template>
                     </Column>
@@ -460,7 +460,7 @@ const copyToClipboard = (text) => {
             <div class="flex flex-col items-center p-3 gap-3 self-stretch bg-gray-50">
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.date') }}</span>
-                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ dayjs(data.created_at).format('YYYY/MM/DD') }}</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ dayjs(data.approved_at).format('YYYY/MM/DD') }}</span>
                 </div>
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.transaction_id') }}</span>

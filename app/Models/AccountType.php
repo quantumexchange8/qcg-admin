@@ -12,18 +12,23 @@ class AccountType extends Model
 
     protected $fillable = [
         'name',
-        'category',
+        'slug',
+        'account_group_id',
         'account_group',
+        'group',
+        'category',
+        'color',
         'minimum_deposit',
         'leverage',
         'currency',
         'allow_create_account',
+        'maximum_account_number',
         'type',
         'commission_structure',
         'trade_open_duration',
-        'maximum_account_number',
+        'account_group_balance',
+        'account_group_equity',
         'descriptions',
-        'color',
         'edited_by',
     ];
 
