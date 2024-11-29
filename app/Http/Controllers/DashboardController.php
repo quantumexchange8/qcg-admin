@@ -9,6 +9,7 @@ use App\Models\Transaction;
 use Illuminate\Http\Request;
 use App\Models\TradingAccount;
 use App\Services\CTraderService;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Spatie\Activitylog\Models\Activity;
 
@@ -66,8 +67,10 @@ class DashboardController extends Controller
         $from = '2020-01-01T00:00:00.000';
         $to = now()->format('Y-m-d\TH:i:s.v');
 
-        // Ensure account type group IDs are updated before fetching the trader data
-        (new CTraderService)->getAccountTypeGroupIds();  // Update account type group IDs
+        if (App::environment('production')) {
+            // Ensure account type group IDs are updated before fetching the trader data
+            (new CTraderService)->getAccountTypeGroupIds();  // Update account type group IDs
+        }
         
         // Standard Account and Premium Account group IDs
         $groupIds = AccountType::whereNotNull('account_group_id')
