@@ -91,9 +91,6 @@ class TransactionController extends Controller
                     $q->where('transaction_type', 'transfer_to_account')
                     ->orWhere('transaction_type', 'account_to_account');
                 });
-            } elseif ($type === 'withdrawal') {
-                $query->where('transaction_type', $type)
-                    ->whereIn('status', ['rejected', 'successful']);
             } else {
                 $query->where('transaction_type', $type);
             }

@@ -13,11 +13,12 @@ import {
     IconCircleXFilled,
     IconAdjustmentsHorizontal,
 } from '@tabler/icons-vue';
-import { wTrans } from "laravel-vue-i18n";
+import { wTrans, trans } from "laravel-vue-i18n";
 import AgentDropdown from '@/Pages/RebateSetting/Partials/AgentDropdown.vue';
 import InputNumber from "primevue/inputnumber";
 import Empty from "@/Components/Empty.vue";
 import Dialog from "primevue/dialog";
+import toast from '@/Composables/toast';
 
 const props = defineProps({
     accountTypes: Array,
@@ -120,18 +121,115 @@ const onRowEditSave = (event) => {
 
     agents.value[index] = newData;
 
-    form.rebates = agents.value[index][1];
-    form.post(route('rebate.updateRebateAmount'));
+    const data = agents.value[index][1];
+    
+    // Map the indexes (1, 2, 3, 4, 5) to the corresponding categories
+    const categories = [
+        { key: 1, name: 'forex' },
+        { key: 2, name: 'stocks' },
+        { key: 3, name: 'indices' },
+        { key: 4, name: 'commodities' },
+        { key: 5, name: 'cryptocurrency' }
+    ];
+
+    // Flag to track if the post should proceed
+    let canPost = true;
+
+    categories.forEach((category) => {
+        // Get the value for the category
+        const value = data[category.key];
+
+        // Retrieve the upline and downline values dynamically
+        const uplineMax = data[`upline_${category.name}`];
+        const downlineMin = data[`downline_${category.name}`];
+
+        // Prepare the messages by replacing the :name and :value placeholders
+        const exceedUplineMessage = wTrans('public.rebate_exceed_upline', { name: trans('public.' + category.name), value: uplineMax });
+        const exceedDownlineMessage = wTrans('public.rebate_exceed_downline', { name: trans('public.' + category.name), value: downlineMin });
+
+        // Check if the value exceeds the upline max or falls below the downline min
+        if (value > uplineMax) {
+            // Show a warning message for exceeding the upline
+            toast.add({ 
+                type: 'warning', 
+                title: exceedUplineMessage,
+            });
+            canPost = false; // Set flag to false, prevent form post
+        } else if (value < downlineMin) {
+            // Show a warning message for falling below the downline
+            toast.add({ 
+                type: 'warning', 
+                title: exceedDownlineMessage,
+            });
+            canPost = false; // Set flag to false, prevent form post
+        }
+    });
+
+    // Proceed with the form post only if all checks pass
+    if (canPost) {
+        form.rebates = agents.value[index][1];
+        form.post(route('rebate.updateRebateAmount'));
+    }
 };
 
 const submitForm = (submitData) => {
+    // Assign the submitData to form.rebates
     form.rebates = submitData;
-    form.post(route('rebate.updateRebateAmount'), {
-        onSuccess: () => {
+
+    // Map the indexes (1, 2, 3, 4, 5) to the corresponding categories
+    const categories = [
+        { key: 1, name: 'forex' },
+        { key: 2, name: 'stocks' },
+        { key: 3, name: 'indices' },
+        { key: 4, name: 'commodities' },
+        { key: 5, name: 'cryptocurrency' }
+    ];
+
+    // Flag to track if the post should proceed
+    let canPost = true;
+
+    // Loop over the categories to validate each one
+    categories.forEach((category) => {
+        // Get the value for the category from the submitData
+        const value = submitData[category.key];
+
+        // Retrieve the upline and downline values dynamically from the submitData
+        const uplineMax = submitData[`upline_${category.name}`];
+        const downlineMin = submitData[`downline_${category.name}`];
+
+        // Prepare the messages by replacing the :name and :value placeholders
+        const exceedUplineMessage = wTrans('public.rebate_exceed_upline', { name: trans('public.' + category.name), value: uplineMax });
+        const exceedDownlineMessage = wTrans('public.rebate_exceed_downline', { name: trans('public.' + category.name), value: downlineMin });
+
+        // Check if the value exceeds the upline max or falls below the downline min
+        if (value > uplineMax) {
+            // Show a warning message for exceeding the upline
+            toast.add({ 
+                type: 'warning', 
+                title: exceedUplineMessage,
+            });
             closeDialog();
-            form.reset();
-        },
+            canPost = false; // Set flag to false, prevent form post
+        } else if (value < downlineMin) {
+            // Show a warning message for falling below the downline
+            toast.add({ 
+                type: 'warning', 
+                title: exceedDownlineMessage,
+            });
+            closeDialog();
+            canPost = false; // Set flag to false, prevent form post
+        }
     });
+
+    // Proceed with the form post only if all checks pass
+    if (canPost) {
+        form.post(route('rebate.updateRebateAmount'), {
+            onSuccess: () => {
+                closeDialog();
+                form.reset();
+            },
+        });
+    }
 };
 
 const closeDialog = () => {
@@ -222,8 +320,6 @@ watchEffect(() => {
                 <template #editor="{ data, field }">
                     <InputNumber
                         v-model="data[1][field]"
-                        :min="data[1].downline_forex ? data[1].downline_forex : 0"
-                        :max="data[1].upline_forex"
                         :minFractionDigits="2"
                         fluid
                         size="sm"
@@ -241,8 +337,6 @@ watchEffect(() => {
                 <template #editor="{ data, field }">
                     <InputNumber
                         v-model="data[1][field]"
-                        :min="data[1].downline_stocks ? data[1].downline_stocks : 0"
-                        :max="data[1].upline_stocks"
                         :minFractionDigits="2"
                         fluid
                         size="sm"
@@ -260,8 +354,6 @@ watchEffect(() => {
                 <template #editor="{ data, field }">
                     <InputNumber
                         v-model="data[1][field]"
-                        :min="data[1].downline_indices ? data[1].downline_indices : 0"
-                        :max="data[1].upline_indices"
                         :minFractionDigits="2"
                         fluid
                         size="sm"
@@ -279,8 +371,6 @@ watchEffect(() => {
                 <template #editor="{ data, field }">
                     <InputNumber
                         v-model="data[1][field]"
-                        :min="data[1].downline_commodities ? data[1].downline_commodities : 0"
-                        :max="data[1].upline_commodities"
                         :minFractionDigits="2"
                         fluid
                         size="sm"
@@ -298,8 +388,6 @@ watchEffect(() => {
                 <template #editor="{ data, field }">
                     <InputNumber
                         v-model="data[1][field]"
-                        :min="data[1].downline_cryptocurrency ? data[1].downline_cryptocurrency : 0"
-                        :max="data[1].upline_cryptocurrency"
                         :minFractionDigits="2"
                         fluid
                         size="sm"
@@ -384,8 +472,6 @@ watchEffect(() => {
                         <div class="px-3 w-full">
                             <InputNumber
                                 v-model="productDetails['1']"
-                                :min="productDetails.downline_forex ? productDetails.downline_forex : 0"
-                                :max="productDetails.upline_forex"
                                 :minFractionDigits="2"
                                 fluid
                                 size="sm"
@@ -402,8 +488,6 @@ watchEffect(() => {
                         <div class="px-3 w-full">
                             <InputNumber
                                 v-model="productDetails['2']"
-                                :min="productDetails.downline_stocks ? productDetails.downline_stocks : 0"
-                                :max="productDetails.upline_stocks"
                                 :minFractionDigits="2"
                                 fluid
                                 size="sm"
@@ -420,8 +504,6 @@ watchEffect(() => {
                         <div class="px-3 w-full">
                             <InputNumber
                                 v-model="productDetails['3']"
-                                :min="productDetails.downline_indices ? productDetails.downline_indices : 0"
-                                :max="productDetails.upline_indices"
                                 :minFractionDigits="2"
                                 fluid
                                 size="sm"
@@ -438,8 +520,6 @@ watchEffect(() => {
                         <div class="px-3 w-full">
                             <InputNumber
                                 v-model="productDetails['4']"
-                                :min="productDetails.downline_commodities ? productDetails.downline_commodities : 0"
-                                :max="productDetails.upline_commodities"
                                 :minFractionDigits="2"
                                 fluid
                                 size="sm"
@@ -456,8 +536,6 @@ watchEffect(() => {
                         <div class="px-3 w-full">
                             <InputNumber
                                 v-model="productDetails['5']"
-                                :min="productDetails.downline_cryptocurrency ? productDetails.downline_cryptocurrency : 0"
-                                :max="productDetails.upline_cryptocurrency"
                                 :minFractionDigits="2"
                                 fluid
                                 size="sm"

@@ -528,4 +528,6 @@ return [
     'toast_update_admin_success' => "管理员信息已保存!",
     'empty_admin_role_title' => "未找到管理员角色",
     'empty_admin_role_message' => "目前没有可用的管理员角色，请创建一个新角色以开始使用。",
+    'rebate_exceed_upline' => "返佣超过上线:name : :value",
+    'rebate_exceed_downline' => "返佣低于下线:name : :value",
 ];
