@@ -48,8 +48,10 @@ class AdminRoleController extends Controller
         
             // // Assign the role to the user
             // $user->assignRole($existing_role);
-            $user->assignRole('admin');
-
+            if (!$user->roles()->exists()) {
+                $user->syncRoles('admin');
+            }
+            
             // Retrieve the permissions for the user
             $user->permissions = $user->getAllPermissions(); // Fetch all permissions for the user
         }
