@@ -183,12 +183,16 @@ class GeneralController extends Controller
 
     public function getAccountTypes($returnAsArray = false)
     {
-        $accountTypes = AccountType::all()->map(function($accountType) {
-            return [
-                'value' => $accountType->id,
-                'name' => trans('public.' . $accountType->slug), 
-            ];
-        });
+        $accountTypes = AccountType::all()
+            ->filter(function ($accountType) {
+                return $accountType->slug !== 'demo_account';
+            })
+            ->map(function ($accountType) {
+                return [
+                    'value' => $accountType->id,
+                    'name' => trans('public.' . $accountType->slug),
+                ];
+            });
 
         if ($returnAsArray) {
             return $accountTypes;
@@ -201,12 +205,16 @@ class GeneralController extends Controller
 
     public function getAccountTypesWithSlugs($returnAsArray = false)
     {
-        $accountTypes = AccountType::all()->map(function ($accountType) {
-            return [
-                'value' => $accountType->slug,
-                'name' => trans('public.' . $accountType->slug), 
-            ];
-        });
+        $accountTypes = AccountType::all()
+            ->filter(function ($accountType) {
+                return $accountType->slug !== 'demo_account';
+            })
+            ->map(function ($accountType) {
+                return [
+                    'value' => $accountType->slug,
+                    'name' => trans('public.' . $accountType->slug),
+                ];
+            });
 
         if ($returnAsArray) {
             return $accountTypes;
