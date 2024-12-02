@@ -202,13 +202,13 @@ watchEffect(() => {
                     <div class="w-full flex flex-col justify-center items-center gap-3 self-stretch md:gap-5">
                         <div class="w-full flex flex-col justify-center items-center py-5 gap-1 self-stretch bg-gray-50 md:py-3">
                             <span class="self-stretch text-gray-950 text-center text-lg font-semibold md:text-xxl">
-                                <Vue3autocounter ref="counterBalance" :startAmount="0" :endAmount="Number(balance)" :duration="accountBalanceDuration" separator="," decimalSeparator="." :decimals="2" :autoinit="true" />
+                                <Vue3autocounter ref="counterBalance" :startAmount="0" :endAmount="Number(balance || 0)" :duration="accountBalanceDuration" separator="," decimalSeparator="." :decimals="2" :autoinit="true" />
                             </span>
                             <span class="self-stretch text-gray-500 text-center text-sm">{{ $t('public.total_balance') }}</span>
                         </div>
                         <div class="w-full flex flex-col justify-center items-center py-5 gap-1 self-stretch bg-gray-50 md:py-3">
                             <span class="self-stretch text-gray-950 text-center text-lg font-semibold md:text-xxl">
-                                <Vue3autocounter ref="counterEquity" :startAmount="0" :endAmount="Number(equity)" :duration="accountBalanceDuration" separator="," decimalSeparator="." :decimals="2" :autoinit="true" />
+                                <Vue3autocounter ref="counterEquity" :startAmount="0" :endAmount="Number(equity || 0)" :duration="accountBalanceDuration" separator="," decimalSeparator="." :decimals="2" :autoinit="true" />
                             </span>
                             <span class="self-stretch text-gray-500 text-center text-sm">{{ $t('public.total_equity') }}</span>
                         </div>
