@@ -296,7 +296,7 @@ class MemberController extends Controller
     
         // Step 5 update the related user team has user as transfer upline will change team as well
         // Get the team_id from the new upline's teamHasUser relationship
-        $team_id = $newUpline->teamHasUse->team_id;
+        $team_id = $newUpline->teamHasUser->team_id;
 
         $relatedUserIds = $relatedUsers->pluck('id')->toArray();
 
