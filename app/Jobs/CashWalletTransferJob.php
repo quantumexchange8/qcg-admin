@@ -47,10 +47,10 @@ class CashWalletTransferJob implements ShouldQueue
             $accountResponse = (new CTraderService)->createUser($user,  $mainPassword, $investorPassword, 'STANDARD.t', 500, 1, null, null, '');
 
             if ($accountResponse) {
-                $trade = (new CTraderService)->createTrade($accountResponse['login'], number_format($user->cash_wallet, 2), "Refund from Cash Wallet", ChangeTraderBalanceType::DEPOSIT);
+                $trade = (new CTraderService)->createTrade($accountResponse['login'], $user->cash_wallet, "Refund from Cash Wallet", ChangeTraderBalanceType::DEPOSIT);
 
                 DB::table('user_action_logs')->insert([
-                    'description' => 'Complete refunded $ ' . number_format($user->cash_wallet, 2) . ' to USER ID - ' . $user->id . '; LOGIN - ' . $accountResponse['login'] . '; TICKET - ', $trade->getTicket(),
+                    'description' => 'Complete refunded $ ' . $user->cash_wallet . ' to USER ID - ' . $user->id . '; LOGIN - ' . $accountResponse['login'] . '; TICKET - ', $trade->getTicket(),
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
