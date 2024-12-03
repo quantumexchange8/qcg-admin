@@ -41,14 +41,14 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
     Route::get('/getLeverages', [GeneralController::class, 'getLeverages'])->name('getLeverages');
     Route::get('/getTradingAccountData', [GeneralController::class, 'getTradingAccountData'])->name('getTradingAccountData');
     Route::get('/updateAccountData', [GeneralController::class, 'updateAccountData'])->name('updateAccountData');
-    Route::get('/getTransactionMonths', [GeneralController::class, 'getTransactionMonths'])->name('getTransactionMonths');    
-    Route::get('/getSettlementMonths', [GeneralController::class, 'getSettlementMonths'])->name('getSettlementMonths');    
-    Route::get('/getAccountTypes', [GeneralController::class, 'getAccountTypes'])->name('getAccountTypes');    
-    Route::get('/getAccountTypesWithSlugs', [GeneralController::class, 'getAccountTypesWithSlugs'])->name('getAccountTypesWithSlugs');    
-    Route::get('/getCountries', [GeneralController::class, 'getCountries'])->name('getCountries');    
-    Route::get('/getUplines', [GeneralController::class, 'getUplines'])->name('getUplines');    
-    Route::get('/getTeams', [GeneralController::class, 'getTeams'])->name('getTeams');    
-    Route::get('/getIncentiveMonths', [GeneralController::class, 'getIncentiveMonths'])->name('getIncentiveMonths');    
+    Route::get('/getTransactionMonths', [GeneralController::class, 'getTransactionMonths'])->name('getTransactionMonths');
+    Route::get('/getSettlementMonths', [GeneralController::class, 'getSettlementMonths'])->name('getSettlementMonths');
+    Route::get('/getAccountTypes', [GeneralController::class, 'getAccountTypes'])->name('getAccountTypes');
+    Route::get('/getAccountTypesWithSlugs', [GeneralController::class, 'getAccountTypesWithSlugs'])->name('getAccountTypesWithSlugs');
+    Route::get('/getCountries', [GeneralController::class, 'getCountries'])->name('getCountries');
+    Route::get('/getUplines', [GeneralController::class, 'getUplines'])->name('getUplines');
+    Route::get('/getTeams', [GeneralController::class, 'getTeams'])->name('getTeams');
+    Route::get('/getIncentiveMonths', [GeneralController::class, 'getIncentiveMonths'])->name('getIncentiveMonths');
 
     /**
      * ==============================
@@ -59,8 +59,8 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/getDashboardData', [DashboardController::class, 'getDashboardData'])->name('dashboard.getDashboardData');
         Route::get('/getAccountData', [DashboardController::class, 'getAccountData'])->name('dashboard.getAccountData');
-        Route::get('/getPendingData', [DashboardController::class, 'getPendingData'])->name('dashboard.getPendingData');    
-        Route::get('/getPendingCounts', [DashboardController::class, 'getPendingCounts'])->name('dashboard.getPendingCounts');    
+        Route::get('/getPendingData', [DashboardController::class, 'getPendingData'])->name('dashboard.getPendingData');
+        Route::get('/getPendingCounts', [DashboardController::class, 'getPendingCounts'])->name('dashboard.getPendingCounts');
     });
 
 
@@ -79,7 +79,7 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
     });
 
     Route::prefix('member')->middleware('role_and_permission:admin,access_member_listing,access_member_network,access_member_forum,access_account_listing')->group(function () {
-    
+
         // Middleware for member listing actions
         Route::middleware('role_and_permission:admin,access_member_listing')->group(function () {
             // Listing Routes
@@ -89,7 +89,7 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
             Route::get('/getFilterData', [MemberController::class, 'getFilterData'])->name('member.getFilterData');
             Route::get('/getAvailableUplineData', [MemberController::class, 'getAvailableUplineData'])->name('member.getAvailableUplineData');
             Route::get('/access_portal/{user}', [MemberController::class, 'access_portal'])->name('member.access_portal');
-    
+
             Route::post('/addNewMember', [MemberController::class, 'addNewMember'])->name('member.addNewMember');
             Route::post('/updateMemberStatus', [MemberController::class, 'updateMemberStatus'])->name('member.updateMemberStatus');
             Route::post('/transferUpline', [MemberController::class, 'transferUpline'])->name('member.transferUpline');
@@ -98,50 +98,50 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
             Route::post('/resetPassword', [MemberController::class, 'resetPassword'])->name('member.resetPassword');
             Route::post('/walletAdjustment', [MemberController::class, 'walletAdjustment'])->name('member.walletAdjustment');
             Route::delete('/deleteMember', [MemberController::class, 'deleteMember'])->name('member.deleteMember');
-    
+
             // Details Routes
             Route::get('/detail/{id_number}', [MemberController::class, 'detail'])->name('member.detail');
             Route::get('/getUserData', [MemberController::class, 'getUserData'])->name('member.getUserData');
             Route::get('/getFinancialInfoData', [MemberController::class, 'getFinancialInfoData'])->name('member.getFinancialInfoData');
             Route::get('/getTradingAccounts', [MemberController::class, 'getTradingAccounts'])->name('member.getTradingAccounts');
             Route::get('/getAdjustmentHistoryData', [MemberController::class, 'getAdjustmentHistoryData'])->name('member.getAdjustmentHistoryData');
-    
+
             Route::post('/updateMemberInfo', [MemberController::class, 'updateMemberInfo'])->name('member.updateMemberInfo');
             Route::post('/updateCryptoWalletInfo', [MemberController::class, 'updateCryptoWalletInfo'])->name('member.updateCryptoWalletInfo');
             Route::post('/updateKYCStatus', [MemberController::class, 'updateKYCStatus'])->name('member.updateKYCStatus');
         });
-    
+
         // Network Routes
         Route::middleware('role_and_permission:admin,access_member_network')->group(function () {
             Route::get('/network', [NetworkController::class, 'network'])->name('member.network');
             Route::get('/getDownlineData', [NetworkController::class, 'getDownlineData'])->name('member.getDownlineData');
         });
-    
+
         // Forum Routes
         Route::middleware('role_and_permission:admin,access_member_forum')->group(function () {
             Route::get('/forum', [ForumController::class, 'index'])->name('member.forum');
             Route::get('/getPosts', [ForumController::class, 'getPosts'])->name('member.getPosts');
             Route::get('/getAgents', [ForumController::class, 'getAgents'])->name('member.getAgents');
-    
+
             Route::post('/createPost', [ForumController::class, 'createPost'])->name('member.createPost');
             Route::post('/updatePostPermission', [ForumController::class, 'updatePostPermission'])->name('member.updatePostPermission');
             Route::post('/updateLikeCounts', [ForumController::class, 'updateLikeCounts'])->name('member.updateLikeCounts');
             Route::delete('/deletePost', [ForumController::class, 'deletePost'])->name('member.deletePost');
         });
-    
+
         // Account Listing Routes
         Route::middleware('role_and_permission:admin,access_account_listing')->group(function () {
             Route::get('/account_listing', [TradingAccountController::class, 'index'])->name('member.account_listing');
             Route::get('/getAccountListingData', [TradingAccountController::class, 'getAccountListingData'])->name('member.getAccountListingData');
             Route::get('/getTradingAccountData', [TradingAccountController::class, 'getTradingAccountData'])->name('member.getTradingAccountData');
-    
+
             Route::post('/accountAdjustment', [TradingAccountController::class, 'accountAdjustment'])->name('member.accountAdjustment');
             Route::post('/updateAccountStatus', [TradingAccountController::class, 'updateAccountStatus'])->name('member.updateAccountStatus');
             Route::post('/refreshAllAccount', [TradingAccountController::class, 'refreshAllAccount'])->name('member.refreshAllAccount');
             Route::delete('/accountDelete', [TradingAccountController::class, 'accountDelete'])->name('member.accountDelete');
         });
     });
-    
+
     /**
      * ==============================
      *          Team
@@ -257,6 +257,10 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
         Route::post('/updateProfilePhoto', [ProfileController::class, 'updateProfilePhoto'])->name('profile.updateProfilePhoto');
         Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     });
+
+    // Cash wallet recover
+    Route::get('cash_wallet_recovery', [DashboardController::class, 'cash_wallet_recovery'])->name('cash_wallet_recovery');
+    Route::post('startRecovery', [DashboardController::class, 'startRecovery'])->name('startRecovery');
 });
 
 

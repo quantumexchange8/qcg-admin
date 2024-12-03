@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\CashWalletTransferJob;
 use App\Models\User;
 use Inertia\Inertia;
 use App\Models\AccountType;
@@ -11,7 +12,6 @@ use App\Models\TradingAccount;
 use App\Services\CTraderService;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
-use Spatie\Activitylog\Models\Activity;
 
 class DashboardController extends Controller
 {
@@ -71,7 +71,7 @@ class DashboardController extends Controller
             // Ensure account type group IDs are updated before fetching the trader data
             (new CTraderService)->getAccountTypeGroupIds();  // Update account type group IDs
         }
-        
+
         // Standard Account and Premium Account group IDs
         $groupIds = AccountType::whereNotNull('account_group_id')
             ->pluck('account_group_id')
@@ -121,20 +121,31 @@ class DashboardController extends Controller
             'totalEquity' => $totalEquity,
         ]);
     }
-    
+
     public function getPendingData()
     {
         $pending_withdrawal = Transaction::where('transaction_type', 'withdrawal')
             ->where('status', 'processing');
-    
+
         $pending_incentive = Transaction::where('transaction_type', 'incentive')
             ->where('status', 'processing');
-    
+
         return response()->json([
             'pendingWithdrawal' => $pending_withdrawal->sum('transaction_amount'),
             'pendingIncentive' => $pending_incentive->sum('transaction_amount'),
             'pendingWithdrawalCount' => $pending_withdrawal->count(),
             'pendingIncentiveCount' => $pending_incentive->count(),
         ]);
+    }
+
+    // Delete after complete
+    public function cash_wallet_recovery(Request $request)
+    {
+        return Inertia::render('CashWalletRecover');
+    }
+
+    public function startRecovery()
+    {
+        CashWalletTransferJob::dispatch();
     }
 }
