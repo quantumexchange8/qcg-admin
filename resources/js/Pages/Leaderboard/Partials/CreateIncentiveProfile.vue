@@ -120,7 +120,7 @@ const submitForm = () => {
                                 v-model="form.agent"
                                 :options="agents"
                                 filter
-                                :filterFields="['name']"
+                                :filterFields="['name','email']"
                                 optionLabel="name"
                                 :placeholder="$t('public.select_agent_placeholder')"
                                 class="w-full"

@@ -23,6 +23,7 @@ class DropdownOptionService
                 return [
                     'value' => $user->id,
                     'name' => $user->name,
+                    'email' => $user->email,
                     'profile_photo' => $user->getFirstMediaUrl('profile_photo')
                 ];
             });

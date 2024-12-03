@@ -282,6 +282,7 @@ class TeamController extends Controller
                 return [
                     'value' => $user->id,
                     'name' => $user->first_name,
+                    'email' => $user->email,
                     'total' => count($user->getChildrenIds()),
                 ];
             });

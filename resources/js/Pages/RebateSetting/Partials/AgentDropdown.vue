@@ -20,7 +20,7 @@ watch(()=>props.agents, () => {
         v-model="selectedAgent"
         :options="agents"
         filter
-        :filterFields="['name']"
+        :filterFields="['name','email']"
         optionLabel="name"
         class="w-full"
         scroll-height="236px"

@@ -114,6 +114,7 @@ const requireConfirmation = (action_type) => {
                         optionLabel="name"
                         optionValue="value"
                         filter
+                        :filterFields="['name', 'email']"
                         class="w-full font-normal"
                         :disabled="isLoading"
                     />

@@ -155,7 +155,7 @@ const submitForm = () => {
                                 v-model="form.upline"
                                 :options="uplines"
                                 filter
-                                :filterFields="['name', 'phone_code']"
+                                :filterFields="['name', 'email', 'phone_code']"
                                 optionLabel="name"
                                 :placeholder="$t('public.upline_placeholder')"
                                 class="w-full"
