@@ -19,6 +19,7 @@ import InputNumber from "primevue/inputnumber";
 import Empty from "@/Components/Empty.vue";
 import Dialog from "primevue/dialog";
 import toast from '@/Composables/toast';
+import debounce from "lodash/debounce.js";
 
 const props = defineProps({
     accountTypes: Array,
@@ -28,7 +29,11 @@ const props = defineProps({
 const emit = defineEmits(['update:accountType']);
 
 const accountTypes = ref();
+const search = ref(null);
 
+const clearSearch = () => {
+    search.value = null;
+}
 // Watch for changes in the accountTypes prop
 watch(() => props.accountTypes, (newAccountTypes) => {
     accountTypes.value = newAccountTypes;
@@ -44,7 +49,15 @@ const getResults = async (type_id) => {
     loading.value = true;
 
     try {
-        const response = await axios.get(`/rebate/getAgents?type_id=${type_id}`);
+        let url = `/rebate/getAgents?type_id=${type_id}`;
+
+        if (search.value) {
+            url += `&search=${search.value}`;
+        }
+
+        // Make the API request
+        const response = await axios.get(url);
+
         agents.value = response.data;
     } catch (error) {
         console.error('Error getting agents:', error);
@@ -54,13 +67,18 @@ const getResults = async (type_id) => {
 };
 
 // Fetch results initially using the current accountType
-getResults(accountType.value);
+getResults(accountType.value, search.value);
 
 // Watch for changes in accountType and fetch new results accordingly
 watch(accountType, (newValue) => {
     emit('update:accountType', newValue);  // Emit the new value to the parent
-    getResults(newValue);
+    getResults(newValue, search.value);
 });
+
+// Watch the search value with a debounced function directly in the watcher
+watch(search, debounce((newSearchValue) => {
+    getResults(accountType.value, newSearchValue); // Fetch with current account type and search query
+}, 1000)); // Debounce time (300ms)
 
 const changeAgent = async (newAgent) => {
     loading.value = true;
@@ -76,7 +94,7 @@ const changeAgent = async (newAgent) => {
 }
 
 const filters = ref({
-    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    // global: { value: null, matchMode: FilterMatchMode.CONTAINS },
     name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
     upline_id: { value: null, matchMode: FilterMatchMode.EQUALS },
     level: { value: null, matchMode: FilterMatchMode.EQUALS },
@@ -86,7 +104,7 @@ const filters = ref({
 
 const clearFilter = () => {
     filters.value = {
-        global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+        // global: { value: null, matchMode: FilterMatchMode.CONTAINS },
         name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
         upline_id: { value: null, matchMode: FilterMatchMode.EQUALS },
         level: { value: null, matchMode: FilterMatchMode.EQUALS },
@@ -98,9 +116,9 @@ const clearFilter = () => {
     level.value = null;
 };
 
-const clearFilterGlobal = () => {
-    filters.value['global'].value = null;
-}
+// const clearFilterGlobal = () => {
+//     filters.value['global'].value = null;
+// }
 
 const editingRows = ref([]);
 const visible = ref(false);
@@ -264,11 +282,11 @@ watchEffect(() => {
                         <div class="absolute top-2/4 -mt-[9px] left-4 text-gray-400">
                             <IconSearch size="20" stroke-width="1.25" />
                         </div>
-                        <InputText v-model="filters['global'].value" :placeholder="$t('public.search')" size="search" class="font-normal w-full md:w-60" />
+                        <InputText v-model="search" :placeholder="$t('public.search')" size="search" class="font-normal w-full md:w-60" :disabled="loading" />
                         <div
-                            v-if="filters['global'].value !== null"
+                            v-if="search !== null"
                             class="absolute top-2/4 -mt-2 right-4 text-gray-300 hover:text-gray-400 select-none cursor-pointer"
-                            @click="clearFilterGlobal"
+                            @click="clearSearch"
                         >
                             <IconCircleXFilled size="16" />
                         </div>

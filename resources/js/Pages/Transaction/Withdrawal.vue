@@ -14,13 +14,14 @@ import Button from '@/Components/Button.vue';
 import Select from "primevue/select";
 import { FilterMatchMode } from '@primevue/core/api';
 import Empty from "@/Components/Empty.vue";
-import { transactionFormat } from "@/Composables/index.js";
+import { transactionFormat, generalFormat } from "@/Composables/index.js";
 import dayjs from "dayjs";
 import { trans, wTrans } from "laravel-vue-i18n";
 import StatusBadge from '@/Components/StatusBadge.vue';
 import MultiSelect from "primevue/multiselect";
 
 const { formatAmount } = transactionFormat();
+const { formatRgbaColor } = generalFormat();
 
 const visible = ref(false);
 const loading = ref(false);
@@ -404,10 +405,23 @@ const copyToClipboard = (text) => {
                             </div>
                         </template>
                     </Column>
-                    <Column field="transaction_number" :header="$t('public.id')" sortable class="hidden md:table-cell w-[15%]">
+                    <Column field="team" :header="$t('public.sales_team')" style="width: 15%" class="hidden md:table-cell">
                         <template #body="slotProps">
-                            <div class="text-gray-950 text-sm">
-                                {{ slotProps.data?.transaction_number || '-' }}
+                            <div class="flex items-center">
+                                <div
+                                    v-if="slotProps.data.team_id"
+                                    class="flex justify-center items-center gap-2 rounded-sm py-1 px-2"
+                                    :style="{ backgroundColor: formatRgbaColor(slotProps.data.team_color, 1) }"
+                                >
+                                    <div
+                                        class="text-white text-xs text-center"
+                                    >
+                                        {{ slotProps.data.team_name }}
+                                    </div>
+                                </div>
+                                <div v-else>
+                                    -
+                                </div>
                             </div>
                         </template>
                     </Column>

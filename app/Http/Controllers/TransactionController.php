@@ -68,7 +68,7 @@ class TransactionController extends Controller
             ]);
         }
 
-        $query = Transaction::with('user', 'from_wallet', 'to_wallet');
+        $query = Transaction::with('user.teamHasUser.team', 'from_wallet', 'to_wallet');
 
         // Apply filtering for each selected month-year pair
         if (!empty($selectedMonthsArray)) {
@@ -108,12 +108,18 @@ class TransactionController extends Controller
 
             // Add type-specific fields
             if ($type === 'deposit') {
+                $result['team_id'] = $transaction->user->teamHasUser->team_id ?? null;
+                $result['team_name'] = $transaction->user->teamHasUser->team->name ?? null;
+                $result['team_color'] = $transaction->user->teamHasUser->team->color ?? null;
                 $result['from_wallet_address'] = $transaction->from_wallet_address;
                 $result['to_wallet_address'] = $transaction->to_wallet_address;
                 $result['to_meta_login'] = $transaction->to_meta_login;
                 $result['to_wallet_id'] = $transaction->to_wallet ? $transaction->to_wallet->id : null;
                 $result['from_wallet_name'] = $transaction->to_wallet ? ($transaction->to_wallet->type === 'rebate_wallet' ? 'rebate' : 'incentive') : null;
             } elseif ($type === 'withdrawal') {
+                $result['team_id'] = $transaction->user->teamHasUser->team_id ?? null;
+                $result['team_name'] = $transaction->user->teamHasUser->team->name ?? null;
+                $result['team_color'] = $transaction->user->teamHasUser->team->color ?? null;
                 $result['to_wallet_address'] = $transaction->to_wallet_address;
                 $result['from_meta_login'] = $transaction->from_meta_login;
                 $result['from_wallet_id'] = $transaction->from_wallet ? $transaction->from_wallet->id : null;

@@ -102,6 +102,7 @@ const approvalAction = ref('');
 const rowClicked = (data) => {
     pendingData.value = data;
     visible.value = true;
+    form.reset();
 }
 
 const handleApproval = (action) => {
