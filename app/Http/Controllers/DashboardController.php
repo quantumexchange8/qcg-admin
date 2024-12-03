@@ -137,15 +137,4 @@ class DashboardController extends Controller
             'pendingIncentiveCount' => $pending_incentive->count(),
         ]);
     }
-
-    // Delete after complete
-    public function cash_wallet_recovery(Request $request)
-    {
-        return Inertia::render('CashWalletRecover');
-    }
-
-    public function startRecovery()
-    {
-        CashWalletTransferJob::dispatch();
-    }
 }

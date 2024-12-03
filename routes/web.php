@@ -257,10 +257,6 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
         Route::post('/updateProfilePhoto', [ProfileController::class, 'updateProfilePhoto'])->name('profile.updateProfilePhoto');
         Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     });
-
-    // Cash wallet recover
-    Route::get('cash_wallet_recovery', [DashboardController::class, 'cash_wallet_recovery'])->name('cash_wallet_recovery');
-    Route::post('startRecovery', [DashboardController::class, 'startRecovery'])->name('startRecovery');
 });
 
 
