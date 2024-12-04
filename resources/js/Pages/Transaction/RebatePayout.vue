@@ -255,15 +255,6 @@ const copyToClipboard = (text) => {
     document.body.removeChild(textArea);
 }
 
-// Handle input from the DatePicker
-const handleDateInput = (event) => {
-  // Convert the manual input date (e.g., "04/12/24") to a valid date format (yyyy-mm-dd)
-  const formattedDate = dayjs(event.target.value, 'DD/MM/YY').format('YYYY-MM-DD');
-  
-  // Update the selected date to the parsed date
-  selectedDate.value = formattedDate;
-};
-
 </script>
 
 <template>
@@ -321,7 +312,6 @@ const handleDateInput = (event) => {
                                     iconDisplay="input"
                                     :placeholder="$t('public.select_date')"
                                     class="font-normal w-full md:w-60"
-                                    @input="handleDateInput"
                                 />
                                 <div
                                     v-if="selectedDate && selectedDate.length > 0"

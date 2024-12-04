@@ -227,7 +227,7 @@ watchEffect(() => {
                                         </template>
                                         <template #value="slotProps">
                                             <span v-if="selectedMonths.length === 1">
-                                                {{ dayjs(selectedMonths[0]).format('MMMM YYYY') }}
+                                                {{ selectedMonths[0] }}
                                             </span>
                                             <span v-else-if="selectedMonths.length > 1">
                                                 {{ selectedMonths.length }} {{ $t('public.months_selected') }}
