@@ -1,7 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { usePage, useForm } from "@inertiajs/vue3";
-import { transactionFormat } from "@/Composables/index.js";
+import { transactionFormat, generalFormat } from "@/Composables/index.js";
 import { IconCircleXFilled, IconSearch, IconDownload } from "@tabler/icons-vue";
 import { ref, watch, watchEffect } from "vue";
 import Loader from "@/Components/Loader.vue";
@@ -23,6 +23,7 @@ import { trans, wTrans } from "laravel-vue-i18n";
 
 const user = usePage().props.auth.user;
 const { formatAmount, formatDate } = transactionFormat();
+const { formatRgbaColor } = generalFormat();
 
 const loading = ref(false);
 const dt = ref();
@@ -266,7 +267,7 @@ const exportXLSX = () => {
                         </div>
                     </template>
                     <template v-if="pendingWithdrawals?.length > 0 && filteredValue?.length > 0">
-                        <Column field="name" sortable :header="$t('public.name')" style="width: 25%; max-width: 0;" class="px-3">
+                        <Column field="name" sortable :header="$t('public.name')" style="width: 20%; max-width: 0;" class="px-3">
                             <template #body="slotProps">
                                 <div class="flex flex-col items-start max-w-full">
                                     <div class="font-medium truncate max-w-full">
@@ -278,24 +279,44 @@ const exportXLSX = () => {
                                 </div>
                             </template>
                         </Column>
-                        <Column field="created_at" :header="$t('public.date')" sortable style="width: 25%" class="hidden md:table-cell">
+                        <Column field="created_at" :header="$t('public.date')" sortable style="width: 20%" class="hidden md:table-cell">
                             <template #body="slotProps">
                                 {{ dayjs(slotProps.data.created_at).format('YYYY/MM/DD') }}
                             </template>
                         </Column>
-                        <Column field="from" :header="$t('public.from')" style="width: 25%" class="hidden md:table-cell">
+                        <Column field="from" :header="$t('public.from')" style="width: 20%" class="hidden md:table-cell">
                             <template #body="slotProps">
                                 {{ slotProps.data.from === 'rebate_wallet' ? ($t(`public.${slotProps.data.from}`) || '-') : (slotProps.data.from || '-') }}
                             </template>
                         </Column>
-                        <Column field="transaction_amount" :header="`${$t('public.amount')}&nbsp;($)`" sortable style="width: 25%" class="px-3">
+                        <Column field="team" :header="$t('public.sales_team')" style="width: 20%" class="hidden md:table-cell">
+                            <template #body="slotProps">
+                                <div class="flex items-center">
+                                    <div
+                                        v-if="slotProps.data.team_id"
+                                        class="flex justify-center items-center gap-2 rounded-sm py-1 px-2"
+                                        :style="{ backgroundColor: formatRgbaColor(slotProps.data.team_color, 1) }"
+                                    >
+                                        <div
+                                            class="text-white text-xs text-center"
+                                        >
+                                            {{ slotProps.data.team_name }}
+                                        </div>
+                                    </div>
+                                    <div v-else>
+                                        -
+                                    </div>
+                                </div>
+                            </template>
+                        </Column>
+                        <Column field="transaction_amount" :header="`${$t('public.amount')}&nbsp;($)`" sortable style="width: 20%" class="px-3">
                             <template #body="slotProps">
                                 {{ formatAmount(slotProps.data?.transaction_amount || 0) }}
                             </template>
                         </Column>
                         <ColumnGroup type="footer">
                             <Row>
-                                <Column class="hidden md:table-cell" :footer="$t('public.total') + ' ($) :'" :colspan="3" footerStyle="text-align:right" />
+                                <Column class="hidden md:table-cell" :footer="$t('public.total') + ' ($) :'" :colspan="4" footerStyle="text-align:right" />
                                 <Column class="hidden md:table-cell" :footer="formatAmount(totalAmount ? totalAmount : 0)" />
                                 
                                 <Column class="md:hidden" :footer="$t('public.total') + ' ($) :'" :colspan="1" footerStyle="text-align:right" />
@@ -340,6 +361,27 @@ const exportXLSX = () => {
                                     </div>
                                     <div class="text-gray-950 text-sm font-medium">
                                         {{ pendingData.from === 'rebate_wallet' ? ($t(`public.${pendingData.from}`) || '-') : (pendingData.from || '-') }}
+                                    </div>
+                                </div>
+                                <div class="flex flex-col md:flex-row md:items-center gap-1 self-stretch">
+                                    <div class="w-[140px] text-gray-500 text-sm">
+                                        {{ $t('public.sales_team') }}
+                                    </div>
+                                    <div class="flex items-center">
+                                        <div
+                                            v-if="pendingData.team_id"
+                                            class="flex justify-center items-center gap-2 rounded-sm py-1 px-2"
+                                            :style="{ backgroundColor: formatRgbaColor(pendingData.team_color, 1) }"
+                                        >
+                                            <div
+                                                class="text-white text-xs text-center"
+                                            >
+                                                {{ pendingData.team_name }}
+                                            </div>
+                                        </div>
+                                        <div v-else>
+                                            -
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="flex flex-col md:flex-row md:items-center gap-1 self-stretch">

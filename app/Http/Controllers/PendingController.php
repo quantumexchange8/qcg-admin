@@ -29,6 +29,8 @@ class PendingController extends Controller
         $pendingWithdrawals = Transaction::with([
             'user:id,email,first_name',
             'payment_account:id,payment_account_name,account_no',
+            'user.teamHasUser:id,team_id,user_id',
+            'user.teamHasUser.team:id,name,color'
         ])
             ->where('transaction_type', 'withdrawal')
             ->where('status', 'processing')
@@ -63,6 +65,9 @@ class PendingController extends Controller
                     'transaction_amount' => $transaction->transaction_amount,
                     'wallet_name' => $transaction->payment_account?->payment_account_name,
                     'wallet_address' => $transaction->payment_account?->account_no,
+                    'team_id' => $transaction->user->teamHasUser->team_id ?? null,
+                    'team_name' => $transaction->user->teamHasUser->team->name ?? null,
+                    'team_color' => $transaction->user->teamHasUser->team->color ?? null,
                 ];
             });
     
@@ -161,6 +166,8 @@ class PendingController extends Controller
         $pendingIncentives = Transaction::with([
             'user:id,email,first_name',
             'payment_account:id,payment_account_name,account_no',
+            'user.teamHasUser:id,team_id,user_id',
+            'user.teamHasUser.team:id,name,color'
         ])
             ->where('transaction_type', 'withdrawal')
             ->where('status', 'processing')
@@ -195,6 +202,9 @@ class PendingController extends Controller
                     'transaction_amount' => $transaction->transaction_amount,
                     'wallet_name' => $transaction->payment_account?->payment_account_name,
                     'wallet_address' => $transaction->payment_account?->account_no,
+                    'team_id' => $transaction->user->teamHasUser->team_id ?? null,
+                    'team_name' => $transaction->user->teamHasUser->team->name ?? null,
+                    'team_color' => $transaction->user->teamHasUser->team->color ?? null,
                 ];
             });
     
