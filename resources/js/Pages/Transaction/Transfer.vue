@@ -40,7 +40,7 @@ const transferTypeOption = [
 
 const getCurrentMonthYear = () => {
     const date = new Date();
-    return `${dayjs(date).format('MMMM YYYY')}`;
+    return `01 ${dayjs(date).format('MMMM YYYY')}`;
 };
 
 // Fetch settlement months from API
@@ -68,7 +68,7 @@ const getResults = async (selectedMonths = [], from = null) => {
 
         // Convert the array to a comma-separated string if not empty
         if (selectedMonths && selectedMonths.length > 0) {
-            const selectedMonthString = selectedMonths.map(month => dayjs(month, 'MMMM YYYY').format('MM/YYYY')).join(',');
+            const selectedMonthString = selectedMonths.map(month => dayjs(month, '01 MMMM YYYY').format('MM/YYYY')).join(',');
             url += `&selectedMonths=${selectedMonthString}`;
         }
 
@@ -313,7 +313,7 @@ const copyToClipboard = (text) => {
                                 </template>
                                 <template #value>
                                     <span v-if="selectedMonths.length === 1">
-                                        {{ selectedMonths[0] }}
+                                        {{ dayjs(selectedMonths[0]).format('MMMM YYYY') }}
                                     </span>
                                     <span v-else-if="selectedMonths.length > 1">
                                         {{ selectedMonths.length }} {{ $t('public.months_selected') }}

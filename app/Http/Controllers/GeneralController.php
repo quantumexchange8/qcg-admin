@@ -136,26 +136,31 @@ class GeneralController extends Controller
         $transactionDates = Transaction::pluck('created_at');
         $months = $transactionDates
             ->map(function ($date) {
+                // Extract only the "F Y" format for uniqueness
                 return Carbon::parse($date)->format('F Y');
             })
             ->unique()
+            ->map(function ($month) {
+                // Reformat the unique months to include "01" in front
+                return '01 ' . $month;
+            })
             ->values();
-
+    
         // Add the current month at the end if it's not already in the list
-        $currentMonth = Carbon::now()->format('F Y');
+        $currentMonth = '01 ' . Carbon::now()->format('F Y');
         if (!$months->contains($currentMonth)) {
             $months->push($currentMonth);
         }
-
+    
         if ($returnAsArray) {
             return $months;
         }
-
+    
         return response()->json([
             'months' => $months,
         ]);
     }
-
+    
     public function getIncentiveMonths($returnAsArray = false)
     {
         $incentiveDates = LeaderboardBonus::pluck('created_at');
@@ -164,10 +169,14 @@ class GeneralController extends Controller
                 return Carbon::parse($date)->format('F Y');
             })
             ->unique()
+            ->map(function ($month) {
+                // Reformat the unique months to include "01" in front
+                return '01 ' . $month;
+            })
             ->values();
 
         // Add the current month at the end if it's not already in the list
-        $currentMonth = Carbon::now()->format('F Y');
+        $currentMonth = '01 ' . Carbon::now()->format('F Y');
         if (!$months->contains($currentMonth)) {
             $months->push($currentMonth);
         }
@@ -233,6 +242,10 @@ class GeneralController extends Controller
                 return Carbon::parse($date)->format('F Y');
             })
             ->unique()
+            ->map(function ($month) {
+                // Reformat the unique months to include "01" in front
+                return '01 ' . $month;
+            })
             ->values();
 
         if ($returnAsArray) {
