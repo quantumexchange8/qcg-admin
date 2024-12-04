@@ -308,7 +308,7 @@ const copyToClipboard = (text) => {
                                 </template>
                                 <template #value>
                                     <span v-if="selectedMonths.length === 1">
-                                        {{ dayjs(selectedMonths[0]).format('MMMM YYYY') }}
+                                        {{ dayjs(selectedMonths[0] + ' 01').format('MMMM YYYY') }}
                                     </span>
                                     <span v-else-if="selectedMonths.length > 1">
                                         {{ selectedMonths.length }} {{ $t('public.months_selected') }}
