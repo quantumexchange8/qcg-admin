@@ -225,6 +225,9 @@ watchEffect(() => {
                                                 {{ $t('public.select_all') }}
                                             </div>
                                         </template>
+                                        <template #option="{option}">
+                                            <span class="text-sm">{{ option.replace(/^\d+\s/, '') }}</span>
+                                        </template>
                                         <template #value="slotProps">
                                             <span v-if="selectedMonths.length === 1">
                                                 {{ dayjs(selectedMonths[0]).format('MMMM YYYY') }}
