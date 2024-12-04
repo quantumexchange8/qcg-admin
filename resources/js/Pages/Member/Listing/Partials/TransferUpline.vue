@@ -101,7 +101,7 @@ const requireConfirmation = (action_type) => {
 <template>
         <div class="flex flex-col gap-6 items-center self-stretch py-4 md:py-6 md:gap-8">
             <div class="flex flex-col justify-center items-start p-3 self-stretch bg-gray-50">
-                <span class="w-full truncate text-gray-950 font-semibold">{{ props.member.name }}</span>
+                <span class="w-full truncate text-gray-950 font-semibold">{{ props.member.first_name }}</span>
                 <span class="w-full truncate text-gray-500 text-sm">{{ props.member.email }}</span>
             </div>
             <div class="flex flex-col items-center gap-3 self-stretch">

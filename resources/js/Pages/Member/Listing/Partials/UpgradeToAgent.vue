@@ -116,7 +116,7 @@ const closeDialog = () => {
                     {{ $t('public.member') }}
                 </div>
                 <div class="flex flex-col justify-center items-start p-3 self-stretch bg-gray-50">
-                    <span class="text-gray-950 font-semibold max-w-[220px] truncate">{{ member.name }}</span>
+                    <span class="text-gray-950 font-semibold max-w-[220px] truncate">{{ member.first_name }}</span>
                     <div class="text-gray-500 text-sm max-w-[220px] truncate flex gap-1 items-center self-stretch">
                         <span>{{ member.id_number }}</span>
                         →

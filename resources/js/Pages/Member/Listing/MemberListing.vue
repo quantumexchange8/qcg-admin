@@ -1,11 +1,10 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { usePage, useForm } from "@inertiajs/vue3";
+import { usePage } from "@inertiajs/vue3";
 import { generalFormat } from "@/Composables/index.js";
 import { IconCircleXFilled, IconSearch, IconDownload, IconFilterOff } from "@tabler/icons-vue";
 import { ref, watch, watchEffect, onMounted, h } from "vue";
 import Loader from "@/Components/Loader.vue";
-import DefaultProfilePhoto from "@/Components/DefaultProfilePhoto.vue";
 import DataTable from "primevue/datatable";
 import InputText from "primevue/inputtext";
 import Column from "primevue/column";
@@ -16,11 +15,10 @@ import Tabs from 'primevue/tabs';
 import TabList from 'primevue/tablist';
 import Tab from 'primevue/tab';
 import Empty from "@/Components/Empty.vue";
-import { trans, wTrans } from "laravel-vue-i18n";
+import { trans } from "laravel-vue-i18n";
 import AddMember from "@/Pages/Member/Listing/Partials/AddMember.vue";
 import MemberTableActions from "@/Pages/Member/Listing/Partials/MemberTableActions.vue"
-
-const { formatRgbaColor } = generalFormat();
+import debounce from "lodash/debounce.js";
 
 const props = defineProps({
     totalMembers: Number,
@@ -30,22 +28,25 @@ const props = defineProps({
     teams: Array,
 });
 
+const dt = ref(null);
 const loading = ref(false);
-const dt = ref();
-const users = ref();
+const totalRecords = ref(0);
+const users = ref(null);
+const selectedBrand = ref(null);
+const first = ref(0);
+const {formatRgbaColor} = generalFormat();
 const total_members = ref(0);
 const total_agents = ref(0);
 const filteredValue = ref();
 const teams = ref(props.teams);
-const team_id = ref(null)
 
 const tabs = ref([
-    {   
+    {
         title: 'member',
         type: 'member',
         total: props.totalMembers,
     },
-    {   
+    {
         title: 'agent',
         type: 'agent',
         total: props.totalAgents,
@@ -55,51 +56,112 @@ const tabs = ref([
 const selectedType = ref('member');
 const activeIndex = ref(tabs.value.findIndex(tab => tab.type === selectedType.value));
 
+const filters = ref({
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    type: { value: selectedType.value, matchMode: FilterMatchMode.EQUALS },
+    team_id: { value: null, matchMode: FilterMatchMode.EQUALS }
+});
+
+const lazyParams = ref({});
+
+const loadLazyData = (event) => {
+    loading.value = true;
+
+    lazyParams.value = { ...lazyParams.value, first: event?.first || first.value };
+
+    try {
+        setTimeout(async () => {
+            const params = {
+                page: JSON.stringify(event?.page + 1),
+                sortField: event?.sortField,
+                sortOrder: event?.sortOrder,
+                include: [],
+                lazyEvent: JSON.stringify(lazyParams.value)
+            };
+
+            const url = route('member.getMemberListingPaginate', params);
+            const response = await fetch(url);
+            const results = await response.json();
+
+            users.value = results?.data?.data;
+            totalRecords.value = results?.data?.total;
+            total_members.value = results.total_members;
+            total_agents.value = results.total_agents;
+
+            // Update the total counts in the tabs array
+            tabs.value = tabs.value.map(tab => ({
+                ...tab,
+                total: tab.type === 'member' ? total_members.value : total_agents.value
+            }));
+
+            loading.value = false;
+        }, 100);
+    }  catch (e) {
+        users.value = [];
+        totalRecords.value = 0;
+        loading.value = false;
+    }
+};
+const onPage = (event) => {
+    lazyParams.value = event;
+    loadLazyData(event);
+};
+const onSort = (event) => {
+    lazyParams.value = event;
+    loadLazyData(event);
+};
+const onFilter = (event) => {
+    lazyParams.value.filters = filters.value ;
+    loadLazyData(event);
+    filteredValue.value = event.filteredValue;
+    console.log(event)
+};
+
+onMounted(() => {
+    lazyParams.value = {
+        first: dt.value.first,
+        rows: dt.value.rows,
+        sortField: null,
+        sortOrder: null,
+        filters: filters.value
+    };
+
+    loadLazyData();
+});
+
+watch(
+    filters.value['global'],
+    debounce(() => {
+        loadLazyData();
+    }, 300)
+);
+
+watch([filters.value['type'], filters.value['team_id']], () => {
+    loadLazyData()
+});
+
 // Watch for changes in selectedType and update the activeIndex accordingly
 watch(selectedType, (newType) => {
     const index = tabs.value.findIndex(tab => tab.type === newType);
     if (index >= 0) {
         activeIndex.value = index;
-        getResults();
+
     }
 });
 
 function updateType(event) {
     const selectedTab = tabs.value[event.index];
-    selectedType.value = selectedTab.type;
+    filters.value['type'].value = selectedTab.type;
 }
 
-const getResults = async () => {
-    loading.value = true;
-
-    // Skip fetch if both totals are 0
-    if (props.totalMembers === 0 && props.totalAgents === 0) {
-        loading.value = false;
-        return;
-    }
-
-    try {
-        const response = await axios.get(`/member/getMemberListingData?role=${selectedType.value}`);
-        users.value = response.data.users;
-        total_members.value = response.data.total_members;
-        total_agents.value = response.data.total_agents;
-
-        // Update the total counts in the tabs array
-        tabs.value = tabs.value.map(tab => ({
-            ...tab,
-            total: tab.type === 'member' ? total_members.value : total_agents.value
-        }));
-    } catch (error) {
-        console.error('Error changing locale:', error);
-    } finally {
-        loading.value = false;
-    }
-
+const clearFilter = () => {
+    filters.value['global'].value = null;
+    filters.value['team_id'].value = null;
 };
 
-onMounted(() => {
-    getResults();
-})
+const clearFilterGlobal = () => {
+    filters.value['global'].value = null;
+}
 
 const exportXLSX = () => {
     // Retrieve the array from the reactive proxy
@@ -128,7 +190,7 @@ const exportXLSX = () => {
 
     // Create the XLSX content
     let csvContent = "data:text/xlsx;charset=utf-8,";
-    
+
     sheetData.forEach((rowArray) => {
         const row = rowArray.join("\t"); // Use tabs for column separation
         csvContent += row + "\r\n"; // Add a new line after each row
@@ -148,45 +210,11 @@ const exportXLSX = () => {
     document.body.removeChild(link);
 };
 
-const filters = ref({
-    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    email: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    team_id: { value: null, matchMode: FilterMatchMode.EQUALS },
-});
-
-const clearFilterGlobal = () => {
-    filters.value['global'].value = null;
-}
-
-const clearFilter = () => {
-    filters.value = {
-        global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-        name: { value: null, matchMode: FilterMatchMode.CONTAINS },
-        email: { value: null, matchMode: FilterMatchMode.CONTAINS },
-        team_id: { value: null, matchMode: FilterMatchMode.EQUALS },
-    };
-
-    team_id.value = null;
-    filteredValue.value = null;
-};
-
-watch(team_id, (newTeamId) => {
-    if (team_id.value !== null) {
-        filters.value['team_id'].value = newTeamId.value
-    }
-})
-
 watchEffect(() => {
     if (usePage().props.toast !== null) {
         getResults();
     }
 });
-
-const handleFilter = (e) => {
-    filteredValue.value = e.filteredValue;
-};
-
 </script>
 
 <template>
@@ -197,8 +225,8 @@ const handleFilter = (e) => {
                     <div class="w-full md:w-auto flex items-center">
                         <Tabs v-model:value="activeIndex">
                             <TabList class="flex justify-center items-center">
-                                <Tab 
-                                    v-for="(tab, index) in tabs" 
+                                <Tab
+                                    v-for="(tab, index) in tabs"
                                     :key="index"
                                     :value="index"
                                     @click="updateType({ index })"
@@ -225,25 +253,32 @@ const handleFilter = (e) => {
                 </div>
                 <!-- data table -->
                 <div v-if="props.totalMembers === 0 && props.totalAgents === 0">
-                    <Empty 
-                        :title="selectedType === 'member' ? $t('public.empty_member_title') : $t('public.empty_agent_title')" 
-                        :message="selectedType === 'member' ? $t('public.empty_member_message') : $t('public.empty_agent_message')" 
+                    <Empty
+                        :title="selectedType === 'member' ? $t('public.empty_member_title') : $t('public.empty_agent_title')"
+                        :message="selectedType === 'member' ? $t('public.empty_member_message') : $t('public.empty_agent_message')"
                     />
                 </div>
                 <DataTable
                     v-else
-                    v-model:filters="filters"
                     :value="users"
-                    :paginator="users?.length > 0 && filteredValue?.length > 0"
-                    removableSort
-                    :rows="10"
                     :rowsPerPageOptions="[10, 20, 50, 100]"
+                    lazy
+                    paginator
+                    removableSort
                     paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
                     :currentPageReportTemplate="$t('public.paginator_caption')"
-                    :globalFilterFields="['name', 'email', 'id_number']"
+                    :first="first"
+                    :rows="10"
+                    v-model:filters="filters"
                     ref="dt"
+                    dataKey="id"
+                    :totalRecords="totalRecords"
                     :loading="loading"
-                    @filter="handleFilter"
+                    @page="onPage($event)"
+                    @sort="onSort($event)"
+                    @filter="onFilter($event)"
+                    :globalFilterFields="['first_name', 'email', 'id_number']"
+                    v-model:selection="selectedBrand"
                 >
                     <template #header>
                         <div class="flex flex-col justify-between items-center pb-5 gap-5 self-stretch md:flex-row md:pb-6">
@@ -252,7 +287,12 @@ const handleFilter = (e) => {
                                     <div class="absolute top-2/4 -mt-[9px] left-3 text-gray-500">
                                         <IconSearch size="20" stroke-width="1.25" />
                                     </div>
-                                    <InputText v-model="filters['global'].value" :placeholder="$t('public.keyword_search')" size="search" class="font-normal w-full md:w-60" />
+                                    <InputText
+                                        v-model="filters['global'].value"
+                                        :placeholder="$t('public.keyword_search')"
+                                        size="search"
+                                        class="font-normal w-full md:w-60"
+                                    />
                                     <div
                                         v-if="filters['global'].value !== null"
                                         class="absolute top-2/4 -mt-2 right-4 text-gray-300 hover:text-gray-400 select-none cursor-pointer"
@@ -262,7 +302,7 @@ const handleFilter = (e) => {
                                     </div>
                                 </div>
                                 <Select
-                                    v-model="team_id"
+                                    v-model="filters['team_id'].value"
                                     :options="teams"
                                     filter
                                     :filterFields="['name']"
@@ -271,7 +311,7 @@ const handleFilter = (e) => {
                                     class="w-full md:w-60 font-normal"
                                     scroll-height="236px"
                                 >
-                                <template #value="slotProps">
+                                    <template #value="slotProps">
                                         <div v-if="slotProps.value" class="flex items-center gap-3">
                                             <div class="flex items-center gap-2">
                                                 <div class="w-4 h-4 rounded-full overflow-hidden grow-0 shrink-0" :style="{ backgroundColor: `#${slotProps.value.color}` }"></div>
@@ -301,9 +341,9 @@ const handleFilter = (e) => {
                         </div>
                     </template>
                     <template #empty>
-                        <Empty 
-                            :title="selectedType === 'member' ? $t('public.empty_member_title') : $t('public.empty_agent_title')" 
-                            :message="selectedType === 'member' ? $t('public.empty_member_message') : $t('public.empty_agent_message')" 
+                        <Empty
+                            :title="selectedType === 'member' ? $t('public.empty_member_title') : $t('public.empty_agent_title')"
+                            :message="selectedType === 'member' ? $t('public.empty_member_message') : $t('public.empty_agent_message')"
                         />
                     </template>
                     <template #loading>
@@ -312,38 +352,44 @@ const handleFilter = (e) => {
                             <span class="text-sm text-gray-700">{{ $t('public.loading') }}</span>
                         </div>
                     </template>
-                    <template v-if="users?.length > 0 && filteredValue?.length > 0">
-                        <Column field="name" sortable :header="$t('public.name')" style="width: 25%; max-width: 0;" class="px-3">
-                            <template #body="slotProps">
+                    <template v-if="users?.length > 0">
+                        <Column
+                            field="first_name"
+                            sortable
+                            :header="$t('public.name')"
+                            style="width: 25%; max-width: 0;"
+                            class="px-3"
+                        >
+                            <template #body="{data}">
                                 <div class="flex flex-col items-start max-w-full">
                                     <div class="font-semibold truncate max-w-full">
-                                        {{ slotProps.data.name }}
+                                        {{ data.first_name }}
                                     </div>
                                     <div class="text-gray-500 text-xs truncate max-w-full">
-                                        {{ slotProps.data.email }}
+                                        {{ data.email }}
                                     </div>
                                 </div>
                             </template>
                         </Column>
                         <Column field="id_number" :header="$t('public.id')" sortable style="width: 25%" class="hidden md:table-cell">
-                            <template #body="slotProps">
+                            <template #body="{ data }">
                                 <div class="text-gray-950 text-sm">
-                                    {{ slotProps.data.id_number }}
+                                    {{ data.id_number }}
                                 </div>
                             </template>
                         </Column>
                         <Column field="team" :header="$t('public.sales_team')" style="width: 25%" class="hidden md:table-cell">
-                            <template #body="slotProps">
+                            <template #body="{data}">
                                 <div class="flex items-center">
                                     <div
-                                        v-if="slotProps.data.team_id"
+                                        v-if="data.team_has_user"
                                         class="flex justify-center items-center gap-2 rounded-sm py-1 px-2"
-                                        :style="{ backgroundColor: formatRgbaColor(slotProps.data.team_color, 1) }"
+                                        :style="{ backgroundColor: formatRgbaColor(data.team_has_user.team.color, 1) }"
                                     >
                                         <div
                                             class="text-white text-xs text-center"
                                         >
-                                            {{ slotProps.data.team_name }}
+                                            {{ data.team_has_user.team.name }}
                                         </div>
                                     </div>
                                     <div v-else>
@@ -354,14 +400,13 @@ const handleFilter = (e) => {
                         </Column>
                         <Column field="action" header="" style="width: 25%">
                             <template #body="slotProps">
-                                <MemberTableActions 
+                                <MemberTableActions
                                     :member="slotProps.data"
                                 />
                             </template>
                         </Column>
                     </template>
                 </DataTable>
-
             </div>
         </div>
     </AuthenticatedLayout>

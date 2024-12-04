@@ -121,18 +121,18 @@ const recalculateTotals = () => {
     const globalFilterValue = filters.value.global?.value?.toLowerCase();
 
     const filtered = transactions.value.filter(transaction => {
-        const matchesGlobalFilter = globalFilterValue 
+        const matchesGlobalFilter = globalFilterValue
             ? [
-                transaction.name, 
-                transaction.email, 
-                transaction.transaction_number, 
-                transaction.from_meta_login, 
+                transaction.name,
+                transaction.email,
+                transaction.transaction_number,
+                transaction.from_meta_login,
                 transaction.from_wallet_name
             ].some(field => {
                 // Convert field to string and check if it includes the global filter value
                 const fieldValue = field !== undefined && field !== null ? field.toString() : '';
                 return fieldValue.toLowerCase().includes(globalFilterValue);
-            }) 
+            })
             : true; // If no global filter is set, match all
 
         // Apply individual field filters (name, email, status)
@@ -165,7 +165,7 @@ const clearFilter = () => {
     };
     selectedMonths.value = [getCurrentMonthYear()];
     withdrawalFrom.value = null;
-    filteredValue.value = null; 
+    filteredValue.value = null;
 };
 
 watchEffect(() => {
@@ -213,7 +213,7 @@ const exportXLSX = () => {
 
     // Create the XLSX content
     let csvContent = "data:text/xlsx;charset=utf-8,";
-    
+
     sheetData.forEach((rowArray) => {
         const row = rowArray.join("\t"); // Use tabs for column separation
         csvContent += row + "\r\n"; // Add a new line after each row
@@ -291,7 +291,7 @@ const copyToClipboard = (text) => {
                     </Button>
                 </div>
             </div>
-            
+
             <div v-if="months.length === 0" class="flex flex-col gap-2 items-center justify-center">
                 <Loader />
                 <span class="text-sm text-gray-700">{{ $t('public.loading') }}</span>
@@ -329,6 +329,9 @@ const copyToClipboard = (text) => {
                                     <div class="absolute flex left-10 top-2">
                                         {{ $t('public.select_all') }}
                                     </div>
+                                </template>
+                                <template #option="{option}">
+                                    <span class="text-sm">{{ option.replace(/^\d+\s/, '') }}</span>
                                 </template>
                                 <template #value>
                                     <span v-if="selectedMonths.length === 1">
@@ -374,9 +377,9 @@ const copyToClipboard = (text) => {
                     </div>
                 </template>
                 <template #empty>
-                    <Empty 
-                        :title="$t('public.empty_withdrawal_record_title')" 
-                        :message="$t('public.empty_withdrawal_record_message')" 
+                    <Empty
+                        :title="$t('public.empty_withdrawal_record_title')"
+                        :message="$t('public.empty_withdrawal_record_message')"
                     />
                 </template>
                 <template #loading>
@@ -470,7 +473,7 @@ const copyToClipboard = (text) => {
                     <span class="w-full truncate text-gray-950 text-lg font-semibold">{{ `$&nbsp;${formatAmount(data?.transaction_amount || 0)}` }}</span>
                 </div>
             </div>
-            
+
             <div class="flex flex-col items-center p-3 gap-3 self-stretch bg-gray-50">
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.date') }}</span>

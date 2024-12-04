@@ -85,6 +85,11 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
             // Listing Routes
             Route::get('/listing', [MemberController::class, 'listing'])->name('member.listing');
             Route::get('/getMemberListingData', [MemberController::class, 'getMemberListingData'])->name('member.getMemberListingData');
+
+
+            Route::get('/getMemberListingPaginate', [MemberController::class, 'getMemberListingPaginate'])->name('member.getMemberListingPaginate');
+
+
             Route::get('/getAvailableUplines', [MemberController::class, 'getAvailableUplines'])->name('member.getAvailableUplines');
             Route::get('/getFilterData', [MemberController::class, 'getFilterData'])->name('member.getFilterData');
             Route::get('/getAvailableUplineData', [MemberController::class, 'getAvailableUplineData'])->name('member.getAvailableUplineData');

@@ -54,7 +54,7 @@ class MemberController extends Controller
 
         $totalMembers = User::where('role', 'member')->count();
         $totalAgents = User::where('role', 'agent')->count();
-    
+
         return Inertia::render('Member/Listing/MemberListing', [
             'totalMembers' => $totalMembers,
             'totalAgents' => $totalAgents,
@@ -67,40 +67,84 @@ class MemberController extends Controller
     public function getMemberListingData(Request $request)
     {
         $role = $request->role;
-    
+
         $users = User::with(['teamHasUser.team'])
             // ->whereNot('role', 'super-admin')
             ->when($role, function ($query, $role) {
                 return $query->where('role', $role);
             })
             ->latest()
-            ->get()
-            ->map(function ($user) {
-                return [
-                    'id' => $user->id,
-                    'name' => $user->first_name,
-                    'email' => $user->email,
-                    'upline_id' => $user->upline_id,
-                    'role' => $user->role,
-                    'id_number' => $user->id_number,
-                    'team_id' => $user->teamHasUser->team_id ?? null,
-                    'team_name' => $user->teamHasUser->team->name ?? null,
-                    'team_color' => $user->teamHasUser->team->color ?? null,
-                    'status' => $user->status,
-                ];
-            });
-    
+            ->paginate(10);
+
         // Count the number of users where role is 'member' and 'agent'
         $memberCount = User::where('role', 'member')->count();
         $agentCount = User::where('role', 'agent')->count();
-    
+
         return response()->json([
             'users' => $users,
             'total_members' => $memberCount,
             'total_agents' => $agentCount,
         ]);
     }
-        
+
+    public function getMemberListingPaginate(Request $request)
+    {
+        if ($request->has('lazyEvent')) {
+            $data = json_decode($request->only(['lazyEvent'])['lazyEvent'], true);
+
+            $query = User::with(['teamHasUser.team'])
+                ->where('role', $data['filters']['type']['value']);
+
+            if ($data['filters']['global']['value']) {
+                $query->where(function ($query) use ($data) {
+                    $keyword = $data['filters']['global']['value'];
+
+                    $query->where('first_name', 'like', '%' . $keyword . '%')
+                        ->orWhere('email', 'like', '%' . $keyword . '%')
+                        ->orWhere('id_number', 'like', '%' . $keyword . '%');
+                });
+            }
+
+            if ($data['filters']['team_id']['value']) {
+                $query->whereHas('teamHasUser', function ($query) use ($data) {
+                    $query->where('team_id', $data['filters']['team_id']['value']['value']);
+                });
+            }
+
+            if ($data['sortField'] && $data['sortOrder']) {
+                $order = $data['sortOrder'] == 1 ? 'asc' : 'desc';
+                $query->orderBy($data['sortField'], $order);
+            } else {
+                $query->latest();
+            }
+
+            $users = $query
+                ->select([
+                    'id',
+                    'first_name',
+                    'email',
+                    'id_number',
+                    'role',
+                    'status',
+                    'upline_id',
+                    'hierarchyList'
+                ])
+                ->paginate($data['rows']);
+
+            $memberCount = User::where('role', 'member')->count();
+            $agentCount = User::where('role', 'agent')->count();
+
+            return response()->json([
+                'success' => true,
+                'data' => $users,
+                'total_members' => $memberCount,
+                'total_agents' => $agentCount,
+            ]);
+        }
+
+        return response()->json(['success' => false, 'data' => []]);
+    }
+
     public function addNewMember(AddMemberRequest $request)
     {
         $upline_id = $request->upline['value'];
@@ -145,7 +189,7 @@ class MemberController extends Controller
             $user->ct_user_id = $ctUser['userId'];
             $user->save();
         }
-        
+
         if ($upline->teamHasUser) {
             $user->assignedTeam($upline->teamHasUser->team_id);
         }
@@ -196,14 +240,14 @@ class MemberController extends Controller
     public function getAvailableUplines(Request $request)
     {
         $role = $request->input('role', ['agent', 'member']);
-    
+
         $memberId = $request->input('id');
 
         // Fetch the member and get their children (downline) IDs
         $member = User::findOrFail($memberId);
         $excludedIds = $member->getChildrenIds();
         $excludedIds[] = $memberId;
-    
+
         // Fetch uplines who are not in the excluded list
         $uplines = User::whereIn('role', (array) $role)
             ->whereNotIn('id', $excludedIds)
@@ -215,13 +259,13 @@ class MemberController extends Controller
                     'email' => $user->email,
                 ];
             });
-    
+
         // Return the uplines as JSON
         return response()->json([
             'uplines' => $uplines
         ]);
     }
-    
+
     public function transferUpline(Request $request)
     {
         // Validate the incoming request data
@@ -230,10 +274,10 @@ class MemberController extends Controller
             'upline_id' => 'required|exists:users,id',
             'role'      => 'required|in:agent,member',
         ]);
-    
+
         // Find the user to be transferred
         $user = User::findOrFail($request->input('user_id'));
-    
+
         // Check if the new upline is valid and not the same as the current one
         if ($user->upline_id === $request->input('upline_id')) {
             return back()->with('toast', [
@@ -241,14 +285,14 @@ class MemberController extends Controller
                 'type'  => 'warning',
             ]);
         }
-    
+
         // Find the new upline
         $newUpline = User::findOrFail($request->input('upline_id'));
-    
+
         // Step 1: Update the user's hierarchyList to reflect the new upline's hierarchy and ID
         $user->hierarchyList = $newUpline->hierarchyList . $newUpline->id . '-';
         $user->upline_id = $newUpline->id;
-    
+
         // Update the user's team relationship
         if ($newUpline->teamHasUser) {
             $user->assignedTeam($newUpline->teamHasUser->team_id);
@@ -261,40 +305,40 @@ class MemberController extends Controller
         if ($request->role === 'agent') {
             // Retrieve all RebateAllocations for the user
             $rebateAllocations = RebateAllocation::where('user_id', $user->id)->get();
-    
+
             // Set the amount of each RebateAllocation to 0
             foreach ($rebateAllocations as $rebateAllocation) {
                 $rebateAllocation->amount = 0; // Set amount to 0
                 $rebateAllocation->save();      // Save the updated record
             }
         }
-        
+
         // Step 3: Update related users' hierarchyList and their RebateAllocation amounts if they are agents
         $relatedUsers = User::where('hierarchyList', 'like', '%-' . $user->id . '-%')->get();
-    
+
         foreach ($relatedUsers as $relatedUser) {
             $userIdSegment = '-' . $user->id . '-';
-    
+
             // Find the position of `-user_id-` in the related user's hierarchyList
             $pos = strpos($relatedUser->hierarchyList, $userIdSegment);
-    
+
             if ($pos !== false) {
                 // Extract the part after the user's ID segment (tail part)
                 $tailHierarchy = substr($relatedUser->hierarchyList, $pos + strlen($userIdSegment));
-    
+
                 // Prepend the user's new hierarchyList + user ID to the tail part
                 $relatedUser->hierarchyList = $user->hierarchyList . $user->id . '-' . $tailHierarchy;
             }
-    
+
             // Save the updated hierarchyList for the related user
             $relatedUser->save();
-    
+
             // Step 4: If the related user is an agent, set their RebateAllocation amounts to 0
             if ($relatedUser->role === 'agent') {
                 RebateAllocation::where('user_id', $relatedUser->id)->update(['amount' => 0]);
             }
         }
-    
+
         // Step 5 update the related user team has user as transfer upline will change team as well
         // Get the team_id from the new upline's teamHasUser relationship
         $team_id = $newUpline->teamHasUser->team_id;
@@ -313,34 +357,34 @@ class MemberController extends Controller
             'type'  => 'success',
         ]);
     }
-                
+
     public function getAvailableUplineData(Request $request)
     {
         $user = User::with('upline')->find($request->user_id);
         if (!$user) {
             return response()->json(['error' => 'User not found'], 404);
         }
-    
+
         $availableUpline = $user->upline;
-    
+
         while ($availableUpline && $availableUpline->role != 'agent') {
             $availableUpline = $availableUpline->upline;
         }
-    
+
         if (!$availableUpline) {
             return response()->json(['error' => 'No valid upline found'], 404);
         }
-    
+
         $uplineRebate = RebateAllocation::with('symbol_group:id,display')
             ->where('user_id', $availableUpline->id)
             ->get();
-    
+
         $availableAccountTypeId = [];
-    
+
         if (!$uplineRebate->isEmpty()) {
             $availableAccountTypeId = $uplineRebate->pluck('account_type_id')->toArray();
         }
-    
+
         $accountTypeSel = AccountType::whereIn('id', $availableAccountTypeId)
             ->select('id', 'name')
             ->get()
@@ -350,14 +394,14 @@ class MemberController extends Controller
                     'name' => $accountType->name,
                 ];
             });
-    
+
         return response()->json([
             'availableUpline' => $availableUpline,
             'rebateDetails' => $uplineRebate,
             'accountTypeSel' => $accountTypeSel,
         ]);
     }
-    
+
     public function upgradeAgent(Request $request)
     {
         $user_id = $request->user_id;
@@ -718,12 +762,12 @@ class MemberController extends Controller
     {
         $user = User::find($request->id);
         $tradingAccounts = $user->tradingAccounts;
-    
+
         if (App::environment('production')) {
             // Proceed only if there are associated trading accounts
             if ($tradingAccounts->isNotEmpty()) {
                 $cTraderService = new CTraderService();
-        
+
                 // Check connection status
                 $conn = $cTraderService->connectionStatus();
                 if ($conn['code'] != 0) {
@@ -732,7 +776,7 @@ class MemberController extends Controller
                         'type' => 'error'
                     ]);
                 }
-        
+
                 // Iterate through trading accounts to get user info
                 foreach ($tradingAccounts as $tradingAccount) {
                     try {
@@ -774,7 +818,7 @@ class MemberController extends Controller
             // 2. Last transaction date (within the last 90 days),
             $isActive = $trading_account->created_at >= $inactiveThreshold || // Account created within last 90 days
                     ($lastTransaction && $lastTransaction->created_at >= $inactiveThreshold); // Last transaction within 90 days
-    
+
             return [
                 'id' => $trading_account->id,
                 'meta_login' => $trading_account->meta_login,
@@ -789,13 +833,13 @@ class MemberController extends Controller
                 'status' => $trading_account->status,
             ];
         });
-    
+
         // Return the response as JSON
         return response()->json([
             'tradingAccounts' => $tradingAccounts,
         ]);
     }
-                    
+
     public function getAdjustmentHistoryData(Request $request)
     {
         $adjustment_history = Transaction::where('user_id', $request->id)
@@ -816,22 +860,22 @@ class MemberController extends Controller
     {
         // Find the user by ID
         $user = User::find($request->id);
-    
+
         if (!$user) {
             return back()->with('toast', [
                 'title' => 'User Not Found',
                 'type' => 'error'
             ]);
         }
-    
+
         // Check for associated trading accounts and users
         $tradingAccounts = $user->tradingAccounts;
         $tradingUsers = $user->tradingUsers;
-    
+
         // Proceed with cTrader logic only if both trading accounts or trading users are not empty
         if ($tradingAccounts->isNotEmpty() || $tradingUsers->isNotEmpty()) {
             $cTraderService = new CTraderService();
-    
+
             // Check connection status
             $conn = $cTraderService->connectionStatus();
             if ($conn['code'] != 0) {
@@ -840,7 +884,7 @@ class MemberController extends Controller
                     'type' => 'error'
                 ]);
             }
-    
+
             // Iterate through trading accounts and users
             foreach ($tradingAccounts as $tradingAccount) {
                 // Get user info from cTrader service
@@ -853,7 +897,7 @@ class MemberController extends Controller
                         'type' => 'error'
                     ]);
                 }
-    
+
                 // Check if the account has a balance or equity
                 if ($tradingAccount->balance > 0 || $tradingAccount->equity > 0 || $tradingAccount->credit > 0 || $tradingAccount->cash_equity > 0) {
                     return back()->with('toast', [
@@ -861,7 +905,7 @@ class MemberController extends Controller
                         'type' => 'error'
                     ]);
                 }
-    
+
                 // Attempt to delete the trading account
                 try {
                     $cTraderService->deleteTrader($tradingAccount->meta_login);
@@ -876,26 +920,26 @@ class MemberController extends Controller
                 }
             }
         }
-    
+
         // Get the upline's team ID using the upline relationship
         $teamId = $user->upline?->teamHasUser->team_id ?? 1;
 
         // If trading accounts or users do not exist, handle user deletion without cTrader logic
         $relatedUsers = User::where('hierarchyList', 'like', '%-' . $user->id . '-%')->get();
-    
+
         foreach ($relatedUsers as $relatedUser) {
             $updatedHierarchyList = str_replace('-' . $user->id . '-', '-', $relatedUser->hierarchyList);
             $relatedUser->hierarchyList = $updatedHierarchyList;
-    
+
             // Update the upline
             $hierarchyArray = array_filter(explode('-', $updatedHierarchyList));
             $relatedUser->upline_id = !empty($hierarchyArray) ? end($hierarchyArray) : null;
-    
+
             $relatedUser->assignedTeam($teamId);
 
             $relatedUser->save();
         }
-    
+
         // Delete all related data for the user
         $user->transactions()->delete();
         $user->paymentAccounts()->delete();
@@ -907,12 +951,12 @@ class MemberController extends Controller
         if ($user->roles()->exists()) {
             $user->roles()->detach(); // Detach all roles
         }
-    
+
         if ($user->permissions()->exists()) {
             $user->permissions()->detach(); // Detach all permissions
         }
         $user->delete();
-    
+
         // Return success response for user deletion
         return redirect()->back()->with('toast', [
             'title' => trans('public.toast_delete_member_success'),
