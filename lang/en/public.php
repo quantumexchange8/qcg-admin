@@ -30,6 +30,8 @@ return [
     'password_reset_caption' => "Your password has been successfully reset. You can now log in with your new password.",
     'active' => 'Active',
     'inactive' => 'Inactive',
+    'copy' => "Copy",
+    'copied' => "Copied",
     'dashboard' => "Dashboard",
     'welcome_back' => "Welcome back, :name!",
     'greeting_caption' => "Ready to manage and optimize your platform? Let's get to work!",

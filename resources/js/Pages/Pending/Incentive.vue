@@ -2,7 +2,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { usePage, useForm } from "@inertiajs/vue3";
 import { transactionFormat } from "@/Composables/index.js";
-import { IconCircleXFilled, IconSearch, IconDownload } from "@tabler/icons-vue";
+import { IconCircleXFilled, IconSearch, IconDownload, IconCopy } from "@tabler/icons-vue";
 import { ref, watch, watchEffect } from "vue";
 import Loader from "@/Components/Loader.vue";
 import DefaultProfilePhoto from "@/Components/DefaultProfilePhoto.vue";
@@ -207,6 +207,30 @@ const exportXLSX = () => {
     document.body.removeChild(link);
 };
 
+const tooltipText = ref('copy');
+const copyToClipboard = (text) => {
+    const textToCopy = text;
+
+    const textArea = document.createElement('textarea');
+    document.body.appendChild(textArea);
+
+    textArea.value = textToCopy;
+    textArea.select();
+
+    try {
+        const successful = document.execCommand('copy');
+
+        tooltipText.value = 'copied';
+        setTimeout(() => {
+            tooltipText.value = 'copy';
+        }, 1500);
+    } catch (err) {
+        console.error('Copy to clipboard failed:', err);
+    }
+
+    document.body.removeChild(textArea);
+}
+
 </script>
 
 <template>
@@ -341,12 +365,20 @@ const exportXLSX = () => {
                                     </div>
                                 </div>
                                 <div class="flex flex-col md:flex-row md:items-center gap-1 self-stretch">
-                                    <div class="w-[140px] text-gray-500 text-sm">
+                                    <div class="min-w-[140px] text-gray-500 text-sm">
                                         {{ $t('public.receiving_address') }}
                                     </div>
-                                    <div class="text-gray-950 text-sm break-words font-medium">
+                                    <span class="text-gray-950 text-sm break-all font-medium">
                                         {{ pendingData?.wallet_address || '-' }}
-                                    </div>
+                                        <IconCopy 
+                                            v-if="pendingData?.wallet_address"
+                                            size="20" 
+                                            stroke-width="1.25" 
+                                            class="text-gray-500 inline-block cursor-pointer grow-0 shrink-0" 
+                                            v-tooltip.top="$t(`public.${tooltipText}`)" 
+                                            @click="copyToClipboard(pendingData?.wallet_address)"
+                                        />
+                                    </span>
                                 </div>
                             </div>
                         </div>

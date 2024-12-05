@@ -1,7 +1,7 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { usePage } from "@inertiajs/vue3";
-import { IconCircleXFilled, IconSearch, IconDownload, IconFilterOff } from "@tabler/icons-vue";
+import { IconCircleXFilled, IconSearch, IconDownload, IconFilterOff, IconCopy } from "@tabler/icons-vue";
 import { ref, watch, watchEffect } from "vue";
 import Loader from "@/Components/Loader.vue";
 import Dialog from "primevue/dialog";
@@ -466,11 +466,31 @@ const copyToClipboard = (text) => {
             <div class="flex flex-col items-center p-3 gap-3 self-stretch bg-gray-50">
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.sent_address') }}</span>
-                    <span class="w-full truncate text-gray-950 text-sm font-medium" @click="copyToClipboard(data.from_wallet_address)">{{ data?.from_wallet_address || '-' }}</span>
+                    <span class="w-full break-all text-gray-950 text-sm font-medium" @click="copyToClipboard(data.from_wallet_address)">
+                        {{ data?.from_wallet_address || '-' }}
+                        <IconCopy 
+                            v-if="data?.from_wallet_address"
+                            size="20" 
+                            stroke-width="1.25" 
+                            class="text-gray-500 inline-block cursor-pointer grow-0 shrink-0" 
+                            v-tooltip.top="$t(`public.${tooltipText}`)" 
+                            @click="copyToClipboard(data?.from_wallet_address)"
+                        />
+                    </span>
                 </div>
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.receiving_address') }}</span>
-                    <span class="w-full truncate text-gray-950 text-sm font-medium" @click="copyToClipboard(data.to_wallet_address)">{{ data?.to_wallet_address || '-' }}</span>
+                    <span class="w-full break-all text-gray-950 text-sm font-medium" @click="copyToClipboard(data.to_wallet_address)">
+                        {{ data?.to_wallet_address || '-' }}
+                        <IconCopy 
+                            v-if="data?.to_wallet_address"
+                            size="20" 
+                            stroke-width="1.25" 
+                            class="text-gray-500 inline-block cursor-pointer grow-0 shrink-0" 
+                            v-tooltip.top="$t(`public.${tooltipText}`)" 
+                            @click="copyToClipboard(data?.to_wallet_address)"
+                        />
+                    </span>
                 </div>
             </div>
 

@@ -30,6 +30,8 @@ return [
     'password_reset_caption' => "您的密碼已成功重設, 您現在可以使用新密碼登錄.",
     'active' => '啟用',
     'inactive' => '停用',
+    'copy' => "複製",
+    'copied' => "已複製",
     'dashboard' => "儀表首頁",
     'welcome_back' => "歡迎回來, :name!",
     'greeting_caption' => "準備好開始管理和優化您的平台了嗎? 讓我們開始工作吧",
