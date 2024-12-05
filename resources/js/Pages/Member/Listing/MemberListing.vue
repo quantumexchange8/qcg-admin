@@ -39,6 +39,7 @@ const total_members = ref(0);
 const total_agents = ref(0);
 const filteredValue = ref();
 const teams = ref(props.teams);
+const exportStatus = ref(false);
 
 const tabs = ref([
     {
@@ -163,51 +164,32 @@ const clearFilterGlobal = () => {
     filters.value['global'].value = null;
 }
 
-const exportXLSX = () => {
-    // Retrieve the array from the reactive proxy
-    const data = filteredValue.value;
+const exportMember = () => {
+    exportStatus.value = true;
+    loading.value = true;
 
-    // Specify the headers
-    const headers = [
-        trans('public.name'),
-        trans('public.email'),
-        trans('public.id'),
-        trans('public.sales_team'),
-    ];
+    lazyParams.value = { ...lazyParams.value, first: event?.first || first.value };
 
-    // Map the array data to XLSX rows
-    const rows = data.map(obj => {
-        return [
-            obj.name !== undefined ? obj.name : '',
-            obj.email !== undefined ? obj.email : '',
-            obj.id_number !== undefined ? obj.id_number : '',
-            obj.team_name !== undefined ? obj.team_name : '',
-        ];
-    });
+    const params = {
+        page: JSON.stringify(event?.page + 1),
+        sortField: event?.sortField,
+        sortOrder: event?.sortOrder,
+        include: [],
+        lazyEvent: JSON.stringify(lazyParams.value),
+        exportStatus: true,
+    };
 
-    // Combine headers and rows into a single data array
-    const sheetData = [headers, ...rows];
+    const url = route('member.getMemberListingPaginate', params);  // Construct the export URL
 
-    // Create the XLSX content
-    let csvContent = "data:text/xlsx;charset=utf-8,";
-
-    sheetData.forEach((rowArray) => {
-        const row = rowArray.join("\t"); // Use tabs for column separation
-        csvContent += row + "\r\n"; // Add a new line after each row
-    });
-
-    // Create a temporary link element
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "export.xlsx");
-
-    // Append the link to the document and trigger the download
-    document.body.appendChild(link);
-    link.click();
-
-    // Clean up by removing the link
-    document.body.removeChild(link);
+    try {
+        // Send the request to the backend to trigger the export
+        window.location.href = url;  // This will trigger the download directly
+    } catch (e) {
+        console.error('Error occurred during export:', e);  // Log the error if any
+    } finally {
+        loading.value = false;  // Reset loading state
+        exportStatus.value = false;  // Reset export status
+    }
 };
 
 watchEffect(() => {
@@ -239,8 +221,9 @@ watchEffect(() => {
                     <div class="w-full flex flex-col-reverse items-center gap-3 md:w-auto md:flex-row md:gap-5">
                         <Button
                             variant="primary-outlined"
-                            @click="filteredValue?.length > 0 ? exportXLSX($event) : null"
+                            @click="exportMember()"
                             class="w-full md:w-auto"
+                            :disabled="filteredValue?.length <= 0"
                         >
                             <IconDownload size="20" stroke-width="1.25" />
                             {{ $t('public.export') }}
@@ -292,6 +275,7 @@ watchEffect(() => {
                                         :placeholder="$t('public.keyword_search')"
                                         size="search"
                                         class="font-normal w-full md:w-60"
+                                        :disabled="loading"
                                     />
                                     <div
                                         v-if="filters['global'].value !== null"

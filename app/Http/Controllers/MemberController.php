@@ -20,8 +20,10 @@ use App\Models\RebateAllocation;
 use App\Services\CTraderService;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Log;
+use App\Exports\MemberListingExport;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Maatwebsite\Excel\Facades\Excel;
 use App\Jobs\TeamMemberAssignmentJob;
 use App\Services\RunningNumberService;
 use App\Http\Requests\AddMemberRequest;
@@ -116,6 +118,12 @@ class MemberController extends Controller
                 $query->orderBy($data['sortField'], $order);
             } else {
                 $query->latest();
+            }
+
+            // Export logic
+            if ($request->has('exportStatus') && $request->exportStatus == true) {
+                $members = $query; // Fetch all members for export
+                return Excel::download(new MemberListingExport($members), now() . '-report.xlsx');
             }
 
             $users = $query

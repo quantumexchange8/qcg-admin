@@ -21,7 +21,7 @@ class NetworkController extends Controller
         if ($request->filled('search')) {
             $search = '%' . $request->input('search') . '%';
             $parent = User::query()
-                // ->whereIn('role', ['agent', 'member'])
+                ->whereIn('role', ['agent', 'member'])
                 ->where('first_name', 'LIKE', $search)
                 ->orWhere('email', 'LIKE', $search)
                 ->orWhere('id_number', 'LIKE', $search)
@@ -34,7 +34,7 @@ class NetworkController extends Controller
             }
 
         $parent = User::with(['directChildren:id,first_name,email,id_number,upline_id,role,hierarchyList'])
-            // ->whereIn('role', ['agent', 'member'])
+            ->whereIn('role', ['agent', 'member'])
             ->select('id', 'first_name', 'email', 'id_number', 'upline_id', 'role', 'hierarchyList')
             ->find($parent_id);
 
