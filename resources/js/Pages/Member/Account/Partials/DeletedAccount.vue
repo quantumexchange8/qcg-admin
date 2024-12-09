@@ -1,7 +1,7 @@
 <script setup>
 import { usePage } from "@inertiajs/vue3";
 import { IconCircleXFilled, IconSearch, IconFilterOff } from "@tabler/icons-vue";
-import { ref, watch, watchEffect } from "vue";
+import { ref, watch, watchEffect, onMounted } from "vue";
 import Loader from "@/Components/Loader.vue";
 import Dialog from "primevue/dialog";
 import DataTable from "primevue/datatable";
@@ -13,6 +13,7 @@ import { FilterMatchMode } from '@primevue/core/api';
 import Empty from "@/Components/Empty.vue";
 import { transactionFormat } from "@/Composables/index.js";
 import dayjs from "dayjs";
+import debounce from "lodash/debounce.js";
 
 const { formatAmount } = transactionFormat();
 
@@ -29,35 +30,19 @@ const accounts = ref();
 const filteredValue = ref();
 const accountTypes = ref(props.accountTypes);
 const accountType = ref(null)
+const selectedBrand = ref(null);
+const first = ref(0);
+const totalRecords = ref(0);
 
 const openDialog = (rowData) => {
     visible.value = true;
     data.value = rowData;
 };
 
-const emit = defineEmits(['update:filteredValue']);
-
-const getResults = async () => {
-    loading.value = true;
-
-    try {
-        const response = await axios.get('/member/getAccountListingData');
-        accounts.value = response.data.accounts;
-
-    } catch (error) {
-        console.error('Error In Fetch Data:', error);
-    } finally {
-        loading.value = false;
-    }
-
-};
-
-getResults();
+const emit = defineEmits(['update:filters']);
 
 const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    name: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    email: { value: null, matchMode: FilterMatchMode.CONTAINS },
     account_type_id: { value: null, matchMode: FilterMatchMode.EQUALS }
 });
 
@@ -66,20 +51,81 @@ const clearFilterGlobal = () => {
 }
 
 const clearFilter = () => {
-    filters.value = {
-        global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-        name: { value: null, matchMode: FilterMatchMode.CONTAINS },
-        email: { value: null, matchMode: FilterMatchMode.CONTAINS },
-        account_type_id: { value: null, matchMode: FilterMatchMode.EQUALS },
-    };
+    filters.value['global'].value = null;
+    filters.value['account_type_id'].value = null;
 
     accountType.value = null;
     filteredValue.value = null;
 };
 
-// Watch for changes in accountType and update the filter
-watch(accountType, (newVal) => {
-    filters.value['account_type_id'].value = newVal ? newVal : null;
+const lazyParams = ref({});
+
+const loadLazyData = (event) => {
+    loading.value = true;
+
+    lazyParams.value = { ...lazyParams.value, first: event?.first || first.value };
+
+    try {
+        setTimeout(async () => {
+            const params = {
+                page: JSON.stringify(event?.page + 1),
+                sortField: event?.sortField,
+                sortOrder: event?.sortOrder,
+                include: [],
+                lazyEvent: JSON.stringify(lazyParams.value),
+            };
+
+            const url = route('member.getAccountListingPaginate', params);
+            const response = await fetch(url);
+            const results = await response.json();
+
+            accounts.value = results?.data?.data;
+            totalRecords.value = results?.data?.total;
+
+            loading.value = false;
+        }, 100);
+    }  catch (e) {
+        users.value = [];
+        totalRecords.value = 0;
+        loading.value = false;
+    }
+};
+const onPage = (event) => {
+    lazyParams.value = event;
+    loadLazyData(event);
+};
+const onSort = (event) => {
+    lazyParams.value = event;
+    loadLazyData(event);
+};
+const onFilter = (event) => {
+    lazyParams.value.filters = filters.value ;
+    loadLazyData(event);
+    filteredValue.value = event.filteredValue;
+    console.log(event)
+};
+
+onMounted(() => {
+    lazyParams.value = {
+        first: dt.value.first,
+        rows: dt.value.rows,
+        sortField: null,
+        sortOrder: null,
+        filters: filters.value
+    };
+
+    loadLazyData();
+});
+
+watch(
+    filters.value['global'],
+    debounce(() => {
+        loadLazyData();
+    }, 1000)
+);
+
+watch([filters.value['account_type_id']], () => {
+    loadLazyData()
 });
 
 watch(() => usePage().props.toast, (newToast) => {
@@ -89,10 +135,9 @@ watch(() => usePage().props.toast, (newToast) => {
     }
 );
 
-const handleFilter = (e) => {
-    filteredValue.value = e.filteredValue;
-    emit('update:filteredValue', filteredValue.value);
-};
+watch(filters, (newFilters) => {
+    emit('update:filters', newFilters); // Emit the filters to the parent component
+}, { deep: true });
 
 </script>
 
@@ -100,17 +145,24 @@ const handleFilter = (e) => {
     <DataTable
         v-model:filters="filters"
         :value="accounts"
-        :paginator="accounts?.length > 0 && filteredValue?.length > 0"
-        removableSort
-        :rows="10"
         :rowsPerPageOptions="[10, 20, 50, 100]"
+        lazy
+        paginator
+        removableSort
         paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
         :currentPageReportTemplate="$t('public.paginator_caption')"
-        :globalFilterFields="['name', 'email', 'balance', 'equity']"
+        :first="first"
+        :rows="10"
         ref="dt"
+        dataKey="id"
+        :totalRecords="totalRecords"
         :loading="loading"
+        @page="onPage($event)"
+        @sort="onSort($event)"
+        @filter="onFilter($event)"
+        :globalFilterFields="['name', 'email', 'balance', 'equity']"
+        v-model:selection="selectedBrand"
         selectionMode="single"
-        @filter="handleFilter"
         @row-click="(event) => openDialog(event.data)"
     >
         <template #header>
@@ -130,7 +182,7 @@ const handleFilter = (e) => {
                         </div>
                     </div>
                     <Select
-                        v-model="accountType"
+                        v-model="filters['account_type_id'].value"
                         :options="accountTypes"
                         filter
                         :filterFields="['name']"
@@ -165,7 +217,7 @@ const handleFilter = (e) => {
                 <span class="text-sm text-gray-700">{{ $t('public.loading') }}</span>
             </div>
         </template>
-        <template v-if="accounts?.length > 0 && filteredValue?.length > 0">
+        <template v-if="accounts?.length > 0">
             <Column field="name" sortable :header="$t('public.name')" class="hidden md:table-cell w-[20%] max-w-0">
                 <template #body="slotProps">
                     <div class="flex flex-col items-start max-w-full">

@@ -488,6 +488,25 @@ const copyToClipboard = (text) => {
                     <span class="w-full truncate text-gray-950 text-sm font-medium">{{ data?.from_meta_login || (data?.from_wallet_name ? $t('public.' + data?.from_wallet_name) : '-') || '-'  }}</span>
                 </div>
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
+                    <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.sales_team') }}</span>
+                    <div class="flex items-center">
+                        <div
+                            v-if="data.team_id"
+                            class="flex justify-center items-center gap-2 rounded-sm py-1 px-2"
+                            :style="{ backgroundColor: formatRgbaColor(data.team_color, 1) }"
+                        >
+                            <div
+                                class="text-white text-xs text-center"
+                            >
+                                {{ data.team_name }}
+                            </div>
+                        </div>
+                        <div v-else>
+                            -
+                        </div>
+                    </div>
+                </div>
+                <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.status') }}</span>
                     <StatusBadge :variant="data.status" :value="$t('public.' + data.status)"/>
                 </div>

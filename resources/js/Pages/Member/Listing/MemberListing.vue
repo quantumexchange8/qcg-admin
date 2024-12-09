@@ -134,7 +134,7 @@ watch(
     filters.value['global'],
     debounce(() => {
         loadLazyData();
-    }, 300)
+    }, 1000)
 );
 
 watch([filters.value['type'], filters.value['team_id']], () => {
@@ -223,7 +223,6 @@ watchEffect(() => {
                             variant="primary-outlined"
                             @click="exportMember()"
                             class="w-full md:w-auto"
-                            :disabled="filteredValue?.length <= 0"
                         >
                             <IconDownload size="20" stroke-width="1.25" />
                             {{ $t('public.export') }}
@@ -275,7 +274,6 @@ watchEffect(() => {
                                         :placeholder="$t('public.keyword_search')"
                                         size="search"
                                         class="font-normal w-full md:w-60"
-                                        :disabled="loading"
                                     />
                                     <div
                                         v-if="filters['global'].value !== null"

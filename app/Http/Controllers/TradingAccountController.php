@@ -13,6 +13,8 @@ use App\Services\CTraderService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\AccountListingExport;
 use App\Jobs\UpdateCTraderAccountJob;
 use App\Services\RunningNumberService;
 use App\Services\ChangeTraderBalanceType;
@@ -127,7 +129,162 @@ class TradingAccountController extends Controller
             'accounts' => $accounts
         ]);
     }
-        
+
+    public function getAccountListingPaginate(Request $request)
+    {
+        if ($request->has('lazyEvent')) {
+            $data = json_decode($request->only(['lazyEvent'])['lazyEvent'], true);
+
+            $type = $request->type;
+
+            if ($type === 'all') {
+                $inactiveThreshold = now()->subDays(90)->startOfDay();
+
+                // Subquery for the latest transactions
+                $subQuery = DB::table(function ($query) use ($inactiveThreshold) {
+                    $query->select('meta_login', 'transaction_type', 'created_at')
+                        ->from(function ($subQuery) use ($inactiveThreshold) {
+                            $subQuery->select('from_meta_login as meta_login', 'transaction_type', 'created_at')
+                                ->from('transactions')
+                                ->whereIn('transaction_type', ['deposit', 'withdrawal'])
+                                ->where('created_at', '>=', $inactiveThreshold)
+                                ->unionAll(
+                                    DB::table('transactions')
+                                        ->select('to_meta_login as meta_login', 'transaction_type', 'created_at')
+                                        ->whereIn('transaction_type', ['deposit', 'withdrawal'])
+                                        ->where('created_at', '>=', $inactiveThreshold)
+                                );
+                        }, 'meta_logins')
+                        ->addSelect(DB::raw('ROW_NUMBER() OVER (PARTITION BY meta_login ORDER BY created_at DESC) as row_num'));
+                }, 'latest_transactions')
+                ->where('row_num', 1)
+                ->select('meta_login', 'transaction_type', 'created_at');
+
+                // Main query with joins and direct selection
+                $query = TradingUser::query()
+                ->leftJoinSub($subQuery, 'latest_transactions', function ($join) {
+                    $join->on('trading_users.meta_login', '=', 'latest_transactions.meta_login');
+                })
+                ->leftJoin('users', 'trading_users.user_id', '=', 'users.id') // Join users table
+                ->leftJoin('trading_accounts', 'trading_users.meta_login', '=', 'trading_accounts.meta_login') // Join trading accounts
+                ->leftJoin('account_types', 'trading_users.account_type_id', '=', 'account_types.id'); // Join account types
+                        
+                // Filters
+                if ($data['filters']['global']['value']) {
+                    $keyword = $data['filters']['global']['value'];
+                    $query->where(function ($query) use ($keyword) {
+                        $query->where('trading_users.meta_login', 'like', '%' . $keyword . '%')
+                            ->orWhere('users.first_name', 'like', '%' . $keyword . '%')
+                            ->orWhere('users.email', 'like', '%' . $keyword . '%');
+                    });
+                }
+
+                if ($data['filters']['account_type_id']['value']) {
+                    $query->where('trading_users.account_type_id', $data['filters']['account_type_id']['value']);
+                }
+
+                if (isset($data['sortField']) && isset($data['sortOrder'])) {
+                    $order = $data['sortOrder'] == 1 ? 'asc' : 'desc';
+                    $query->orderBy($data['sortField'], $order);
+                } else {
+                    $query->orderByDesc('trading_users.meta_login'); // Default sorting
+                }
+
+                // Export logic
+                if ($request->has(key: 'exportStatus') && $request->exportStatus == true) {
+                    $accounts = $query->clone();
+                    return Excel::download(new AccountListingExport($accounts), now() . '-accounts.xlsx');
+                }
+
+                // Pagination with selected fields
+                $accounts = $query
+                ->select([
+                    'trading_users.id',
+                    'trading_users.meta_login',
+                    'users.first_name as name', // Select directly from users table
+                    'users.email',
+                    'trading_users.balance',
+                    'trading_accounts.equity',
+                    'trading_users.credit',
+                    'trading_users.leverage',
+                    'trading_users.last_access as last_login',
+                    'account_types.id as account_type_id',
+                    'account_types.name as account_type',
+                    DB::raw("CASE 
+                                WHEN latest_transactions.created_at >= '$inactiveThreshold' THEN true
+                                WHEN trading_users.created_at >= '$inactiveThreshold' THEN true
+                                ELSE false
+                            END as is_active"),
+                    'trading_accounts.status as account_status',
+                    'latest_transactions.created_at as last_transaction_at',
+                ])
+                ->paginate($data['rows']);
+            
+                return response()->json([
+                    'success' => true,
+                    'data' => $accounts,
+                ]);
+            } else {
+                // Handle inactive accounts or other types
+                $query = TradingUser::onlyTrashed()
+                    ->leftJoin('users', 'trading_users.user_id', '=', 'users.id') // Join users table
+                    ->leftJoin('trading_accounts', 'trading_users.meta_login', '=', 'trading_accounts.meta_login') // Join trading accounts
+                    ->leftJoin('account_types', 'trading_users.account_type_id', '=', 'account_types.id'); // Join account types
+            
+                    // Filters
+                    if ($data['filters']['global']['value']) {
+                        $keyword = $data['filters']['global']['value'];
+                        $query->where(function ($query) use ($keyword) {
+                            $query->where('trading_users.meta_login', 'like', '%' . $keyword . '%')
+                                ->orWhere('users.first_name', 'like', '%' . $keyword . '%')
+                                ->orWhere('users.email', 'like', '%' . $keyword . '%');
+                        });
+                    }
+    
+                    if ($data['filters']['account_type_id']['value']) {
+                        $query->where('trading_users.account_type_id', $data['filters']['account_type_id']['value']);
+                    }
+    
+                    if (isset($data['sortField']) && isset($data['sortOrder'])) {
+                        $order = $data['sortOrder'] == 1 ? 'asc' : 'desc';
+                        $query->orderBy($data['sortField'], $order);
+                    } else {
+                        $query->orderByDesc('trading_users.meta_login'); // Default sorting
+                    }
+                        
+                    // Export logic
+                    if ($request->has('exportStatus') && $request->exportStatus == true) {
+                        $accounts = $query;
+                        return Excel::download(new AccountListingExport($accounts), now() . '-accounts.xlsx');
+                    }
+
+                $accounts = $query
+                    ->select([
+                        'trading_users.id',
+                        'trading_users.meta_login',
+                        'users.first_name as name',
+                        'users.email',
+                        'trading_users.balance',
+                        DB::raw('0 as equity'), // Inactive accounts have no equity
+                        'trading_users.credit',
+                        'trading_users.leverage',
+                        'trading_users.deleted_at',
+                        'trading_users.last_access as last_login',
+                        'account_types.id as account_type_id',
+                        'account_types.name as account_type',
+                    ])
+                    ->paginate($data['rows']);
+            
+                return response()->json([
+                    'success' => true,
+                    'data' => $accounts,
+                ]);
+            }
+        }
+
+        return response()->json(['success' => false, 'data' => []]);
+    }
+
     public function accountAdjustment(Request $request)
     {
         $validator = Validator::make($request->all(), [

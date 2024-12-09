@@ -75,21 +75,36 @@ watch(accountType, (newValue) => {
     getResults(newValue, search.value);
 });
 
+// Flag to temporarily disable the watcher
+let isChangingAgent = false;
+
 // Watch the search value with a debounced function directly in the watcher
 watch(search, debounce((newSearchValue) => {
-    getResults(accountType.value, newSearchValue); // Fetch with current account type and search query
-}, 1000)); // Debounce time (300ms)
+    // Prevent getResults from being called when changing agent
+    if (!isChangingAgent) {
+        getResults(accountType.value, newSearchValue); // Fetch with current account type and search query
+    }
+}, 1000)); // Debounce time (1000ms)
 
 const changeAgent = async (newAgent) => {
     loading.value = true;
 
     try {
+        // Temporarily disable the watcher to prevent getResults from running
+        isChangingAgent = true;
+
+        // Clear the search value to ensure it doesn't trigger a search
+        clearSearch();
+
         const response = await axios.get(`/rebate/changeAgents?id=${newAgent.id}&type_id=${accountType.value}`);
         agents.value = response.data;
     } catch (error) {
         console.error('Error get change:', error);
     } finally {
         loading.value = false;
+
+        // Re-enable the watcher after the agent change is complete
+        isChangingAgent = false;
     }
 }
 
@@ -159,11 +174,11 @@ const onRowEditSave = (event) => {
 
         // Retrieve the upline and downline values dynamically
         const uplineMax = data[`upline_${category.name}`];
-        const downlineMin = data[`downline_${category.name}`];
+        const downlineMax = data[`downline_${category.name}`];
 
         // Prepare the messages by replacing the :name and :value placeholders
         const exceedUplineMessage = wTrans('public.rebate_exceed_upline', { name: trans('public.' + category.name), value: uplineMax });
-        const exceedDownlineMessage = wTrans('public.rebate_exceed_downline', { name: trans('public.' + category.name), value: downlineMin });
+        const exceedDownlineMessage = wTrans('public.rebate_exceed_downline', { name: trans('public.' + category.name), value: downlineMax });
 
         // Check if the value exceeds the upline max or falls below the downline min
         if (value > uplineMax) {
@@ -173,7 +188,7 @@ const onRowEditSave = (event) => {
                 title: exceedUplineMessage,
             });
             canPost = false; // Set flag to false, prevent form post
-        } else if (value < downlineMin) {
+        } else if (value < downlineMax) {
             // Show a warning message for falling below the downline
             toast.add({ 
                 type: 'warning', 
@@ -213,11 +228,11 @@ const submitForm = (submitData) => {
 
         // Retrieve the upline and downline values dynamically from the submitData
         const uplineMax = submitData[`upline_${category.name}`];
-        const downlineMin = submitData[`downline_${category.name}`];
+        const downlineMax = submitData[`downline_${category.name}`];
 
         // Prepare the messages by replacing the :name and :value placeholders
         const exceedUplineMessage = wTrans('public.rebate_exceed_upline', { name: trans('public.' + category.name), value: uplineMax });
-        const exceedDownlineMessage = wTrans('public.rebate_exceed_downline', { name: trans('public.' + category.name), value: downlineMin });
+        const exceedDownlineMessage = wTrans('public.rebate_exceed_downline', { name: trans('public.' + category.name), value: downlineMax });
 
         // Check if the value exceeds the upline max or falls below the downline min
         if (value > uplineMax) {
@@ -228,7 +243,7 @@ const submitForm = (submitData) => {
             });
             closeDialog();
             canPost = false; // Set flag to false, prevent form post
-        } else if (value < downlineMin) {
+        } else if (value < downlineMax) {
             // Show a warning message for falling below the downline
             toast.add({ 
                 type: 'warning', 
@@ -282,7 +297,7 @@ watchEffect(() => {
                         <div class="absolute top-2/4 -mt-[9px] left-4 text-gray-400">
                             <IconSearch size="20" stroke-width="1.25" />
                         </div>
-                        <InputText v-model="search" :placeholder="$t('public.search')" size="search" class="font-normal w-full md:w-60" :disabled="loading" />
+                        <InputText v-model="search" :placeholder="$t('public.search')" size="search" class="font-normal w-full md:w-60" />
                         <div
                             v-if="search !== null"
                             class="absolute top-2/4 -mt-2 right-4 text-gray-300 hover:text-gray-400 select-none cursor-pointer"

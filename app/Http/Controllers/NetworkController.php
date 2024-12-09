@@ -43,10 +43,13 @@ class NetworkController extends Controller
         $parent_data = $this->formatUserData($parent);
         $upline_data = $upline ? $this->formatUserData($upline) : null;
 
-        $direct_children = $parent->directChildren->map(function ($child) {
-            return $this->formatUserData($child);
-        });
-
+        $direct_children = [];
+        foreach ($parent->directChildren as $child) {
+            if (in_array($child->role, ['agent', 'member'])) {
+                $direct_children[] = $this->formatUserData($child);
+            }
+        }
+        
         return response()->json([
             'upline' => $upline_data,
             'parent' => $parent_data,

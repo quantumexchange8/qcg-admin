@@ -18,7 +18,10 @@ const props = defineProps({
     accountTypes: Array,
 });
 
-const filteredValue = ref(null);
+const exportStatus = ref(false);
+const loading = ref(false);
+const lazyParams = ref({});
+const first = ref(0);
 
 const tabs = ref([
     {
@@ -53,55 +56,58 @@ const refreshAll = () => {
     router.post(route('member.refreshAllAccount'));
 };
 
-const exportXLSX = () => {
-    // Retrieve the array from the reactive proxy
-    const data = filteredValue.value;
+// Create a reactive filter object
+const filters = ref({
+  global: { value: null, matchMode: 'contains' },
+  account_type_id: { value: null, matchMode: 'equals' },
+});
 
-    // Specify the headers
-    const headers = [
-        trans('public.name'),
-        trans('public.email'),
-        selectedType.value === 'all_accounts' ? trans('public.last_logged_in') : trans('public.deleted_time'),
-        trans('public.account'),
-        `${trans('public.balance')} ($)`,
-        `${trans('public.equity')} ($)`,
-    ];
+// Function to handle the update of filters
+function handleFilters(newFilters) {
+  // Update the filters with new values
+  filters.value = { ...filters.value, ...newFilters };
 
-    // Map the array data to XLSX rows
-    const rows = data.map(obj => {
-        return [
-            obj.name !== undefined ? obj.name : '',
-            obj.email !== undefined ? obj.email : '',
-            selectedType.value === 'all_accounts' ? (obj.last_login !== undefined ? dayjs(obj.last_login).format('YYYY/MM/DD HH:mm:ss') : '' ) : (obj.deleted_at !== undefined ? dayjs(obj.deleted_at).format('YYYY/MM/DD HH:mm:ss') : ''),
-            obj.meta_login !== undefined ? obj.meta_login : '',
-            obj.balance !== undefined ? obj.balance : '',
-            obj.equity !== undefined ? obj.equity : '',
-        ];
-    });
+//   // Log the updated filters
+//   console.log(newFilters);
+}
 
-    // Combine headers and rows into a single data array
-    const sheetData = [headers, ...rows];
+const exportAccount = () => {
+    exportStatus.value = true;
+    loading.value = true;
 
-    // Create the XLSX content
-    let csvContent = "data:text/xlsx;charset=utf-8,";
-    
-    sheetData.forEach((rowArray) => {
-        const row = rowArray.join("\t"); // Use tabs for column separation
-        csvContent += row + "\r\n"; // Add a new line after each row
-    });
+    lazyParams.value = { ...lazyParams.value, first: event?.first || first.value };
 
-    // Create a temporary link element
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "export.xlsx");
+    // Ensure filters exist and then assign
+    if (filters.value) {
+        lazyParams.value.filters = { ...filters.value };  // Clone filters to avoid direct mutation
+    } else {
+        lazyParams.value.filters = {};  // If no filters, assign an empty object
+    }
 
-    // Append the link to the document and trigger the download
-    document.body.appendChild(link);
-    link.click();
+    // Only add 'type' if it's 'all_accounts'
+    let params = {
+        include: [],
+        lazyEvent: JSON.stringify(lazyParams.value),
+        exportStatus: true,
+    };
 
-    // Clean up by removing the link
-    document.body.removeChild(link);
+    // Add 'type' only if selectedType is 'all_accounts'
+    if (activeIndex.value == 0) {
+        params.type = 'all';
+    }
+
+    // Construct the URL for exporting
+    const url = route('member.getAccountListingPaginate', params);
+
+    try {
+        // Send the request to the backend to trigger the export
+        window.location.href = url;  // This will trigger the download directly
+    } catch (e) {
+        console.error('Error occurred during export:', e);  // Log the error if any
+    } finally {
+        loading.value = false;  // Reset loading state
+        exportStatus.value = false;  // Reset export status
+    }
 };
 
 </script>
@@ -120,7 +126,7 @@ const exportXLSX = () => {
                     </Tabs>
                 </div>
                 <div class="w-full md:w-auto flex flex-col-reverse items-center gap-3 md:flex-row md:gap-5">
-                    <Button variant="primary-outlined" @click="filteredValue?.length > 0 ? exportXLSX() : null" class="w-full md:w-auto">
+                    <Button variant="primary-outlined" @click="exportAccount()" class="w-full md:w-auto">
                         <IconDownload size="20" stroke-width="1.25" />
                         {{ $t('public.export') }}
                     </Button>
@@ -134,7 +140,7 @@ const exportXLSX = () => {
             <Tabs v-model:value="activeIndex" class="w-full">
                 <TabPanels>
                     <TabPanel :key="activeIndex" :value="activeIndex">
-                        <component :is="tabs[activeIndex].component" :key="tabs[activeIndex].type" :accountTypes="props.accountTypes" @update:filteredValue="filteredValue = $event" />
+                        <component :is="tabs[activeIndex].component" :key="tabs[activeIndex].type" :accountTypes="props.accountTypes" @update:filters="handleFilters" />
                     </TabPanel>
                 </TabPanels>
             </Tabs>
