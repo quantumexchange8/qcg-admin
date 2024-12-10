@@ -57,7 +57,7 @@ const minDate = ref(new Date(today.getFullYear(), today.getMonth(), 1));
 const maxDate = ref(today);
 
 // Reactive variable for selected date range
-const selectedDate = ref([minDate.value, maxDate.value]);
+const selectedDate = ref([maxDate.value, maxDate.value]);
 
 // Clear date selection
 const clearDate = () => {
@@ -159,7 +159,7 @@ const clearFilter = () => {
         email: { value: null, matchMode: FilterMatchMode.CONTAINS },
         account_type: { value: null, matchMode: FilterMatchMode.CONTAINS },
     };
-    selectedDate.value = [minDate.value, maxDate.value];
+    selectedDate.value = [maxDate.value, maxDate.value];
     filteredValue.value = null; 
 };
 
