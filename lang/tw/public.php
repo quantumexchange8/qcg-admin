@@ -239,6 +239,7 @@ return [
     'transactions' => "帳目歷史",
     'all_deposit' => "所有存款紀錄",
     'status' => "狀態",
+    'all' => "全部",
     'successful' => "已成功",
     'processing' => "處理中",
     'failed' => "已失敗",

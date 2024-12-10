@@ -35,6 +35,7 @@ const filteredValue = ref();
 
 // Define the status options
 const statusOption = [
+    { name: wTrans('public.all'), value: null },
     { name: wTrans('public.successful'), value: 'successful' },
     { name: wTrans('public.processing'), value: 'processing' },
     { name: wTrans('public.failed'), value: 'failed' }
@@ -95,7 +96,7 @@ const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
     name: { value: null, matchMode: FilterMatchMode.CONTAINS },
     email: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    status: { value: null, matchMode: FilterMatchMode.EQUALS },
+    status: { value: 'successful', matchMode: FilterMatchMode.EQUALS },
 });
 
 const recalculateTotals = () => {
@@ -141,7 +142,7 @@ const clearFilter = () => {
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
         name: { value: null, matchMode: FilterMatchMode.CONTAINS },
         email: { value: null, matchMode: FilterMatchMode.CONTAINS },
-        status: { value: null, matchMode: FilterMatchMode.EQUALS },
+        status: { value: 'successful', matchMode: FilterMatchMode.EQUALS },
     };
     selectedMonths.value = [getCurrentMonthYear()];
     filteredValue.value = null; 
@@ -332,7 +333,11 @@ const copyToClipboard = (text) => {
                                 :placeholder="$t('public.filter_by_status')"
                                 class="w-full md:w-60 font-normal"
                                 scroll-height="236px"
-                            />
+                            >
+                                <template #value="data">
+                                    <span class="font-normal text-gray-950" >{{ $t('public.' + (data.value || 'all')) }}</span>
+                                </template>
+                            </Select>
                         </div>
                         <Button
                             type="button"

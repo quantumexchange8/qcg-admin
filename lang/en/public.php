@@ -239,6 +239,7 @@ return [
     'transactions' => "Transactions",
     'all_deposit' => "All Deposit",
     'status' => "Status",
+    'all' => "All",
     'successful' => "Successful",
     'processing' => "Processing",
     'failed' => "Failed",
