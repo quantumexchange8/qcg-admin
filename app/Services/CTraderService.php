@@ -109,13 +109,9 @@ class CTraderService
     {
         $response = Http::acceptJson()->post($this->baseURL . "/v2/webserv/traders/$meta_login/changebalance?token=$this->token", [
             'login' => $meta_login,
-            'amount' => $amount * 100, //
-            'preciseAmount' => $amount, //
+            'preciseAmount' => (double) $amount,
             'type' => $type,
-            'comment' => $comment, //
-            /* 'externalNote' => '', //
-            'source' => '', //
-            'externalId' => '', // */
+            'comment' => $comment,
         ]);
         $response = $response->json();
 

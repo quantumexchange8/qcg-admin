@@ -10,3 +10,4 @@ use Illuminate\Support\Facades\Schedule;
 
 Schedule::command('distribute:sales-incentive')->weekly();
 Schedule::command('tradingAccount:check-status')->daily();
+Schedule::command('check:deposit-account')->everyMinute();
