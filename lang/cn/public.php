@@ -255,6 +255,8 @@ return [
     'empty_withdrawal_record_message' => "目前没有提款记录可显示。请稍后再查看更新。",
     'withdrawal_details' => "提款明细",
     'filter_by_withdrawal_from' => "过滤提款出处",
+    'applied_date' => "申请日期",
+    'processing_date' => "处理日期",
     'transfer' => "转账",
     'all_transfer' => "所有转账记录",
     'empty_transfer_record_title' => "未找到转账记录",

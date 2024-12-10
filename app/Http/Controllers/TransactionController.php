@@ -96,8 +96,15 @@ class TransactionController extends Controller
             }
         }
 
+        // Apply ordering based on the transaction type
+        if ($type === 'withdrawal') {
+            $query->orderByDesc('approved_at');
+        } else {
+            $query->latest();
+        }
+
         // Fetch data
-        $data = $query->latest()->get()->map(function ($transaction) use ($commonFields, $type) {
+        $data = $query->get()->map(function ($transaction) use ($commonFields, $type) {
             // Initialize result array with common fields
             $result = $transaction->only($commonFields);
 
