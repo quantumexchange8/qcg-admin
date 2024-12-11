@@ -1,7 +1,7 @@
 <script setup>
 import Button from "@/Components/Button.vue";
 import StatusBadge from "@/Components/StatusBadge.vue";
-import { IconPencilMinus } from "@tabler/icons-vue";
+import { IconPencilMinus, IconCircleCheckFilled } from "@tabler/icons-vue";
 import DefaultProfilePhoto from "@/Components/DefaultProfilePhoto.vue";
 import InputSwitch from "primevue/inputswitch";
 import { ref, watch } from "vue";
@@ -99,7 +99,12 @@ const submitForm = () => {
                 <span class="w-full truncate self-stretch text-gray-950 text-xl font-bold">
                     {{ userDetail.name }}
                 </span>
-                <span class="w-full truncate text-gray-700 font-medium">{{ userDetail.email }}</span>
+                <span class="w-full flex items-center gap-1 text-gray-700 font-medium">
+                    <span class="truncate">
+                        {{ userDetail.email }}
+                    </span>
+                    <IconCircleCheckFilled v-if="userDetail.email_verified_at !== null" size="20" stroke-width="1.25" class="text-success-700 grow-0 shrink-0" />
+                </span>
             </div>
             <div v-else class="animate-pulse flex flex-col items-start gap-1.5 self-stretch">
                 <div class="h-4 bg-gray-200 rounded-full w-48 my-2 md:my-3"></div>

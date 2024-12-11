@@ -133,6 +133,7 @@ class MemberController extends Controller
                     'email',
                     'id_number',
                     'role',
+                    'email_verified_at',
                     'status',
                     'upline_id',
                     'hierarchyList'
@@ -522,6 +523,7 @@ class MemberController extends Controller
             'upline_id' => $user->upline_id,
             'role' => $user->role,
             'id_number' => $user->id_number,
+            'email_verified_at' => $user->email_verified_at,
             'status' => $user->status,
             'profile_photo' => $user->getFirstMediaUrl('profile_photo'),
             'team_id' => $user->teamHasUser->team_id ?? null,

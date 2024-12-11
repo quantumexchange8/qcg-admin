@@ -2,7 +2,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { usePage } from "@inertiajs/vue3";
 import { generalFormat } from "@/Composables/index.js";
-import { IconCircleXFilled, IconSearch, IconDownload, IconFilterOff } from "@tabler/icons-vue";
+import { IconCircleXFilled, IconSearch, IconDownload, IconFilterOff, IconCircleCheckFilled } from "@tabler/icons-vue";
 import { ref, watch, watchEffect, onMounted, h } from "vue";
 import Loader from "@/Components/Loader.vue";
 import DataTable from "primevue/datatable";
@@ -194,7 +194,7 @@ const exportMember = () => {
 
 watchEffect(() => {
     if (usePage().props.toast !== null) {
-        getResults();
+        loadLazyData();
     }
 });
 </script>
@@ -353,14 +353,14 @@ watchEffect(() => {
                                 </div>
                             </template>
                         </Column>
-                        <Column field="id_number" :header="$t('public.id')" sortable style="width: 25%" class="hidden md:table-cell">
+                        <Column field="id_number" :header="$t('public.id')" sortable style="width: 20%" class="hidden md:table-cell">
                             <template #body="{ data }">
                                 <div class="text-gray-950 text-sm">
                                     {{ data.id_number }}
                                 </div>
                             </template>
                         </Column>
-                        <Column field="team" :header="$t('public.sales_team')" style="width: 25%" class="hidden md:table-cell">
+                        <Column field="team" :header="$t('public.sales_team')" style="width: 20%" class="hidden md:table-cell">
                             <template #body="{data}">
                                 <div class="flex items-center">
                                     <div
@@ -380,7 +380,15 @@ watchEffect(() => {
                                 </div>
                             </template>
                         </Column>
-                        <Column field="action" header="" style="width: 25%">
+                        <Column field="email_verified_at" :header="$t('public.verified')" style="width: 15%" class="hidden md:table-cell">
+                            <template #body="{ data }">
+                                <div class="text-gray-950 text-sm">
+                                    <IconCircleCheckFilled v-if="data.email_verified_at !== null" size="20" stroke-width="1.25" class="text-success-700 grow-0 shrink-0" />
+                                    <span v-else>-</span>
+                                </div>
+                            </template>
+                        </Column>
+                        <Column field="action" header="" style="width: 20%">
                             <template #body="slotProps">
                                 <MemberTableActions
                                     :member="slotProps.data"

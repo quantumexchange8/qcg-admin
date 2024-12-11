@@ -535,4 +535,5 @@ return [
     'empty_admin_role_message' => "There are no admin roles available at this time. Please create a new role to get started.",
     'rebate_exceed_upline' => "Rebate is more than upline :name : :value",
     'rebate_exceed_downline' => "Rebate is less than downline :name : :value",
+    'verified' => "Verified",
 ];
