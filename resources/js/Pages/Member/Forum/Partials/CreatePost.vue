@@ -19,6 +19,12 @@ const form = useForm({
     attachment: ''
 })
 
+const openDialog = () => {
+    form.reset();
+    removeAttachment();
+    visible.value = true;
+}
+
 const selectedAttachment = ref(null);
 const selectedAttachmentName = ref(null);
 const handleAttachment = (event) => {
@@ -49,6 +55,7 @@ const submitForm = () => {
         onSuccess: () => {
             visible.value = false;
             form.reset();
+            removeAttachment();
         }
     })
 }
@@ -60,7 +67,7 @@ const submitForm = () => {
         type="button"
         variant="primary-flat"
         class='w-full'
-        @click="visible = true"
+        @click="openDialog()"
     >
         <IconEdit size="20" color="#ffffff" stroke-width="1.25" />
         {{ $t('public.create_post') }}
