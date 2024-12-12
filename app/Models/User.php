@@ -133,6 +133,11 @@ class User extends Authenticatable implements HasMedia
         return $this->hasMany(RebateAllocation::class, 'user_id', 'id');
     }
 
+    public function interactions()
+    {
+        return $this->hasMany(UserPostInteraction::class, 'user_id'); 
+    }
+
     // // Logs
     // public function getActivitylogOptions(): LogOptions
     // {

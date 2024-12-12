@@ -7,6 +7,7 @@ use App\Models\User;
 use Inertia\Inertia;
 use App\Models\Wallet;
 use App\Models\Country;
+use App\Models\ForumPost;
 use App\Models\AccountType;
 use App\Models\TradingUser;
 use App\Models\Transaction;
@@ -950,6 +951,28 @@ class MemberController extends Controller
             $relatedUser->save();
         }
 
+        // Get all interactions for the user
+        $interactions = $user->interactions;
+
+        // Calculate adjustments for likes and dislikes
+        $userLikes = $interactions->where('type', 'like')->count();
+        $userDislikes = $interactions->where('type', 'dislike')->count();
+
+        // Get all posts interacted by the user
+        $posts = $interactions->pluck('post_id')->unique();
+
+        // Update post counts for each interacted post
+        foreach ($posts as $postId) {
+            $post = ForumPost::find($postId);
+
+            if ($post) { 
+                $post->update([
+                    'total_likes_count' => $post->total_likes_count - $userLikes,
+                    'total_dislikes_count' => $post->total_dislikes_count - $userDislikes,
+                ]);
+            }
+        }
+
         // Delete all related data for the user
         $user->transactions()->delete();
         $user->paymentAccounts()->delete();
@@ -957,6 +980,7 @@ class MemberController extends Controller
         $user->teamHasUser()->delete();
         $user->rebate_wallet()->delete();
         $user->incentive_wallet()->delete();
+        $user->interactions()->delete();
         // Remove roles and permissions
         if ($user->roles()->exists()) {
             $user->roles()->detach(); // Detach all roles

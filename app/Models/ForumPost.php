@@ -17,6 +17,8 @@ class ForumPost extends Model implements HasMedia
         'display_name',
         'subject',
         'message',
+        'total_likes_count',
+        'total_dislikes_count',
     ];
 
     // Relations
@@ -24,4 +26,10 @@ class ForumPost extends Model implements HasMedia
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
     }
+
+    public function interactions()
+    {
+        return $this->hasMany(UserPostInteraction::class, 'post_id'); 
+    }
+    
 }

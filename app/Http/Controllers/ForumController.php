@@ -88,20 +88,28 @@ class ForumController extends Controller
     public function deletePost(Request $request)
     {
         $post = ForumPost::find($request->id);
-        
+    
+        // Delete associated user interactions before updating the post
+        $post->interactions()->delete(); 
+    
+        // Reset like and dislike counts before deleting the post
+        $post->update([
+            'total_likes_count' => 0,
+            'total_dislikes_count' => 0,
+        ]);
+    
         if ($post->hasMedia('post_attachment')) {
             $post->clearMediaCollection('post_attachment');
         }
-
+    
         $post->delete();
-
+    
         return redirect()->back()->with('toast', [
             'title' => trans('public.toast_delete_post_success'),
             'type' => 'success',
         ]);
-        
     }
-
+    
     public function getAgents(Request $request)
     {
         $allRolesInDatabase = Role::all()->pluck('name');
