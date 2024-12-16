@@ -208,6 +208,7 @@ class TradingAccountController extends Controller
                     'trading_users.credit',
                     'trading_users.leverage',
                     'trading_users.last_access as last_login',
+                    'trading_users.created_at',
                     'account_types.id as account_type_id',
                     'account_types.name as account_type',
                     DB::raw("CASE 
