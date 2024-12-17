@@ -220,6 +220,9 @@ const saveLikesDebounced = debounce((postId, type) => {
                     alt="Image"
                     image-class="w-60 h-40 object-contain"
                     preview
+                    :pt="{
+                        toolbar: 'hidden',
+                    }"
                 />
                 <div class="grid grid-cols-1 gap-2 items-start self-stretch text-sm text-gray-950">
                     <span class="font-semibold">{{ post.subject }}</span>
