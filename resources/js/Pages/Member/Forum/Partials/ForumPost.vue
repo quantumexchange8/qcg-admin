@@ -168,7 +168,6 @@ const imageStyle = ref({
 });
 
 const scaleFactor = 3; // Scale factor for the image
-const movementAmplifier = 2; // Amplification factor for mouse-follow movement
 
 // Toggle enlarged state of the image
 const toggleEnlarged = (event) => {
@@ -202,8 +201,8 @@ const followMouse = (event) => {
     const mouseY = event.clientY - rect.top;
 
     // Amplify the translation values to make the movement more noticeable
-    const translateX = ((mouseX / rect.width) - 0.5) * -100 * movementAmplifier / scaleFactor;
-    const translateY = ((mouseY / rect.height) - 0.5) * -100 * movementAmplifier / scaleFactor;
+    const translateX = ((mouseX / rect.width) - 0.5) * -100 / scaleFactor;
+    const translateY = ((mouseY / rect.height) - 0.5) * -100 / scaleFactor;
 
     imageStyle.value.transform = `scale(${scaleFactor}) translate3d(${translateX}%, ${translateY}%, 0)`;
   }
@@ -272,8 +271,7 @@ const resetImageTransform = () => {
             <!-- content -->
             <div class="flex flex-col gap-5 items-start self-stretch">
                 <Image
-                    v-if="post.post_attachment"
-                    :src="post.post_attachment"
+                    src="/img/logo.svg"
                     alt="Image"
                     image-class="w-60 h-40 object-contain"
                     preview
@@ -285,7 +283,7 @@ const resetImageTransform = () => {
                     <!-- Original image template with click event -->
                     <template #original>
                         <img
-                            :src="post.post_attachment"
+                            src="/img/logo.svg"
                             alt="Image"
                             class="h-full object-contain"
                             :class="[isEnlarged ? 'cursor-zoom-out' : 'cursor-zoom-in']"
