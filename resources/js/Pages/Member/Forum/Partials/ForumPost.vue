@@ -271,7 +271,8 @@ const resetImageTransform = () => {
             <!-- content -->
             <div class="flex flex-col gap-5 items-start self-stretch">
                 <Image
-                    src="/img/logo.svg"
+                    v-if="post.post_attachment"
+                    :src="post.post_attachment"
                     alt="Image"
                     image-class="w-60 h-40 object-contain"
                     preview
@@ -283,7 +284,7 @@ const resetImageTransform = () => {
                     <!-- Original image template with click event -->
                     <template #original>
                         <img
-                            src="/img/logo.svg"
+                            :src="post.post_attachment"
                             alt="Image"
                             class="h-full object-contain"
                             :class="[isEnlarged ? 'cursor-zoom-out' : 'cursor-zoom-in']"
