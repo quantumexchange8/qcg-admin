@@ -2,9 +2,11 @@
 
 namespace App\Console\Commands;
 
+use App\Models\TradingUser;
 use App\Models\TradingAccount;
 use Illuminate\Console\Command;
 use App\Services\CTraderService;
+use Illuminate\Support\Facades\Log;
 
 class UpdateTradingAccountStatusCommand extends Command
 {
@@ -19,14 +21,22 @@ class UpdateTradingAccountStatusCommand extends Command
         $cTraderService = new CTraderService(); // Initialize the CTraderService
     
         // Fetch all trading accounts
-        $tradingAccounts = TradingAccount::with([
-            'trading_user', 
-        ])->get();
+        $tradingAccounts = TradingAccount::get();
     
         foreach ($tradingAccounts as $account) {
-            // Ensure that we refresh the user data before processing
-            if ($account->trading_user) {
-                $cTraderService->getUserInfo($account->trading_user->meta_login); // Update user data
+            // Refresh account data directly if needed
+            try {
+                $cTraderService->getUserInfo($account->meta_login); // Update user data (if needed)
+            } catch (\Exception $e) {
+                // Handle exception if refreshing user data fails
+                Log::error("Failed to refresh account {$account->meta_login}: {$e->getMessage()}");
+
+                // Handle "Not found" case, updating the acc_status to "inactive"
+                if ($e->getMessage() == "Not found") {
+                    // Update TradingUser acc_status to "inactive"
+                    TradingUser::firstWhere('meta_login', $account->meta_login)->update(['acc_status' => 'inactive']);
+                }
+                
             }
     
             // Get the latest transaction if it exists
@@ -55,11 +65,6 @@ class UpdateTradingAccountStatusCommand extends Command
                 $account->save(); // Save only if there is a change
             }
     
-            // Update trading user status only if it has changed
-            if ($account->trading_user && $account->trading_user->acc_status !== ($isActive ? 'active' : 'inactive')) {
-                $account->trading_user->acc_status = $isActive ? 'active' : 'inactive';
-                $account->trading_user->save(); // Save only if there is a change
-            }
         }
         
         // Optionally, log completion or output

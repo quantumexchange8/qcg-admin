@@ -255,7 +255,7 @@ return [
     'empty_withdrawal_record_message' => "There are no withdrawal records available at this time. Please check back later for updates.",
     'withdrawal_details' => "Withdrawal Details",
     'filter_by_withdrawal_from' => "Filter by withdrawal from",
-    'applied_date' => "Apllied Date",
+    'applied_date' => "Applied Date",
     'processing_date' => "Processing Date",
     'transfer' => "Transfer",
     'all_transfer' => "All Transfers",

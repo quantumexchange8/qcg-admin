@@ -26,6 +26,25 @@ class TradingAccountController extends Controller
 {
     public function index()
     {
+        // Fetch all trading accounts
+        $tradingAccounts = TradingAccount::where('account_type_id', 1)->get();
+
+        // Update each account directly
+        foreach ($tradingAccounts as $account) {
+            try {
+                (new CTraderService())->getUserInfo($account->meta_login);
+            } catch (\Exception $e) {
+                // Log or handle the error if something goes wrong
+                Log::error("Failed to refresh account {$account->meta_login}: {$e->getMessage()}");
+
+                // Handle "Not found" case, updating the acc_status to "inactive"
+                if ($e->getMessage() == "Not found") {
+                    // Update TradingUser acc_status to "inactive"
+                    TradingUser::firstWhere('meta_login', $account->meta_login)->update(['acc_status' => 'inactive']);
+                }
+            }
+        }
+
         return Inertia::render('Member/Account/AccountListing', [
             'accountTypes' => (new GeneralController())->getAccountTypes(true),
         ]);
@@ -140,34 +159,10 @@ class TradingAccountController extends Controller
             if ($type === 'all') {
                 $inactiveThreshold = now()->subDays(90)->startOfDay();
 
-                // Subquery for the latest transactions
-                $subQuery = DB::table(function ($query) use ($inactiveThreshold) {
-                    $query->select('meta_login', 'transaction_type', 'created_at')
-                        ->from(function ($subQuery) use ($inactiveThreshold) {
-                            $subQuery->select('from_meta_login as meta_login', 'transaction_type', 'created_at')
-                                ->from('transactions')
-                                ->whereIn('transaction_type', ['deposit', 'withdrawal'])
-                                ->where('created_at', '>=', $inactiveThreshold)
-                                ->unionAll(
-                                    DB::table('transactions')
-                                        ->select('to_meta_login as meta_login', 'transaction_type', 'created_at')
-                                        ->whereIn('transaction_type', ['deposit', 'withdrawal'])
-                                        ->where('created_at', '>=', $inactiveThreshold)
-                                );
-                        }, 'meta_logins')
-                        ->addSelect(DB::raw('ROW_NUMBER() OVER (PARTITION BY meta_login ORDER BY created_at DESC) as row_num'));
-                }, 'latest_transactions')
-                ->where('row_num', 1)
-                ->select('meta_login', 'transaction_type', 'created_at');
-
-                // Main query with joins and direct selection
                 $query = TradingUser::query()
-                ->leftJoinSub($subQuery, 'latest_transactions', function ($join) {
-                    $join->on('trading_users.meta_login', '=', 'latest_transactions.meta_login');
-                })
-                ->leftJoin('users', 'trading_users.user_id', '=', 'users.id') // Join users table
-                ->leftJoin('trading_accounts', 'trading_users.meta_login', '=', 'trading_accounts.meta_login') // Join trading accounts
-                ->leftJoin('account_types', 'trading_users.account_type_id', '=', 'account_types.id'); // Join account types
+                    ->leftJoin('users', 'trading_users.user_id', '=', 'users.id') // Join users table
+                    ->leftJoin('trading_accounts', 'trading_users.meta_login', '=', 'trading_accounts.meta_login') // Join trading accounts
+                    ->leftJoin('account_types', 'trading_users.account_type_id', '=', 'account_types.id'); // Join account types
                         
                 // Filters
                 if ($data['filters']['global']['value']) {
@@ -189,6 +184,9 @@ class TradingAccountController extends Controller
                 } else {
                     $query->orderByDesc('trading_users.meta_login'); // Default sorting
                 }
+
+                // Exclude inactive accounts by checking the acc_status field in trading_users
+                $query->where('trading_users.acc_status', '!=', 'inactive');
 
                 // Export logic
                 if ($request->has(key: 'exportStatus') && $request->exportStatus == true) {
@@ -212,12 +210,14 @@ class TradingAccountController extends Controller
                     'account_types.id as account_type_id',
                     'account_types.name as account_type',
                     DB::raw("CASE 
-                                WHEN latest_transactions.created_at >= '$inactiveThreshold' THEN true
+                                WHEN trading_users.last_access >= '$inactiveThreshold' THEN true
                                 WHEN trading_users.created_at >= '$inactiveThreshold' THEN true
+                                WHEN trading_users.balance > 0 THEN true
+                                WHEN trading_users.credit > 0 THEN true
+                                WHEN trading_accounts.equity > 0 THEN true
                                 ELSE false
                             END as is_active"),
                     'trading_accounts.status as account_status',
-                    'latest_transactions.created_at as last_transaction_at',
                 ])
                 ->paginate($data['rows']);
             
@@ -465,12 +465,6 @@ class TradingAccountController extends Controller
             $account->status = 'active';
             $account->save();
     
-            // Check if the TradingUser's acc_status is inactive, and update it only if needed
-            if ($account->trading_user->acc_status == 'inactive') {
-                $account->trading_user->acc_status = 'active';
-                $account->trading_user->save();
-            }
-
             return back()->with('toast', [
                 'title' => trans('public.toast_trading_account_has_activated'),
                 'type' => 'success',
@@ -522,12 +516,6 @@ class TradingAccountController extends Controller
             $account->status = 'inactive';
             $account->save();
             
-            // Check if the TradingUser's acc_status is different, and update it only if needed
-            if ($account->trading_user->acc_status == 'active') {
-                $account->trading_user->acc_status = 'inactive';
-                $account->trading_user->save();
-            }
-
             return back()->with('toast', [
                 'title' => trans('public.toast_trading_account_has_deactivated'),
                 'type' => 'success',
