@@ -26,25 +26,6 @@ class TradingAccountController extends Controller
 {
     public function index()
     {
-        // Fetch all trading accounts
-        $tradingAccounts = TradingAccount::where('account_type_id', 1)->get();
-
-        // Update each account directly
-        foreach ($tradingAccounts as $account) {
-            try {
-                (new CTraderService())->getUserInfo($account->meta_login);
-            } catch (\Exception $e) {
-                // Log or handle the error if something goes wrong
-                Log::error("Failed to refresh account {$account->meta_login}: {$e->getMessage()}");
-
-                // Handle "Not found" case, updating the acc_status to "inactive"
-                if ($e->getMessage() == "Not found") {
-                    // Update TradingUser acc_status to "inactive"
-                    TradingUser::firstWhere('meta_login', $account->meta_login)->update(['acc_status' => 'inactive']);
-                }
-            }
-        }
-
         return Inertia::render('Member/Account/AccountListing', [
             'accountTypes' => (new GeneralController())->getAccountTypes(true),
         ]);
