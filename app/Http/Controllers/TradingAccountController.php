@@ -201,7 +201,7 @@ class TradingAccountController extends Controller
                                 WHEN trading_accounts.equity > 0 THEN true
                                 ELSE false
                             END as is_active"),
-                    'trading_accounts.status as account_status',
+                    'trading_accounts.status',
                 ])
                 ->paginate($data['rows']);
             
