@@ -26,9 +26,6 @@ class TradingAccountController extends Controller
 {
     public function index()
     {
-        // Dispatch the job to update all accounts
-        UpdateCTraderAccountJob::dispatch();
-
         return Inertia::render('Member/Account/AccountListing', [
             'accountTypes' => (new GeneralController())->getAccountTypes(true),
         ]);
@@ -169,8 +166,8 @@ class TradingAccountController extends Controller
                     $query->orderByDesc('trading_users.meta_login'); // Default sorting
                 }
 
-                // Exclude inactive accounts by checking the acc_status field in trading_users
-                $query->where('trading_users.acc_status', '!=', 'inactive');
+                // // Exclude inactive accounts by checking the acc_status field in trading_users
+                // $query->where('trading_users.acc_status', '!=', 'inactive');
 
                 // Export logic
                 if ($request->has(key: 'exportStatus') && $request->exportStatus == true) {
@@ -178,33 +175,83 @@ class TradingAccountController extends Controller
                     return Excel::download(new AccountListingExport($accounts), now() . '-accounts.xlsx');
                 }
 
-                // Pagination with selected fields
+                // Fetch the accounts with selected fields and pagination
                 $accounts = $query
-                ->select([
-                    'trading_users.id',
-                    'trading_users.meta_login',
-                    'users.first_name as name', // Select directly from users table
-                    'users.email',
-                    'trading_users.balance',
-                    'trading_accounts.equity',
-                    'trading_users.credit',
-                    'trading_users.leverage',
-                    'trading_users.last_access as last_login',
-                    'trading_users.created_at',
-                    'account_types.id as account_type_id',
-                    'account_types.name as account_type',
-                    DB::raw("CASE 
-                                WHEN trading_users.last_access >= '$inactiveThreshold' THEN true
-                                WHEN trading_users.created_at >= '$inactiveThreshold' THEN true
-                                WHEN trading_users.balance > 0 THEN true
-                                WHEN trading_users.credit > 0 THEN true
-                                WHEN trading_accounts.equity > 0 THEN true
-                                ELSE false
-                            END as is_active"),
-                    'trading_accounts.status',
-                ])
-                ->paginate($data['rows']);
-            
+                    ->select([
+                        'trading_users.id',
+                        'trading_users.meta_login',
+                        'users.first_name as name',
+                        'users.email',
+                        'trading_users.balance',
+                        'trading_accounts.equity',
+                        'trading_users.credit',
+                        'trading_users.leverage',
+                        'trading_users.last_access as last_login',
+                        'trading_users.created_at',
+                        'account_types.id as account_type_id',
+                        'account_types.name as account_type',
+                        DB::raw("CASE 
+                                    WHEN trading_users.last_access >= '$inactiveThreshold' THEN true
+                                    WHEN trading_users.created_at >= '$inactiveThreshold' THEN true
+                                    WHEN trading_users.balance > 0 THEN true
+                                    WHEN trading_users.credit > 0 THEN true
+                                    WHEN trading_accounts.equity > 0 THEN true
+                                    ELSE false
+                                END as is_active"),
+                        'trading_accounts.status',
+                    ])
+                    ->paginate($data['rows']);
+
+                // Iterate over each account on the current page and update the account status
+                foreach ($accounts->items() as $account) {
+                    try {
+                        // Attempt to get user info from CTraderService using meta_login
+                        (new CTraderService())->getUserInfo($account->meta_login);
+
+                        // After successful refresh, update the account status to 'active' or desired status
+                        TradingUser::where('meta_login', $account->meta_login)
+                            ->update(['acc_status' => 'active']); // Mark as active after refresh
+
+                    } catch (\Illuminate\Http\Client\RequestException $e) {
+                        // Log the error message for 404 errors or other HTTP issues
+                        Log::error("Failed to refresh account {$account->meta_login}: {$e->getMessage()}");
+
+                        // If the error is a 404, update the acc_status to "inactive"
+                        if ($e->response->status() == 404) {
+                            TradingUser::where('meta_login', $account->meta_login)
+                                ->update(['acc_status' => 'inactive']);
+                        }
+                    }
+                }
+
+                // Now re-fetch the data after updating the statuses
+                $accounts = $query
+                    ->select([
+                        'trading_users.id',
+                        'trading_users.meta_login',
+                        'users.first_name as name',
+                        'users.email',
+                        'trading_users.balance',
+                        'trading_accounts.equity',
+                        'trading_users.credit',
+                        'trading_users.leverage',
+                        'trading_users.last_access as last_login',
+                        'trading_users.created_at',
+                        'account_types.id as account_type_id',
+                        'account_types.name as account_type',
+                        DB::raw("CASE 
+                                    WHEN trading_users.last_access >= '$inactiveThreshold' THEN true
+                                    WHEN trading_users.created_at >= '$inactiveThreshold' THEN true
+                                    WHEN trading_users.balance > 0 THEN true
+                                    WHEN trading_users.credit > 0 THEN true
+                                    WHEN trading_accounts.equity > 0 THEN true
+                                    ELSE false
+                                END as is_active"),
+                        'trading_accounts.status',
+                    ])
+                    ->paginate($data['rows']);
+
+                // After the status update, return the re-fetched paginated data
                 return response()->json([
                     'success' => true,
                     'data' => $accounts,
