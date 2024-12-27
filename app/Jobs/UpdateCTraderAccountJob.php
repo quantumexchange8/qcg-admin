@@ -31,12 +31,12 @@ class UpdateCTraderAccountJob implements ShouldQueue
                     try {
                         // Attempt to get user info from CTraderService
                         (new CTraderService())->getUserInfo($account->meta_login);
-                    } catch (\Exception $e) {
-                        // Log error if something goes wrong
+                    } catch (\Illuminate\Http\Client\RequestException $e) {
+                        // Log the error message for 404 errors or other HTTP issues
                         Log::error("Failed to refresh account {$account->meta_login}: {$e->getMessage()}");
-
-                        // If the error message is "Not found", update the acc_status to "inactive"
-                        if ($e->getMessage() == "Not found") {
+        
+                        // If the error is a 404, update the acc_status to "inactive"
+                        if ($e->response->status() == 404) {
                             TradingUser::where('meta_login', $account->meta_login)
                                 ->update(['acc_status' => 'inactive']);
                         }
