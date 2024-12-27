@@ -9,6 +9,7 @@ import PerfectScrollbar from '@/Components/PerfectScrollbar.vue'
 
 onMounted(() => {
     window.addEventListener('resize', sidebarState.handleWindowResize)
+    window.addEventListener('orientationchange', sidebarState.handleWindowResize)
 
     router.on('navigate', () => {
         if (window.innerWidth <= 1024) {

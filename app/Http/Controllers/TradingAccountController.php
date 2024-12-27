@@ -26,6 +26,9 @@ class TradingAccountController extends Controller
 {
     public function index()
     {
+        // Dispatch the job to update all accounts
+        UpdateCTraderAccountJob::dispatch();
+
         return Inertia::render('Member/Account/AccountListing', [
             'accountTypes' => (new GeneralController())->getAccountTypes(true),
         ]);
@@ -166,8 +169,8 @@ class TradingAccountController extends Controller
                     $query->orderByDesc('trading_users.meta_login'); // Default sorting
                 }
 
-                // Exclude inactive accounts by checking the acc_status field in trading_users
-                $query->where('trading_users.acc_status', '!=', 'inactive');
+                // // Exclude inactive accounts by checking the acc_status field in trading_users
+                // $query->where('trading_users.acc_status', '!=', 'inactive');
 
                 // Export logic
                 if ($request->has(key: 'exportStatus') && $request->exportStatus == true) {
