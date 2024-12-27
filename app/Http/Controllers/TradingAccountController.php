@@ -182,23 +182,6 @@ class TradingAccountController extends Controller
                         'trading_users.meta_login',
                         'users.first_name as name',
                         'users.email',
-                        'trading_users.balance',
-                        'trading_accounts.equity',
-                        'trading_users.credit',
-                        'trading_users.leverage',
-                        'trading_users.last_access as last_login',
-                        'trading_users.created_at',
-                        'account_types.id as account_type_id',
-                        'account_types.name as account_type',
-                        DB::raw("CASE 
-                                    WHEN trading_users.last_access >= '$inactiveThreshold' THEN true
-                                    WHEN trading_users.created_at >= '$inactiveThreshold' THEN true
-                                    WHEN trading_users.balance > 0 THEN true
-                                    WHEN trading_users.credit > 0 THEN true
-                                    WHEN trading_accounts.equity > 0 THEN true
-                                    ELSE false
-                                END as is_active"),
-                        'trading_accounts.status',
                     ])
                     ->paginate($data['rows']);
 
