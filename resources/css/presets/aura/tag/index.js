@@ -2,17 +2,17 @@ export default {
     root: ({ props }) => ({
         class: [
             //Font
-            'text-xs font-bold',
+            'text-sm break-words',
 
             //Alignments
             'inline-flex items-center justify-center',
 
             //Spacing
-            'px-2 py-1',
+            'px-2',
 
             //Shape
             {
-                'rounded-sm': !props.rounded,
+                'rounded-md': !props.rounded,
                 'rounded-full': props.rounded
             },
 
@@ -24,7 +24,7 @@ export default {
                 'text-blue-700 bg-blue-100': props.severity === 'info',
                 'text-orange-700 bg-orange-100': props.severity === 'warn',
                 'text-red-700 bg-red-100': props.severity === 'danger',
-                'text-surface-0 bg-surface-900': props.severity === 'contrast'
+                'text-surface-0 bg-surface-700': props.severity === 'contrast'
             }
         ]
     }),

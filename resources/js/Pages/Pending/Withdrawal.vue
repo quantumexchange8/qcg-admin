@@ -20,6 +20,7 @@ import Chip from "primevue/chip";
 import Textarea from "primevue/textarea";
 import Empty from "@/Components/Empty.vue";
 import { trans, wTrans } from "laravel-vue-i18n";
+import Tag from 'primevue/tag';
 
 const user = usePage().props.auth.user;
 const { formatAmount, formatDate } = transactionFormat();
@@ -208,8 +209,9 @@ const exportXLSX = () => {
     document.body.removeChild(link);
 };
 
+const activeTag = ref(null);
 const tooltipText = ref('copy');
-const copyToClipboard = (text) => {
+const copyToClipboard = (addressType, text) => {
     const textToCopy = text;
 
     const textArea = document.createElement('textarea');
@@ -222,8 +224,10 @@ const copyToClipboard = (text) => {
         const successful = document.execCommand('copy');
 
         tooltipText.value = 'copied';
+        activeTag.value = addressType;
         setTimeout(() => {
             tooltipText.value = 'copy';
+            activeTag.value = null;
         }, 1500);
     } catch (err) {
         console.error('Copy to clipboard failed:', err);
@@ -362,7 +366,24 @@ const copyToClipboard = (text) => {
                         <div class="flex flex-col items-center gap-3 self-stretch py-4 md:py-6">
                             <div class="flex flex-col md:flex-row items-center p-3 gap-3 self-stretch w-full bg-gray-50">
                                 <div class="min-w-[140px] flex flex-col items-start w-full">
-                                    <span class="self-stretch text-gray-950 font-medium truncate">{{ pendingData.user_name }}</span>
+                                    <span class="self-stretch text-gray-950 font-medium truncate" @click="copyToClipboard('user_name', pendingData.user_name)">
+                                        {{ pendingData?.user_name || '-' }}
+                                        <IconCopy 
+                                            v-if="pendingData?.user_name"
+                                            size="20" 
+                                            stroke-width="1.25" 
+                                            class="text-gray-500 inline-block cursor-pointer grow-0 shrink-0" 
+                                            v-tooltip.top="$t(`public.${tooltipText}`)" 
+                                            @click="copyToClipboard('user_name', pendingData.user_name)"
+                                        />
+                                        <Tag
+                                            v-if="activeTag === 'user_name' && tooltipText === 'copied'"
+                                            class="font-normal"
+                                            severity="contrast"
+                                            :value="$t(`public.${tooltipText}`)"
+                                        ></Tag>
+                                    </span>
+
                                     <span class="self-stretch text-gray-500 text-sm truncate">{{ pendingData.user_email }}</span>
                                 </div>
                                 <div class="min-w-[180px] text-gray-950 font-semibold text-lg self-stretch md:text-right">
@@ -383,8 +404,21 @@ const copyToClipboard = (text) => {
                                     <div class="w-[140px] text-gray-500 text-sm">
                                         {{ $t('public.from') }}
                                     </div>
-                                    <div class="text-gray-950 text-sm font-medium">
+                                    <div class="text-gray-950 text-sm font-medium" @click="copyToClipboard('from', pendingData.from)">
                                         {{ pendingData.from === 'rebate_wallet' ? ($t(`public.${pendingData.from}`) || '-') : (pendingData.from || '-') }}
+                                        <IconCopy 
+                                            v-if="pendingData?.from"
+                                            size="20" 
+                                            stroke-width="1.25" 
+                                            class="text-gray-500 inline-block cursor-pointer grow-0 shrink-0" 
+                                            v-tooltip.top="$t(`public.${tooltipText}`)" 
+                                            @click="copyToClipboard('from', pendingData.from)"
+                                        />
+                                        <Tag
+                                            v-if="activeTag === 'from' && tooltipText === 'copied'"
+                                            severity="contrast"
+                                            :value="$t(`public.${tooltipText}`)"
+                                        ></Tag>
                                     </div>
                                 </div>
                                 <div class="flex flex-col md:flex-row md:items-center gap-1 self-stretch">
