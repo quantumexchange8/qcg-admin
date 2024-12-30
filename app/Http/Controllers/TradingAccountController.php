@@ -21,6 +21,8 @@ use App\Services\ChangeTraderBalanceType;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\GeneralController;
 use Illuminate\Validation\ValidationException;
+use App\Services\Data\UpdateTradingUser;
+use App\Services\Data\UpdateTradingAccount;
 
 class TradingAccountController extends Controller
 {
@@ -166,9 +168,6 @@ class TradingAccountController extends Controller
                     $query->orderByDesc('trading_users.meta_login'); // Default sorting
                 }
 
-                // // Exclude inactive accounts by checking the acc_status field in trading_users
-                // $query->where('trading_users.acc_status', '!=', 'inactive');
-
                 // Export logic
                 if ($request->has(key: 'exportStatus') && $request->exportStatus == true) {
                     $accounts = $query->clone();
@@ -188,22 +187,29 @@ class TradingAccountController extends Controller
                 // Iterate over each account on the current page and update the account status
                 foreach ($accounts->items() as $account) {
                     try {
-                        // Attempt to get user info from CTraderService using meta_login
-                        (new CTraderService())->getUserInfo($account->meta_login);
-
-                        // After successful refresh, update the account status to 'active' or desired status
-                        TradingUser::where('meta_login', $account->meta_login)
-                            ->update(['acc_status' => 'active']); // Mark as active after refresh
-
-                    } catch (\Illuminate\Http\Client\RequestException $e) {
-                        // Log the error message for 404 errors or other HTTP issues
-                        Log::error("Failed to refresh account {$account->meta_login}: {$e->getMessage()}");
-
-                        // If the error is a 404, update the acc_status to "inactive"
-                        if ($e->response->status() == 404) {
-                            TradingUser::where('meta_login', $account->meta_login)
-                                ->update(['acc_status' => 'inactive']);
+                        // Attempt to fetch user data
+                        $data = (new CTraderService())->getUser($account->meta_login);
+                
+                        // If no data is returned (null or empty), mark the account as inactive
+                        if (empty($data)) {
+                            if ($account->acc_status !== 'inactive') {
+                                TradingUser::where('meta_login', $account->meta_login)
+                                    ->update(['acc_status' => 'inactive']);
+                            }
+                        } else {
+                            // If valid data is fetched, update account to active and proceed with further updates
+                            if ($account->acc_status !== 'active') {
+                                TradingUser::where('meta_login', $account->meta_login)
+                                    ->update(['acc_status' => 'active']);
+                            }
+                
+                            // Proceed with updating account information
+                            (new UpdateTradingUser)->execute($account->meta_login, $data);
+                            (new UpdateTradingAccount)->execute($account->meta_login, $data);
                         }
+                    } catch (\Exception $e) {
+                        // Log the error if there was a failure (network issue, server error, etc.)
+                        Log::error("Error fetching data for account {$account->meta_login}: {$e->getMessage()}");
                     }
                 }
 
@@ -232,6 +238,7 @@ class TradingAccountController extends Controller
                                 END as is_active"),
                         'trading_accounts.status',
                     ])
+                    ->where('trading_users.acc_status', '!=', 'inactive')
                     ->paginate($data['rows']);
 
                 // After the status update, return the re-fetched paginated data
