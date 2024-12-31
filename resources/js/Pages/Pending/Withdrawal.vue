@@ -473,8 +473,14 @@ const copyToClipboard = (addressType, text) => {
                                             stroke-width="1.25" 
                                             class="text-gray-500 inline-block cursor-pointer grow-0 shrink-0" 
                                             v-tooltip.top="$t(`public.${tooltipText}`)" 
-                                            @click="copyToClipboard(pendingData?.wallet_address)"
+                                            @click="copyToClipboard('wallet_address', pendingData.wallet_address)"
                                         />
+                                        <Tag
+                                            v-if="activeTag === 'wallet_address' && tooltipText === 'copied'"
+                                            class="font-normal"
+                                            severity="contrast"
+                                            :value="$t(`public.${tooltipText}`)"
+                                        ></Tag>
                                     </span>
                                 </div>
                             </div>
