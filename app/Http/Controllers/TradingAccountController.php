@@ -59,7 +59,7 @@ class TradingAccountController extends Controller
             }, 'latest_transactions')
             ->where('row_num', 1)  // Only take the latest row
             ->select('meta_login', 'transaction_type', 'created_at');
-            
+
             // Step 2: Join with trading_users to get the complete account data
             $accounts = TradingUser::with([
                     'userData:id,first_name,email',
@@ -78,9 +78,9 @@ class TradingAccountController extends Controller
                 ->get()
                 ->map(function ($account) use ($inactiveThreshold): array {
                     // Determine if the account is active based on transaction activity
-                    $isActive = $account->created_at >= $inactiveThreshold || 
+                    $isActive = $account->created_at >= $inactiveThreshold ||
                                 ($account->last_transaction_at && $account->last_transaction_at >= $inactiveThreshold);
-            
+
                     return [
                         'id' => $account->id,
                         'meta_login' => $account->meta_login,
@@ -146,7 +146,7 @@ class TradingAccountController extends Controller
                     ->leftJoin('users', 'trading_users.user_id', '=', 'users.id') // Join users table
                     ->leftJoin('trading_accounts', 'trading_users.meta_login', '=', 'trading_accounts.meta_login') // Join trading accounts
                     ->leftJoin('account_types', 'trading_users.account_type_id', '=', 'account_types.id'); // Join account types
-                        
+
                 // Filters
                 if ($data['filters']['global']['value']) {
                     $keyword = $data['filters']['global']['value'];
@@ -188,10 +188,10 @@ class TradingAccountController extends Controller
                 foreach ($accounts->items() as $account) {
                     try {
                         // Attempt to fetch user data
-                        $data = (new CTraderService())->getUser($account->meta_login);
-                
+                        $accData = (new CTraderService())->getUser($account->meta_login);
+
                         // If no data is returned (null or empty), mark the account as inactive
-                        if (empty($data)) {
+                        if (empty($accData)) {
                             if ($account->acc_status !== 'inactive') {
                                 TradingUser::where('meta_login', $account->meta_login)
                                     ->update(['acc_status' => 'inactive']);
@@ -202,10 +202,10 @@ class TradingAccountController extends Controller
                                 TradingUser::where('meta_login', $account->meta_login)
                                     ->update(['acc_status' => 'active']);
                             }
-                
+
                             // Proceed with updating account information
-                            (new UpdateTradingUser)->execute($account->meta_login, $data);
-                            (new UpdateTradingAccount)->execute($account->meta_login, $data);
+                            (new UpdateTradingUser)->execute($account->meta_login, $accData);
+                            (new UpdateTradingAccount)->execute($account->meta_login, $accData);
                         }
                     } catch (\Exception $e) {
                         // Log the error if there was a failure (network issue, server error, etc.)
@@ -228,7 +228,7 @@ class TradingAccountController extends Controller
                         'trading_users.created_at',
                         'account_types.id as account_type_id',
                         'account_types.name as account_type',
-                        DB::raw("CASE 
+                        DB::raw("CASE
                                     WHEN trading_users.last_access >= '$inactiveThreshold' THEN true
                                     WHEN trading_users.created_at >= '$inactiveThreshold' THEN true
                                     WHEN trading_users.balance > 0 THEN true
@@ -252,7 +252,7 @@ class TradingAccountController extends Controller
                     ->leftJoin('users', 'trading_users.user_id', '=', 'users.id') // Join users table
                     ->leftJoin('trading_accounts', 'trading_users.meta_login', '=', 'trading_accounts.meta_login') // Join trading accounts
                     ->leftJoin('account_types', 'trading_users.account_type_id', '=', 'account_types.id'); // Join account types
-            
+
                     // Filters
                     if ($data['filters']['global']['value']) {
                         $keyword = $data['filters']['global']['value'];
@@ -262,18 +262,18 @@ class TradingAccountController extends Controller
                                 ->orWhere('users.email', 'like', '%' . $keyword . '%');
                         });
                     }
-    
+
                     if ($data['filters']['account_type_id']['value']) {
                         $query->where('trading_users.account_type_id', $data['filters']['account_type_id']['value']);
                     }
-    
+
                     if (isset($data['sortField']) && isset($data['sortOrder'])) {
                         $order = $data['sortOrder'] == 1 ? 'asc' : 'desc';
                         $query->orderBy($data['sortField'], $order);
                     } else {
                         $query->orderByDesc('trading_users.meta_login'); // Default sorting
                     }
-                        
+
                     // Export logic
                     if ($request->has('exportStatus') && $request->exportStatus == true) {
                         $accounts = $query;
@@ -296,7 +296,7 @@ class TradingAccountController extends Controller
                         'account_types.name as account_type',
                     ])
                     ->paginate($data['rows']);
-            
+
                 return response()->json([
                     'success' => true,
                     'data' => $accounts,
@@ -480,25 +480,25 @@ class TradingAccountController extends Controller
     public function updateAccountStatus(Request $request)
     {
         $account = TradingAccount::where('meta_login', $request->meta_login)->first();
-    
+
         // If the account is inactive, immediately activate it and return
         if ($account->status === 'inactive') {
             $account->status = 'active';
             $account->save();
-    
+
             return back()->with('toast', [
                 'title' => trans('public.toast_trading_account_has_activated'),
                 'type' => 'success',
             ]);
         } elseif ($account->status === 'active') {
             $inactiveThreshold = now()->subDays(90);
-    
+
             // Check if the account has any positive balances
             $hasPositiveBalance = $account->balance > 0 || $account->equity > 0 || $account->credit > 0 || $account->cash_equity > 0;
-    
+
             // Check if the account was created recently (within the last 90 days)
             $isRecentlyCreated = $account->created_at->diffInDays(now()) <= 90;
-    
+
             // Return warning if recently created or has a positive balance
             if ($isRecentlyCreated) {
                 return back()->with('toast', [
@@ -506,24 +506,24 @@ class TradingAccountController extends Controller
                     'type' => 'warning',
                 ]);
             }
-    
+
             if ($hasPositiveBalance) {
                 return back()->with('toast', [
                     'title' => trans('public.toast_trading_account_has_balance'),
                     'type' => 'warning',
                 ]);
             }
-    
+
             // Check for recent transactions
             $lastTransaction = $account->transactions()
                                     ->whereIn('transaction_type', ['deposit', 'withdrawal'])
                                     ->where('created_at', '>=', $inactiveThreshold)
                                     ->latest()
                                     ->first();
-    
+
             // Get the last access date of the trading user
             $lastAccess = $account->trading_user->last_access;
-    
+
             if (($lastTransaction && $lastTransaction->created_at >= $inactiveThreshold) ||
                 ($lastAccess && $lastAccess >= $inactiveThreshold && $lastAccess <= now())) {
                 // Recent activity -> cannot deactivate
@@ -532,18 +532,18 @@ class TradingAccountController extends Controller
                     'type' => 'warning',
                 ]);
             }
-            
+
             // No recent activity -> deactivate account
             $account->status = 'inactive';
             $account->save();
-            
+
             return back()->with('toast', [
                 'title' => trans('public.toast_trading_account_has_deactivated'),
                 'type' => 'success',
             ]);
         }
     }
-            
+
     public function refreshAllAccount(): void
     {
         UpdateCTraderAccountJob::dispatch();
