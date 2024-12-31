@@ -76,7 +76,7 @@ class TransactionController extends Controller
                 foreach ($selectedMonthsArray as $range) {
                     [$month, $year] = explode('/', $range);
                     $startDate = "$year-$month-01";
-                    $endDate = date("Y-m-t", strtotime($startDate)); // Last day of the month
+                    $endDate = date("Y-m-t 23:59:59", strtotime($startDate)); // Last day of the month
 
                     // Add a condition to match transactions for this specific month-year
                     $q->orWhereBetween('created_at', [$startDate, $endDate]);
@@ -304,7 +304,7 @@ class TransactionController extends Controller
                 foreach ($selectedMonthsArray as $range) {
                     [$month, $year] = explode('/', $range);
                     $startDate = "$year-$month-01";
-                    $endDate = date("Y-m-t", strtotime($startDate)); // Last day of the month
+                    $endDate = date("Y-m-t 23:59:59", strtotime($startDate)); // Last day of the month
     
                     // Add a condition to match transactions for this specific month-year
                     $q->orWhereBetween('created_at', [$startDate, $endDate]);
