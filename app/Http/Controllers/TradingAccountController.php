@@ -182,6 +182,7 @@ class TradingAccountController extends Controller
                         'users.first_name as name',
                         'users.email',
                     ])
+                    ->where('trading_users.acc_status', '!=', 'inactive')
                     ->paginate($data['rows']);
 
                 // Iterate over each account on the current page and update the account status
