@@ -177,7 +177,7 @@ const clearSearch = () => {
 
                     <div v-else class="flex justify-center flex-wrap w-full relative">
                         <div
-                            class="rounded flex flex-col items-center md:max-w-[215px] shadow-card border-l-4 select-none cursor-pointer md:basis-1/3 xl:basis-1/4 bg-white"
+                            class="rounded flex flex-col items-center md:max-w-[215px] shadow-card border-l-4 select-none cursor-pointer w-full md:basis-1/3 xl:basis-1/4 bg-white"
                             :class="{
                                 'border-orange hover:border-t hover:border-t-orange hover:border-b hover:border-b-orange hover:border-r hover:border-r-orange': upline.role === 'agent',
                                 'border-info-500 hover:border-t hover:border-t-info-500 hover:border-b hover:border-b-info-500 hover:border-r hover:border-r-info-500': upline.role === 'member',
@@ -272,7 +272,7 @@ const clearSearch = () => {
                             </Button>
                         </div>
                         <div
-                            class="rounded flex flex-col items-center md:max-w-[215px] shadow-card border-l-4 select-none cursor-pointer md:basis-1/3 xl:basis-1/4 bg-white"
+                            class="rounded flex flex-col items-center md:max-w-[215px] shadow-card border-l-4 select-none cursor-pointer w-full md:basis-1/3 xl:basis-1/4 bg-white"
                             :class="{
                                 'border-primary-600 hover:border-t hover:border-t-primary-600 hover:border-b hover:border-b-primary-600 hover:border-r hover:border-r-primary-600': parent.length === 0 || parent.level === 0,
                                 'border-orange hover:border-t hover:border-t-orange hover:border-b hover:border-b-orange hover:border-r hover:border-r-orange': parent.role === 'agent',
@@ -356,7 +356,7 @@ const clearSearch = () => {
                         <div
                             v-for="downline in children"
                             :key="downline.id"
-                            class="rounded flex flex-col items-center md:max-w-[215px] shadow-card border-l-4 select-none cursor-pointer md:basis-1/3 xl:basis-1/4 bg-white"
+                            class="rounded flex flex-col items-center md:max-w-[215px] shadow-card border-l-4 select-none cursor-pointer w-full md:basis-1/3 xl:basis-1/4 bg-white"
                             :class="{
                                 // 'border-primary-600 hover:border-t hover:border-t-primary-600 hover:border-b hover:border-b-primary-600 hover:border-r hover:border-r-primary-600': downline.role === 'member',
                                 'border-orange hover:border-t hover:border-t-orange hover:border-b hover:border-b-orange hover:border-r hover:border-r-orange': downline.role === 'agent',

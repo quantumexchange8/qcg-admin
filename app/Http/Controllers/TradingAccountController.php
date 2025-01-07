@@ -143,29 +143,29 @@ class TradingAccountController extends Controller
                 $inactiveThreshold = now()->subDays(90)->startOfDay();
 
                 $query = TradingUser::query()
-                    ->leftJoin('users', 'trading_users.user_id', '=', 'users.id') // Join users table
-                    ->leftJoin('trading_accounts', 'trading_users.meta_login', '=', 'trading_accounts.meta_login') // Join trading accounts
-                    ->leftJoin('account_types', 'trading_users.account_type_id', '=', 'account_types.id'); // Join account types
+                    ->with(['userData:id,first_name,email', 'trading_account:id,meta_login,equity,status', 'accountType']); // Eager load related models
 
                 // Filters
                 if ($data['filters']['global']['value']) {
                     $keyword = $data['filters']['global']['value'];
                     $query->where(function ($query) use ($keyword) {
-                        $query->where('trading_users.meta_login', 'like', '%' . $keyword . '%')
-                            ->orWhere('users.first_name', 'like', '%' . $keyword . '%')
-                            ->orWhere('users.email', 'like', '%' . $keyword . '%');
+                        $query->whereHas('userData', function ($query) use ($keyword) {
+                            $query->where('first_name', 'like', '%' . $keyword . '%')
+                                  ->orWhere('email', 'like', '%' . $keyword . '%');
+                        })
+                        ->orWhere('meta_login', 'like', '%' . $keyword . '%');
                     });
                 }
 
                 if ($data['filters']['account_type_id']['value']) {
-                    $query->where('trading_users.account_type_id', $data['filters']['account_type_id']['value']);
+                    $query->where('account_type_id', $data['filters']['account_type_id']['value']);
                 }
 
                 if (isset($data['sortField']) && isset($data['sortOrder'])) {
                     $order = $data['sortOrder'] == 1 ? 'asc' : 'desc';
                     $query->orderBy($data['sortField'], $order);
                 } else {
-                    $query->orderByDesc('trading_users.meta_login'); // Default sorting
+                    $query->orderByDesc('meta_login'); // Default sorting
                 }
 
                 // Export logic
@@ -177,12 +177,12 @@ class TradingAccountController extends Controller
                 // Fetch the accounts with selected fields and pagination
                 $accounts = $query
                     ->select([
-                        'trading_users.id',
-                        'trading_users.meta_login',
-                        'users.first_name as name',
-                        'users.email',
+                        'id',
+                        'user_id',
+                        'meta_login',
+                        'account_type',
                     ])
-                    ->where('trading_users.acc_status', '!=', 'inactive')
+                    ->where('acc_status', '!=', 'inactive')
                     ->paginate($data['rows']);
 
                 // Iterate over each account on the current page and update the account status
@@ -198,12 +198,6 @@ class TradingAccountController extends Controller
                                     ->update(['acc_status' => 'inactive']);
                             }
                         } else {
-                            // If valid data is fetched, update account to active and proceed with further updates
-                            if ($account->acc_status !== 'active') {
-                                TradingUser::where('meta_login', $account->meta_login)
-                                    ->update(['acc_status' => 'active']);
-                            }
-
                             // Proceed with updating account information
                             (new UpdateTradingUser)->execute($account->meta_login, $accData);
                             (new UpdateTradingAccount)->execute($account->meta_login, $accData);
@@ -217,30 +211,42 @@ class TradingAccountController extends Controller
                 // Now re-fetch the data after updating the statuses
                 $accounts = $query
                     ->select([
-                        'trading_users.id',
-                        'trading_users.meta_login',
-                        'users.first_name as name',
-                        'users.email',
-                        'trading_users.balance',
-                        'trading_accounts.equity',
-                        'trading_users.credit',
-                        'trading_users.leverage',
-                        'trading_users.last_access as last_login',
-                        'trading_users.created_at',
-                        'account_types.id as account_type_id',
-                        'account_types.name as account_type',
-                        DB::raw("CASE
-                                    WHEN trading_users.last_access >= '$inactiveThreshold' THEN true
-                                    WHEN trading_users.created_at >= '$inactiveThreshold' THEN true
-                                    WHEN trading_users.balance > 0 THEN true
-                                    WHEN trading_users.credit > 0 THEN true
-                                    WHEN trading_accounts.equity > 0 THEN true
-                                    ELSE false
-                                END as is_active"),
-                        'trading_accounts.status',
+                        'id',
+                        'user_id',
+                        'meta_login',
+                        'account_type',
+                        'balance',
+                        'credit',
+                        'leverage',
+                        'last_access as last_login',
+                        'created_at',
                     ])
-                    ->where('trading_users.acc_status', '!=', 'inactive')
+                    ->where('acc_status', '!=', 'inactive')
                     ->paginate($data['rows']);
+
+                // After the accounts are retrieved, you can access `getFirstMediaUrl` for each user using foreach
+                foreach ($accounts as $account) {
+                    $account->name = $account->userData->first_name;
+                    $account->email = $account->userData->email;
+                    $account->equity = $account->trading_account->equity;
+                    $account->account_type_id = $account->accountType->id;
+                    $account->account_type = $account->accountType->name;
+                    // Calculate `is_active` dynamically
+                    $account->is_active = (
+                        ($account->last_login >= $inactiveThreshold) ||
+                        ($account->created_at >= $inactiveThreshold) ||
+                        ($account->balance > 0) ||
+                        ($account->credit > 0) ||
+                        ($account->equity > 0)
+                    );
+
+                    $account->status = $account->trading_account->status;
+
+                    // Remove unnecessary nested data (users and trading_account)
+                    unset($account->userData);
+                    unset($account->trading_account);
+                    unset($account->accountType);
+                }
 
                 // After the status update, return the re-fetched paginated data
                 return response()->json([
@@ -250,29 +256,29 @@ class TradingAccountController extends Controller
             } else {
                 // Handle inactive accounts or other types
                 $query = TradingUser::onlyTrashed()
-                    ->leftJoin('users', 'trading_users.user_id', '=', 'users.id') // Join users table
-                    ->leftJoin('trading_accounts', 'trading_users.meta_login', '=', 'trading_accounts.meta_login') // Join trading accounts
-                    ->leftJoin('account_types', 'trading_users.account_type_id', '=', 'account_types.id'); // Join account types
+                    ->withTrashed(['userData:id,first_name,email', 'trading_account:id,meta_login,equity,status', 'accountType']); // Eager load related models
 
                     // Filters
                     if ($data['filters']['global']['value']) {
                         $keyword = $data['filters']['global']['value'];
                         $query->where(function ($query) use ($keyword) {
-                            $query->where('trading_users.meta_login', 'like', '%' . $keyword . '%')
-                                ->orWhere('users.first_name', 'like', '%' . $keyword . '%')
-                                ->orWhere('users.email', 'like', '%' . $keyword . '%');
+                            $query->whereHas('userData', function ($query) use ($keyword) {
+                                $query->where('first_name', 'like', '%' . $keyword . '%')
+                                      ->orWhere('email', 'like', '%' . $keyword . '%');
+                            })
+                            ->orWhere('meta_login', 'like', '%' . $keyword . '%');
                         });
                     }
 
                     if ($data['filters']['account_type_id']['value']) {
-                        $query->where('trading_users.account_type_id', $data['filters']['account_type_id']['value']);
+                        $query->where('account_type_id', $data['filters']['account_type_id']['value']);
                     }
 
                     if (isset($data['sortField']) && isset($data['sortOrder'])) {
                         $order = $data['sortOrder'] == 1 ? 'asc' : 'desc';
                         $query->orderBy($data['sortField'], $order);
                     } else {
-                        $query->orderByDesc('trading_users.meta_login'); // Default sorting
+                        $query->orderByDesc('meta_login'); // Default sorting
                     }
 
                     // Export logic
@@ -283,20 +289,31 @@ class TradingAccountController extends Controller
 
                 $accounts = $query
                     ->select([
-                        'trading_users.id',
-                        'trading_users.meta_login',
-                        'users.first_name as name',
-                        'users.email',
-                        'trading_users.balance',
+                        'id',
+                        'user_id',
+                        'meta_login',
+                        'account_type',
+                        'balance',
                         DB::raw('0 as equity'), // Inactive accounts have no equity
-                        'trading_users.credit',
-                        'trading_users.leverage',
-                        'trading_users.deleted_at',
-                        'trading_users.last_access as last_login',
-                        'account_types.id as account_type_id',
-                        'account_types.name as account_type',
+                        'credit',
+                        'leverage',
+                        'deleted_at',
+                        'last_access as last_login',
                     ])
                     ->paginate($data['rows']);
+
+                // After the accounts are retrieved, you can access `getFirstMediaUrl` for each user using foreach
+                foreach ($accounts as $account) {
+                    $account->name = $account->userData->first_name;
+                    $account->email = $account->userData->email;
+                    $account->account_type_id = $account->accountType->id;
+                    $account->account_type = $account->accountType->name;
+
+                    // Remove unnecessary nested data (users and trading_account)
+                    unset($account->userData);
+                    unset($account->trading_account);
+                    unset($account->accountType);
+                }
 
                 return response()->json([
                     'success' => true,

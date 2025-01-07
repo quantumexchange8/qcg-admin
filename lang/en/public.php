@@ -398,7 +398,7 @@ return [
     'chinese' => "Chinese",
     'description' => "Description",
     'descriptions_en_placeholder' => "Tell more about this account...",
-    'descriptions_cn_placeholder' => "Tell more about this account...",
+    'descriptions_cn_placeholder' => "為此交易賬戶輸入信息描述...",
     'account_information_message' => "Description will be displayed to user when open new account.",
     'trade_delay_duration' => "Trade Delay Duration",
     'maximum_account_creation' => "Maximum Account Creation",
