@@ -306,14 +306,14 @@ watch(() => usePage().props, (newProps, oldProps) => {
                     </div>
 
                     <div class="w-full h-full flex justify-center items-center gap-2 md:flex-col md:gap-5 4xl:flex-row">
-                        <div class="w-full h-full flex flex-col justify-center items-center py-3 px-0.5 gap-1 bg-gray-50 md:px-0">
+                        <div class="w-full h-full grid grid-cols-1 justify-center items-center py-3 px-0.5 gap-1 bg-gray-50 md:px-0">
                             <span class="w-full truncate text-gray-500 text-center text-xxs md:text-sm">{{ $t('public.total_balance') }}</span>
                             <span class="w-full truncate text-gray-950 text-center font-semibold md:text-xl">
                                 $ <Vue3autocounter ref="counterBalance" :startAmount="0" :endAmount="Number(balance || 0)" :duration="accountBalanceDuration" separator="," decimalSeparator="." :decimals="2" :autoinit="true" />
                             </span>
                         </div>
 
-                        <div class="w-full h-full flex flex-col justify-center items-center py-3 px-0.5 gap-1 bg-gray-50 md:px-0">
+                        <div class="w-full h-full grid grid-cols-1 justify-center items-center py-3 px-0.5 gap-1 bg-gray-50 md:px-0">
                             <span class="w-full truncate text-gray-500 text-center text-xxs md:text-sm">{{ $t('public.total_equity') }}</span>
                             <span class="w-full truncate text-gray-950 text-center font-semibold md:text-xl">
                                 $ <Vue3autocounter ref="counterEquity" :startAmount="0" :endAmount="Number(equity || 0)" :duration="accountBalanceDuration" separator="," decimalSeparator="." :decimals="2" :autoinit="true" />
@@ -330,7 +330,7 @@ watch(() => usePage().props, (newProps, oldProps) => {
                             optionLabel="name"
                             optionValue="value"
                             :placeholder="$t('public.month_placeholder')"
-                            class="w-full md:w-60 font-normal"
+                            class="w-full md:w-60 font-normal truncate"
                             scroll-height="236px"
                         />
                         <Button
@@ -347,14 +347,14 @@ watch(() => usePage().props, (newProps, oldProps) => {
 
 
                     <div class="w-full h-full flex justify-center items-center gap-2 md:flex-col md:gap-5 4xl:flex-row">
-                        <div class="w-full h-full flex flex-col justify-center items-center py-3 px-0.5 gap-1 bg-gray-50 md:px-0">
+                        <div class="w-full h-full grid grid-cols-1 justify-center items-center py-3 px-0.5 gap-1 bg-gray-50 md:px-0">
                             <span class="w-full truncate text-gray-500 text-center text-xxs md:text-sm">{{ $t('public.total_trade_lots') }}</span>
                             <span class="w-full truncate text-gray-950 text-center font-semibold md:text-xl">
                                 <Vue3autocounter ref="counterTradeLot" :startAmount="0" :endAmount="Number(trade_lot || 0)" :duration="tradeLotVolumeDuration" separator="," decimalSeparator="." :decimals="2" :autoinit="true" /> Ł
                             </span>
                         </div>
 
-                        <div class="w-full h-full flex flex-col justify-center items-center py-3 px-0.5 gap-1 bg-gray-50 md:px-0">
+                        <div class="w-full h-full grid grid-cols-1 justify-center items-center py-3 px-0.5 gap-1 bg-gray-50 md:px-0">
                             <span class="w-full truncate text-gray-500 text-center text-xxs md:text-sm">{{ $t('public.total_trade_volume') }}</span>
                             <span class="w-full truncate text-gray-950 text-center font-semibold md:text-xl">
                                 <Vue3autocounter ref="counterVolume" :startAmount="0" :endAmount="Number(volume || 0)" :duration="tradeLotVolumeDuration" separator="," decimalSeparator="." :decimals="0" :autoinit="true" />

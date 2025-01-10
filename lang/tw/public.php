@@ -48,7 +48,7 @@ return [
     'incentive_request' => ":action獎金申請",
     'account_withdrawal_request' => "個用戶已提交提款申請",
     'account_incentive_request' => "個用戶已提交獎金申請",
-    'dashboard_bonus_request' => "獎金申請",
+    'dashboard_bonus_request' => "待處理獎金申請",
     'ctrader_account_listing' => "cTrader帳戶列表",
     'editing_forum' => "編輯論壇",
     'total_trade_lots' => "總交易手數",
