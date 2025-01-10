@@ -143,7 +143,8 @@ class TradingAccountController extends Controller
                 $inactiveThreshold = now()->subDays(90)->startOfDay();
 
                 $query = TradingUser::query()
-                    ->with(['userData:id,first_name,email', 'trading_account:id,meta_login,equity,status', 'accountType']); // Eager load related models
+                    ->with(['userData:id,first_name,email', 'trading_account:id,meta_login,equity,status', 'accountType']) // Eager load related models
+                    ->where('acc_status', 'active');
 
                 // Filters
                 if ($data['filters']['global']['value']) {
@@ -182,7 +183,7 @@ class TradingAccountController extends Controller
                         'meta_login',
                         'account_type',
                     ])
-                    ->where('acc_status', '!=', 'inactive')
+                    ->where('acc_status', 'active')
                     ->paginate($data['rows']);
 
                 // Iterate over each account on the current page and update the account status
@@ -194,8 +195,7 @@ class TradingAccountController extends Controller
                         // If no data is returned (null or empty), mark the account as inactive
                         if (empty($accData)) {
                             if ($account->acc_status !== 'inactive') {
-                                TradingUser::where('meta_login', $account->meta_login)
-                                    ->update(['acc_status' => 'inactive']);
+                                $account->update(['acc_status' => 'inactive']);
                             }
                         } else {
                             // Proceed with updating account information
@@ -221,7 +221,7 @@ class TradingAccountController extends Controller
                         'last_access as last_login',
                         'created_at',
                     ])
-                    ->where('acc_status', '!=', 'inactive')
+                    ->where('acc_status', 'active')
                     ->paginate($data['rows']);
 
                 // After the accounts are retrieved, you can access `getFirstMediaUrl` for each user using foreach

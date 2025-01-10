@@ -20,6 +20,7 @@ const baseClasses = [
 
 const variantClasses = (variant) => ({
     'bg-info-400': variant === 'info',
+    'bg-error-600': variant === 'error',
     'bg-primary-600 rounded-sm px-1 py-0.5': variant === 'numberBadge'
 })
 

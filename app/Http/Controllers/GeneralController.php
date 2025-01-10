@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use App\Models\TeamSettlement;
 use App\Models\TradingAccount;
 use App\Models\SettingLeverage;
+use App\Models\TradeRebateSummary;
 use App\Services\CTraderService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
@@ -314,6 +315,42 @@ class GeneralController extends Controller
 
         return response()->json([
             'teams' => $teams,
+        ]);
+    }
+
+    public function getTradeMonths($returnAsArray = false)
+    {
+        $executedDates = TradeRebateSummary::pluck('execute_at');
+        
+        // Get the current Carbon instance for month/year
+        $currentMonth = Carbon::now();
+    
+        // Map the dates to their month and year, then group by month and year.
+        $months = $executedDates
+            ->map(function ($date) {
+                $carbonDate = Carbon::parse($date);
+                return [
+                    'name' => $carbonDate->format('F Y'), // Month-Year format (e.g., "September 2024")
+                    'value' => $carbonDate->format('m/Y') // Month/Year format (e.g., "09/2024")
+                ];
+            })
+            ->unique(fn ($item) => $item['value']) // Ensure unique months based on the 'value' (month/year)
+            ->values(); // Re-index the collection
+    
+        // Check if the current month is in the collection, if not, add it
+        if (!$months->contains(fn ($item) => $item['value'] === $currentMonth->format('m/Y'))) {
+            $months->push([
+                'name' => $currentMonth->format('F Y'),  // Using Carbon to format the current date correctly
+                'value' => $currentMonth->format('m/Y')
+            ]);
+        }
+    
+        if ($returnAsArray) {
+            return $months->toArray();
+        }
+    
+        return response()->json([
+            'months' => $months,
         ]);
     }
 }

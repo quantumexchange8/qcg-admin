@@ -28,6 +28,7 @@ const props = defineProps({
     teams: Array,
 });
 
+const type = ref(new URLSearchParams(window.location.search).get('type'));
 const dt = ref(null);
 const loading = ref(false);
 const totalRecords = ref(0);
@@ -54,7 +55,7 @@ const tabs = ref([
     },
 ]);
 
-const selectedType = ref('member');
+const selectedType = ref(type.value || 'member');
 const activeIndex = ref(tabs.value.findIndex(tab => tab.type === selectedType.value));
 
 const filters = ref({

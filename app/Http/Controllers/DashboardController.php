@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Jobs\CashWalletTransferJob;
 use App\Models\User;
 use Inertia\Inertia;
 use App\Models\AccountType;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use App\Models\TradingAccount;
+use Illuminate\Support\Carbon;
 use App\Services\CTraderService;
+use App\Models\TradeRebateSummary;
+use App\Jobs\CashWalletTransferJob;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 
@@ -17,7 +19,9 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        return Inertia::render('Dashboard');
+        return Inertia::render('Dashboard', [
+            'months' => (new GeneralController())->getTradeMonths(true),
+        ]);
     }
 
     public function getPendingCounts()
@@ -137,4 +141,33 @@ class DashboardController extends Controller
             'pendingIncentiveCount' => $pending_incentive->count(),
         ]);
     }
+
+    public function getTradeRebateSummaryData(Request $request)
+    {
+        // Get the selected month (in format "m/Y")
+        $monthYear = $request->input('selectedMonth');
+        
+        // Parse the month/year string into a Carbon date
+        $carbonDate = Carbon::createFromFormat('m/Y', $monthYear);
+        
+        // Get the year and month as integers
+        $year = $carbonDate->year;
+        $month = $carbonDate->month;
+        
+        // Calculate total trade lots and volume for the selected month and year
+        $totalTradeLots = TradeRebateSummary::whereYear('execute_at', $year)
+                                            ->whereMonth('execute_at', $month)
+                                            ->sum('volume');
+    
+        $totalVolume = TradeRebateSummary::whereYear('execute_at', $year)
+                                         ->whereMonth('execute_at', $month)
+                                         ->sum('rebate');
+        
+        // Return the total balance and total equity as a JSON response
+        return response()->json([
+            'totalTradeLots' => $totalTradeLots,
+            'totalVolume' => $totalVolume,
+        ]);
+    }
+    
 }

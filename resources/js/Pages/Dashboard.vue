@@ -4,6 +4,7 @@ import Button from '@/Components/Button.vue';
 import { usePage } from "@inertiajs/vue3";
 import { transactionFormat, usePermission } from "@/Composables/index.js";
 import { 
+    IconDots,
     IconRefresh, 
     IconChevronRight, 
     IconChevronDown,
@@ -14,10 +15,16 @@ import {
     AgentIcon,
     MemberIcon,
 } from '@/Components/Icons/outline.jsx';
-import { computed, ref, watchEffect, onMounted } from "vue";
+import { computed, ref, watch, watchEffect, onMounted } from "vue";
 import { trans } from "laravel-vue-i18n";
 import Vue3autocounter from 'vue3-autocounter';
 import Badge from '@/Components/Badge.vue';
+import { router } from '@inertiajs/vue3'
+import Select from "primevue/select";
+
+const props = defineProps({
+    months: Array,
+});
 
 const user = usePage().props.auth.user;
 const { formatAmount } = transactionFormat();
@@ -41,27 +48,69 @@ const pendingWithdrawalCount = ref(0);
 const pendingIncentive = ref(99999.00);
 const pendingIncentiveCount = ref(0);
 
+const selectedMonth = ref('');
+const months = ref(props.months);
+
+const tradeLotVolumeDuration = ref(10);
+const counterTradeLot = ref(null);
+const counterVolume = ref(null);
+const trade_lot = ref(99999.00)
+const volume = ref(99999.00)
+
+// Watch for changes in the 'months' array and set 'selectedMonth' to the latest month
+watch(months, (newMonths) => {
+    if (newMonths.length > 0) {
+        // Directly take the last item (most recent month)
+        selectedMonth.value = newMonths[newMonths.length - 1].value;
+    }
+}, { immediate: true });  // Run immediately to set the initial value on component mount
+
+// Function to navigate with query parameters
+const navigateWithQueryParams = (route, type) => {
+    // If 'type' exists, append it as a query parameter
+    const url = route + (type ? `?type=${type}` : '');
+    router.visit(url);
+};
+
 // data overview
 const dataOverviews = computed(() => [
     {
-        icon: DepositIcon,
-        total: totalDeposit.value,
-        label: trans('public.dashboard_total_deposit'),
+        pendingCount: pendingWithdrawalCount.value,
+        total: pendingWithdrawal.value,
+        label: trans('public.dashboard_withdrawal_request'),
+        route: 'pending/withdrawal',
     },
     {
-        icon: WithdrawalIcon,
-        total: totalWithdrawal.value,
-        label: trans('public.dashboard_total_withdrawal'),
+        pendingCount: pendingIncentiveCount.value,
+        total: pendingIncentive.value,
+        label: trans('public.dashboard_bonus_request'),
+        route: 'pending/incentive',
     },
     {
         icon: AgentIcon,
         total: totalAgent.value,
         label: trans('public.dashboard_total_agent'),
+        route: 'member/listing',
+        type: 'agent'
     },
     {
         icon: MemberIcon,
         total: totalMember.value,
         label: trans('public.dashboard_total_member'),
+        route: 'member/listing',
+        type: 'member'
+    },
+    {
+        icon: DepositIcon,
+        total: totalDeposit.value,
+        label: trans('public.dashboard_total_deposit'),
+        route: 'transaction/deposit',
+    },
+    {
+        icon: WithdrawalIcon,
+        total: totalWithdrawal.value,
+        label: trans('public.dashboard_total_withdrawal'),
+        route: 'transaction/withdrawal',
     },
 ]);
 
@@ -117,77 +166,133 @@ const getPendingData = async () => {
 
 getPendingData();
 
-watchEffect(() => {
-    if (usePage().props.toast !== null || usePage().props.notification !== null) {
+// Watch for changes in selectedMonth and trigger getTradeRebateSummaryData
+watch( selectedMonth,(newMonth, oldMonth) => {
+        if (newMonth !== oldMonth) {
+            getTradeRebateSummaryData();
+        }
+    }
+);
+
+const updateTradeLotVolume = () => {
+    counterTradeLot.value.reset();
+    counterVolume.value.reset();
+    getTradeRebateSummaryData();
+}
+
+const getTradeRebateSummaryData = async () => {
+    try {
+        const response = await axios.get(`dashboard/getTradeRebateSummaryData?selectedMonth=${selectedMonth.value}`);
+        
+        // Process response data here
+        trade_lot.value = response.data.totalTradeLots;
+        volume.value = response.data.totalVolume;
+
+        tradeLotVolumeDuration.value = 1;
+    } catch (error) {
+        console.error('Error fetching data:', error);
+    }
+};
+
+getTradeRebateSummaryData();
+
+watch(() => usePage().props, (newProps, oldProps) => {
+    if (newProps.toast !== oldProps.toast || newProps.notification !== oldProps.notification) {
+        // If either toast or notification changes, trigger the actions
         getDashboardData();
         getAccountData();
         getPendingData();
+        getTradeRebateSummaryData();
     }
-});
+}, { deep: true });
 
 </script>
 
 <template>
     <AuthenticatedLayout :title="$t('public.dashboard')">
-        <div v-if="hasRole('super-admin') || hasPermission('access_dashboard')" class="w-full flex flex-col items-center gap-5">
-            <!-- greeting banner -->
-            <div class="relative h-[120px] py-2.5 pl-3 pr-[99px] self-stretch rounded-lg bg-white shadow-card md:h-40 md:py-[26px] md:px-0 xl:py-[52px] overflow-hidden">
-                <div class="w-full flex flex-col items-start md:items-center">
-                    <div class="w-full md:w-[300px] lg:w-[304px] xl:w-[560px] flex flex-col items-start gap-1 md:items-center">
-                        <span class="self-stretch text-primary-700 font-bold md:text-center md:text-xl">
-                            {{ $t('public.welcome_back', {'name': user.first_name}) }}
-                        </span>
-                        <span class="self-stretch text-primary-950 text-xs md:text-center md:text-sm">
-                            {{ $t('public.greeting_caption') }}
-                        </span>
+        <div v-if="hasRole('super-admin') || hasPermission('access_dashboard')" class="w-full grid grid-cols-1 md:grid-cols-2 items-center gap-3 md:gap-5">
+            <div class="w-full flex flex-col items-start gap-3 md:gap-5">
+                <!-- overview data -->
+                <div class="w-full grid grid-cols-2 gap-3 md:grid-cols-1 md:gap-5 4xl:grid-cols-2">
+                    <div 
+                        class="w-full flex flex-col justify-center items-center rounded-lg bg-white shadow-card cursor-pointer"
+                        v-for="(item, index) in dataOverviews"
+                        :key="index"
+                        @click="navigateWithQueryParams(item.route, item.type)"
+                    >
+                        <div class="w-full flex items-center px-2 pt-2 pb-1 gap-2 self-stretch md:px-6 md:pt-4 md:pb-2">
+                            <div v-if="item.pendingCount" class="flex items-center justify-center">
+                                <Badge variant="error" class="w-6 h-6 md:w-9 md:h-9 self-stretch truncate text-white text-center text-xs font-medium md:text-base">
+                                    {{ item.pendingCount }}
+                                </Badge>
+                            </div>
+                            <component v-if="item.icon" :is="item.icon" class="w-6 h-6 md:w-9 md:h-9 grow-0 shrink-0" 
+                                :class="{
+                                    'text-success-600' : item.icon == DepositIcon,
+                                    'text-error-600' : item.icon == WithdrawalIcon,
+                                    'text-orange' : item.icon == AgentIcon,
+                                    'text-cyan' : item.icon == MemberIcon,
+                                }"
+                            />
+
+                            <div class="w-full grid grid-cols-1 items-end gap-1">
+                                <span class="self-stretch truncate text-gray-500 text-right text-xxs md:text-sm">{{ item.label }}</span>
+                                <span class="self-stretch truncate text-gray-950 text-right font-semibold md:text-xl">
+                                    <template v-if="item.icon === AgentIcon || item.icon === MemberIcon">
+                                        <Vue3autocounter ref="counter" :startAmount="0" :endAmount="Number(item.total)" :duration="counterDuration" separator="," decimalSeparator="." :decimals="0" :autoinit="true" />
+                                    </template>
+                                    <template v-else>
+                                        $&nbsp;<Vue3autocounter ref="counter" :startAmount="0" :endAmount="Number(item.total)" :duration="counterDuration" separator="," decimalSeparator="." :decimals="2" :autoinit="true" />
+                                    </template>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="w-full flex justify-center items-center px-2 gap-2 self-stretch">
+                            <IconDots class="w-4 h-4 text-gray-400" />
+                        </div>
                     </div>
                 </div>
-
-                <!-- Image for small screens positioned on the right -->
-                <img src="/img/small-background-greeting-right.svg" alt="no data" class="absolute top-0 right-0 w-[100px] h-[120px] object-contain md:hidden"/>
-
-                <!-- Images for md and larger screens -->
-                <!-- Wrapper for the left image -->
-                <div class="hidden md:block absolute top-0 left-0 w-[220px] h-[300px] overflow-hidden">
-                    <img src="/img/background-greeting-left.svg" alt="no data" />
-                </div>
-
-                <!-- Wrapper for the right image -->
-                <div class="hidden md:block absolute top-0 right-0 w-[220px] h-[300px] overflow-hidden">
-                    <img src="/img/background-greeting-right.svg" alt="no data" />
-                </div>
-            </div>
-            <!-- overview data -->
-            <div class="w-full grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-5">
-                <div
-                    class="w-full flex flex-col justify-center items-center px-3 py-5 gap-3 rounded-lg bg-white shadow-card md:px-6 md:py-7 md:gap-4"
-                    v-for="(item, index) in dataOverviews"
-                    :key="index"
-                >
-                    <component :is="item.icon" class="w-9 h-9 grow-0 shrink-0" 
-                        :class="{
-                            'text-success-600' : item.icon == DepositIcon,
-                            'text-error-600' : item.icon == WithdrawalIcon,
-                            'text-orange' : item.icon == AgentIcon,
-                            'text-cyan' : item.icon == MemberIcon,
-                        }"
-                    />
-                    <span class="self-stretch text-gray-700 text-center text-sm font-medium">{{ item.label }}</span>
-                    <div class="self-stretch text-gray-950 text-center text-lg font-semibold md:text-xxl">
-                        <template v-if="item.icon === DepositIcon || item.icon === WithdrawalIcon">
-                            $&nbsp;<Vue3autocounter ref="counter" :startAmount="0" :endAmount="Number(item.total)" :duration="counterDuration" separator="," decimalSeparator="." :decimals="2" :autoinit="true" />
-                        </template>
-                        <template v-else>
-                            <Vue3autocounter ref="counter" :startAmount="0" :endAmount="Number(item.total)" :duration="counterDuration" separator="," decimalSeparator="." :decimals="0" :autoinit="true" />
-                        </template>
+                <!-- account listing and forum link -->
+                <div class="w-full flex flex-col items-center gap-3 md:gap-5">
+                    <div 
+                        class="w-full flex items-center py-2 px-3 gap-3 rounded-lg bg-white shadow-card md:py-3 md:px-6 cursor-pointer"
+                        @click="router.visit(route('member.account_listing'))"
+                    >
+                        <span class="w-full truncate text-gray-950 text-sm font-semibold md:text-base">{{ $t('public.ctrader_account_listing') }}</span>
+                        <Button
+                            variant="gray-text"
+                            size="sm"
+                            type="button"
+                            iconOnly
+                            v-slot="{ iconSizeClasses }"
+                        >
+                            <IconChevronRight size="16" stroke-width="1.25" color="#374151" />
+                        </Button>
+                    </div>
+                    
+                    <div 
+                        class="w-full flex items-center py-2 px-3 gap-3 rounded-lg bg-white shadow-card md:py-3 md:px-6 cursor-pointer"
+                        @click="router.visit(route('member.forum'))"
+                    >
+                        <span class="w-full truncate text-gray-950 text-sm font-semibold md:text-base">{{ $t('public.editing_forum') }}</span>
+                        <Button
+                            variant="gray-text"
+                            size="sm"
+                            type="button"
+                            iconOnly
+                            v-slot="{ iconSizeClasses }"
+                        >
+                            <IconChevronRight size="16" stroke-width="1.25" color="#374151" />
+                        </Button>
                     </div>
                 </div>
             </div>
-            <!-- account balance & equity, request -->
-            <div class="w-full grid grid-cols-1 gap-5 md:grid-cols-2">
-                <div class="w-full flex flex-col items-center px-3 py-5 gap-5 self-stretch rounded-lg bg-white shadow-card md:px-8 md:py-6 md:gap-8">
-                    <div class="w-full flex h-9 items-center self-stretch">
-                        <span class="w-full text-gray-950 font-bold">{{ $t('public.account_balance_equity') }}</span>
+
+            <div class="w-full h-full flex flex-col items-center gap-3 md:gap-5">
+                <!-- account balance & equity, request -->
+                <div class="w-full h-full flex flex-col items-center pt-2 pb-3 px-3 gap-3 rounded-lg bg-white shadow-card md:p-6 md:gap-8">
+                    <div class="w-full flex items-center md:h-9">
+                        <span class="w-full truncate text-gray-950 text-sm font-semibold md:text-base">{{ $t('public.account_balance_equity') }}</span>
                         <Button
                             variant="gray-text"
                             size="sm"
@@ -199,68 +304,63 @@ watchEffect(() => {
                             <IconRefresh size="16" stroke-width="1.25" color="#374151" />
                         </Button>
                     </div>
-                    <div class="w-full flex flex-col justify-center items-center gap-3 self-stretch md:gap-5">
-                        <div class="w-full flex flex-col justify-center items-center py-5 gap-1 self-stretch bg-gray-50 md:py-3">
-                            <span class="self-stretch text-gray-950 text-center text-lg font-semibold md:text-xxl">
-                                <Vue3autocounter ref="counterBalance" :startAmount="0" :endAmount="Number(balance || 0)" :duration="accountBalanceDuration" separator="," decimalSeparator="." :decimals="2" :autoinit="true" />
+
+                    <div class="w-full h-full flex justify-center items-center gap-2 md:flex-col md:gap-5 4xl:flex-row">
+                        <div class="w-full h-full flex flex-col justify-center items-center py-3 px-0.5 gap-1 bg-gray-50 md:px-0">
+                            <span class="w-full truncate text-gray-500 text-center text-xxs md:text-sm">{{ $t('public.total_balance') }}</span>
+                            <span class="w-full truncate text-gray-950 text-center font-semibold md:text-xl">
+                                $ <Vue3autocounter ref="counterBalance" :startAmount="0" :endAmount="Number(balance || 0)" :duration="accountBalanceDuration" separator="," decimalSeparator="." :decimals="2" :autoinit="true" />
                             </span>
-                            <span class="self-stretch text-gray-500 text-center text-sm">{{ $t('public.total_balance') }}</span>
                         </div>
-                        <div class="w-full flex flex-col justify-center items-center py-5 gap-1 self-stretch bg-gray-50 md:py-3">
-                            <span class="self-stretch text-gray-950 text-center text-lg font-semibold md:text-xxl">
-                                <Vue3autocounter ref="counterEquity" :startAmount="0" :endAmount="Number(equity || 0)" :duration="accountBalanceDuration" separator="," decimalSeparator="." :decimals="2" :autoinit="true" />
+
+                        <div class="w-full h-full flex flex-col justify-center items-center py-3 px-0.5 gap-1 bg-gray-50 md:px-0">
+                            <span class="w-full truncate text-gray-500 text-center text-xxs md:text-sm">{{ $t('public.total_equity') }}</span>
+                            <span class="w-full truncate text-gray-950 text-center font-semibold md:text-xl">
+                                $ <Vue3autocounter ref="counterEquity" :startAmount="0" :endAmount="Number(equity || 0)" :duration="accountBalanceDuration" separator="," decimalSeparator="." :decimals="2" :autoinit="true" />
                             </span>
-                            <span class="self-stretch text-gray-500 text-center text-sm">{{ $t('public.total_equity') }}</span>
                         </div>
                     </div>
                 </div>
-                <div class="w-full flex flex-col items-center gap-5">
-                    <div class="w-full flex flex-col items-start px-3 py-5 gap-4 self-stretch rounded-lg bg-white shadow-card md:p-6">
-                        <div class="flex items-center self-stretch">
-                            <span class="flex-1 text-gray-950 font-bold">{{ $t('public.dashboard_withdrawal_request') }}</span>
-                            <Button
-                                variant="gray-text"
-                                size="sm"
-                                type="button"
-                                iconOnly
-                                v-slot="{ iconSizeClasses }"
-                                :href="route('pending.withdrawal')"
-                            >
-                                <IconChevronRight size="16" stroke-width="1.25" color="#374151" />
-                            </Button>
-                        </div>
-                        <span class="self-stretch text-gray-950 text-xl font-semibold md:text-xxl">
-                            $&nbsp;<Vue3autocounter ref="counter" :startAmount="0" :endAmount="Number(pendingWithdrawal)" :duration="counterDuration" separator="," decimalSeparator="." :decimals="2" :autoinit="true" />
-                        </span>
-                        <div class="flex items-center gap-2">
-                            <Badge variant="numberBadge" class="text-white text-xs">{{ pendingWithdrawalCount }}</Badge>
-                            <span class="text-gray-500 text-sm">{{ $t('public.account_withdrawal_request') }}</span>
-                        </div>
+
+                <div class="w-full h-full flex flex-col items-center p-3 gap-3 rounded-lg bg-white shadow-card md:p-6 md:gap-8">
+                    <div class="w-full flex justify-between items-center">
+                        <Select
+                            v-model="selectedMonth"
+                            :options="months"
+                            optionLabel="name"
+                            optionValue="value"
+                            :placeholder="$t('public.month_placeholder')"
+                            class="w-full md:w-60 font-normal"
+                            scroll-height="236px"
+                        />
+                        <Button
+                            variant="gray-text"
+                            size="sm"
+                            type="button"
+                            iconOnly
+                            v-slot="{ iconSizeClasses }"
+                            @click="updateTradeLotVolume()"
+                        >
+                            <IconRefresh size="16" stroke-width="1.25" color="#374151" />
+                        </Button>
                     </div>
 
-                    <div class="w-full flex flex-col items-start px-3 py-5 gap-4 self-stretch rounded-lg bg-white shadow-card md:p-6">
-                        <div class="flex items-center self-stretch">
-                            <span class="flex-1 text-gray-950 font-bold">{{ $t('public.dashboard_incentive_request') }}</span>
-                            <Button
-                                variant="gray-text"
-                                size="sm"
-                                type="button"
-                                iconOnly
-                                v-slot="{ iconSizeClasses }"
-                                :href="route('pending.incentive')"
-                            >
-                                <IconChevronRight size="16" stroke-width="1.25" color="#374151" />
-                            </Button>
+
+                    <div class="w-full h-full flex justify-center items-center gap-2 md:flex-col md:gap-5 4xl:flex-row">
+                        <div class="w-full h-full flex flex-col justify-center items-center py-3 px-0.5 gap-1 bg-gray-50 md:px-0">
+                            <span class="w-full truncate text-gray-500 text-center text-xxs md:text-sm">{{ $t('public.total_trade_lots') }}</span>
+                            <span class="w-full truncate text-gray-950 text-center font-semibold md:text-xl">
+                                <Vue3autocounter ref="counterTradeLot" :startAmount="0" :endAmount="Number(trade_lot || 0)" :duration="tradeLotVolumeDuration" separator="," decimalSeparator="." :decimals="2" :autoinit="true" /> Ł
+                            </span>
                         </div>
-                        <span class="self-stretch text-gray-950 text-xl font-semibold md:text-xxl">
-                            $&nbsp;<Vue3autocounter ref="counter" :startAmount="0" :endAmount="Number(pendingIncentive)" :duration="counterDuration" separator="," decimalSeparator="." :decimals="2" :autoinit="true" />
-                        </span>
-                        <div class="flex items-center gap-2">
-                            <Badge variant="numberBadge" class="text-white text-xs">{{ pendingIncentiveCount }}</Badge>
-                            <span class="text-gray-500 text-sm">{{ $t('public.account_incentive_request') }}</span>
+
+                        <div class="w-full h-full flex flex-col justify-center items-center py-3 px-0.5 gap-1 bg-gray-50 md:px-0">
+                            <span class="w-full truncate text-gray-500 text-center text-xxs md:text-sm">{{ $t('public.total_trade_volume') }}</span>
+                            <span class="w-full truncate text-gray-950 text-center font-semibold md:text-xl">
+                                <Vue3autocounter ref="counterVolume" :startAmount="0" :endAmount="Number(volume || 0)" :duration="tradeLotVolumeDuration" separator="," decimalSeparator="." :decimals="0" :autoinit="true" />
+                            </span>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
