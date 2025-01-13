@@ -54,6 +54,7 @@ class RoleAndPermissionMiddleware
 
         $routeMapping = [
             'access_withdrawal_request' => 'pending.withdrawal',
+            'access_bonus_request'      => 'pending.bonus',
             'access_incentive_request'  => 'pending.incentive',
             'access_member_listing'     => 'member.listing',
             'access_member_network'     => 'member.network',

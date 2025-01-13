@@ -54,9 +54,9 @@ const changeLanguage = async (langVal) => {
                 :href="route('dashboard')"
             >
                 <img src="/img/logo.svg" alt="no data" class="w-7 h-7" />
-                <div class="flex flex-col items-start">
-                    <span class="text-gray-950 text-sm font-black tracking-[4.20px]">量子資本集團</span>
-                    <span class="text-gray-700 text-xxxs font-medium">QUANTUM CAPITAL GROUP</span>
+                <div class="hidden md:flex flex-col items-start">
+                    <span class="text-gray-950 text-sm font-bold">Quantum</span>
+                    <span class="text-gray-700 text-xxxs font-medium tracking-[1.04px]">Capital Group</span>
                 </div>
             </Link>
         </div>

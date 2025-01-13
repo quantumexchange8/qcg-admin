@@ -19,6 +19,11 @@ class PendingController extends Controller
         return Inertia::render('Pending/Withdrawal');
     }
 
+    public function bonus()
+    {
+        return Inertia::render('Pending/Bonus');
+    }
+
     public function incentive()
     {
         return Inertia::render('Pending/Incentive');
@@ -34,7 +39,7 @@ class PendingController extends Controller
         ])
             ->where('transaction_type', 'withdrawal')
             ->where('status', 'processing')
-            ->whereNot('category', 'incentive_wallet')
+            ->whereNotIn('category', ['incentive_wallet', 'bonus_wallet'])
             ->latest()
             ->get()
             ->map(function ($transaction) {
@@ -79,6 +84,61 @@ class PendingController extends Controller
         ]);
     }
             
+    public function getPendingBonusData()
+    {
+        $pendingBonus = Transaction::with([
+            'user:id,email,first_name',
+            'payment_account:id,payment_account_name,account_no',
+            'user.teamHasUser:id,team_id,user_id',
+            'user.teamHasUser.team:id,name,color'
+        ])
+            ->where('transaction_type', 'withdrawal')
+            ->where('status', 'processing')
+            ->where('category', 'bonus_wallet')
+            ->latest()
+            ->get()
+            ->map(function ($transaction) {
+                // Check if from_meta_login exists and fetch the latest balance
+                if ($transaction->from_meta_login) {
+                    // Only call getUserInfo in production
+                    if (app()->environment('production')) {
+                        // Call getUserInfo to ensure the balance is up to date
+                        (new CTraderService())->getUserInfo($transaction->from_meta_login); // Pass the from_meta_login object
+                    }
+                    
+                    // After calling getUserInfo, fetch the latest balance
+                    $balance = $transaction->from_meta_login->balance ?? 0;
+                } else {
+                    // Fallback to using the wallet balance if from_meta_login is not available
+                    $balance = $transaction->from_wallet->balance ?? 0;
+                }
+    
+                return [
+                    'id' => $transaction->id,
+                    'created_at' => $transaction->created_at,
+                    'user_name' => $transaction->user->first_name,
+                    'user_email' => $transaction->user->email,
+                    'from' => $transaction->from_meta_login ? $transaction->from_meta_login : 'bonus_wallet',
+                    'balance' => $balance, // Get balance after ensuring it's updated
+                    'amount' => $transaction->amount,
+                    'transaction_charges' => $transaction->transaction_charges,
+                    'transaction_amount' => $transaction->transaction_amount,
+                    'wallet_name' => $transaction->payment_account?->payment_account_name,
+                    'wallet_address' => $transaction->payment_account?->account_no,
+                    'team_id' => $transaction->user->teamHasUser->team_id ?? null,
+                    'team_name' => $transaction->user->teamHasUser->team->name ?? null,
+                    'team_color' => $transaction->user->teamHasUser->team->color ?? null,
+                ];
+            });
+    
+        $totalAmount = $pendingBonus->sum('amount');
+    
+        return response()->json([
+            'pendingBonus' => $pendingBonus,
+            'totalAmount' => $totalAmount,
+        ]);
+    }
+
     public function withdrawalApproval(Request $request)
     {
         $type = $request->type;

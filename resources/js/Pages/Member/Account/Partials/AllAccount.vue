@@ -149,7 +149,7 @@ watch(filters, (newFilters) => {
         lazy
         paginator
         removableSort
-        paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
+        paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport JumpToPageInput"
         :currentPageReportTemplate="$t('public.paginator_caption')"
         :first="first"
         :rows="10"

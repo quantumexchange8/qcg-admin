@@ -23,12 +23,14 @@ import { usePermission } from "@/Composables/index.js";
 const { hasRole, hasPermission } = usePermission();
 
 const pendingWithdrawals = ref(0);
+const pendingBonus = ref(0);
 const pendingIncentive = ref(0);
 
 const getPendingCounts = async () => {
     try {
         const response = await axios.get(route('dashboard.getPendingCounts'));
         pendingWithdrawals.value = response.data.pendingWithdrawals
+        pendingBonus.value = response.data.pendingBonus
         pendingIncentive.value = response.data.pendingIncentive
     } catch (error) {
         console.error('Error pending counts:', error);
@@ -84,6 +86,14 @@ watchEffect(() => {
                 :active="route().current('pending.withdrawal')"
                 :pendingCounts="pendingWithdrawals"
                 v-if="hasRole('super-admin') || hasPermission('access_withdrawal_request')"
+            />
+
+            <SidebarCollapsibleItem
+                :title="$t('public.bonus')"
+                :href="route('pending.bonus')"
+                :active="route().current('pending.bonus')"
+                :pendingCounts="pendingBonus"
+                v-if="hasRole('super-admin') || hasPermission('access_bonus_request')"
             />
 
             <SidebarCollapsibleItem

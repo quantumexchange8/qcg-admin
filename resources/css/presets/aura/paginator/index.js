@@ -15,6 +15,7 @@ export default {
             'text-gray-700',
 
             'text-sm',
+            '[&_[data-pc-name=pcjumptopageinput]]:max-w-20'
         ]
     },
     content: ({ context }) => ({

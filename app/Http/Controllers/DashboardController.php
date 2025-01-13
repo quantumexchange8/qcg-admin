@@ -26,7 +26,12 @@ class DashboardController extends Controller
 
     public function getPendingCounts()
     {
-        $pendingWithdrawals = Transaction::whereNot('category', 'incentive_wallet')
+        $pendingWithdrawals = Transaction::whereNotIn('category', ['incentive_wallet', 'bonus_wallet'])
+            ->where('transaction_type', 'withdrawal')
+            ->where('status', 'processing')
+            ->count();
+
+        $pendingBonus = Transaction::where('category', 'bonus_wallet')
             ->where('transaction_type', 'withdrawal')
             ->where('status', 'processing')
             ->count();
@@ -36,8 +41,10 @@ class DashboardController extends Controller
             ->where('status', 'processing')
             ->count();
 
+
         return response()->json([
             'pendingWithdrawals' => $pendingWithdrawals,
+            'pendingBonus' => $pendingBonus,
             'pendingIncentive' => $pendingIncentive,
         ]);
     }
@@ -128,16 +135,24 @@ class DashboardController extends Controller
 
     public function getPendingData()
     {
-        $pending_withdrawal = Transaction::where('transaction_type', 'withdrawal')
+        $pending_withdrawal = Transaction::whereNotIn('category', ['incentive_wallet', 'bonus_wallet'])
+            ->where('transaction_type', 'withdrawal')
             ->where('status', 'processing');
 
-        $pending_incentive = Transaction::where('transaction_type', 'incentive')
+        $pending_bonus = Transaction::where('category', 'bonus_wallet')
+            ->where('transaction_type', 'withdrawal')
+            ->where('status', 'processing');
+
+        $pending_incentive = Transaction::where('category', 'incentive_wallet')
+            ->where('transaction_type', 'withdrawal')
             ->where('status', 'processing');
 
         return response()->json([
             'pendingWithdrawal' => $pending_withdrawal->sum('transaction_amount'),
+            'pendingBonus' => $pending_bonus->sum('transaction_amount'),
             'pendingIncentive' => $pending_incentive->sum('transaction_amount'),
             'pendingWithdrawalCount' => $pending_withdrawal->count(),
+            'pendingBonusCount' => $pending_bonus->count(),
             'pendingIncentiveCount' => $pending_incentive->count(),
         ]);
     }

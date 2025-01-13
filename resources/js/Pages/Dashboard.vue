@@ -32,21 +32,25 @@ const { hasRole, hasPermission } = usePermission();
 
 const counterDuration = ref(10);
 
-const totalDeposit = ref(99999.00);
-const totalWithdrawal = ref(99999.00);
-const totalAgent = ref(99999.00);
-const totalMember = ref(99999.00);
+const totalDeposit = ref(0);
+const totalWithdrawal = ref(0);
+const totalAgent = ref(0);
+const totalMember = ref(0);
 
 const accountBalanceDuration = ref(10);
 const counterEquity = ref(null);
 const counterBalance = ref(null);
-const balance = ref(99999.00)
-const equity = ref(99999.00)
+const balance = ref(0)
+const equity = ref(0)
+const accountLoading = ref(false);
 
-const pendingWithdrawal = ref(99999.00);
+const pendingWithdrawal = ref(0);
 const pendingWithdrawalCount = ref(0);
-const pendingIncentive = ref(99999.00);
-const pendingIncentiveCount = ref(0);
+const pendingBonus = ref(0);
+const pendingBonusCount = ref(0);
+// const pendingIncentive = ref(0);
+// const pendingIncentiveCount = ref(0);
+const pendingLoading = ref(false);
 
 const selectedMonth = ref('');
 const months = ref(props.months);
@@ -54,8 +58,9 @@ const months = ref(props.months);
 const tradeLotVolumeDuration = ref(10);
 const counterTradeLot = ref(null);
 const counterVolume = ref(null);
-const trade_lot = ref(99999.00)
-const volume = ref(99999.00)
+const trade_lot = ref(0)
+const volume = ref(0)
+const tradeLotVolumeLoading = ref(false);
 
 // Watch for changes in the 'months' array and set 'selectedMonth' to the latest month
 watch(months, (newMonths) => {
@@ -81,10 +86,10 @@ const dataOverviews = computed(() => [
         route: 'pending/withdrawal',
     },
     {
-        pendingCount: pendingIncentiveCount.value,
-        total: pendingIncentive.value,
+        pendingCount: pendingBonusCount.value,
+        total: pendingBonus.value,
         label: trans('public.dashboard_bonus_request'),
-        route: 'pending/incentive',
+        route: 'pending/bonus',
     },
     {
         icon: AgentIcon,
@@ -137,6 +142,7 @@ const updateBalEquity = () => {
 }
 
 const getAccountData = async () => {
+    accountLoading.value = true;
     try {
         const response = await axios.get('dashboard/getAccountData');
         balance.value = response.data.totalBalance;
@@ -145,22 +151,31 @@ const getAccountData = async () => {
         accountBalanceDuration.value = 1
     } catch (error) {
         console.error('Error accounts data:', error);
+        accountLoading.value = false;
+    } finally {
+        accountBalanceDuration.value = 1
+        accountLoading.value = false;
     }
 };
 
 getAccountData();
 
 const getPendingData = async () => {
+    pendingLoading.value = true;
     try {
         const response = await axios.get('dashboard/getPendingData');
         pendingWithdrawal.value = response.data.pendingWithdrawal;
         pendingWithdrawalCount.value = response.data.pendingWithdrawalCount;
-        pendingIncentive.value = response.data.pendingIncentive;
-        pendingIncentiveCount.value = response.data.pendingIncentiveCount;
+        pendingBonus.value = response.data.pendingBonus;
+        pendingBonusCount.value = response.data.pendingBonusCount;
+        // pendingIncentive.value = response.data.pendingIncentive;
+        // pendingIncentiveCount.value = response.data.pendingIncentiveCount;
     } catch (error) {
         console.error('Error pending data:', error);
+        pendingLoading.value = false;
     } finally {
         counterDuration.value = 1
+        pendingLoading.value = false;
     }
 };
 
@@ -181,6 +196,7 @@ const updateTradeLotVolume = () => {
 }
 
 const getTradeRebateSummaryData = async () => {
+    tradeLotVolumeLoading.value = true;
     try {
         const response = await axios.get(`dashboard/getTradeRebateSummaryData?selectedMonth=${selectedMonth.value}`);
         
@@ -191,6 +207,10 @@ const getTradeRebateSummaryData = async () => {
         tradeLotVolumeDuration.value = 1;
     } catch (error) {
         console.error('Error fetching data:', error);
+        tradeLotVolumeLoading.value = false;
+    } finally {
+        tradeLotVolumeDuration.value = 1
+        tradeLotVolumeLoading.value = false;
     }
 };
 
@@ -237,13 +257,16 @@ watch(() => usePage().props, (newProps, oldProps) => {
 
                             <div class="w-full grid grid-cols-1 items-end gap-1">
                                 <span class="self-stretch truncate text-gray-500 text-right text-xxs md:text-sm">{{ item.label }}</span>
-                                <span class="self-stretch truncate text-gray-950 text-right font-semibold md:text-xl">
+                                <span v-if="(item.total || item.total === 0) && !pendingLoading" class="self-stretch truncate text-gray-950 text-right font-semibold md:text-xl">
                                     <template v-if="item.icon === AgentIcon || item.icon === MemberIcon">
-                                        <Vue3autocounter ref="counter" :startAmount="0" :endAmount="Number(item.total)" :duration="counterDuration" separator="," decimalSeparator="." :decimals="0" :autoinit="true" />
+                                        {{ formatAmount(item.total, 0) }}
                                     </template>
                                     <template v-else>
-                                        $&nbsp;<Vue3autocounter ref="counter" :startAmount="0" :endAmount="Number(item.total)" :duration="counterDuration" separator="," decimalSeparator="." :decimals="2" :autoinit="true" />
+                                        $ {{ formatAmount(item.total) }}
                                     </template>
+                                </span>
+                                <span v-else class="self-stretch truncate text-gray-950 text-right font-semibold md:text-xl animate-pulse flex justify-end">
+                                    <div class="h-2.5 bg-gray-200 rounded-full w-1/3"></div>
                                 </span>
                             </div>
                         </div>
@@ -308,15 +331,21 @@ watch(() => usePage().props, (newProps, oldProps) => {
                     <div class="w-full h-full flex justify-center items-center gap-2 md:flex-col md:gap-5 4xl:flex-row">
                         <div class="w-full h-full grid grid-cols-1 justify-center items-center py-3 px-0.5 gap-1 bg-gray-50 md:px-0">
                             <span class="w-full truncate text-gray-500 text-center text-xxs md:text-sm">{{ $t('public.total_balance') }}</span>
-                            <span class="w-full truncate text-gray-950 text-center font-semibold md:text-xl">
-                                $ <Vue3autocounter ref="counterBalance" :startAmount="0" :endAmount="Number(balance || 0)" :duration="accountBalanceDuration" separator="," decimalSeparator="." :decimals="2" :autoinit="true" />
+                            <span v-if="(balance || balance === 0) && !accountLoading" class="w-full truncate text-gray-950 text-center font-semibold md:text-xl">
+                                $ {{ formatAmount(balance) }}
+                            </span>
+                            <span v-else class="self-stretch truncate text-gray-950 text-right font-semibold md:text-xl animate-pulse flex justify-center items-center">
+                                <div class="h-2.5 bg-gray-200 rounded-full w-1/3"></div>
                             </span>
                         </div>
 
                         <div class="w-full h-full grid grid-cols-1 justify-center items-center py-3 px-0.5 gap-1 bg-gray-50 md:px-0">
                             <span class="w-full truncate text-gray-500 text-center text-xxs md:text-sm">{{ $t('public.total_equity') }}</span>
-                            <span class="w-full truncate text-gray-950 text-center font-semibold md:text-xl">
-                                $ <Vue3autocounter ref="counterEquity" :startAmount="0" :endAmount="Number(equity || 0)" :duration="accountBalanceDuration" separator="," decimalSeparator="." :decimals="2" :autoinit="true" />
+                            <span v-if="(equity || equity === 0) && !accountLoading" class="w-full truncate text-gray-950 text-center font-semibold md:text-xl">
+                                $ {{ formatAmount(equity) }}
+                            </span>
+                            <span v-else class="self-stretch truncate text-gray-950 text-right font-semibold md:text-xl animate-pulse flex justify-center items-center">
+                                <div class="h-2.5 bg-gray-200 rounded-full w-1/3"></div>
                             </span>
                         </div>
                     </div>
@@ -349,15 +378,21 @@ watch(() => usePage().props, (newProps, oldProps) => {
                     <div class="w-full h-full flex justify-center items-center gap-2 md:flex-col md:gap-5 4xl:flex-row">
                         <div class="w-full h-full grid grid-cols-1 justify-center items-center py-3 px-0.5 gap-1 bg-gray-50 md:px-0">
                             <span class="w-full truncate text-gray-500 text-center text-xxs md:text-sm">{{ $t('public.total_trade_lots') }}</span>
-                            <span class="w-full truncate text-gray-950 text-center font-semibold md:text-xl">
-                                <Vue3autocounter ref="counterTradeLot" :startAmount="0" :endAmount="Number(trade_lot || 0)" :duration="tradeLotVolumeDuration" separator="," decimalSeparator="." :decimals="2" :autoinit="true" /> Ł
+                            <span v-if="(trade_lot || trade_lot === 0) && !tradeLotVolumeLoading" class="w-full truncate text-gray-950 text-center font-semibold md:text-xl">
+                                {{ formatAmount(trade_lot) }} Ł
+                            </span>
+                            <span v-else class="self-stretch truncate text-gray-950 text-right font-semibold md:text-xl animate-pulse flex justify-center items-center">
+                                <div class="h-2.5 bg-gray-200 rounded-full w-1/3"></div>
                             </span>
                         </div>
 
                         <div class="w-full h-full grid grid-cols-1 justify-center items-center py-3 px-0.5 gap-1 bg-gray-50 md:px-0">
                             <span class="w-full truncate text-gray-500 text-center text-xxs md:text-sm">{{ $t('public.total_trade_volume') }}</span>
-                            <span class="w-full truncate text-gray-950 text-center font-semibold md:text-xl">
-                                <Vue3autocounter ref="counterVolume" :startAmount="0" :endAmount="Number(volume || 0)" :duration="tradeLotVolumeDuration" separator="," decimalSeparator="." :decimals="0" :autoinit="true" />
+                            <span v-if="(volume || volume === 0) && !tradeLotVolumeLoading" class="w-full truncate text-gray-950 text-center font-semibold md:text-xl">
+                                {{ formatAmount(volume, 0) }}
+                            </span>
+                            <span v-else class="self-stretch truncate text-gray-950 text-right font-semibold md:text-xl animate-pulse flex justify-center items-center">
+                                <div class="h-2.5 bg-gray-200 rounded-full w-1/3"></div>
                             </span>
                         </div>
                     </div>

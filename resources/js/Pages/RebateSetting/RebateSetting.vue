@@ -136,7 +136,7 @@ watchEffect(() => {
                         <div
                             v-else
                             v-for="index in 5"
-                            class="flex items-center w-full self-stretch py-2 text-gray-950"
+                            class="flex items-center w-full self-stretch py-2 text-gray-950 animate-pulse"
                         >
                             <div class="w-full">
                                 <div class="h-2.5 bg-gray-200 rounded-full w-36 mt-1 mb-1.5"></div>
