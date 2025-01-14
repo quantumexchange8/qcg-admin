@@ -4,11 +4,12 @@ namespace App\Jobs;
 
 use App\Models\TradingUser;
 use Illuminate\Bus\Queueable;
-use App\Models\TradingAccount;
 use App\Services\CTraderService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Queue\SerializesModels;
+use App\Services\Data\UpdateTradingUser;
 use Illuminate\Queue\InteractsWithQueue;
+use App\Services\Data\UpdateTradingAccount;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 
@@ -24,22 +25,27 @@ class UpdateCTraderAccountJob implements ShouldQueue
 
     public function handle(): void
     {
-        // Process accounts in batches of 100 (adjust as needed)
-        TradingAccount::where('account_type_id', 1)
+        // Process only active accounts in batches of 100 (adjust as needed)
+        TradingUser::where('acc_status', 'active')
             ->chunk(100, function ($trading_accounts) {
                 foreach ($trading_accounts as $account) {
                     try {
-                        // Attempt to get user info from CTraderService
-                        (new CTraderService())->getUserInfo($account->meta_login);
-                    } catch (\Illuminate\Http\Client\RequestException $e) {
-                        // Log the error message for 404 errors or other HTTP issues
-                        Log::error("Failed to refresh account {$account->meta_login}: {$e->getMessage()}");
-        
-                        // If the error is a 404, update the acc_status to "inactive"
-                        if ($e->response->status() == 404) {
-                            TradingUser::where('meta_login', $account->meta_login)
-                                ->update(['acc_status' => 'inactive']);
+                        // Attempt to fetch user data
+                        $accData = (new CTraderService())->getUser($account->meta_login);
+
+                        // If no data is returned (null or empty), mark the account as inactive
+                        if (empty($accData)) {
+                            if ($account->acc_status !== 'inactive') {
+                                $account->update(['acc_status' => 'inactive']);
+                            }
+                        } else {
+                            // Proceed with updating account information
+                            (new UpdateTradingUser)->execute($account->meta_login, $accData);
+                            (new UpdateTradingAccount)->execute($account->meta_login, $accData);
                         }
+                    } catch (\Exception $e) {
+                        // Log the error message for issues such as network errors, timeouts, etc.
+                        Log::error("Failed to refresh account {$account->meta_login}: {$e->getMessage()}");
                     }
                 }
             });
