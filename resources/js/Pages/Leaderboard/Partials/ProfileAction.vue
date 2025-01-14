@@ -66,8 +66,7 @@ const requireConfirmation = (action_type) => {
             cancelButton: trans('public.cancel'),
             acceptButton: trans('public.delete'),
             action: () => {
-                router.visit(route('leaderboard.deleteIncentiveProfile'), {
-                    method: 'delete',
+                router.delete(route('leaderboard.deleteIncentiveProfile'), {
                     data: {
                         id: props.profile.id,
                     },

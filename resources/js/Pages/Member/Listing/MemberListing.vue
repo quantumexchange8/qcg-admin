@@ -34,7 +34,11 @@ const loading = ref(false);
 const totalRecords = ref(0);
 const users = ref(null);
 const selectedBrand = ref(null);
+const rows = ref(10);
+const page = ref(0);
 const first = ref(0);
+const sortField = ref(null);  
+const sortOrder = ref(null);  // (1 for ascending, -1 for descending)
 const {formatRgbaColor} = generalFormat();
 const total_members = ref(0);
 const total_agents = ref(0);
@@ -59,88 +63,15 @@ const selectedType = ref(type.value || 'member');
 const activeIndex = ref(tabs.value.findIndex(tab => tab.type === selectedType.value));
 
 const filters = ref({
-    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    type: { value: selectedType.value, matchMode: FilterMatchMode.EQUALS },
-    team_id: { value: null, matchMode: FilterMatchMode.EQUALS }
+    global: '',
+    team_id: null
 });
 
-const lazyParams = ref({});
+// Watch for changes on the entire 'filters' object and debounce the API call
+watch(filters, debounce(() => {
+    getResults(); // Call getResults function to fetch the data
+}, 1000), { deep: true });
 
-const loadLazyData = (event) => {
-    loading.value = true;
-
-    lazyParams.value = { ...lazyParams.value, first: event?.first || first.value };
-
-    try {
-        setTimeout(async () => {
-            const params = {
-                page: JSON.stringify(event?.page + 1),
-                sortField: event?.sortField,
-                sortOrder: event?.sortOrder,
-                include: [],
-                lazyEvent: JSON.stringify(lazyParams.value)
-            };
-
-            const url = route('member.getMemberListingPaginate', params);
-            const response = await fetch(url);
-            const results = await response.json();
-
-            users.value = results?.data?.data;
-            totalRecords.value = results?.data?.total;
-            total_members.value = results.total_members;
-            total_agents.value = results.total_agents;
-
-            // Update the total counts in the tabs array
-            tabs.value = tabs.value.map(tab => ({
-                ...tab,
-                total: tab.type === 'member' ? total_members.value : total_agents.value
-            }));
-
-            loading.value = false;
-        }, 100);
-    }  catch (e) {
-        users.value = [];
-        totalRecords.value = 0;
-        loading.value = false;
-    }
-};
-const onPage = (event) => {
-    lazyParams.value = event;
-    loadLazyData(event);
-};
-const onSort = (event) => {
-    lazyParams.value = event;
-    loadLazyData(event);
-};
-const onFilter = (event) => {
-    lazyParams.value.filters = filters.value ;
-    loadLazyData(event);
-    filteredValue.value = event.filteredValue;
-    console.log(event)
-};
-
-onMounted(() => {
-    lazyParams.value = {
-        first: dt.value.first,
-        rows: dt.value.rows,
-        sortField: null,
-        sortOrder: null,
-        filters: filters.value
-    };
-
-    loadLazyData();
-});
-
-watch(
-    filters.value['global'],
-    debounce(() => {
-        loadLazyData();
-    }, 1000)
-);
-
-watch([filters.value['type'], filters.value['team_id']], () => {
-    loadLazyData()
-});
 
 // Watch for changes in selectedType and update the activeIndex accordingly
 watch(selectedType, (newType) => {
@@ -153,51 +84,115 @@ watch(selectedType, (newType) => {
 
 function updateType(event) {
     const selectedTab = tabs.value[event.index];
-    filters.value['type'].value = selectedTab.type;
+    selectedType.value = selectedTab.type;
 }
 
-const clearFilter = () => {
-    filters.value['global'].value = null;
-    filters.value['team_id'].value = null;
+const getResults = async () => {
+    loading.value = true;
+    try {
+        // Directly construct the URL with necessary query parameters
+        let url = `/member/getMemberListingPaginate?type=${selectedType.value}&rows=${rows.value}&page=${page.value}`;
+
+        // Add filters if present
+        if (filters.value.global) {
+            url += `&search=${filters.value.global}`;
+        }
+
+        if (filters.value.team_id) {
+            url += `&team_id=${filters.value.team_id?.value}`;
+        }
+
+        if (sortField.value && sortOrder.value !== null) {
+            url += `&sortField=${sortField.value}&sortOrder=${sortOrder.value}`;
+        }
+
+        // Make the API request
+        const response = await axios.get(url);
+        const results = response.data;
+
+        // Directly set the results data
+        users.value = results?.data?.data || [];
+        totalRecords.value = results?.data?.total || 0;
+        total_members.value = results?.total_members || 0;
+        total_agents.value = results?.total_agents || 0;
+
+        // Update the total counts in the tabs array
+        tabs.value = tabs.value.map(tab => ({
+            ...tab,
+            total: tab.type === 'member' ? total_members.value : total_agents.value
+        }));
+
+    } catch (error) {
+        console.error('Error fetching leads data:', error);
+        users.value = [];
+    } finally {
+        loading.value = false;
+    }
 };
 
-const clearFilterGlobal = () => {
-    filters.value['global'].value = null;
-}
+const onPage = async (event) => {
+    rows.value = event.rows;
+    page.value = event.page;
 
-const exportMember = () => {
+    getResults();
+};
+
+const onSort = (event) => {
+    sortField.value = event.sortField;
+    sortOrder.value = event.sortOrder;  // Store ascending or descending order
+
+    getResults();
+};
+
+onMounted(() => {
+    getResults();
+});
+
+// Optimized exportMember function without using constructUrl
+const exportMember = async () => {
     exportStatus.value = true;
-    loading.value = true;
-
-    lazyParams.value = { ...lazyParams.value, first: event?.first || first.value };
-
-    const params = {
-        page: JSON.stringify(event?.page + 1),
-        sortField: event?.sortField,
-        sortOrder: event?.sortOrder,
-        include: [],
-        lazyEvent: JSON.stringify(lazyParams.value),
-        exportStatus: true,
-    };
-
-    const url = route('member.getMemberListingPaginate', params);  // Construct the export URL
-
     try {
-        // Send the request to the backend to trigger the export
+        // Directly construct the URL with exportStatus for export
+        let url = `/member/getMemberListingPaginate?type=${selectedType.value}`;
+
+        // Add filters if present
+        if (filters.value.global) {
+            url += `&search=${filters.value.global}`;
+        }
+
+        if (filters.value.team_id) {
+            url += `&team_id=${filters.value.team_id?.value}`;
+        }
+
+        if (exportStatus.value === true) {
+            url += `&exportStatus=${exportStatus.value}`;
+        }
+        
+        // Send the request to trigger the export
         window.location.href = url;  // This will trigger the download directly
     } catch (e) {
-        console.error('Error occurred during export:', e);  // Log the error if any
+        console.error('Error occurred during export:', e);
     } finally {
         loading.value = false;  // Reset loading state
         exportStatus.value = false;  // Reset export status
     }
 };
 
+const clearFilter = () => {
+    filters.value['global'] = '';
+    filters.value['team_id'] = null;
+};
+
+const clearFilterGlobal = () => {
+    filters.value['global'] = '';
+}
+
 watchEffect(() => {
     if (usePage().props.toast !== null) {
-        loadLazyData();
+        getResults();
     }
 });
+
 </script>
 
 <template>
@@ -248,19 +243,17 @@ watchEffect(() => {
                     lazy
                     paginator
                     removableSort
-                    paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
+                    paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport JumpToPageInput"
                     :currentPageReportTemplate="$t('public.paginator_caption')"
                     :first="first"
-                    :rows="10"
-                    v-model:filters="filters"
+                    :rows="rows"
+                    :page="page"
                     ref="dt"
                     dataKey="id"
                     :totalRecords="totalRecords"
                     :loading="loading"
                     @page="onPage($event)"
                     @sort="onSort($event)"
-                    @filter="onFilter($event)"
-                    :globalFilterFields="['first_name', 'email', 'id_number']"
                     v-model:selection="selectedBrand"
                 >
                     <template #header>
@@ -271,13 +264,13 @@ watchEffect(() => {
                                         <IconSearch size="20" stroke-width="1.25" />
                                     </div>
                                     <InputText
-                                        v-model="filters['global'].value"
+                                        v-model="filters['global']"
                                         :placeholder="$t('public.keyword_search')"
                                         size="search"
                                         class="font-normal w-full md:w-60"
                                     />
                                     <div
-                                        v-if="filters['global'].value !== null"
+                                        v-if="filters['global'] !== null && filters['global'] !== ''"
                                         class="absolute top-2/4 -mt-2 right-4 text-gray-300 hover:text-gray-400 select-none cursor-pointer"
                                         @click="clearFilterGlobal"
                                     >
@@ -285,7 +278,7 @@ watchEffect(() => {
                                     </div>
                                 </div>
                                 <Select
-                                    v-model="filters['team_id'].value"
+                                    v-model="filters['team_id']"
                                     :options="teams"
                                     filter
                                     :filterFields="['name']"

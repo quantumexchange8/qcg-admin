@@ -87,11 +87,8 @@ const requireConfirmation = (action_type) => {
             cancelButton: trans('public.cancel'),
             acceptButton: trans('public.activate'),
             action: () => {
-                router.visit(route('adminRole.updateAdminStatus', props.admin.id), {
-                    method: 'post',
-                    data: {
-                        id: props.admin.id,
-                    },
+                router.post(route('adminRole.updateAdminStatus', props.admin.id), {
+                    id: props.admin.id,
                 })
 
                 checked.value = !checked.value;
@@ -106,11 +103,8 @@ const requireConfirmation = (action_type) => {
             cancelButton: trans('public.cancel'),
             acceptButton: trans('public.deactivate'),
             action: () => {
-                router.visit(route('adminRole.updateAdminStatus', props.admin.id), {
-                    method: 'post',
-                    data: {
-                        id: props.admin.id,
-                    },
+                router.post(route('adminRole.updateAdminStatus', props.admin.id), {
+                    id: props.admin.id,
                 })
 
                 checked.value = !checked.value;
@@ -125,8 +119,7 @@ const requireConfirmation = (action_type) => {
             cancelButton: trans('public.cancel'),
             acceptButton: trans('public.delete'),
             action: () => {
-                router.visit(route('adminRole.deleteAdmin'), {
-                    method: 'delete',
+                router.delete(route('adminRole.deleteAdmin'), {
                     data: {
                         id: props.admin.id,
                     },

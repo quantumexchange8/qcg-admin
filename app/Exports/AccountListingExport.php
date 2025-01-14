@@ -9,32 +9,44 @@ class AccountListingExport implements FromCollection, WithHeadings
 {
     protected $accounts;
 
-    public function __construct($accounts)
+    public function __construct($query)
     {
-        $this->accounts = $accounts;
+        // Eager load the necessary relationships and select specific columns
+        $this->accounts = $query->select([
+            'id',
+            'user_id',
+            'meta_login',
+            'balance',
+            'credit',
+            'created_at',
+        ])
+        ->with([
+            'userData:id,first_name,email',  // Only load necessary columns from userData
+            'trading_account:id,meta_login,equity'  // Only load necessary columns from trading_account
+        ])
+        ->where('acc_status', 'active')
+        ->get();
     }
 
     public function collection()
     {
-        // Fetch accounts
-        $accounts = $this->accounts->select([
-            'users.first_name as name',
-            'users.email',
-            'trading_users.meta_login as account',
-            'trading_accounts.balance as balance',
-            'trading_accounts.equity as equity',
-            'trading_accounts.credit as credit',
-            'trading_users.created_at as joined_date',
-        ])->get();
-    
-        // Use foreach to replace null values with 0
-        foreach ($accounts as $account) {
-            $account->balance = $account->balance ? $account->balance : '0';  // Replace null balance with 0
-            $account->equity = $account->equity ? $account->balance : '0';    // Replace null equity with 0
-            $account->credit = $account->credit ? $account->balance : '0';    // Replace null credit with 0
+        $data = [];
+
+        // Loop through each account to gather the necessary data
+        foreach ($this->accounts as $account) {
+            // Prepare the formatted data for export
+            $data[] = [
+                'name' => $account->userData->first_name ?? '',
+                'email' => $account->userData->email ?? '',
+                'account' => $account->meta_login,
+                'balance' => $account->balance ? $account->balance : '0',
+                'equity' => $account->trading_account->equity ? $account->trading_account->equity : '0',
+                'credit' => $account->credit ? $account->credit : '0',
+                'joined_date' => $account->created_at ? $account->created_at->format('Y-m-d') : '',
+            ];
         }
 
-        return $accounts;
+        return collect($data);
     }
 
     public function headings(): array

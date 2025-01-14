@@ -92,67 +92,67 @@ class MemberController extends Controller
 
     public function getMemberListingPaginate(Request $request)
     {
-        if ($request->has('lazyEvent')) {
-            $data = json_decode($request->only(['lazyEvent'])['lazyEvent'], true);
 
-            $query = User::with(['teamHasUser.team'])
-                ->where('role', $data['filters']['type']['value']);
+        $type = $request->input('type');
+        $query = User::with(['teamHasUser.team'])
+            ->where('role', $type);
 
-            if ($data['filters']['global']['value']) {
-                $query->where(function ($query) use ($data) {
-                    $keyword = $data['filters']['global']['value'];
+        $search = $request->input('search');
+        if ($search) {
+            $query->where(function ($query) use ($search) {
+                $keyword = $search;
 
-                    $query->where('first_name', 'like', '%' . $keyword . '%')
-                        ->orWhere('email', 'like', '%' . $keyword . '%')
-                        ->orWhere('id_number', 'like', '%' . $keyword . '%');
-                });
-            }
-
-            if ($data['filters']['team_id']['value']) {
-                $query->whereHas('teamHasUser', function ($query) use ($data) {
-                    $query->where('team_id', $data['filters']['team_id']['value']['value']);
-                });
-            }
-
-            if ($data['sortField'] && $data['sortOrder']) {
-                $order = $data['sortOrder'] == 1 ? 'asc' : 'desc';
-                $query->orderBy($data['sortField'], $order);
-            } else {
-                $query->latest();
-            }
-
-            // Export logic
-            if ($request->has('exportStatus') && $request->exportStatus == true) {
-                $members = $query; // Fetch all members for export
-                return Excel::download(new MemberListingExport($members), now() . '-report.xlsx');
-            }
-
-            $users = $query
-                ->select([
-                    'id',
-                    'first_name',
-                    'email',
-                    'id_number',
-                    'role',
-                    'email_verified_at',
-                    'status',
-                    'upline_id',
-                    'hierarchyList'
-                ])
-                ->paginate($data['rows']);
-
-            $memberCount = User::where('role', 'member')->count();
-            $agentCount = User::where('role', 'agent')->count();
-
-            return response()->json([
-                'success' => true,
-                'data' => $users,
-                'total_members' => $memberCount,
-                'total_agents' => $agentCount,
-            ]);
+                $query->where('first_name', 'like', '%' . $keyword . '%')
+                    ->orWhere('email', 'like', '%' . $keyword . '%')
+                    ->orWhere('id_number', 'like', '%' . $keyword . '%');
+            });
         }
 
-        return response()->json(['success' => false, 'data' => []]);
+        $team_id = $request->input('team_id');
+        if ($team_id) {
+            $query->whereHas('teamHasUser', function ($query) use ($team_id) {
+                $query->where('team_id', $team_id);
+            });
+        }
+
+        // Handle sorting
+        $sortField = $request->input('sortField', 'created_at'); // Default to 'created_at'
+        $sortOrder = $request->input('sortOrder', -1); // 1 for ascending, -1 for descending
+        $query->orderBy($sortField, $sortOrder == 1 ? 'asc' : 'desc');
+
+        // Handle pagination
+        $rowsPerPage = $request->input('rows', 15); // Default to 15 if 'rows' not provided
+        $currentPage = $request->input('page', 0) + 1; // Laravel uses 1-based page numbers, PrimeVue uses 0-based
+        
+        // Export logic
+        if ($request->has('exportStatus') && $request->exportStatus === 'true') {
+            $members = $query; // Fetch all members for export
+            return Excel::download(new MemberListingExport($members), now() . '-members.xlsx');
+        }
+
+        $users = $query
+            ->select([
+                'id',
+                'first_name',
+                'email',
+                'id_number',
+                'role',
+                'email_verified_at',
+                'status',
+                'upline_id',
+                'hierarchyList'
+            ])
+            ->paginate($rowsPerPage, ['*'], 'page', $currentPage);
+
+        $memberCount = User::where('role', 'member')->count();
+        $agentCount = User::where('role', 'agent')->count();
+
+        return response()->json([
+            'success' => true,
+            'data' => $users,
+            'total_members' => $memberCount,
+            'total_agents' => $agentCount,
+        ]);
     }
 
     public function addNewMember(AddMemberRequest $request)

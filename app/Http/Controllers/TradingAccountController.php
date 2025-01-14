@@ -134,195 +134,165 @@ class TradingAccountController extends Controller
 
     public function getAccountListingPaginate(Request $request)
     {
-        if ($request->has('lazyEvent')) {
-            $data = json_decode($request->only(['lazyEvent'])['lazyEvent'], true);
 
-            $type = $request->type;
+        $type = $request->type;
 
-            if ($type === 'all') {
-                $inactiveThreshold = now()->subDays(90)->startOfDay();
+        if ($type === 'all') {
+            $inactiveThreshold = now()->subDays(90)->startOfDay();
 
-                $query = TradingUser::query()
-                    ->with(['userData:id,first_name,email', 'trading_account:id,meta_login,equity,status', 'accountType']) // Eager load related models
-                    ->where('acc_status', 'active');
+            $query = TradingUser::query()
+                ->with(['userData:id,first_name,email', 'trading_account:id,meta_login,equity,status', 'accountType']) // Eager load related models
+                ->where('acc_status', 'active');
+
+            // Filters
+            $search = $request->input('search');
+            if ($search) {
+                $keyword = $search;
+                $query->where(function ($query) use ($keyword) {
+                    $query->whereHas('userData', function ($query) use ($keyword) {
+                        $query->where('first_name', 'like', '%' . $keyword . '%')
+                                ->orWhere('email', 'like', '%' . $keyword . '%');
+                    })
+                    ->orWhere('meta_login', 'like', '%' . $keyword . '%');
+                });
+            }
+
+            $account_type = $request->input('account_type_id');
+            if ($account_type) {
+                $query->where('account_type_id', $account_type);
+            }
+
+            // Handle sorting
+            $sortField = $request->input('sortField', 'meta_login'); // Default to 'created_at'
+            $sortOrder = $request->input('sortOrder', -1); // 1 for ascending, -1 for descending
+            $query->orderBy($sortField, $sortOrder == 1 ? 'asc' : 'desc');
+
+            // Handle pagination
+            $rowsPerPage = $request->input('rows', 15); // Default to 15 if 'rows' not provided
+            $currentPage = $request->input('page', 0) + 1; // Laravel uses 1-based page numbers, PrimeVue uses 0-based
+
+            // Export logic
+            if ($request->has('exportStatus') && $request->exportStatus === 'true') {
+                $accounts = $query->clone();
+                return Excel::download(new AccountListingExport($accounts), now() . '-accounts.xlsx');
+            }
+
+            // // Now re-fetch the data after updating the statuses
+            $accounts = $query
+                ->select([
+                    'id',
+                    'user_id',
+                    'meta_login',
+                    'account_type',
+                    'balance',
+                    'credit',
+                    'leverage',
+                    'last_access as last_login',
+                    'created_at',
+                ])
+                ->where('acc_status', 'active')
+                ->paginate($rowsPerPage, ['*'], 'page', $currentPage);
+
+            // After the accounts are retrieved, you can access `getFirstMediaUrl` for each user using foreach
+            foreach ($accounts as $account) {
+                $account->name = $account->userData->first_name;
+                $account->email = $account->userData->email;
+                $account->equity = $account->trading_account->equity;
+                $account->account_type_id = $account->accountType->id;
+                $account->account_type = $account->accountType->name;
+                // Calculate `is_active` dynamically
+                $account->is_active = (
+                    ($account->last_login >= $inactiveThreshold) ||
+                    ($account->created_at >= $inactiveThreshold) ||
+                    ($account->balance > 0) ||
+                    ($account->credit > 0) ||
+                    ($account->equity > 0)
+                );
+
+                $account->status = $account->trading_account->status;
+
+                // Remove unnecessary nested data (users and trading_account)
+                unset($account->userData);
+                unset($account->trading_account);
+                unset($account->accountType);
+            }
+
+            // After the status update, return the re-fetched paginated data
+            return response()->json([
+                'success' => true,
+                'data' => $accounts,
+            ]);
+        } else {
+            // Handle inactive accounts or other types
+            $query = TradingUser::onlyTrashed()
+                ->withTrashed(['userData:id,first_name,email', 'trading_account:id,meta_login,equity,status', 'accountType']); // Eager load related models
 
                 // Filters
-                if ($data['filters']['global']['value']) {
-                    $keyword = $data['filters']['global']['value'];
+                $search = $request->input('search');
+                if ($search) {
+                    $keyword = $search;
                     $query->where(function ($query) use ($keyword) {
                         $query->whereHas('userData', function ($query) use ($keyword) {
                             $query->where('first_name', 'like', '%' . $keyword . '%')
-                                  ->orWhere('email', 'like', '%' . $keyword . '%');
+                                    ->orWhere('email', 'like', '%' . $keyword . '%');
                         })
                         ->orWhere('meta_login', 'like', '%' . $keyword . '%');
                     });
                 }
 
-                if ($data['filters']['account_type_id']['value']) {
-                    $query->where('account_type_id', $data['filters']['account_type_id']['value']);
+                $account_type = $request->input('account_type_id');
+                if ($account_type) {
+                    $query->where('account_type_id', $account_type);
                 }
 
-                if (isset($data['sortField']) && isset($data['sortOrder'])) {
-                    $order = $data['sortOrder'] == 1 ? 'asc' : 'desc';
-                    $query->orderBy($data['sortField'], $order);
-                } else {
-                    $query->orderByDesc('meta_login'); // Default sorting
-                }
+                // Handle sorting
+                $sortField = $request->input('sortField', 'meta_login'); // Default to 'created_at'
+                $sortOrder = $request->input('sortOrder', -1); // 1 for ascending, -1 for descending
+                $query->orderBy($sortField, $sortOrder == 1 ? 'asc' : 'desc');
+
+                // Handle pagination
+                $rowsPerPage = $request->input('rows', 15); // Default to 15 if 'rows' not provided
+                $currentPage = $request->input('page', 0) + 1; // Laravel uses 1-based page numbers, PrimeVue uses 0-based
 
                 // Export logic
-                if ($request->has(key: 'exportStatus') && $request->exportStatus == true) {
-                    $accounts = $query->clone();
+                if ($request->has('exportStatus') && $request->exportStatus === 'true') {
+                    $accounts = $query;
                     return Excel::download(new AccountListingExport($accounts), now() . '-accounts.xlsx');
                 }
 
-                // // Fetch the accounts with selected fields and pagination
-                // $accounts = $query
-                //     ->select([
-                //         'id',
-                //         'user_id',
-                //         'meta_login',
-                //         'account_type',
-                //     ])
-                //     ->where('acc_status', 'active')
-                //     ->paginate($data['rows']);
+            $accounts = $query
+                ->select([
+                    'id',
+                    'user_id',
+                    'meta_login',
+                    'account_type',
+                    'balance',
+                    DB::raw('0 as equity'), // Inactive accounts have no equity
+                    'credit',
+                    'leverage',
+                    'deleted_at',
+                    'last_access as last_login',
+                ])
+                ->paginate($rowsPerPage, ['*'], 'page', $currentPage);
 
-                // // Iterate over each account on the current page and update the account status
-                // foreach ($accounts->items() as $account) {
-                //     try {
-                //         // Attempt to fetch user data
-                //         $accData = (new CTraderService())->getUser($account->meta_login);
+            // After the accounts are retrieved, you can access `getFirstMediaUrl` for each user using foreach
+            foreach ($accounts as $account) {
+                $account->name = $account->userData->first_name;
+                $account->email = $account->userData->email;
+                $account->account_type_id = $account->accountType->id;
+                $account->account_type = $account->accountType->name;
 
-                //         // If no data is returned (null or empty), mark the account as inactive
-                //         if (empty($accData)) {
-                //             if ($account->acc_status !== 'inactive') {
-                //                 $account->update(['acc_status' => 'inactive']);
-                //             }
-                //         } else {
-                //             // Proceed with updating account information
-                //             (new UpdateTradingUser)->execute($account->meta_login, $accData);
-                //             (new UpdateTradingAccount)->execute($account->meta_login, $accData);
-                //         }
-                //     } catch (\Exception $e) {
-                //         // Log the error if there was a failure (network issue, server error, etc.)
-                //         Log::error("Error fetching data for account {$account->meta_login}: {$e->getMessage()}");
-                //     }
-                // }
-
-                // // Now re-fetch the data after updating the statuses
-                $accounts = $query
-                    ->select([
-                        'id',
-                        'user_id',
-                        'meta_login',
-                        'account_type',
-                        'balance',
-                        'credit',
-                        'leverage',
-                        'last_access as last_login',
-                        'created_at',
-                    ])
-                    ->where('acc_status', 'active')
-                    ->paginate($data['rows']);
-
-                // After the accounts are retrieved, you can access `getFirstMediaUrl` for each user using foreach
-                foreach ($accounts as $account) {
-                    $account->name = $account->userData->first_name;
-                    $account->email = $account->userData->email;
-                    $account->equity = $account->trading_account->equity;
-                    $account->account_type_id = $account->accountType->id;
-                    $account->account_type = $account->accountType->name;
-                    // Calculate `is_active` dynamically
-                    $account->is_active = (
-                        ($account->last_login >= $inactiveThreshold) ||
-                        ($account->created_at >= $inactiveThreshold) ||
-                        ($account->balance > 0) ||
-                        ($account->credit > 0) ||
-                        ($account->equity > 0)
-                    );
-
-                    $account->status = $account->trading_account->status;
-
-                    // Remove unnecessary nested data (users and trading_account)
-                    unset($account->userData);
-                    unset($account->trading_account);
-                    unset($account->accountType);
-                }
-
-                // After the status update, return the re-fetched paginated data
-                return response()->json([
-                    'success' => true,
-                    'data' => $accounts,
-                ]);
-            } else {
-                // Handle inactive accounts or other types
-                $query = TradingUser::onlyTrashed()
-                    ->withTrashed(['userData:id,first_name,email', 'trading_account:id,meta_login,equity,status', 'accountType']); // Eager load related models
-
-                    // Filters
-                    if ($data['filters']['global']['value']) {
-                        $keyword = $data['filters']['global']['value'];
-                        $query->where(function ($query) use ($keyword) {
-                            $query->whereHas('userData', function ($query) use ($keyword) {
-                                $query->where('first_name', 'like', '%' . $keyword . '%')
-                                      ->orWhere('email', 'like', '%' . $keyword . '%');
-                            })
-                            ->orWhere('meta_login', 'like', '%' . $keyword . '%');
-                        });
-                    }
-
-                    if ($data['filters']['account_type_id']['value']) {
-                        $query->where('account_type_id', $data['filters']['account_type_id']['value']);
-                    }
-
-                    if (isset($data['sortField']) && isset($data['sortOrder'])) {
-                        $order = $data['sortOrder'] == 1 ? 'asc' : 'desc';
-                        $query->orderBy($data['sortField'], $order);
-                    } else {
-                        $query->orderByDesc('meta_login'); // Default sorting
-                    }
-
-                    // Export logic
-                    if ($request->has('exportStatus') && $request->exportStatus == true) {
-                        $accounts = $query;
-                        return Excel::download(new AccountListingExport($accounts), now() . '-accounts.xlsx');
-                    }
-
-                $accounts = $query
-                    ->select([
-                        'id',
-                        'user_id',
-                        'meta_login',
-                        'account_type',
-                        'balance',
-                        DB::raw('0 as equity'), // Inactive accounts have no equity
-                        'credit',
-                        'leverage',
-                        'deleted_at',
-                        'last_access as last_login',
-                    ])
-                    ->paginate($data['rows']);
-
-                // After the accounts are retrieved, you can access `getFirstMediaUrl` for each user using foreach
-                foreach ($accounts as $account) {
-                    $account->name = $account->userData->first_name;
-                    $account->email = $account->userData->email;
-                    $account->account_type_id = $account->accountType->id;
-                    $account->account_type = $account->accountType->name;
-
-                    // Remove unnecessary nested data (users and trading_account)
-                    unset($account->userData);
-                    unset($account->trading_account);
-                    unset($account->accountType);
-                }
-
-                return response()->json([
-                    'success' => true,
-                    'data' => $accounts,
-                ]);
+                // Remove unnecessary nested data (users and trading_account)
+                unset($account->userData);
+                unset($account->trading_account);
+                unset($account->accountType);
             }
-        }
 
-        return response()->json(['success' => false, 'data' => []]);
+            return response()->json([
+                'success' => true,
+                'data' => $accounts,
+            ]);
+        }
     }
 
     public function accountAdjustment(Request $request)

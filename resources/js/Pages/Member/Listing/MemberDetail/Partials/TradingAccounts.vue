@@ -61,8 +61,7 @@ const requireConfirmation = (action_type, meta_login) => {
             cancelButton: trans('public.cancel'),
             acceptButton: trans('public.delete'),
             action: () => {
-                router.visit(route('member.accountDelete'), {
-                    method: 'delete',
+                router.delete(route('member.accountDelete'), {
                     data: {
                         meta_login: meta_login,
                     },

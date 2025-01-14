@@ -88,8 +88,7 @@ const requireConfirmation = (action_type) => {
             cancelButton: trans("public.cancel"),
             acceptButton: trans("public.sales_team_remove"),
             action: () => {
-                router.visit(route("team.deleteTeam"), {
-                    method: "delete",
+                router.delete(route("team.deleteTeam"), {
                     data: {
                         id: props.team.id,
                     },

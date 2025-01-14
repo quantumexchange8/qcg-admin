@@ -81,11 +81,8 @@ const requireConfirmation = (action_type, meta_login) => {
             cancelButton: trans('public.cancel'),
             acceptButton: trans('public.confirm'),
             action: () => {
-                router.visit(route('member.updateAccountStatus'), {
-                    method: 'post',
-                    data: {
-                        meta_login: props.account.meta_login,
-                    },
+                router.post(route('member.updateAccountStatus'), {
+                    meta_login: props.account.meta_login,
                 })
 
                 checked.value = !checked.value;
@@ -100,11 +97,8 @@ const requireConfirmation = (action_type, meta_login) => {
             cancelButton: trans('public.cancel'),
             acceptButton: trans('public.confirm'),
             action: () => {
-                router.visit(route('member.updateAccountStatus'), {
-                    method: 'post',
-                    data: {
-                        meta_login: props.account.meta_login,
-                    },
+                router.post(route('member.updateAccountStatus'), {
+                    meta_login: props.account.meta_login,
                 })
 
                 checked.value = !checked.value;
@@ -119,8 +113,7 @@ const requireConfirmation = (action_type, meta_login) => {
             cancelButton: trans('public.cancel'),
             acceptButton: trans('public.delete'),
             action: () => {
-                router.visit(route('member.accountDelete'), {
-                    method: 'delete',
+                router.delete(route('member.accountDelete'), {
                     data: {
                         meta_login: props.account.meta_login,
                     },

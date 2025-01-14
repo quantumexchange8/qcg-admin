@@ -28,10 +28,13 @@ const loading = ref(false);
 const dt = ref(null);
 
 const accounts = ref();
-const filteredValue = ref();
 const accountTypes = ref(props.accountTypes);
 const selectedBrand = ref(null);
+const rows = ref(10);
+const page = ref(0);
 const first = ref(0);
+const sortField = ref(null);  
+const sortOrder = ref(null);  // (1 for ascending, -1 for descending)
 const totalRecords = ref(0);
 
 const openDialog = (rowData) => {
@@ -42,95 +45,83 @@ const openDialog = (rowData) => {
 const emit = defineEmits(['update:filters']);
 
 const filters = ref({
-    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    account_type_id: { value: null, matchMode: FilterMatchMode.EQUALS }
+    global: '',
+    account_type_id: null,
 });
 
+// Watch for changes on the entire 'filters' object and debounce the API call
+watch(filters, debounce(() => {
+    getResults(); // Call getResults function to fetch the data
+}, 1000), { deep: true });
+
+
 const clearFilterGlobal = () => {
-    filters.value['global'].value = null;
+    filters.value['global'] = '';
 }
 
 const clearFilter = () => {
-    filters.value['global'].value = null;
-    filters.value['account_type_id'].value = null;
-
-    filteredValue.value = null;
+    filters.value['global'] = '';
+    filters.value['account_type_id'] = null;
 };
 
-const lazyParams = ref({});
-
-const loadLazyData = (event) => {
+const getResults = async () => {
     loading.value = true;
-
-    lazyParams.value = { ...lazyParams.value, first: event?.first || first.value };
-
     try {
-        setTimeout(async () => {
-            const params = {
-                page: JSON.stringify(event?.page + 1),
-                sortField: event?.sortField,
-                sortOrder: event?.sortOrder,
-                include: [],
-                lazyEvent: JSON.stringify(lazyParams.value),
-                type: 'all',
-            };
+        // Directly construct the URL with necessary query parameters
+        let url = `/member/getAccountListingPaginate?type=all&rows=${rows.value}&page=${page.value}`;
 
-            const url = route('member.getAccountListingPaginate', params);
-            const response = await fetch(url);
-            const results = await response.json();
+        // Add filters if present
+        if (filters.value.global) {
+            url += `&search=${filters.value.global}`;
+        }
 
-            accounts.value = results?.data?.data;
-            totalRecords.value = results?.data?.total;
+        if (filters.value.account_type_id) {
+            url += `&account_type_id=${filters.value.account_type_id}`;
+        }
 
-            loading.value = false;
-        }, 100);
-    }  catch (e) {
-        users.value = [];
-        totalRecords.value = 0;
+        if (sortField.value && sortOrder.value !== null) {
+            url += `&sortField=${sortField.value}&sortOrder=${sortOrder.value}`;
+        }
+
+        // Make the API request
+        const response = await axios.get(url);
+        const results = response.data;
+
+        // Directly set the results data
+        accounts.value = results?.data?.data;
+        totalRecords.value = results?.data?.total;
+
+        loading.value = false;
+    } catch (error) {
+        console.error('Error fetching leads data:', error);
+        accounts.value = [];
+        loading.value = false;
+    } finally {
         loading.value = false;
     }
 };
-const onPage = (event) => {
-    lazyParams.value = event;
-    loadLazyData(event);
+
+const onPage = async (event) => {
+    rows.value = event.rows;
+    page.value = event.page;
+
+    getResults();
 };
+
 const onSort = (event) => {
-    lazyParams.value = event;
-    loadLazyData(event);
-};
-const onFilter = (event) => {
-    lazyParams.value.filters = filters.value ;
-    loadLazyData(event);
-    filteredValue.value = event.filteredValue;
-    console.log(event)
+    sortField.value = event.sortField;
+    sortOrder.value = event.sortOrder;  // Store ascending or descending order
+
+    getResults();
 };
 
 onMounted(() => {
-    lazyParams.value = {
-        first: dt.value.first,
-        rows: dt.value.rows,
-        sortField: null,
-        sortOrder: null,
-        filters: filters.value
-    };
-
-    loadLazyData();
-});
-
-watch(
-    filters.value['global'],
-    debounce(() => {
-        loadLazyData();
-    }, 1000)
-);
-
-watch([filters.value['account_type_id']], () => {
-    loadLazyData()
+    getResults();
 });
 
 watch(() => usePage().props.toast, (newToast) => {
         if (newToast !== null) {
-            loadLazyData();
+            getResults();
         }
     }
 );
@@ -143,7 +134,6 @@ watch(filters, (newFilters) => {
 
 <template>
     <DataTable
-        v-model:filters="filters"
         :value="accounts"
         :rowsPerPageOptions="[10, 20, 50, 100]"
         lazy
@@ -152,15 +142,14 @@ watch(filters, (newFilters) => {
         paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport JumpToPageInput"
         :currentPageReportTemplate="$t('public.paginator_caption')"
         :first="first"
-        :rows="10"
+        :rows="rows"
+        :page="page"
         ref="dt"
         dataKey="id"
         :totalRecords="totalRecords"
         :loading="loading"
         @page="onPage($event)"
         @sort="onSort($event)"
-        @filter="onFilter($event)"
-        :globalFilterFields="['name', 'email', 'meta_login']"
         v-model:selection="selectedBrand"
         selectionMode="single"
         @row-click="(event) => openDialog(event.data)"
@@ -172,9 +161,9 @@ watch(filters, (newFilters) => {
                         <div class="absolute top-2/4 -mt-[9px] left-4 text-gray-500">
                             <IconSearch size="20" stroke-width="1.25" />
                         </div>
-                        <InputText v-model="filters['global'].value" :placeholder="$t('public.keyword_search')" size="search" class="font-normal w-full md:w-60" />
+                        <InputText v-model="filters['global']" :placeholder="$t('public.keyword_search')" size="search" class="font-normal w-full md:w-60" />
                         <div
-                            v-if="filters['global'].value !== null"
+                            v-if="filters['global'] !== null && filters['global'] !== ''"
                             class="absolute top-2/4 -mt-2 right-4 text-gray-300 hover:text-gray-400 select-none cursor-pointer"
                             @click="clearFilterGlobal"
                         >
@@ -182,7 +171,7 @@ watch(filters, (newFilters) => {
                         </div>
                     </div>
                     <Select
-                        v-model="filters['account_type_id'].value"
+                        v-model="filters['account_type_id']"
                         :options="accountTypes"
                         filter
                         :filterFields="['name']"
