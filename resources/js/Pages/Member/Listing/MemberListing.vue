@@ -78,8 +78,8 @@ watch(selectedType, (newType) => {
     const index = tabs.value.findIndex(tab => tab.type === newType);
     if (index >= 0) {
         activeIndex.value = index;
-
     }
+    getResults();
 });
 
 function updateType(event) {
