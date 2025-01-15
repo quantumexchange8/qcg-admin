@@ -157,7 +157,7 @@ class DashboardController extends Controller
         ]);
     }
 
-    public function getTradeRebateSummaryData(Request $request)
+    public function getTradeLotVolume(Request $request)
     {
         // Get the selected month (in format "m/Y")
         $monthYear = $request->input('selectedMonth');

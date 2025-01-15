@@ -181,10 +181,10 @@ const getPendingData = async () => {
 
 getPendingData();
 
-// Watch for changes in selectedMonth and trigger getTradeRebateSummaryData
+// Watch for changes in selectedMonth and trigger getTradeLotVolume
 watch( selectedMonth,(newMonth, oldMonth) => {
         if (newMonth !== oldMonth) {
-            getTradeRebateSummaryData();
+            getTradeLotVolume();
         }
     }
 );
@@ -192,13 +192,13 @@ watch( selectedMonth,(newMonth, oldMonth) => {
 const updateTradeLotVolume = () => {
     counterTradeLot.value.reset();
     counterVolume.value.reset();
-    getTradeRebateSummaryData();
+    getTradeLotVolume();
 }
 
-const getTradeRebateSummaryData = async () => {
+const getTradeLotVolume = async () => {
     tradeLotVolumeLoading.value = true;
     try {
-        const response = await axios.get(`dashboard/getTradeRebateSummaryData?selectedMonth=${selectedMonth.value}`);
+        const response = await axios.get(`dashboard/getTradeLotVolume?selectedMonth=${selectedMonth.value}`);
         
         // Process response data here
         trade_lot.value = response.data.totalTradeLots;
@@ -214,7 +214,7 @@ const getTradeRebateSummaryData = async () => {
     }
 };
 
-getTradeRebateSummaryData();
+getTradeLotVolume();
 
 watch(() => usePage().props, (newProps, oldProps) => {
     if (newProps.toast !== oldProps.toast || newProps.notification !== oldProps.notification) {
@@ -222,7 +222,7 @@ watch(() => usePage().props, (newProps, oldProps) => {
         getDashboardData();
         getAccountData();
         getPendingData();
-        getTradeRebateSummaryData();
+        getTradeLotVolume();
     }
 }, { deep: true });
 

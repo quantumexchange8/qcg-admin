@@ -144,7 +144,12 @@ export default {
             ]
         }),
         columnHeaderContent: {
-            class: 'flex items-center gap-2',
+            class: [
+                'flex items-center gap-2',
+                '[&>[data-pc-name=pcheadercheckbox]]:w-4',
+                '[&>[data-pc-name=pcheadercheckbox]]:h-4',
+
+            ],
         },
         sort: ({ context }) => ({
             class: [context.sorted ? 'text-primary-600' : 'text-gray-700']
@@ -178,7 +183,11 @@ export default {
 
                 {
                     'overflow-hidden whitespace-nowrap border-y bg-clip-padding': parent.instance?.$parentInstance?.$parentInstance?.resizableColumns // Resizable
-                }
+                },
+
+                '[&>[data-pc-name=pcrowcheckbox]]:w-4',
+                '[&>[data-pc-name=pcrowcheckbox]]:h-4',
+
             ]
         }),
         footerCell: ({ context }) => ({
@@ -195,7 +204,7 @@ export default {
                 { 'border-x border-y': context?.showGridlines },
 
                 // Spacing
-                context?.size === 'small' ? 'p-2' : context?.size === 'large' ? 'p-5' : 'p-4',
+                context?.size === 'small' ? 'p-2' : context?.size === 'large' ? 'p-5' : 'px-3 py-2',
 
                 // Color
                 'border-gray-100',

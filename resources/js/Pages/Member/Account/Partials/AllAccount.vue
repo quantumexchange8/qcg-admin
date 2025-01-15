@@ -111,6 +111,7 @@ const onPage = async (event) => {
 const onSort = (event) => {
     sortField.value = event.sortField;
     sortOrder.value = event.sortOrder;  // Store ascending or descending order
+    page.value = 0;
 
     getResults();
 };

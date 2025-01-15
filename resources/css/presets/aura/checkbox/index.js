@@ -66,7 +66,7 @@ export default {
 
             // Position
             'absolute',
-            'top-0 left-0',
+            'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2',
             'z-10',
 
             // Spacing
@@ -87,8 +87,8 @@ export default {
     icon: ({ props, context, state }) => ({
         class: [
             // Size
-            'w-[85%]',
-            'h-[85%]',
+            'w-full',
+            'h-full',
             'p-0.5',
 
             // Colors

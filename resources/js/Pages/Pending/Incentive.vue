@@ -20,6 +20,7 @@ import Chip from "primevue/chip";
 import Textarea from "primevue/textarea";
 import Empty from "@/Components/Empty.vue";
 import { trans, wTrans } from "laravel-vue-i18n";
+import PendingConfirmation from '@/Pages/Pending/Partials/PendingConfirmation.vue';
 
 const user = usePage().props.auth.user;
 const { formatAmount, formatDate } = transactionFormat();
@@ -27,6 +28,9 @@ const { formatAmount, formatDate } = transactionFormat();
 const loading = ref(false);
 const dt = ref();
 const pendingIncentives = ref();
+const selectedRequests = ref();
+const selectedTotalAmount = ref(0);
+const type = ref('incentive');
 const totalAmount = ref();
 const filteredValue = ref();
 
@@ -45,6 +49,25 @@ const getResults = async () => {
 };
 
 getResults();
+
+// Watch selectedRequests for changes
+watch(selectedRequests, (newValue) => {
+//   console.log('selectedRequests changed:', newValue);
+
+  // Update selectedTotalAmount with the sum of transaction_amount, safely handling strings and numbers
+  selectedTotalAmount.value = newValue.reduce((sum, request) => {
+    const transactionAmount = parseFloat(request.transaction_amount);
+
+    // Only add valid amounts (if it's a number and not NaN)
+    if (!isNaN(transactionAmount)) {
+      return sum + transactionAmount;
+    }
+
+    return sum; // Skip invalid amounts (such as non-numeric strings)
+  }, 0);
+//   console.log(selectedTotalAmount.value);
+
+});
 
 const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -99,58 +122,29 @@ const visible = ref(false);
 const pendingData = ref({});
 const approvalAction = ref('');
 
+const closeDialog = () => {
+  visible.value = false;
+};
+
+const updateApprovalAction = (action) => {
+    approvalAction.value = action;
+};
+
 const rowClicked = (data) => {
     pendingData.value = data;
     visible.value = true;
-    form.reset();
+    approvalAction.value = null;
 }
 
 const handleApproval = (action) => {
     approvalAction.value = action;
 }
 
-const closeDialog = () => {
-    visible.value = false;
-    approvalAction.value = '';
+const handleSelectedApproval = (action) => {
+    pendingData.value = null;
+    visible.value = true;
+    approvalAction.value = action;
 }
-
-const chips = ref({
-    approve: [
-        { label: 'Incentive request successful' },
-        { label: '您已成功提取獎金' },
-    ],
-    reject: [
-        { label: 'Incentive request rejected' },
-        { label: '提取獎金已被拒絕' },
-    ]
-});
-
-const handleChipClick = (label) => {
-    form.remarks = label;
-};
-
-const form = useForm({
-    id: '',
-    action: '',
-    remarks: '',
-    type: 'incentive',
-})
-
-const submit = (transactionId) => {
-    if (form.remarks === '') {
-        form.remarks = approvalAction.value === 'approve' ? 'Incentive request has been approved.' : 'Incentive request has been rejected.'
-    }
-
-    form.id = transactionId;
-    form.action = approvalAction.value;
-
-    form.post(route('pending.withdrawalApproval'), {
-        onSuccess: () => {
-            closeDialog();
-            form.reset();
-        },
-    });
-};
 
 const handleFilter = (e) => {
     filteredValue.value = e.filteredValue;
@@ -207,30 +201,6 @@ const exportXLSX = () => {
     document.body.removeChild(link);
 };
 
-const tooltipText = ref('copy');
-const copyToClipboard = (text) => {
-    const textToCopy = text;
-
-    const textArea = document.createElement('textarea');
-    document.body.appendChild(textArea);
-
-    textArea.value = textToCopy;
-    textArea.select();
-
-    try {
-        const successful = document.execCommand('copy');
-
-        tooltipText.value = 'copied';
-        setTimeout(() => {
-            tooltipText.value = 'copy';
-        }, 1500);
-    } catch (err) {
-        console.error('Copy to clipboard failed:', err);
-    }
-
-    document.body.removeChild(textArea);
-}
-
 </script>
 
 <template>
@@ -240,6 +210,7 @@ const copyToClipboard = (text) => {
                 <!-- data table -->
                 <DataTable
                     v-model:filters="filters"
+                    v-model:selection="selectedRequests"
                     :value="pendingIncentives"
                     :paginator="pendingIncentives?.length > 0 && filteredValue?.length > 0"
                     removableSort
@@ -250,7 +221,7 @@ const copyToClipboard = (text) => {
                     :globalFilterFields="['user_name', 'user_email', 'from']"
                     ref="dt"
                     :loading="loading"
-                    selectionMode="single"
+                    selectionMode="multiple"
                     @row-click="rowClicked($event.data)"
                     @filter="handleFilter"
                 >
@@ -290,6 +261,7 @@ const copyToClipboard = (text) => {
                         </div>
                     </template>
                     <template v-if="pendingIncentives?.length > 0 && filteredValue?.length > 0">
+                        <Column selectionMode="multiple" style="width: 10%;" class="px-3 text-white"></Column>
                         <Column field="name" sortable :header="$t('public.name')" style="width: 25%; max-width: 0;" class="px-3">
                             <template #body="slotProps">
                                 <div class="flex flex-col items-start max-w-full">
@@ -314,11 +286,63 @@ const copyToClipboard = (text) => {
                         </Column>
                         <ColumnGroup type="footer">
                             <Row>
-                                <Column class="hidden md:table-cell" :footer="$t('public.total') + ' ($) :'" :colspan="2" footerStyle="text-align:right" />
-                                <Column class="hidden md:table-cell" :footer="formatAmount(totalAmount ? totalAmount : 0)" />
+                                <Column v-if="!selectedRequests?.length" class="hidden md:table-cell" :footer="$t('public.total') + ' ($) :'" :colspan="3" footerStyle="text-align:right" />
+                                <Column v-if="!selectedRequests?.length" class="hidden md:table-cell" :footer="formatAmount(totalAmount ? totalAmount : 0)" />
+                                <Column v-else class="hidden md:table-cell" :colspan="4" style="max-width: 0;">
+                                    <template #footer>
+                                        <div class="w-full flex items-center">
+                                            <span class="block truncate text-gray-950 text-sm font-semibold">
+                                                {{ $t('public.total') + ' ($) : ' }} {{ formatAmount(selectedTotalAmount ? selectedTotalAmount : 0) }}
+                                            </span>
+                                            <div class="flex items-center px-3 gap-3 self-stretch">
+                                                <Button
+                                                    type="button"
+                                                    variant="error-flat"
+                                                    class="w-full min-w-20"
+                                                    @click="handleSelectedApproval('reject')"
+                                                >
+                                                    {{ $t('public.reject') }}
+                                                </Button>
+                                                <Button
+                                                    variant="success-flat"
+                                                    class="w-full min-w-20"
+                                                    @click="handleSelectedApproval('approve')"
+                                                >
+                                                    {{ $t('public.approve') }}
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </Column>
                                 
-                                <Column class="md:hidden" :footer="$t('public.total') + ' ($) :'" :colspan="1" footerStyle="text-align:right" />
-                                <Column class="md:hidden" :footer="formatAmount(totalAmount ? totalAmount : 0)" />
+                                <Column v-if="!selectedRequests?.length" class="md:hidden" :footer="$t('public.total') + ' ($) :'" :colspan="2" footerStyle="text-align:right" />
+                                <Column v-if="!selectedRequests?.length" class="md:hidden" :footer="formatAmount(totalAmount ? totalAmount : 0)" />
+                                <Column v-else class="md:hidden" :colspan="3" style="max-width: 0;">
+                                    <template #footer>
+                                        <div class="w-full flex flex-wrap items-center content-center gap-3">
+                                            <span class="block truncate text-gray-950 text-sm font-semibold">
+                                                {{ $t('public.total') + ' ($) : ' }} {{ formatAmount(selectedTotalAmount ? selectedTotalAmount : 0) }}
+                                            </span>
+                                            <div class="flex items-center px-3 gap-3 self-stretch w-full">
+                                                <Button
+                                                    type="button"
+                                                    variant="error-flat"
+                                                    class="w-full"
+                                                    @click="handleApproval('reject')"
+                                                >
+                                                    {{ $t('public.reject') }}
+                                                </Button>
+                                                <Button
+                                                    variant="success-flat"
+                                                    class="w-full"
+                                                    @click="handleApproval('approve')"
+                                                >
+                                                    {{ $t('public.approve') }}
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </Column>
                             </Row>
                         </ColumnGroup>
                     </template>
@@ -327,140 +351,17 @@ const copyToClipboard = (text) => {
                 <Dialog
                     v-model:visible="visible"
                     modal
-                    :header="$t('public.incentive_request', { action: approvalAction ? $t(`public.${approvalAction}`) : '' })"
+                    :header="$t(`public.${type}_request`, { action: approvalAction ? $t(`public.${approvalAction}`) : '' })"
                     class="dialog-xs md:dialog-md"
                 >
-                    <template
-                        v-if="!approvalAction"
-                    >
-                        <div class="flex flex-col items-center gap-3 self-stretch py-4 md:py-6">
-                            <div class="flex flex-col md:flex-row items-center p-3 gap-3 self-stretch w-full bg-gray-50">
-                                <div class="min-w-[140px] flex flex-col items-start w-full">
-                                    <span class="self-stretch text-gray-950 font-medium truncate">{{ pendingData.user_name }}</span>
-                                    <span class="self-stretch text-gray-500 text-sm truncate">{{ pendingData.user_email }}</span>
-                                </div>
-                                <div class="min-w-[180px] text-gray-950 font-semibold text-lg self-stretch md:text-right">
-                                    $ {{ formatAmount(pendingData?.transaction_amount || 0) }}
-                                </div>
-                            </div>
-
-                            <div class="flex flex-col items-center p-3 gap-3 self-stretch w-full bg-gray-50">
-                                <div class="flex flex-col md:flex-row md:items-center gap-1 self-stretch">
-                                    <div class="w-[140px] text-gray-500 text-sm">
-                                        {{ $t('public.requested_date') }}
-                                    </div>
-                                    <div class="text-gray-950 text-sm font-medium">
-                                        {{ dayjs(pendingData.created_at).format('YYYY/MM/DD HH:mm:ss') }}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="flex flex-col items-center p-3 gap-3 self-stretch w-full bg-gray-50">
-                                <div class="flex flex-col md:flex-row md:items-center gap-1 self-stretch">
-                                    <div class="w-[140px] text-gray-500 text-sm">
-                                        {{ $t('public.wallet_name') }}
-                                    </div>
-                                    <div class="text-gray-950 text-sm font-medium">
-                                        {{ pendingData?.wallet_name || '-' }}
-                                    </div>
-                                </div>
-                                <div class="flex flex-col md:flex-row md:items-center gap-1 self-stretch">
-                                    <div class="min-w-[140px] text-gray-500 text-sm">
-                                        {{ $t('public.receiving_address') }}
-                                    </div>
-                                    <span class="text-gray-950 text-sm break-all font-medium">
-                                        {{ pendingData?.wallet_address || '-' }}
-                                        <IconCopy 
-                                            v-if="pendingData?.wallet_address"
-                                            size="20" 
-                                            stroke-width="1.25" 
-                                            class="text-gray-500 inline-block cursor-pointer grow-0 shrink-0" 
-                                            v-tooltip.top="$t(`public.${tooltipText}`)" 
-                                            @click="copyToClipboard(pendingData?.wallet_address)"
-                                        />
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex justify-end items-center pt-6 gap-4 self-stretch w-full">
-                            <Button
-                                type="button"
-                                variant="error-flat"
-                                class="w-full"
-                                @click="handleApproval('reject')"
-                            >
-                                {{ $t('public.reject') }}
-                            </Button>
-                            <Button
-                                variant="success-flat"
-                                class="w-full"
-                                @click="handleApproval('approve')"
-                            >
-                                {{ $t('public.approve') }}
-                            </Button>
-                        </div>
-                    </template>
-
-                    <template
-                        v-if="approvalAction"
-                    >
-                        <div class="flex flex-col items-center gap-3 self-stretch py-4 md:py-6">
-                            <div class="flex flex-col md:flex-row items-center p-3 gap-3 self-stretch w-full bg-gray-50">
-                                <div class="min-w-[140px] flex flex-col items-start w-full">
-                                    <span class="self-stretch text-gray-950 font-medium truncate">{{ pendingData.user_name }}</span>
-                                    <span class="self-stretch text-gray-500 text-sm truncate">{{ pendingData.user_email }}</span>
-                                </div>
-                                <div class="min-w-[180px] text-gray-950 font-semibold text-lg self-stretch md:text-right">
-                                    $ {{ formatAmount(pendingData?.transaction_amount || 0) }}
-                                </div>
-                            </div>
-
-                            <div class="flex flex-col items-start gap-2 self-stretch">
-                                <InputLabel for="remarks">{{ $t('public.remarks') }}</InputLabel>
-                                <div class="flex items-center gap-2 self-stretch overflow-x-auto">
-                                    <div v-for="(chip, index) in chips[approvalAction]" :key="index">
-                                        <Chip
-                                            :label="chip.label"
-                                            class="w-full text-gray-950 whitespace-nowrap overflow-hidden"
-                                            :class="{
-                                                'border-primary-300 bg-primary-50 text-primary-500 hover:bg-primary-50': form.remarks === chip.label,
-                                            }"
-                                            @click="handleChipClick(chip.label)"
-                                        />
-                                    </div>
-                                </div>
-                                <Textarea
-                                    id="remarks"
-                                    type="text"
-                                    class="h-20 flex self-stretch"
-                                    v-model="form.remarks"
-                                    :placeholder="approvalAction === 'approve' ? 'Incentive request has been approved.' : 'Incentive request has been rejected.'"
-                                    :invalid="!!form.errors.remarks"
-                                    rows="5"
-                                    cols="30"
-                                />
-                                <span class="self-stretch text-gray-500 text-xs">{{ $t('public.remarks_caption') }}</span>
-                            </div>
-                        </div>
-
-                        <div class="flex justify-end items-center pt-6 gap-4 self-stretch w-full">
-                            <Button
-                                type="button"
-                                variant="gray-tonal"
-                                class="w-full"
-                                @click="closeDialog"
-                            >
-                                {{ $t('public.cancel') }}
-                            </Button>
-                            <Button
-                                variant="primary-flat"
-                                class="w-full"
-                                @click="submit(pendingData.id)"
-                            >
-                                {{ $t('public.confirm') }}
-                            </Button>
-                        </div>
-                    </template>
+                    <PendingConfirmation 
+                        :pendingData="pendingData" 
+                        :selectedRequests="selectedRequests"
+                        :approvalAction="approvalAction"
+                        :type="type"
+                        @update:approvalAction="updateApprovalAction"
+                        @update:visible="closeDialog"
+                    />
                 </Dialog>
 
             </div>
