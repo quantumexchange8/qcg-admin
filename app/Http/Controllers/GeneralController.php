@@ -322,9 +322,9 @@ class GeneralController extends Controller
     public function getTradeMonths($returnAsArray = false)
     {
         // Group the trade records by month and year using database functions
-        $months = TradeBrokerHistory::selectRaw("DATE_FORMAT(created_at, '%m/%Y') as value, DATE_FORMAT(created_at, '%M %Y') as name")
+        $months = TradeBrokerHistory::selectRaw("DATE_FORMAT(trade_close_time, '%m/%Y') as value, DATE_FORMAT(trade_close_time, '%M %Y') as name")
             ->groupBy('value', 'name')
-            ->orderByRaw('MIN(created_at) ASC') // Ensure the results are ordered by the most recent month
+            ->orderByRaw('MIN(trade_close_time) ASC') // Ensure the results are ordered by the most recent month
             ->get();
         
         // Add current month if it's not already in the list
