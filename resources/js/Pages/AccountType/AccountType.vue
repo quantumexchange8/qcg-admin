@@ -76,35 +76,67 @@ watchEffect(() => {
                             <span class="text-sm text-gray-700">{{ $t('public.loading') }}</span>
                         </div>
                     </template>
-                    <Column field="name" :header="$t('public.name')" sortable class="w-full md:w-[20%] max-w-0 px-3" headerClass="text-nowrap">
+                    <Column field="name" sortable class="w-full md:w-[20%] max-w-0 px-3">
+                        <template #header>
+                            <div class="truncate">
+                                {{ $t('public.name') }}
+                            </div>
+                        </template>
                         <template #body="slotProps">
                             <div class="text-gray-950 text-sm truncate">
                                 {{ slotProps.data.name }}
                             </div>
                         </template>
                     </Column>
-                    <Column field="maximum_account_number" :header="$t('public.max_account')" sortable class="hidden md:table-cell w-[20%] px-3" headerClass="text-nowrap">
+                    <Column field="category" class="hidden md:table-cell w-[15%] max-w-0 px-3">
+                        <template #header>
+                            <div class="truncate">
+                                {{ $t('public.account_type_category') }}
+                            </div>
+                        </template>
+                        <template #body="slotProps">
+                            <div class="text-gray-950 text-sm">
+                                {{ slotProps.data.category }}
+                            </div>
+                        </template>
+                    </Column>
+                    <Column field="maximum_account_number" sortable class="hidden md:table-cell w-[20%] max-w-0 px-3">
+                        <template #header>
+                            <div class="truncate">
+                                {{ $t('public.max_account') }}
+                            </div>
+                        </template>
                         <template #body="slotProps">
                             <div class="text-gray-950 text-sm">
                                 {{ slotProps.data.maximum_account_number }}
                             </div>
                         </template>
                     </Column>
-                    <Column field="trade_delay" :header="$t('public.trade_delay')" class="hidden md:table-cell w-[20%] px-3" headerClass="text-nowrap">
+                    <Column field="trade_delay" class="hidden md:table-cell w-[15%] max-w-0 px-3">
+                        <template #header>
+                            <div class="truncate">
+                                {{ $t('public.trade_delay') }}
+                            </div>
+                        </template>
                         <template #body="slotProps">
                             <div class="text-gray-950 text-sm">
                                 {{ slotProps.data.trade_delay }}
                             </div>
                         </template>
                     </Column>
-                    <Column field="total_account" :header="$t('public.total_account')" sortable class="hidden md:table-cell w-[20%] px-3" headerClass="text-nowrap">
+                    <Column field="total_account" sortable class="hidden md:table-cell w-[20%] max-w-0 px-3">
+                        <template #header>
+                            <div class="truncate">
+                                {{ $t('public.total_account') }}
+                            </div>
+                        </template>
                         <template #body="slotProps">
                             <div class="text-gray-950 text-sm">
                                 {{ slotProps.data.total_account }}
                             </div>
                         </template>
                     </Column>
-                    <Column field="action" class="w-full md:w-[20%] px-3">
+                    <Column field="action" class="w-full md:w-[10%] px-3">
                         <template #body="slotProps">
                             <AccountTypeActions 
                                 :accountType="slotProps.data"

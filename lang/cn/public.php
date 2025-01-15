@@ -67,6 +67,7 @@ return [
     'reject_incentive_request_remark_desc' => "请选择默认备注或者输入备注以批准奖金提款请求",
     'empty_pending_request_title' => "无待处理请求",
     'empty_pending_request_message' => "目前没有任何提现请求等待您的批准. 请稍后再查看或刷新页面以查看是否有新请求提交.",
+    'empty_bonus_request_message' => "目前没有任何信用额申请等待您的批准. 请稍后再查看或刷新页面以查看是否有新请求提交.",
     'toast_reject_withdrawal_request_success' => "资金提款请求已被拒绝!",
     'toast_approve_withdrawal_request_success' => "资金提款请求已被批准!",
     'toast_reject_bonus_request_success' => "信用额申请请求已被拒绝!",

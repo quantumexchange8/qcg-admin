@@ -12,6 +12,7 @@ use Illuminate\Support\Carbon;
 use App\Services\CTraderService;
 use App\Models\TradeRebateSummary;
 use App\Jobs\CashWalletTransferJob;
+use App\Models\TradeBrokerHistory;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 
@@ -170,13 +171,13 @@ class DashboardController extends Controller
         $month = $carbonDate->month;
         
         // Calculate total trade lots and volume for the selected month and year
-        $totalTradeLots = TradeRebateSummary::whereYear('execute_at', $year)
-                                            ->whereMonth('execute_at', $month)
-                                            ->sum('volume');
+        $totalTradeLots = TradeBrokerHistory::whereYear('trade_close_time', $year)
+                                            ->whereMonth('trade_close_time', $month)
+                                            ->sum('trade_lots');
     
-        $totalVolume = TradeRebateSummary::whereYear('execute_at', $year)
-                                         ->whereMonth('execute_at', $month)
-                                         ->sum('rebate');
+        $totalVolume = TradeBrokerHistory::whereYear('trade_close_time', $year)
+                                         ->whereMonth('trade_close_time', $month)
+                                         ->sum('trade_volume_usd');
         
         // Return the total balance and total equity as a JSON response
         return response()->json([

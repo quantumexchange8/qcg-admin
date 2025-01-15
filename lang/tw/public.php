@@ -67,6 +67,7 @@ return [
     'reject_incentive_request_remark_desc' => "請選擇默認備註或者輸入備註以拒絕獎金提款請求",
     'empty_pending_request_title' => "無待處理請求",
     'empty_pending_request_message' => "目前沒有任何提現請求等待您的批准. 請稍後再查看或刷新頁面以查看是否有新請求提交.",
+    'empty_bonus_request_message' => "目前沒有任何信用额申请等待您的批准. 請稍後再查看或刷新頁面以查看是否有新請求提交.",
     'toast_reject_withdrawal_request_success' => "資金提款請求已被拒絕!",
     'toast_approve_withdrawal_request_success' => "資金提款請求已被批准!",
     'toast_reject_bonus_request_success' => "信用額申請請求已被拒絕!",

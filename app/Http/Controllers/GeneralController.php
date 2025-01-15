@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use App\Models\TeamSettlement;
 use App\Models\TradingAccount;
 use App\Models\SettingLeverage;
+use App\Models\TradeBrokerHistory;
 use App\Models\TradeRebateSummary;
 use App\Services\CTraderService;
 use Illuminate\Support\Collection;
@@ -320,37 +321,28 @@ class GeneralController extends Controller
 
     public function getTradeMonths($returnAsArray = false)
     {
-        $executedDates = TradeRebateSummary::pluck('execute_at');
+        // Group the trade records by month and year using database functions
+        $months = TradeBrokerHistory::selectRaw("DATE_FORMAT(created_at, '%m/%Y') as value, DATE_FORMAT(created_at, '%M %Y') as name")
+            ->groupBy('value', 'name')
+            ->orderByRaw('MIN(created_at) ASC') // Ensure the results are ordered by the most recent month
+            ->get();
         
-        // Get the current Carbon instance for month/year
-        $currentMonth = Carbon::now();
+        // Add current month if it's not already in the list
+        $currentMonth = Carbon::now()->format('m/Y');
+        $currentMonthName = Carbon::now()->format('F Y');
     
-        // Map the dates to their month and year, then group by month and year.
-        $months = $executedDates
-            ->map(function ($date) {
-                $carbonDate = Carbon::parse($date);
-                return [
-                    'name' => $carbonDate->format('F Y'), // Month-Year format (e.g., "September 2024")
-                    'value' => $carbonDate->format('m/Y') // Month/Year format (e.g., "09/2024")
-                ];
-            })
-            ->unique(fn ($item) => $item['value']) // Ensure unique months based on the 'value' (month/year)
-            ->values(); // Re-index the collection
-    
-        // Check if the current month is in the collection, if not, add it
-        if (!$months->contains(fn ($item) => $item['value'] === $currentMonth->format('m/Y'))) {
-            $months->push([
-                'name' => $currentMonth->format('F Y'),  // Using Carbon to format the current date correctly
-                'value' => $currentMonth->format('m/Y')
-            ]);
+        $monthsArray = $months->toArray();
+        if (!in_array(['value' => $currentMonth, 'name' => $currentMonthName], $monthsArray)) {
+            $monthsArray[] = ['value' => $currentMonth, 'name' => $currentMonthName];
         }
     
+        // Return the result as either an array or a JSON response
         if ($returnAsArray) {
-            return $months->toArray();
+            return $monthsArray;
         }
     
         return response()->json([
-            'months' => $months,
+            'months' => $monthsArray,
         ]);
     }
 }

@@ -161,6 +161,7 @@ const submitForm = () => {
             iconOnly
             pill
             @click="openDialog"
+            class="hidden md:block"
         >
             <IconAdjustmentsHorizontal size="16" stroke-width="1.25" />
         </Button>

@@ -67,6 +67,7 @@ return [
     'reject_incentive_request_remark_desc' => "Please enter a remark to reject the incentive request. If left blank, the default remark will be used.",
     'empty_pending_request_title' => "No Pending Requests",
     'empty_pending_request_message' => "There are currently no withdrawal requests awaiting your approval. Please check back later or refresh the page to see if any new requests have been submitted.",
+    'empty_bonus_request_message' => "There are currently no bonus requests awaiting your approval. Please check back later or refresh the page to see if any new requests have been submitted.",
     'toast_reject_withdrawal_request_success' => "Withdrawal request has been rejected!",
     'toast_approve_withdrawal_request_success' => "Withdrawal request has been approved!",
     'toast_reject_bonus_request_success' => "Bonus request has been rejected!",

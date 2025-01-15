@@ -254,7 +254,7 @@ const exportXLSX = () => {
                             </div>
                         </div>
                     </template>
-                    <template #empty><Empty :title="$t('public.empty_pending_request_title')" :message="$t('public.empty_pending_request_message')" /></template>
+                    <template #empty><Empty :title="$t('public.empty_pending_request_title')" :message="$t('public.empty_bonus_request_message')" /></template>
                     <template #loading>
                         <div class="flex flex-col gap-2 items-center justify-center">
                             <Loader />
