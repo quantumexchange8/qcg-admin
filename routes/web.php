@@ -231,6 +231,7 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
      */
     Route::prefix('accountType')->middleware('role_and_permission:admin,access_account_type')->group(function () {
         Route::get('/', [AccountTypeController::class, 'index'])->name('accountType');
+        Route::get('/accountTypeConfiguration', [AccountTypeController::class, 'accountTypeConfiguration'])->name('accountType.accountTypeConfiguration');
         Route::get('/getAccountTypes', [AccountTypeController::class, 'getAccountTypes'])->name('accountType.getAccountTypes');
         Route::get('/syncAccountTypes', [AccountTypeController::class, 'syncAccountTypes'])->name('accountType.syncAccountTypes');
 

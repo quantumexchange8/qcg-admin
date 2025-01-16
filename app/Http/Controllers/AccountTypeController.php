@@ -17,6 +17,17 @@ class AccountTypeController extends Controller
         ]);
     }
 
+    public function accountTypeConfiguration(Request $request)
+    {
+        $accountType = AccountType::find($request->id);
+        
+        return Inertia::render('AccountType/Partials/AccountTypeConfiguration', [
+            'accountType' => $accountType,
+            'leverages' => (new GeneralController())->getLeverages(true),
+        ]);
+
+    }
+
     public function getAccountTypes()
     {
         $accountTypes = AccountType::get()
@@ -49,23 +60,6 @@ class AccountTypeController extends Controller
         return back()->with('toast', [
             'title' => trans('public.toast_sync_account_type'),
             'type'=> 'success',
-        ]);
-    }
-
-    public function findAccountType($id)
-    {
-        $accountType = AccountType::find($id);
-
-        $locale = app()->getLocale();
-        $translations = json_decode($accountType->descriptions, true);
-
-        $accountType['description_locale'] = $translations[$locale] ?? '-';
-        $accountType['description_en'] = $translations['en'] ?? '-';
-        $accountType['description_tw'] = $translations['tw'] ?? '-';
-
-        return response()->json([
-            'account_type' => $accountType,
-            'leverages' => (new GeneralController())->getLeverages(true),
         ]);
     }
 
