@@ -27,7 +27,13 @@ const props = defineProps({
 const visible = ref(false);
 
 const openDialog = () => {
-    visible.value = true;
+    if (props.accountType.category === 'individual') {
+        router.get(route('accountType.accountTypeConfiguration'), {
+            id: props.accountType.id,
+        });
+    } else {
+        visible.value = true;
+    }
 }
 
 const closeDialog = () => {

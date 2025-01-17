@@ -24,6 +24,7 @@ class AccountTypeController extends Controller
         return Inertia::render('AccountType/Partials/AccountTypeConfiguration', [
             'accountType' => $accountType,
             'leverages' => (new GeneralController())->getLeverages(true),
+            'visibleToOptions' => (new GeneralController())->getVisibleToOptions(true),
         ]);
 
     }

@@ -345,4 +345,43 @@ class GeneralController extends Controller
             'months' => $monthsArray,
         ]);
     }
+    
+    public function getVisibleToOptions($returnAsArray = false)
+    {
+        $teams = Team::with('team_has_user.user:id,first_name')->get();
+    
+        // Initialize an array to hold the transformed data
+        $visibleToOptions = [];
+    
+        // Loop through each team
+        foreach ($teams as $team) {
+            $members = [];
+    
+            // Loop through each member in the team
+            foreach ($team->team_has_user as $teamHasUser) {
+                $members[] = [
+                    'label' => $teamHasUser->user->first_name,
+                    'value' => $teamHasUser->user->id,
+                ];
+            }
+    
+            // Add the team's data to the options array
+            $visibleToOptions[] = [
+                'value' => $team->id,
+                'name' => $team->name,
+                'color' => $team->color,
+                'members' => $members,
+            ];
+        }
+    
+        // Return the result as either an array or a JSON response
+        if ($returnAsArray) {
+            return $visibleToOptions;
+        }
+    
+        return response()->json([
+            'visibleToOptions' => $visibleToOptions,
+        ]);
+    }
+            
 }
