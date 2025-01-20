@@ -161,7 +161,7 @@ const today = new Date();
 
 // Clear date selection
 const clearDate = () => {
-    form.period_date_range = null;
+    form.promotion_period = null;
 };
 
 // Form state tracking (for dirty check)
@@ -182,9 +182,8 @@ const form = useForm({
     color: props.accountType?.color || null,
     promotion_title: null,
     promotion_description: null,
-    promotion_period: promotionPeriods.value[0] || null,
-    period_date_range: null,
-    period_days: null,
+    promotion_period_type: promotionPeriods.value[0] || null,
+    promotion_period: null,
     promotion_type: null,
     minimum_deposit_amount: null,
     minimum_trade_lot_target: null,
@@ -194,17 +193,16 @@ const form = useForm({
     maximum_bonus_cap: null,
     applicable_deposit: applicableDepositTypes.value[0] || null,
     credit_withdraw_policy: radioOptions.value[0]?.value || null,
-    credit_withdrawa_date_period: null,
+    credit_withdraw_date_period: null,
 });
 
 // Track the initial state for dirty checking
 const initialFormState = ref({ ...form });
 
-// Watch for changes in promotion_period
-watch(() => form.promotion_period, (newPromotionPeriod) => {
+// Watch for changes in promotion_period_type
+watch(() => form.promotion_period_type, (newPromotionPeriod) => {
   if (newPromotionPeriod) {
-    form.period_date_range = null;
-    form.period_days = null;
+    form.promotion_period = null;
   }
 });
 
@@ -236,7 +234,7 @@ watch(() => form.bonus_amount_type, (newType) => {
 
 watch(() => form.credit_withdraw_policy, (newPolicy) => {
     if (newPolicy) {
-        form.credit_withdrawa_date_period = null;
+        form.credit_withdraw_date_period = null;
     }
 });
 
@@ -387,19 +385,26 @@ watch(() => form.credit_withdraw_policy, (newPolicy) => {
                                         v-if="form.visible_to === 'selected_members'"
                                         v-model="form.members"
                                         :options="visibleToOptions"
+                                        optionLabel="label"
+                                        optionGroupLabel="name"
+                                        optionGroupChildren="members"
+                                        group
                                         class="w-full font-normal"
                                         scroll-height="236px"
                                     >
-                                        <template #value="slotProps">
-                                            <div v-if="slotProps.value" class="flex items-center gap-3">
-                                                <div class="flex items-center gap-2">
-                                                    <div>{{ $t('public.' + slotProps.value) }}</div>
-                                                </div>
+                                        <!-- Slot to customize the selected value display -->
+                                        <template #value="{ value }">
+                                            <div v-if="value && value.length" class="flex items-center gap-3">
+                                                <span v-for="(member, index) in value" :key="index" class="text-sm">
+                                                    {{ member.label }}
+                                                </span>
                                             </div>
                                         </template>
-                                        <template #option="slotProps">
+
+                                        <!-- Slot to customize the options in the dropdown -->
+                                        <template #option="{ option }">
                                             <div class="flex items-center gap-2">
-                                                <div>{{ $t('public.' + slotProps.option) }}</div>
+                                                <span>{{ option.label }}</span>
                                             </div>
                                         </template>
                                     </MultiSelect>
@@ -499,10 +504,10 @@ watch(() => form.credit_withdraw_policy, (newPolicy) => {
                                 </div>
                                 
                                 <div class="w-full flex flex-col items-start gap-2">
-                                    <InputLabel for="promotion_period" :value="$t('public.promotion_period')" :invalid="!!form.errors.promotion_period"/>
+                                    <InputLabel for="promotion_period_type" :value="$t('public.promotion_period')" :invalid="!!form.errors.promotion_period_type"/>
                                     <div class="w-full grid grid-cols-2 gap-5">
                                         <Select
-                                            v-model="form.promotion_period"
+                                            v-model="form.promotion_period_type"
                                             :options="promotionPeriods"
                                             class="block w-full font-normal"
                                             scroll-height="236px"
@@ -519,9 +524,9 @@ watch(() => form.credit_withdraw_policy, (newPolicy) => {
                                             </template>
                                         </Select>
                                         
-                                        <div v-if="form.promotion_period === 'specific_date_range'" class="relative w-full">
+                                        <div v-if="form.promotion_period_type === 'specific_date_range'" class="relative w-full">
                                             <DatePicker 
-                                                v-model="form.period_date_range"
+                                                v-model="form.promotion_period"
                                                 selectionMode="range"
                                                 :manualInput="false"
                                                 :minDate="today"
@@ -532,18 +537,18 @@ watch(() => form.credit_withdraw_policy, (newPolicy) => {
                                                 class="font-normal w-full"
                                             />
                                             <div
-                                                v-if="form.period_date_range && form.period_date_range.length > 0"
+                                                v-if="form.promotion_period && form.promotion_period.length > 0"
                                                 class="absolute top-[11px] right-3 flex justify-center items-center text-gray-400 select-none cursor-pointer bg-white w-6 h-6 "
                                                 @click="clearDate"
                                             >
                                                 <IconCircleXFilled size="20" />
                                             </div>
                                         </div>
-                                        <InputError :message="form.errors.period_date_range" />
+                                        <InputError :message="form.errors.promotion_period" />
 
                                         <InputNumber
-                                            v-if="form.promotion_period === 'from_account_opening'"
-                                            v-model="form.period_days"
+                                            v-if="form.promotion_period_type === 'from_account_opening'"
+                                            v-model="form.promotion_period"
                                             :minFractionDigits="0"
                                             fluid
                                             size="sm"
@@ -552,11 +557,11 @@ watch(() => form.credit_withdraw_policy, (newPolicy) => {
                                             class="w-full"
                                             inputClass="py-3 px-4"
                                             autofocus
-                                            :invalid="!!form.errors.period_days"
+                                            :invalid="!!form.errors.promotion_period"
                                             :placeholder="'e.g., 30'"
-                                            :disabled="form.promotion_period !== 'from_account_opening'"
+                                            :disabled="form.promotion_period_type !== 'from_account_opening'"
                                         />
-                                        <InputError :message="form.errors.period_days" />
+                                        <InputError :message="form.errors.promotion_period" />
                                     </div>
                                 </div>
 
@@ -732,7 +737,7 @@ watch(() => form.credit_withdraw_policy, (newPolicy) => {
                                                 <span class="text-gray-950 text-sm text-nowrap">{{ $t('public.promotion_select_date') }}:</span>
                                                 <div class="relative w-full">
                                                     <DatePicker 
-                                                        v-model="form.credit_withdrawa_date_period"
+                                                        v-model="form.credit_withdraw_date_period"
                                                         selectionMode="single"
                                                         :manualInput="false"
                                                         :minDate="today"
@@ -743,20 +748,20 @@ watch(() => form.credit_withdraw_policy, (newPolicy) => {
                                                         class="font-normal w-full"
                                                     />
                                                     <div
-                                                        v-if="form.credit_withdrawa_date_period"
+                                                        v-if="form.credit_withdraw_date_period"
                                                         class="absolute top-[11px] right-3 flex justify-center items-center text-gray-400 select-none cursor-pointer bg-white w-6 h-6 "
-                                                        @click="form.credit_withdrawa_date_period = null"
+                                                        @click="form.credit_withdraw_date_period = null"
                                                     >
                                                         <IconCircleXFilled size="20" />
                                                     </div>
                                                 </div>
-                                                <InputError :message="form.errors.credit_withdrawa_date_period" />
+                                                <InputError :message="form.errors.credit_withdraw_date_period" />
 
                                             </div>
                                             <div v-if="option.value === 'withdraw_after_period' && form.credit_withdraw_policy === 'withdraw_after_period'" class="w-full flex items-center pl-7 gap-3">
                                                 <span class="text-gray-950 text-sm text-nowrap">{{ $t('public.enter_number_of_days') }}:</span>
                                                 <InputNumber
-                                                    v-model="form.credit_withdrawa_date_period"
+                                                    v-model="form.credit_withdraw_date_period"
                                                     :minFractionDigits="0"
                                                     fluid
                                                     size="sm"
@@ -765,11 +770,11 @@ watch(() => form.credit_withdraw_policy, (newPolicy) => {
                                                     class="w-full"
                                                     inputClass="py-3 px-4"
                                                     autofocus
-                                                    :invalid="!!form.errors.credit_withdrawa_date_period"
+                                                    :invalid="!!form.errors.credit_withdraw_date_period"
                                                     :placeholder="'e.g., 30'"
                                                     :disabled="form.credit_withdraw_policy !== 'withdraw_after_period'"
                                                 />
-                                                <InputError :message="form.errors.credit_withdrawa_date_period" />
+                                                <InputError :message="form.errors.credit_withdraw_date_period" />
                                             </div>
                                         </div>
                                     </div>
