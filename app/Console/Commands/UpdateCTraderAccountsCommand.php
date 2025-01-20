@@ -17,6 +17,9 @@ class UpdateCTraderAccountsCommand extends Command
 
     public function handle(): void
     {
+        // Disable PHP execution timeout
+        ini_set('max_execution_time', 0);  // No timeout, runs indefinitely
+
         $this->info('Starting to refresh cTrader accounts...');
 
         TradingUser::where('acc_status', 'active')
