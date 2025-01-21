@@ -1,6 +1,6 @@
 <script setup>
 import { Head } from "@inertiajs/vue3";
-import { h, ref, watch, onMounted, onBeforeUnmount } from "vue";
+import { h, ref, watch, computed } from "vue";
 import { router } from "@inertiajs/vue3";
 import { useConfirm } from "primevue/useconfirm";
 import { useForm } from "@inertiajs/vue3";
@@ -8,6 +8,7 @@ import {
     IconChevronRight,
     IconExclamationMark,
     IconCircleXFilled,
+    IconSearch,
 } from "@tabler/icons-vue";
 import Button from "@/Components/Button.vue";
 import InputError from "@/Components/InputError.vue";
@@ -19,6 +20,11 @@ import Select from "primevue/select";
 import DatePicker from 'primevue/datepicker';
 import ColorPicker from 'primevue/colorpicker';
 import RadioButton from 'primevue/radiobutton';
+import Checkbox from 'primevue/checkbox';
+import Accordion from 'primevue/accordion';
+import AccordionPanel from 'primevue/accordionpanel';
+import AccordionHeader from 'primevue/accordionheader';
+import AccordionContent from 'primevue/accordioncontent';
 import { trans, wTrans } from "laravel-vue-i18n";
 import ConfirmationDialog from "@/Components/ConfirmationDialog.vue";
 
@@ -185,8 +191,7 @@ const form = useForm({
     promotion_period_type: promotionPeriods.value[0] || null,
     promotion_period: null,
     promotion_type: null,
-    minimum_deposit_amount: null,
-    minimum_trade_lot_target: null,
+    minimum_target: null,
     bonus_type: BonusTypes.value[0] || null,
     bonus_amount_type: BonusAmountTypes.value[0] || null,
     bonus_amount: null,
@@ -210,8 +215,7 @@ watch(() => form.promotion_period_type, (newPromotionPeriod) => {
 watch(promotionType, (newPromotionType) => {
   if (newPromotionType) {
     form.promotion_type = newPromotionType.value
-    form.minimum_deposit_amount = null;
-    form.minimum_trade_lot_target = null;
+    form.minimum_target = null;
   }
 });
 
@@ -237,6 +241,87 @@ watch(() => form.credit_withdraw_policy, (newPolicy) => {
         form.credit_withdraw_date_period = null;
     }
 });
+
+const search = ref(null);
+
+const clearSearch = () => {
+    search.value = null;
+}
+
+// Arrays to track selected members and groups globally
+const selectedMembers = ref([]);
+const selectedGroups = ref([]);
+
+// Helper to optimize lookups in arrays
+const selectedMembersSet = computed(() => new Set(selectedMembers.value));
+
+// Watch for changes in selectedMembers
+watch(selectedMembers, (newSelectedMembers) => {
+  // We use the Set for faster lookup and avoid processing large arrays multiple times
+  const newSelectedMembersSet = new Set(newSelectedMembers);
+
+  visibleToOptions.value.forEach((group) => {
+    // Check if all members of the group are selected
+    const allMembersSelected = group.members.every((member) => newSelectedMembersSet.has(member.value));
+
+    if (allMembersSelected && !selectedGroups.value.includes(group.name)) {
+      // If all members are selected, add group name to selectedGroups
+      selectedGroups.value.push(group.name);
+    } else if (!allMembersSelected && selectedGroups.value.includes(group.name)) {
+      // If not all members are selected, check if any member is still selected
+      const anyMemberSelected = group.members.some((member) => newSelectedMembersSet.has(member.value));
+      if (!anyMemberSelected) {
+        // If no members are selected, remove the group name from selectedGroups
+        selectedGroups.value = selectedGroups.value.filter((groupName) => groupName !== group.name);
+      }
+    }
+  });
+}, { deep: false }); // Use shallow watch
+
+// Watch for changes in selectedGroups
+watch(selectedGroups, (newSelectedGroups, oldSelectedGroups) => {
+  visibleToOptions.value.forEach((group) => {
+    // Handle Group Removal: If the group was in oldSelectedGroups but is now removed
+    if (oldSelectedGroups.includes(group.name) && !newSelectedGroups.includes(group.name)) {
+      group.members.forEach((member) => {
+        // Only remove the member if it isn't in any other selected group
+        if (!newSelectedGroups.some((groupName) => {
+          const group = visibleToOptions.value.find(g => g.name === groupName);
+          return group && group.members.some(m => m.value === member.value);
+        })) {
+          selectedMembers.value = selectedMembers.value.filter((value) => value !== member.value);
+        }
+      });
+    }
+
+    // Handle Group Addition: If the group is now added in newSelectedGroups
+    if (newSelectedGroups.includes(group.name) && !oldSelectedGroups.includes(group.name)) {
+      group.members.forEach((member) => {
+        if (!selectedMembersSet.value.has(member.value)) {
+          selectedMembers.value.push(member.value);
+        }
+      });
+    }
+  });
+}, { deep: false }); // Use shallow watch
+
+// Watch for changes in form.visible_to
+watch(() => form.visible_to, (newValue) => {
+  if (newValue) {
+    selectedMembers.value = [];
+    selectedGroups.value = [];
+  }
+});
+
+const submitForm = () => {
+    form.members = [...selectedMembers.value];
+
+    form.post(route('accountType.updatePromotionConfiguration'), {
+        onSuccess: () => {
+            form.reset();
+        },
+    });
+}
 
 </script>
 
@@ -284,6 +369,7 @@ watch(() => form.credit_withdraw_policy, (newPolicy) => {
                     variant="primary-flat"
                     size="sm"
                     class="whitespace-nowrap"
+                    @click="submitForm"
                 >
                     {{ $t('public.save_settings') }}
                 </Button>
@@ -381,33 +467,99 @@ watch(() => form.credit_withdraw_policy, (newPolicy) => {
                                         </div>
 
                                     </div>
-                                    <MultiSelect
+                                    <div v-if="form.visible_to === 'selected_members'" class="w-full h-[500px] flex flex-col items-center rounded border border-gray-200 bg-white">
+                                        <div class="w-full flex flex-col justify-center items-center p-3 gap-3 bg-white">
+                                            <div class="relative w-full">
+                                                <div class="absolute top-2/4 -mt-[9px] left-3 text-gray-500">
+                                                    <IconSearch size="20" stroke-width="1.25" />
+                                                </div>
+                                                <InputText
+                                                    v-model="search"
+                                                    :placeholder="$t('public.keyword_search')"
+                                                    size="search"
+                                                    class="font-normal w-full"
+                                                />
+                                                <div
+                                                    v-if="search !== null && search !== ''"
+                                                    class="absolute top-2/4 -mt-2 right-4 text-gray-300 hover:text-gray-400 select-none cursor-pointer"
+                                                    @click="clearSearch"
+                                                >
+                                                    <IconCircleXFilled size="16" />
+                                                </div>
+                                            </div>
+                                            <!-- Grouped Members with Accordion -->
+                                            <Accordion multiple class="w-full flex flex-col justify-center items-center gap-1">
+                                                <AccordionPanel
+                                                    v-for="(group, index) in visibleToOptions"
+                                                    :key="index"
+                                                    :value="group.value"
+                                                    class="w-full flex flex-col justify-center gap-1"
+                                                >
+                                                    <AccordionHeader class="w-full flex flex-row-reverse justify-end items-center gap-2">
+                                                        <span class="text-gray-950 text-sm">{{ group.name }}</span>
+                                                        <Checkbox
+                                                            v-model="selectedGroups"
+                                                            :value="group.name"
+                                                            class="w-4 h-4"
+                                                            @click.stop
+                                                        />
+                                                    </AccordionHeader>
+
+                                                    <AccordionContent class="w-full flex flex-col justify-center gap-1 pl-[22px]">
+                                                        <div
+                                                            v-for="(member, idx) in group.members"
+                                                            :key="member.value"
+                                                            class="flex items-center gap-2"
+                                                        >
+                                                        <Checkbox
+                                                            v-model="selectedMembers"
+                                                            :value="member.value"
+                                                            class="w-4 h-4"
+                                                        />
+                                                        <span class="text-gray-950 text-sm">{{ member.label }}</span>
+                                                        </div>
+                                                    </AccordionContent>
+                                                </AccordionPanel>
+                                            </Accordion>
+                                        </div>
+                                    </div>
+                                    <!-- <MultiSelect
                                         v-if="form.visible_to === 'selected_members'"
-                                        v-model="form.members"
+                                        v-model="selectedMemberValues"
                                         :options="visibleToOptions"
                                         optionLabel="label"
                                         optionGroupLabel="name"
                                         optionGroupChildren="members"
                                         group
                                         class="w-full font-normal"
-                                        scroll-height="236px"
+                                        scroll-height="500px"
                                     >
-                                        <!-- Slot to customize the selected value display -->
                                         <template #value="{ value }">
-                                            <div v-if="value && value.length" class="flex items-center gap-3">
-                                                <span v-for="(member, index) in value" :key="index" class="text-sm">
-                                                    {{ member.label }}
-                                                </span>
-                                            </div>
+                                        <div v-if="value && value.length" class="flex items-center gap-3">
+                                            <span v-for="(member, index) in value" :key="index" class="text-sm">
+                                            {{ member.label }}
+                                            </span>
+                                        </div>
                                         </template>
 
-                                        <!-- Slot to customize the options in the dropdown -->
                                         <template #option="{ option }">
-                                            <div class="flex items-center gap-2">
-                                                <span>{{ option.label }}</span>
-                                            </div>
+                                        <div class="flex items-center gap-2">
+                                            <span>{{ option.label }}</span>
+                                        </div>
                                         </template>
-                                    </MultiSelect>
+
+                                        <template #optiongroup="slotProps">
+                                        <div class="flex items-center gap-2">
+                                            <Checkbox
+                                            v-model="selectedMemberValues"
+                                            :checked="isGroupChecked(slotProps.option.value)"
+                                            @change="toggleGroupSelection(slotProps.option.value)"
+                                            class="w-4 h-4"
+                                            />
+                                            <div>{{ slotProps.option.name }}</div>
+                                        </div>
+                                        </template>
+                                    </MultiSelect> -->
                                     <InputError :message="form.errors.visible_to" />
                                 </div>
                             </div>
@@ -588,13 +740,13 @@ watch(() => form.credit_withdraw_policy, (newPolicy) => {
                                     </div>
                                     <div class="w-full h-full min-w-[300px] flex flex-col items-start gap-2">
                                         <InputLabel
-                                            :for="form.promotion_type === 'deposit' ? 'minimum_deposit_amount' : 'minimum_trade_lot_target'"
+                                            for="minimum_target"
                                             :value="$t(form.promotion_type === 'deposit' ? 'public.minimum_deposit_amount' : 'public.minimum_trade_lot_target')"
-                                            :invalid="!!form.errors[form.promotion_type === 'deposit' ? 'minimum_deposit_amount' : 'minimum_trade_lot_target']"
+                                            :invalid="!!form.errors.minimum_target"
                                         />
                                             
                                         <InputNumber
-                                            v-model="form[form.promotion_type === 'deposit' ? 'minimum_deposit_amount' : 'minimum_trade_lot_target']"
+                                            v-model="form.minimum_target"
                                             :minFractionDigits="2"
                                             fluid
                                             size="sm"
@@ -605,10 +757,10 @@ watch(() => form.credit_withdraw_policy, (newPolicy) => {
                                             class="w-full"
                                             inputClass="py-3 px-4"
                                             autofocus
-                                            :invalid="!!form.errors[form.promotion_type === 'deposit' ? 'minimum_deposit_amount' : 'minimum_trade_lot_target']"
+                                            :invalid="!!form.errors.minimum_target"
                                             :placeholder="form.promotion_type === 'deposit' ? '$ 0.00' : '0.00 Ł'"
                                         />
-                                        <InputError :message="form.errors[form.promotion_type === 'deposit' ? 'minimum_deposit_amount' : 'minimum_trade_lot_target']" />
+                                        <InputError :message="form.errors.minimum_target" />
                                     </div>
                                 </div>
                                 

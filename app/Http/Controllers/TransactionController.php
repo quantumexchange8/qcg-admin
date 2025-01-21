@@ -38,6 +38,11 @@ class TransactionController extends Controller
         return Inertia::render('Transaction/IncentivePayout');
     }
 
+    public function adjustment()
+    {
+        return Inertia::render('Transaction/AdjustmentHistory');
+    }
+
     public function getTransactionData(Request $request)
     {
         $type = $request->query('type');
@@ -337,4 +342,64 @@ class TransactionController extends Controller
             'totalAmount' => $totalAmount,
         ]);
     }
+
+    public function getAdjustmentHistoryData(Request $request)
+    {
+        // Fetch transactions
+        $adjustment_history = Transaction::whereIn('transaction_type', [
+                'rebate_in', 'rebate_out', 'balance_in', 'balance_out', 'credit_in', 'credit_out',
+            ])
+            ->where('status', 'successful')
+            ->latest()
+            ->get();
+
+        $result = [];
+
+        // Transform data: exclude `user` object but retain its relevant fields
+        foreach ($adjustment_history as $transaction) {
+            $target = null;
+    
+            // Check if 'from_wallet_id' or 'to_wallet_id' exist and assign the value
+            if ($transaction->from_wallet) {
+                $target = $transaction->from_wallet->type;
+                unset($transaction->from_wallet); 
+            } elseif ($transaction->to_wallet) {
+                $target = $transaction->to_wallet->type;
+                unset($transaction->to_wallet); 
+            }
+        
+            // If 'from_meta_login' or 'to_meta_login' exist, assign directly
+            if ($transaction->from_meta_login || $transaction->to_meta_login) {
+                $target = $transaction->from_meta_login ?? $transaction->to_meta_login;
+            }
+    
+            $result[] = array_merge(
+                $transaction->toArray(), // Include all transaction data
+                [
+                    'name' => $transaction->user ? $transaction->user->first_name : null,
+                    'email' => $transaction->user ? $transaction->user->email : null,
+                    'role' => $transaction->user ? ($transaction->user->role ?? null) : null,
+                    'id_number' => $transaction->user ? $transaction->user->id_number : null,
+                    'target' => $target,
+                    'team_id' => $transaction->user->teamHasUser->team_id ?? null,
+                    'team_name' => $transaction->user->teamHasUser->team->name ?? null,
+                    'team_color' => $transaction->user->teamHasUser->team->color ?? null,
+    
+                ]
+            );
+    
+            // Remove the nested `user` object from the result
+            unset($result[array_key_last($result)]['user']);
+        }
+    
+        // Calculate the total amount
+        $totalAmount = $adjustment_history->sum('transaction_amount');
+
+        // Return response
+        return response()->json([
+            'transactions' => $result,
+            'totalAmount' => $totalAmount,
+        ]);
+    }
+
 }

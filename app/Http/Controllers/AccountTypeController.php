@@ -120,4 +120,46 @@ class AccountTypeController extends Controller
     }
 
 
+    public function updatePromotionConfiguration(Request $request)
+    {
+        dd($request->all());
+        // Find the account type by ID
+        $account_type = AccountType::find($request->id);
+    
+        // Update the account type fields
+        $account_type->category = $request->category;
+        $account_type->descriptions = json_encode($request->descriptions);
+        $account_type->leverage = $request->leverage;
+        $account_type->trade_open_duration = $request->trade_delay_duration;
+        $account_type->maximum_account_number = $request->max_account;
+        $account_type->color = $request->color;
+        $account_type->promotion_title = $request->promotion_title;
+        $account_type->promotion_description = $request->promotion_description;
+        $account_type->promotion_period_type = $request->promotion_period_type;
+        $account_type->promotion_period = $request->promotion_period;
+        $account_type->promotion_type = $request->promotion_type;
+        $account_type->minimum_target = $request->minimum_target;
+        $account_type->bonus_type = $request->bonus_type;
+        $account_type->bonus_amount_type = $request->bonus_amount_type;
+        $account_type->bonus_amount = $request->bonus_amount;
+        $account_type->maximum_bonus_cap = $request->maximum_bonus_cap;
+        $account_type->applicable_deposit = $request->applicable_deposit;
+        $account_type->credit_withdraw_policy = $request->credit_withdraw_policy;
+        $account_type->credit_withdraw_date_period = $request->credit_withdraw_date_period;
+        $account_type->visible_to = $request->visible_to;
+    
+        // Handle the members array if provided
+        if ($request->has('members')) {
+            $account_type->members = $request->members;
+        }
+    
+        // Save the updated account type
+        $account_type->save();
+    
+        return back()->with('toast', [
+            'title' => $account_type->status == 'active' ? trans("public.toast_account_type_activated") : trans("public.toast_account_type_deactivated"),
+            'type' => 'success',
+        ]);
+    }
+    
 }

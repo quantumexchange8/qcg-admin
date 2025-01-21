@@ -239,6 +239,13 @@ watchEffect(() => {
                 :active="route().current('transaction.incentive')"
                 v-if="hasRole('super-admin') || hasPermission('access_incentive_payout')"
             />
+
+            <SidebarCollapsibleItem
+                :title="$t('public.sidebar_adjustment')"
+                :href="route('transaction.adjustment')"
+                :active="route().current('transaction.adjustment')"
+            />
+
         </SidebarCollapsible>
 
         <!-- Account Type -->

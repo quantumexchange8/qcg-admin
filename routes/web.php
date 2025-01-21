@@ -219,10 +219,12 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
         Route::get('transfer', [TransactionController::class, 'transfer'])->name('transaction.transfer')->middleware('role_and_permission:admin,access_transfer');
         Route::get('rebate', [TransactionController::class, 'rebate'])->name('transaction.rebate')->middleware('role_and_permission:admin,access_rebate_payout');
         Route::get('incentive', [TransactionController::class, 'incentive'])->name('transaction.incentive')->middleware('role_and_permission:admin,access_incentive_payout');
+        Route::get('adjustment', [TransactionController::class, 'adjustment'])->name('transaction.adjustment');
 
         Route::get('/getTransactionData', [TransactionController::class, 'getTransactionData'])->name('transaction.getTransactionData')->middleware('role_and_permission:admin,access_deposit,access_withdrawal,access_transfer');
         Route::get('/getRebatePayoutData', [TransactionController::class, 'getRebatePayoutData'])->name('transaction.getRebatePayoutData')->middleware('role_and_permission:admin,access_rebate_payout');
         Route::get('/getIncentivePayoutData', [TransactionController::class, 'getIncentivePayoutData'])->name('transaction.getIncentivePayoutData')->middleware('role_and_permission:admin,access_incentive_payout');
+        Route::get('/getAdjustmentHistoryData', [TransactionController::class, 'getAdjustmentHistoryData'])->name('transaction.getAdjustmentHistoryData');
     });
 
     /**
@@ -238,6 +240,7 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
 
         Route::post('/updateStatus', [AccountTypeController::class, 'updateStatus'])->name('accountType.updateStatus');
         Route::post('/updateAccountType', [AccountTypeController::class, 'updateAccountType'])->name('accountType.updateAccountType');
+        Route::post('/updatePromotionConfiguration', [AccountTypeController::class, 'updatePromotionConfiguration'])->name('accountType.updatePromotionConfiguration');
 
     });
 
