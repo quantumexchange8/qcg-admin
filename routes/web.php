@@ -236,6 +236,7 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
         Route::get('/', [AccountTypeController::class, 'index'])->name('accountType');
         Route::get('/accountTypeConfiguration', [AccountTypeController::class, 'accountTypeConfiguration'])->name('accountType.accountTypeConfiguration');
         Route::get('/getAccountTypes', [AccountTypeController::class, 'getAccountTypes'])->name('accountType.getAccountTypes');
+        Route::get('/getVisibleToOptions', [AccountTypeController::class, 'getVisibleToOptions'])->name('accountType.getVisibleToOptions');
         Route::get('/syncAccountTypes', [AccountTypeController::class, 'syncAccountTypes'])->name('accountType.syncAccountTypes');
 
         Route::post('/updateStatus', [AccountTypeController::class, 'updateStatus'])->name('accountType.updateStatus');

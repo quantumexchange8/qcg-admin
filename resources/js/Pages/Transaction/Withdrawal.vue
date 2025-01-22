@@ -23,6 +23,10 @@ import MultiSelect from "primevue/multiselect";
 const { formatAmount } = transactionFormat();
 const { formatRgbaColor } = generalFormat();
 
+const props = defineProps({
+    teams: Array,
+});
+
 const visible = ref(false);
 const loading = ref(false);
 const dt = ref(null);
@@ -30,6 +34,7 @@ const transactions = ref();
 const totalAmount = ref();
 const type = ref('withdrawal');
 const months = ref([]);
+const teams = ref(props.teams);
 const selectedMonths = ref([]);
 const filteredValue = ref();
 const withdrawalFrom = ref();
@@ -116,6 +121,14 @@ const filters = ref({
     name: { value: null, matchMode: FilterMatchMode.CONTAINS },
     email: { value: null, matchMode: FilterMatchMode.CONTAINS },
     status: { value: 'successful', matchMode: FilterMatchMode.EQUALS },
+    team_id: { value: null, matchMode: FilterMatchMode.CONTAINS },
+});
+
+const selectedTeam = ref();
+watch(selectedTeam, (newTeam) => {
+  if (newTeam) {
+    filters.value['team_id'].value = newTeam.value;
+  }
 });
 
 const recalculateTotals = () => {
@@ -140,9 +153,10 @@ const recalculateTotals = () => {
         const matchesNameFilter = !filters.value.name?.value || transaction.name.startsWith(filters.value.name.value);
         const matchesEmailFilter = !filters.value.email?.value || transaction.email.startsWith(filters.value.email.value);
         const matchesStatusFilter = !filters.value.status?.value || transaction.status === filters.value.status.value;
+        const matchesTeamFilter = !filters.value.team_id?.value || transaction.team_id === filters.value.team_id.value;
 
         // Only return transactions that match both global and specific filters
-        return matchesGlobalFilter && matchesNameFilter && matchesEmailFilter && matchesStatusFilter;
+        return matchesGlobalFilter && matchesNameFilter && matchesEmailFilter && matchesStatusFilter && matchesTeamFilter;
     });
 
     // Calculate the total for successful transactions
@@ -163,9 +177,11 @@ const clearFilter = () => {
         name: { value: null, matchMode: FilterMatchMode.CONTAINS },
         email: { value: null, matchMode: FilterMatchMode.CONTAINS },
         status: { value: 'successful', matchMode: FilterMatchMode.EQUALS },
+        team_id: { value: null, matchMode: FilterMatchMode.CONTAINS },
     };
     selectedMonths.value = [getCurrentMonthYear()];
     withdrawalFrom.value = null;
+    selectedTeam.value = null;
     filteredValue.value = null;
 };
 
@@ -188,6 +204,7 @@ const exportXLSX = () => {
         trans('public.name'),
         trans('public.email'),
         trans('public.date'),
+        trans('public.sales_team'),
         trans('public.id'),
         trans('public.from'),
         trans('public.amount') + ' ($)',
@@ -202,6 +219,7 @@ const exportXLSX = () => {
             obj.name !== undefined ? obj.name : '',
             obj.email !== undefined ? obj.email : '',
             obj.created_at !== undefined ? dayjs(obj.created_at).format('YYYY/MM/DD') : '',
+            obj.team_name !== undefined ? obj.team_name : '',
             obj.transaction_number !== undefined ? obj.transaction_number : '',
             fromDisplay,
             obj.transaction_amount !== undefined ? obj.transaction_amount : '',
@@ -317,7 +335,7 @@ const copyToClipboard = (text) => {
             >
                 <template #header>
                     <div class="flex flex-col justify-between items-center pb-5 gap-3 self-stretch md:flex-row md:pb-6">
-                        <div class="grid grid-cols-1 md:grid-cols-3 items-center gap-3 self-stretch md:gap-5">
+                        <div class="grid grid-cols-1 md:grid-cols-4 items-center gap-3 self-stretch md:gap-5">
                             <MultiSelect
                                 v-model="selectedMonths"
                                 :options="months"
@@ -352,7 +370,7 @@ const copyToClipboard = (text) => {
                                 optionLabel="name"
                                 optionValue="value"
                                 :placeholder="$t('public.filter_by_status')"
-                                class="w-full md:w-60 font-normal"
+                                class="w-full md:w-auto font-normal"
                                 scroll-height="236px"
                             >
                                 <template #value="data">
@@ -368,6 +386,32 @@ const copyToClipboard = (text) => {
                                 class="w-full md:w-auto font-normal"
                                 scroll-height="236px"
                             />
+                            <Select
+                                v-model="selectedTeam"
+                                :options="teams"
+                                filter
+                                :filterFields="['name']"
+                                optionLabel="name"
+                                :placeholder="$t('public.filter_by_sales_team')"
+                                class="w-full md:min-w-32 font-normal"
+                                scroll-height="236px"
+                            >
+                                <template #value="slotProps">
+                                    <div v-if="slotProps.value" class="flex items-center gap-3">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-4 h-4 rounded-full overflow-hidden grow-0 shrink-0" :style="{ backgroundColor: `#${slotProps.value.color}` }"></div>
+                                            <div>{{ slotProps.value.name }}</div>
+                                        </div>
+                                    </div>
+                                    <span v-else class="text-gray-400">{{ slotProps.placeholder }}</span>
+                                </template>
+                                <template #option="slotProps">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-4 h-4 rounded-full overflow-hidden grow-0 shrink-0" :style="{ backgroundColor: `#${slotProps.option.color}` }"></div>
+                                        <div>{{ slotProps.option.name }}</div>
+                                    </div>
+                                </template>
+                            </Select>
                         </div>
                         <Button
                             type="button"
@@ -394,11 +438,24 @@ const copyToClipboard = (text) => {
                     </div>
                 </template>
                 <template v-if="transactions?.length > 0 && filteredValue?.length > 0">
-                    <Column field="name" sortable :header="$t('public.name')" class="w-1/2 md:w-[20%] max-w-0 px-3">
+                    <Column field="name" sortable :header="$t('public.name')" class="w-2/3 md:w-[20%] max-w-0 px-3">
                         <template #body="slotProps">
                             <div class="flex flex-col items-start max-w-full">
-                                <div class="font-semibold truncate max-w-full">
-                                    {{ slotProps.data.name }}
+                                <div class="flex max-w-full gap-2">
+                                    <div class="font-semibold truncate max-w-full">
+                                        {{ slotProps.data.name }}
+                                    </div>
+                                    <div
+                                        v-if="slotProps.data.team_id"
+                                        class="flex justify-center items-center gap-2 rounded-sm py-1 px-2 md:hidden"
+                                        :style="{ backgroundColor: formatRgbaColor(slotProps.data.team_color, 1) }"
+                                    >
+                                        <div
+                                            class="text-white text-xs text-center"
+                                        >
+                                            {{ slotProps.data.team_name }}
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="text-gray-500 text-xs truncate max-w-full">
                                     {{ slotProps.data.email }}
@@ -440,7 +497,7 @@ const copyToClipboard = (text) => {
                             </div>
                         </template>
                     </Column>
-                    <Column field="transaction_amount" :header="`${$t('public.amount')}&nbsp;($)`" sortable class="w-1/2 md:w-[15%] px-3">
+                    <Column field="transaction_amount" :header="`${$t('public.amount')}&nbsp;($)`" sortable class="w-1/3 md:w-[15%] px-3">
                         <template #body="slotProps">
                             <div class="text-gray-950 text-sm">
                                 {{ formatAmount(slotProps.data.transaction_amount || 0) }}

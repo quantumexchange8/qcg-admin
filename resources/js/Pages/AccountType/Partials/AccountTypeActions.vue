@@ -27,7 +27,7 @@ const props = defineProps({
 const visible = ref(false);
 
 const openDialog = () => {
-    if (props.accountType.category === 'individual') {
+    if (props.accountType.category === 'promotion') {
         router.get(route('accountType.accountTypeConfiguration'), {
             id: props.accountType.id,
         });
@@ -106,7 +106,7 @@ const handleAccountTypeStatus = () => {
     }
 }
 
-const categories = ref(['individual', 'manage']);
+const categories = ref(['individual', 'manage', 'promotion']);
 const trade_delay_duration_options = ref([
     {name: '0 sec', value: '0'},
     {name: '1 sec', value: '1'},

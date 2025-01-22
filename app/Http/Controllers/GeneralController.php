@@ -204,16 +204,18 @@ class GeneralController extends Controller
                     'name' => trans('public.' . $accountType->slug),
                 ];
             });
-
+    
+        // Ensure that it returns an array when $returnAsArray is true
         if ($returnAsArray) {
-            return $accountTypes;
+            return $accountTypes->values()->all();  // .all() ensures it is a plain array
         }
-
+        
+        // If not, return it as a JSON response
         return response()->json([
             'accountTypes' => $accountTypes,
         ]);
     }
-
+    
     public function getAccountTypesWithSlugs($returnAsArray = false)
     {
         $accountTypes = AccountType::all()
@@ -228,11 +230,11 @@ class GeneralController extends Controller
             });
 
         if ($returnAsArray) {
-            return $accountTypes;
+            return $accountTypes->values()->all();
         }
 
         return response()->json([
-            'accountTypes' => $accountTypes,
+            'accountTypes' => $accountTypes->values()->all(),
         ]);
     }
 

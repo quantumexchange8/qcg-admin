@@ -15,12 +15,16 @@ class TransactionController extends Controller
 {
     public function deposit()
     {
-        return Inertia::render('Transaction/Deposit');
+        return Inertia::render('Transaction/Deposit', [
+            'teams' => (new GeneralController())->getTeams(true),
+        ]);
     }
 
     public function withdrawal()
     {
-        return Inertia::render('Transaction/Withdrawal');
+        return Inertia::render('Transaction/Withdrawal', [
+            'teams' => (new GeneralController())->getTeams(true),
+        ]);
     }
 
     public function transfer()

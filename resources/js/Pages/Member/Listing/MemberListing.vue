@@ -334,13 +334,25 @@ watchEffect(() => {
                             field="first_name"
                             sortable
                             :header="$t('public.name')"
-                            style="width: 25%; max-width: 0;"
-                            class="px-3"
+                            class="px-3 w-2/3 md:w-1/4 max-w-0"
                         >
                             <template #body="{data}">
                                 <div class="flex flex-col items-start max-w-full">
-                                    <div class="font-semibold truncate max-w-full">
-                                        {{ data.first_name }}
+                                    <div class="flex max-w-full gap-2">
+                                        <div class="font-semibold truncate max-w-full">
+                                            {{ data.first_name }}
+                                        </div>
+                                        <div
+                                            v-if="data.team_has_user"
+                                            class="flex justify-center items-center gap-2 rounded-sm py-1 px-2 md:hidden"
+                                            :style="{ backgroundColor: formatRgbaColor(data.team_has_user.team.color, 1) }"
+                                        >
+                                            <div
+                                                class="text-white text-xs text-center"
+                                            >
+                                                {{ data.team_has_user.team.name }}
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="text-gray-500 text-xs truncate max-w-full">
                                         {{ data.email }}
@@ -383,11 +395,13 @@ watchEffect(() => {
                                 </div>
                             </template>
                         </Column>
-                        <Column field="action" header="" style="width: 20%">
+                        <Column field="action" class="w-1/3 md:w-1/5">
                             <template #body="slotProps">
-                                <MemberTableActions
-                                    :member="slotProps.data"
-                                />
+                                <div class="w-full flex justify-end">
+                                    <MemberTableActions
+                                        :member="slotProps.data"
+                                    />
+                                </div>
                             </template>
                         </Column>
                     </template>

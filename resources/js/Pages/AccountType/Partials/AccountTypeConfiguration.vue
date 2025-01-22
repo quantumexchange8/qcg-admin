@@ -27,11 +27,15 @@ import AccordionHeader from 'primevue/accordionheader';
 import AccordionContent from 'primevue/accordioncontent';
 import { trans, wTrans } from "laravel-vue-i18n";
 import ConfirmationDialog from "@/Components/ConfirmationDialog.vue";
+import { transactionFormat } from "@/Composables/index.js";
+import debounce from "lodash/debounce.js";
+import dayjs from "dayjs";
+
+const { formatAmount, formatDate } = transactionFormat();
 
 const props = defineProps({
     accountType: Object,
     leverages: Array,
-    visibleToOptions: Array,
 })
 
 const confirm = useConfirm();
@@ -127,7 +131,11 @@ const trade_delay_duration_options = ref([
     {name: '5 min', value: '300'},
 ])
 const leverages = ref(props.leverages);
-const visibleToOptions = ref(props.visibleToOptions);
+
+const visibilityOptions = ref([
+    { name: 'visible_to_public',  value: 'public',  },
+    { name: 'visible_to_selected_members', value: 'selected_members',  },
+]);
 
 const promotionPeriods = ref([
     'no_expiry_date',
@@ -180,25 +188,25 @@ const form = useForm({
         tw: props.accountType?.descriptions ? JSON.parse(props.accountType.descriptions).tw : null,
         cn: props.accountType?.descriptions ? JSON.parse(props.accountType.descriptions).cn : null,
     },
-    visible_to: 'public',
+    visible_to: props.accountType.visible_to || 'public',
     members: [],
     leverage: props.accountType.leverage,
     trade_delay_duration: props.accountType?.trade_open_duration || null,
     max_account: props.accountType?.maximum_account_number || null,
     color: props.accountType?.color || null,
-    promotion_title: null,
-    promotion_description: null,
-    promotion_period_type: promotionPeriods.value[0] || null,
-    promotion_period: null,
-    promotion_type: null,
-    minimum_target: null,
-    bonus_type: BonusTypes.value[0] || null,
-    bonus_amount_type: BonusAmountTypes.value[0] || null,
-    bonus_amount: null,
-    maximum_bonus_cap: null,
-    applicable_deposit: applicableDepositTypes.value[0] || null,
-    credit_withdraw_policy: radioOptions.value[0]?.value || null,
-    credit_withdraw_date_period: null,
+    promotion_title: props.accountType.promotion_title || null,
+    promotion_description: props.accountType.promotion_description || null,
+    promotion_period_type: props.accountType.promotion_period_type || promotionPeriods.value[0] || null,
+    promotion_period: props.accountType.promotion_period_type === 'from_account_opening' ? Number(props.accountType.promotion_period) : props.accountType.promotion_period || null,
+    promotion_type: props.accountType.promotion_type || PromotionTypes.value[0].value,
+    target_amount: Number(props.accountType.target_amount) || null,
+    bonus_type: props.accountType.bonus_type || BonusTypes.value[0] || null,
+    bonus_amount_type: props.accountType.bonus_amount_type || BonusAmountTypes.value[0] || null,
+    bonus_amount: Number(props.accountType.bonus_amount) || null,
+    maximum_bonus_cap: Number(props.accountType.maximum_bonus_cap) || null,
+    applicable_deposit: props.accountType.applicable_deposit || applicableDepositTypes.value[0] || null,
+    credit_withdraw_policy: props.accountType.credit_withdraw_policy || radioOptions.value[0]?.value || null,
+    credit_withdraw_date_period: props.accountType.credit_withdraw_policy === 'withdraw_after_period'? Number(props.accountType.credit_withdraw_date_period) : props.accountType.credit_withdraw_date_period || null,
 });
 
 // Track the initial state for dirty checking
@@ -215,7 +223,7 @@ watch(() => form.promotion_period_type, (newPromotionPeriod) => {
 watch(promotionType, (newPromotionType) => {
   if (newPromotionType) {
     form.promotion_type = newPromotionType.value
-    form.minimum_target = null;
+    form.target_amount = null;
   }
 });
 
@@ -242,11 +250,39 @@ watch(() => form.credit_withdraw_policy, (newPolicy) => {
     }
 });
 
-const search = ref(null);
+const search = ref();
 
 const clearSearch = () => {
     search.value = null;
 }
+
+const loading = ref(false);
+const visibleToOptions = ref([]);
+const getResults = async () => {
+    loading.value = true;
+
+    try {
+        let url = `/accountType/getVisibleToOptions`;
+
+        if (search.value) {
+            url += `?search=${search.value}`;
+        }
+
+        const response = await axios.get(url);
+        visibleToOptions.value = response.data.visibleToOptions;
+    } catch (error) {
+        console.error('Error changing locale:', error);
+    } finally {
+        loading.value = false;
+    }
+};
+
+getResults();
+
+// Watch for changes in search and trigger the getResults function
+watch(search, debounce(() => {
+    getResults();
+}, 1000));
 
 // Arrays to track selected members and groups globally
 const selectedMembers = ref([]);
@@ -315,6 +351,13 @@ watch(() => form.visible_to, (newValue) => {
 
 const submitForm = () => {
     form.members = [...selectedMembers.value];
+    if (form.promotion_period_type === 'specific_date_range' && form.promotion_period) {
+        form.promotion_period = dayjs(form.promotion_period).format('YYYY-MM-DD');
+    }
+
+    if (form.credit_withdraw_policy === 'withdraw_on_date' && form.credit_withdraw_date_period) {
+        form.credit_withdraw_date_period = dayjs(form.credit_withdraw_date_period).format('YYYY-MM-DD');
+    }
 
     form.post(route('accountType.updatePromotionConfiguration'), {
         onSuccess: () => {
@@ -448,24 +491,14 @@ const submitForm = () => {
                                 <div class="w-full min-w-[300px] col-span-2 flex flex-col items-start gap-2">
                                     <InputLabel for="visible_to" :value="$t('public.visible_to')" :invalid="!!form.errors.visible_to"/>
                                     <div class="w-full flex items-center gap-8">
-                                        <div class="flex items-center gap-3">
+                                        <div v-for="option in visibilityOptions" :key="option.value" class="flex items-center gap-3">
                                             <RadioButton
                                                 v-model="form.visible_to"
-                                                value="public"
+                                                :value="option.value"
                                                 class="w-4 h-4"
                                             />
-                                            <span class="text-gray-950 text-sm">{{ $t('public.visible_to_public') }}</span>
+                                            <span class="text-gray-950 text-sm">{{ $t('public.' + option.name) }}</span>
                                         </div>
-
-                                        <div class="flex items-center gap-3">
-                                            <RadioButton
-                                                v-model="form.visible_to"
-                                                value="selected_members"
-                                                class="w-4 h-4"
-                                            />
-                                            <span class="text-gray-950 text-sm">{{ $t('public.visible_to_selected_members') }}</span>
-                                        </div>
-
                                     </div>
                                     <div v-if="form.visible_to === 'selected_members'" class="w-full h-[500px] flex flex-col items-center rounded border border-gray-200 bg-white">
                                         <div class="w-full flex flex-col justify-center items-center p-3 gap-3 bg-white">
@@ -523,43 +556,6 @@ const submitForm = () => {
                                             </Accordion>
                                         </div>
                                     </div>
-                                    <!-- <MultiSelect
-                                        v-if="form.visible_to === 'selected_members'"
-                                        v-model="selectedMemberValues"
-                                        :options="visibleToOptions"
-                                        optionLabel="label"
-                                        optionGroupLabel="name"
-                                        optionGroupChildren="members"
-                                        group
-                                        class="w-full font-normal"
-                                        scroll-height="500px"
-                                    >
-                                        <template #value="{ value }">
-                                        <div v-if="value && value.length" class="flex items-center gap-3">
-                                            <span v-for="(member, index) in value" :key="index" class="text-sm">
-                                            {{ member.label }}
-                                            </span>
-                                        </div>
-                                        </template>
-
-                                        <template #option="{ option }">
-                                        <div class="flex items-center gap-2">
-                                            <span>{{ option.label }}</span>
-                                        </div>
-                                        </template>
-
-                                        <template #optiongroup="slotProps">
-                                        <div class="flex items-center gap-2">
-                                            <Checkbox
-                                            v-model="selectedMemberValues"
-                                            :checked="isGroupChecked(slotProps.option.value)"
-                                            @change="toggleGroupSelection(slotProps.option.value)"
-                                            class="w-4 h-4"
-                                            />
-                                            <div>{{ slotProps.option.name }}</div>
-                                        </div>
-                                        </template>
-                                    </MultiSelect> -->
                                     <InputError :message="form.errors.visible_to" />
                                 </div>
                             </div>
@@ -679,7 +675,7 @@ const submitForm = () => {
                                         <div v-if="form.promotion_period_type === 'specific_date_range'" class="relative w-full">
                                             <DatePicker 
                                                 v-model="form.promotion_period"
-                                                selectionMode="range"
+                                                selectionMode="single"
                                                 :manualInput="false"
                                                 :minDate="today"
                                                 dateFormat="dd/mm/yy"
@@ -687,6 +683,7 @@ const submitForm = () => {
                                                 iconDisplay="input"
                                                 :placeholder="$t('public.promotion_select_date')"
                                                 class="font-normal w-full"
+                                                :invalid="!!form.errors.promotion_period"
                                             />
                                             <div
                                                 v-if="form.promotion_period && form.promotion_period.length > 0"
@@ -696,8 +693,6 @@ const submitForm = () => {
                                                 <IconCircleXFilled size="20" />
                                             </div>
                                         </div>
-                                        <InputError :message="form.errors.promotion_period" />
-
                                         <InputNumber
                                             v-if="form.promotion_period_type === 'from_account_opening'"
                                             v-model="form.promotion_period"
@@ -713,8 +708,8 @@ const submitForm = () => {
                                             :placeholder="'e.g., 30'"
                                             :disabled="form.promotion_period_type !== 'from_account_opening'"
                                         />
-                                        <InputError :message="form.errors.promotion_period" />
                                     </div>
+                                    <InputError :message="form.errors.promotion_period" />
                                 </div>
 
                                 <div class="w-full grid grid-cols-2 gap-5">
@@ -740,13 +735,13 @@ const submitForm = () => {
                                     </div>
                                     <div class="w-full h-full min-w-[300px] flex flex-col items-start gap-2">
                                         <InputLabel
-                                            for="minimum_target"
+                                            for="target_amount"
                                             :value="$t(form.promotion_type === 'deposit' ? 'public.minimum_deposit_amount' : 'public.minimum_trade_lot_target')"
-                                            :invalid="!!form.errors.minimum_target"
+                                            :invalid="!!form.errors.target_amount"
                                         />
                                             
                                         <InputNumber
-                                            v-model="form.minimum_target"
+                                            v-model="form.target_amount"
                                             :minFractionDigits="2"
                                             fluid
                                             size="sm"
@@ -757,10 +752,10 @@ const submitForm = () => {
                                             class="w-full"
                                             inputClass="py-3 px-4"
                                             autofocus
-                                            :invalid="!!form.errors.minimum_target"
+                                            :invalid="!!form.errors.target_amount"
                                             :placeholder="form.promotion_type === 'deposit' ? '$ 0.00' : '0.00 Ł'"
                                         />
-                                        <InputError :message="form.errors.minimum_target" />
+                                        <InputError :message="form.errors.target_amount" />
                                     </div>
                                 </div>
                                 
@@ -819,9 +814,8 @@ const submitForm = () => {
                                             :invalid="!!form.errors.bonus_amount"
                                             :placeholder="form.bonus_amount_type == 'specified_amount' ? '$ 0.00' : '0 %'"
                                         />
-                                        <InputError :message="form.errors.bonus_amount" />
-
                                     </div>
+                                    <InputError :message="form.errors.bonus_amount" />
                                 </div>
 
                                 <div v-if="form.promotion_type !== 'trade_volume'" class="w-full flex flex-col items-start gap-2">
@@ -898,6 +892,7 @@ const submitForm = () => {
                                                         iconDisplay="input"
                                                         :placeholder="'dd/mm/yy'"
                                                         class="font-normal w-full"
+                                                        :invalid="!!form.errors.credit_withdraw_date_period"
                                                     />
                                                     <div
                                                         v-if="form.credit_withdraw_date_period"
@@ -931,6 +926,28 @@ const submitForm = () => {
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+
+                            <!-- Confirmation -->
+                            <div class="w-full flex items-center justify-center gap-4">
+                                <Button
+                                    external
+                                    type="button"
+                                    variant="gray-outlined"
+                                    size="sm"
+                                    class="whitespace-nowrap w-full min-h-12"
+                                    @click="handleCancel"
+                                >
+                                    {{ $t('public.cancel') }}
+                                </Button>
+                                <Button
+                                    variant="primary-flat"
+                                    size="sm"
+                                    class="whitespace-nowrap w-full min-h-12"
+                                    @click="submitForm"
+                                >
+                                    {{ $t('public.save_settings') }}
+                                </Button>
                             </div>
                         </div>
                     </div>
