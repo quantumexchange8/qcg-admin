@@ -345,16 +345,41 @@ class TransactionController extends Controller
 
     public function getAdjustmentHistoryData(Request $request)
     {
-        // Fetch transactions
-        $adjustment_history = Transaction::whereIn('transaction_type', [
+        // Get selectedMonths as a comma-separated string
+        $selectedMonths = $request->query('selectedMonths');
+        
+        // Convert the comma-separated string to an array
+        $selectedMonthsArray = !empty($selectedMonths) ? explode(',', $selectedMonths) : [];
+        
+        // If no months are selected, return an empty result
+        if (empty($selectedMonthsArray)) {
+            return response()->json([
+                'transactions' => [],
+                'totalAmount' => 0,
+            ]);
+        }
+    
+        // Initialize the query
+        $query = Transaction::whereIn('transaction_type', [
                 'rebate_in', 'rebate_out', 'balance_in', 'balance_out', 'credit_in', 'credit_out',
             ])
-            ->where('status', 'successful')
-            ->latest()
-            ->get();
-
+            ->where('status', 'successful');
+        
+        // Apply filtering for each selected month-year pair
+        $query->where(function ($q) use ($selectedMonthsArray) {
+            foreach ($selectedMonthsArray as $range) {
+                [$month, $year] = explode('/', $range);
+                $startDate = "$year-$month-01";
+                $endDate = date("Y-m-t 23:59:59", strtotime($startDate)); // Last day of the month
+                $q->orWhereBetween('created_at', [$startDate, $endDate]);
+            }
+        });
+        
+        // Fetch transactions
+        $adjustment_history = $query->latest()->get();
+        
         $result = [];
-
+        
         // Transform data: exclude `user` object but retain its relevant fields
         foreach ($adjustment_history as $transaction) {
             $target = null;
@@ -384,22 +409,21 @@ class TransactionController extends Controller
                     'team_id' => $transaction->user->teamHasUser->team_id ?? null,
                     'team_name' => $transaction->user->teamHasUser->team->name ?? null,
                     'team_color' => $transaction->user->teamHasUser->team->color ?? null,
-    
                 ]
             );
     
             // Remove the nested `user` object from the result
             unset($result[array_key_last($result)]['user']);
         }
-    
+        
         // Calculate the total amount
         $totalAmount = $adjustment_history->sum('transaction_amount');
-
+        
         // Return response
         return response()->json([
             'transactions' => $result,
             'totalAmount' => $totalAmount,
         ]);
     }
-
+        
 }
