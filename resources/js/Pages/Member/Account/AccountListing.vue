@@ -7,8 +7,10 @@ import TabPanels from 'primevue/tabpanels';
 import TabPanel from 'primevue/tabpanel';
 import { h, ref, watch } from "vue";
 import AllAccount from "@/Pages/Member/Account/Partials/AllAccount.vue";
+import PromotionAccount from "@/Pages/Member/Account/Partials/PromotionAccount.vue";
 import DeletedAccount from "@/Pages/Member/Account/Partials/DeletedAccount.vue";
 import Button from "@/Components/Button.vue";
+import Select from "primevue/select";
 import { IconRefresh, IconDownload } from "@tabler/icons-vue";
 import { router } from "@inertiajs/vue3";
 import { trans, wTrans } from "laravel-vue-i18n";
@@ -21,71 +23,68 @@ const props = defineProps({
 const exportStatus = ref(false);
 const loading = ref(false);
 
+// Tab data
 const tabs = ref([
     {
-        title: 'all_accounts',
+        title: 'individual',
         component: h(AllAccount),
-        type: 'all_accounts'
+        type: 'all'
     },
     {
-        title: 'deleted_accounts',
+        title: 'promotion',
+        component: h(PromotionAccount),
+        type: 'promotion'
+    },
+    {
+        title: 'deleted',
         component: h(DeletedAccount),
-        type: 'deleted_accounts'
+        type: 'deleted'
     },
 ]);
 
-const selectedType = ref('all_accounts');
-const activeIndex = ref(tabs.value.findIndex(tab => tab.type === selectedType.value));
+// Initial selected type
+const type = ref('all');
+const selectedType = ref(tabs.value.find(tab => tab.type === type.value));
 
-// Watch for changes in selectedType and update the activeIndex accordingly
-watch(selectedType, (newType) => {
-    const index = tabs.value.findIndex(tab => tab.type === newType);
-    if (index >= 0) {
-        activeIndex.value = index;
+// Watch `selectedType` and update `type` and `selectedType` in one place
+watch(selectedType, (newSelectedType) => {
+    if (newSelectedType) {
+        type.value = newSelectedType.type;
     }
 });
 
-function updateType(event) {
-    const selectedTab = tabs.value[event.index];
-    selectedType.value = selectedTab.type;
-    // console.log(selectedType.value)
-}
+// Set the initial selectedType based on `type`
+watch(type, (newType) => {
+    selectedType.value = tabs.value.find(tab => tab.type === newType);
+});
 
+// Refresh all accounts
 const refreshAll = () => {
     router.post(route('member.refreshAllAccount'));
 };
 
-// Create a reactive filter object
 const filters = ref({
   global: '',
   account_type_id: null,
 });
 
-// Function to handle the update of filters
 function handleFilters(newFilters) {
-  // Update the filters with new values
   filters.value = { ...filters.value, ...newFilters };
-
-  // Log the updated filters
-//   console.log(newFilters);
 }
 
 const exportAccount = () => {
     exportStatus.value = true;
     try {
-        // Directly construct the URL with exportStatus for export
         let url = `/member/getAccountListingPaginate`;
 
         if (exportStatus.value === true) {
             url += `?exportStatus=${exportStatus.value}`;
         }
 
-        // Conditionally add the 'type' query parameter if the selectedType is 'all_accounts'
-        if (selectedType.value === 'all_accounts') {
-            url += `&type=all`;
+        if (type.value) {
+            url += `&type=${type.value}`;
         }
 
-        // Add filters if present
         if (filters.value.global) {
             url += `&search=${filters.value.global}`;
         }
@@ -94,16 +93,14 @@ const exportAccount = () => {
             url += `&account_type_id=${filters.value.account_type_id}`;
         }
 
-        // Send the request to trigger the export
-        window.location.href = url;  // This will trigger the download directly
+        window.location.href = url;
     } catch (e) {
         console.error('Error occurred during export:', e);
     } finally {
-        loading.value = false;  // Reset loading state
-        exportStatus.value = false;  // Reset export status
+        loading.value = false;
+        exportStatus.value = false;
     }
 };
-
 </script>
 
 <template>
@@ -111,18 +108,36 @@ const exportAccount = () => {
         <div class="flex flex-col justify-center items-center py-5 px-3 gap-3 self-stretch rounded-lg bg-white shadow-card md:p-6 md:gap-6">
             <div class="w-full flex flex-col-reverse md:flex-row justify-between items-center self-stretch gap-3 md:gap-0">
                 <div class="w-full md:w-auto flex items-center">
-                    <Tabs v-model:value="activeIndex" class="w-full">
+                    <!-- Desktop Tabs -->
+                    <Tabs v-model:value="type" class="w-full hidden md:block">
                         <TabList>
                             <Tab
                                 v-for="(tab, index) in tabs"
                                 :key="index"
-                                :value="index"
-                                @click="updateType({ index })"
+                                :value="tab.type"
                             >
                                 {{ $t('public.' + tab.title) }}
                             </Tab>
                         </TabList>
                     </Tabs>
+                    <!-- Mobile Select -->
+                    <Select
+                        v-model="selectedType"
+                        :options="tabs"
+                        class="w-full font-normal md:hidden"
+                        scroll-height="236px"
+                    >
+                        <template #value="slotProps">
+                            <div v-if="slotProps.value" class="flex items-center gap-3">
+                                <div>{{ $t('public.' + slotProps.value.title) }}</div>
+                            </div>
+                        </template>
+                        <template #option="slotProps">
+                            <div class="flex items-center gap-2">
+                                <div>{{ $t('public.' + slotProps.option.title) }}</div>
+                            </div>
+                        </template>
+                    </Select>
                 </div>
                 <div class="w-full md:w-auto flex flex-col-reverse items-center gap-3 md:flex-row md:gap-5">
                     <Button variant="primary-outlined" @click="exportAccount()" class="w-full md:w-auto">
@@ -136,10 +151,11 @@ const exportAccount = () => {
                 </div>
             </div>
 
-            <Tabs v-model:value="activeIndex" class="w-full">
+            <!-- Tabs Content -->
+            <Tabs v-model:value="type" class="w-full">
                 <TabPanels>
-                    <TabPanel :key="activeIndex" :value="activeIndex">
-                        <component :is="tabs[activeIndex].component" :key="tabs[activeIndex].type" :accountTypes="props.accountTypes" @update:filters="handleFilters" />
+                    <TabPanel :key="type" :value="type">
+                        <component :is="tabs.find(tab => tab.type === type).component" :accountTypes="props.accountTypes" @update:filters="handleFilters" />
                     </TabPanel>
                 </TabPanels>
             </Tabs>

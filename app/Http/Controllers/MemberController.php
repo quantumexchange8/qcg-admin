@@ -839,7 +839,7 @@ class MemberController extends Controller
                 'color' => $trading_account->accountType->color,
                 'balance' => $trading_account->balance,
                 'credit' => $trading_account->credit,
-                'equity' => $trading_account->equity,
+                'equity' => $trading_account->equity ?? 0,
                 'leverage' => $trading_account->margin_leverage,
                 'last_access' => $lastAccess,
                 'is_active' => $isActive,

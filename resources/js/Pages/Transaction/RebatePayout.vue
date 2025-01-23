@@ -37,9 +37,9 @@ const filteredValue = ref();
 // Define the account type options
 const accountTypeOption = ref();
 
-const getAccountTypesWithSlugs = async () => {
+const getAccountTypes = async () => {
     try {
-        const response = await axios.get('/getAccountTypesWithSlugs');
+        const response = await axios.get('/getAccountTypes');
         accountTypeOption.value = response.data.accountTypes;
 
     } catch (error) {
@@ -47,7 +47,7 @@ const getAccountTypesWithSlugs = async () => {
     }
 };
 
-getAccountTypesWithSlugs()
+getAccountTypes()
 
 // Get current date
 const today = new Date();

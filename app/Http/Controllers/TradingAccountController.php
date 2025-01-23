@@ -87,7 +87,7 @@ class TradingAccountController extends Controller
                         'name' => $account->userData->first_name ?? null,
                         'email' => $account->userData->email ?? null,
                         'balance' => $account->balance,
-                        'equity' => $account->trading_account->equity,
+                        'equity' => $account->trading_account->equity ?? 0,
                         'credit' => $account->credit,
                         'leverage' => $account->leverage,
                         'last_login' => $account->last_access,
@@ -137,12 +137,20 @@ class TradingAccountController extends Controller
 
         $type = $request->type;
 
-        if ($type === 'all') {
+        if ($type === 'all' || $type === 'promotion') {
             $inactiveThreshold = now()->subDays(90)->startOfDay();
 
             $query = TradingUser::query()
-                ->with(['userData:id,first_name,email', 'trading_account:id,meta_login,equity,status', 'accountType']) // Eager load related models
+                ->with(['userData:id,first_name,email', 'userData.teamHasUser.team', 'trading_account:id,meta_login,equity,status', 'accountType']) // Eager load related models
                 ->where('acc_status', 'active');
+
+            // Check if type is 'promotion'
+            if ($type === 'promotion') {
+                // Filter accounts where the category is 'promotion'
+                $query->whereHas('accountType', function($query) {
+                    $query->where('category', 'promotion');
+                });
+            }
 
             // Filters
             $search = $request->input('search');
@@ -177,7 +185,7 @@ class TradingAccountController extends Controller
                 return Excel::download(new AccountListingExport($accounts), now() . '-accounts.xlsx');
             }
 
-            // // Now re-fetch the data after updating the statuses
+            // Now re-fetch the data after updating the statuses
             $accounts = $query
                 ->select([
                     'id',
@@ -190,14 +198,13 @@ class TradingAccountController extends Controller
                     'last_access as last_login',
                     'created_at',
                 ])
-                ->where('acc_status', 'active')
                 ->paginate($rowsPerPage, ['*'], 'page', $currentPage);
 
             // After the accounts are retrieved, you can access `getFirstMediaUrl` for each user using foreach
             foreach ($accounts as $account) {
                 $account->name = $account->userData->first_name;
                 $account->email = $account->userData->email;
-                $account->equity = $account->trading_account->equity;
+                $account->equity = $account->trading_account->equity ?? 0;
                 $account->account_type_id = $account->accountType->id;
                 $account->account_type = $account->accountType->name;
                 // Calculate `is_active` dynamically
@@ -210,6 +217,9 @@ class TradingAccountController extends Controller
                 );
 
                 $account->status = $account->trading_account->status;
+                $account->team_id = $account->userData->teamHasUser->team_id ?? null;
+                $account->team_name = $account->userData->teamHasUser->team->name ?? null;
+                $account->team_color = $account->userData->teamHasUser->team->color ?? null;
 
                 // Remove unnecessary nested data (users and trading_account)
                 unset($account->userData);

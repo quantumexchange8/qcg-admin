@@ -201,7 +201,8 @@ class GeneralController extends Controller
             ->map(function ($accountType) {
                 return [
                     'value' => $accountType->id,
-                    'name' => trans('public.' . $accountType->slug),
+                    'name' => $accountType->name,
+                    'category' => $accountType->category,
                 ];
             });
     
@@ -212,7 +213,7 @@ class GeneralController extends Controller
         
         // If not, return it as a JSON response
         return response()->json([
-            'accountTypes' => $accountTypes,
+            'accountTypes' => $accountTypes->values()->all(),
         ]);
     }
     
@@ -226,6 +227,7 @@ class GeneralController extends Controller
                 return [
                     'value' => $accountType->slug,
                     'name' => trans('public.' . $accountType->slug),
+                    'category' => $accountType->category,
                 ];
             });
 

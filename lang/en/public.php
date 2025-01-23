@@ -244,6 +244,7 @@ return [
     'level' => "Level",
     'all_accounts' => "All Accounts",
     'deleted_accounts' => "Deleted Accounts",
+    'deleted' => "Deleted",
     'update_all' => "Update All",
     'filter_by_account_type' => "Filter by account type",
     'account_balance' => "Account Balance",
@@ -602,4 +603,5 @@ return [
     'credit_withdraw_policy_1' => "Credit will not be withdrawn by the system",
     'credit_withdraw_policy_2' => "System withdraw on specified date",
     'credit_withdraw_policy_3' => "System withdraw after specified period",
+    'created_on' => "Created on",
 ];

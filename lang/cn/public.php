@@ -244,6 +244,7 @@ return [
     'level' => "级别",
     'all_accounts' => "所有账户",
     'deleted_accounts' => "删除账户",
+    'deleted' => "已删除",
     'update_all' => "全部更新",
     'filter_by_account_type' => "过滤交易账户类型",
     'account_balance' => "交易账户余额",
@@ -602,4 +603,5 @@ return [
     'credit_withdraw_policy_1' => "如已到达促销期限后, 系统也不会自动收回信用额.",
     'credit_withdraw_policy_2' => "如已到达指定日期后, 系统将自动收回信用额",
     'credit_withdraw_policy_3' => "如已到达促销期限后, 系统将自动收回信用额",
+    'created_on' => "创建于",
 ];
