@@ -18,6 +18,7 @@ import Empty from "@/Components/Empty.vue";
 import { trans } from "laravel-vue-i18n";
 import AddMember from "@/Pages/Member/Listing/Partials/AddMember.vue";
 import MemberTableActions from "@/Pages/Member/Listing/Partials/MemberTableActions.vue"
+import { wTrans } from "laravel-vue-i18n";
 import debounce from "lodash/debounce.js";
 
 const props = defineProps({
@@ -43,7 +44,14 @@ const {formatRgbaColor} = generalFormat();
 const total_members = ref(0);
 const total_agents = ref(0);
 const filteredValue = ref();
-const teams = ref(props.teams);
+const teams = ref([
+    {
+        value: null,
+        name: wTrans('public.all'),
+        color: '000000'
+    },
+    ...props.teams
+]);
 const exportStatus = ref(false);
 
 const tabs = ref([
@@ -98,7 +106,7 @@ const getResults = async () => {
             url += `&search=${filters.value.global}`;
         }
 
-        if (filters.value.team_id) {
+        if (filters.value.team_id?.value) {
             url += `&team_id=${filters.value.team_id?.value}`;
         }
 
@@ -161,8 +169,8 @@ const exportMember = async () => {
             url += `&search=${filters.value.global}`;
         }
 
-        if (filters.value.team_id) {
-            url += `&team_id=${filters.value.team_id?.value}`;
+        if (filters.value.team_id?.value !== null) {
+            url += `&team_id=${filters.value.team_id.value}`;
         }
 
         if (exportStatus.value === true) {

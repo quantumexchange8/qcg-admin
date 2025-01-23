@@ -35,6 +35,7 @@ const { formatAmount, formatDate } = transactionFormat();
 
 const props = defineProps({
     accountType: Object,
+    visibleTo: Object,
     leverages: Array,
 })
 
@@ -274,6 +275,8 @@ const getResults = async () => {
         console.error('Error changing locale:', error);
     } finally {
         loading.value = false;
+        // After the results are updated, we check group selection states
+        updateGroupSelection();
     }
 };
 
@@ -285,61 +288,87 @@ watch(search, debounce(() => {
 }, 1000));
 
 // Arrays to track selected members and groups globally
-const selectedMembers = ref([]);
+const selectedMembers = ref(props.visibleTo);
 const selectedGroups = ref([]);
 
 // Helper to optimize lookups in arrays
 const selectedMembersSet = computed(() => new Set(selectedMembers.value));
 
+// Track when a group name removal is due to deselection of all members
+let removingDueToDeselect = false;
+
 // Watch for changes in selectedMembers
 watch(selectedMembers, (newSelectedMembers) => {
-  // We use the Set for faster lookup and avoid processing large arrays multiple times
-  const newSelectedMembersSet = new Set(newSelectedMembers);
+    const newSelectedMembersSet = new Set(newSelectedMembers);
 
-  visibleToOptions.value.forEach((group) => {
-    // Check if all members of the group are selected
-    const allMembersSelected = group.members.every((member) => newSelectedMembersSet.has(member.value));
+    // Track which groups should be removed from selectedGroups
+    const groupsToRemove = [];
 
-    if (allMembersSelected && !selectedGroups.value.includes(group.name)) {
-      // If all members are selected, add group name to selectedGroups
-      selectedGroups.value.push(group.name);
-    } else if (!allMembersSelected && selectedGroups.value.includes(group.name)) {
-      // If not all members are selected, check if any member is still selected
-      const anyMemberSelected = group.members.some((member) => newSelectedMembersSet.has(member.value));
-      if (!anyMemberSelected) {
-        // If no members are selected, remove the group name from selectedGroups
-        selectedGroups.value = selectedGroups.value.filter((groupName) => groupName !== group.name);
-      }
-    }
-  });
+    visibleToOptions.value.forEach((group) => {
+        const allMembersSelected = group.members.every((member) => newSelectedMembersSet.has(member.value));
+
+        if (allMembersSelected && !selectedGroups.value.includes(group.name)) {
+            selectedGroups.value.push(group.name);
+        } else if (!allMembersSelected && selectedGroups.value.includes(group.name)) {
+            // This indicates the group is incomplete (not all members are selected)
+            groupsToRemove.push(group.name);
+        }
+    });
+
+    // Remove the flagged groups from selectedGroups (only the group name, not members)
+    selectedGroups.value = selectedGroups.value.filter((groupName) => !groupsToRemove.includes(groupName));
+
+    // Set the flag for group removal due to member deselection
+    removingDueToDeselect = groupsToRemove.length > 0;
+
 }, { deep: false }); // Use shallow watch
 
 // Watch for changes in selectedGroups
 watch(selectedGroups, (newSelectedGroups, oldSelectedGroups) => {
-  visibleToOptions.value.forEach((group) => {
-    // Handle Group Removal: If the group was in oldSelectedGroups but is now removed
-    if (oldSelectedGroups.includes(group.name) && !newSelectedGroups.includes(group.name)) {
-      group.members.forEach((member) => {
-        // Only remove the member if it isn't in any other selected group
-        if (!newSelectedGroups.some((groupName) => {
-          const group = visibleToOptions.value.find(g => g.name === groupName);
-          return group && group.members.some(m => m.value === member.value);
-        })) {
-          selectedMembers.value = selectedMembers.value.filter((value) => value !== member.value);
+    visibleToOptions.value.forEach((group) => {
+        // Handle Group Removal: If the group was in oldSelectedGroups but is now removed
+        if (oldSelectedGroups.includes(group.name) && !newSelectedGroups.includes(group.name)) {
+            if (!removingDueToDeselect) {
+                // Explicit group removal: Remove all members of the group from selectedMembers
+                group.members.forEach((member) => {
+                    selectedMembers.value = selectedMembers.value.filter((value) => value !== member.value);
+                });
+            }
         }
-      });
-    }
 
-    // Handle Group Addition: If the group is now added in newSelectedGroups
-    if (newSelectedGroups.includes(group.name) && !oldSelectedGroups.includes(group.name)) {
-      group.members.forEach((member) => {
-        if (!selectedMembersSet.value.has(member.value)) {
-          selectedMembers.value.push(member.value);
+        // Handle Group Addition: If the group is now added in newSelectedGroups
+        if (newSelectedGroups.includes(group.name) && !oldSelectedGroups.includes(group.name)) {
+            group.members.forEach((member) => {
+                if (!selectedMembersSet.value.has(member.value)) {
+                    selectedMembers.value.push(member.value);
+                }
+            });
         }
-      });
-    }
-  });
+    });
+
 }, { deep: false }); // Use shallow watch
+
+// Function to update group selection status based on the current visibleToOptions and selectedMembers
+const updateGroupSelection = () => {
+    visibleToOptions.value.forEach((group) => {
+        // Check if all members of the group are selected
+        const allMembersSelected = group.members.every((member) => selectedMembers.value.includes(member.value));
+
+        // If all members are selected and the group is not in selectedGroups, add it
+        if (allMembersSelected && !selectedGroups.value.includes(group.name)) {
+            selectedGroups.value.push(group.name);
+        }
+
+        // If not all members are selected and the group is in selectedGroups, remove it
+        if (!allMembersSelected && selectedGroups.value.includes(group.name)) {
+            // Only remove the group name, not the members
+            selectedGroups.value = selectedGroups.value.filter(groupName => groupName !== group.name);
+        }
+    });
+
+    // Update the removingDueToDeselect flag after group removal logic
+    removingDueToDeselect = selectedGroups.value.length === 0;
+};
 
 // Watch for changes in form.visible_to
 watch(() => form.visible_to, (newValue) => {
@@ -520,40 +549,41 @@ const submitForm = () => {
                                                     <IconCircleXFilled size="16" />
                                                 </div>
                                             </div>
-                                            <!-- Grouped Members with Accordion -->
-                                            <Accordion multiple class="w-full flex flex-col justify-center items-center gap-1">
-                                                <AccordionPanel
-                                                    v-for="(group, index) in visibleToOptions"
-                                                    :key="index"
-                                                    :value="group.value"
-                                                    class="w-full flex flex-col justify-center gap-1"
-                                                >
-                                                    <AccordionHeader class="w-full flex flex-row-reverse justify-end items-center gap-2">
-                                                        <span class="text-gray-950 text-sm">{{ group.name }}</span>
-                                                        <Checkbox
-                                                            v-model="selectedGroups"
-                                                            :value="group.name"
-                                                            class="w-4 h-4"
-                                                            @click.stop
-                                                        />
-                                                    </AccordionHeader>
+                                            <div class="w-full flex flex-col justify-center items-center overflow-y-auto max-h-[415px]">
+                                                <Accordion multiple class="w-full flex flex-col justify-center items-center gap-1">
+                                                    <AccordionPanel
+                                                        v-for="(group, index) in visibleToOptions"
+                                                        :key="index"
+                                                        :value="group.value"
+                                                        class="w-full flex flex-col justify-center gap-1"
+                                                    >
+                                                        <AccordionHeader class="w-full flex flex-row-reverse justify-end items-center gap-2">
+                                                            <span class="text-gray-950 text-sm">{{ group.name }}</span>
+                                                            <Checkbox
+                                                                v-model="selectedGroups"
+                                                                :value="group.name"
+                                                                class="w-4 h-4"
+                                                                @click.stop
+                                                            />
+                                                        </AccordionHeader>
 
-                                                    <AccordionContent class="w-full flex flex-col justify-center gap-1 pl-[22px]">
-                                                        <div
-                                                            v-for="(member, idx) in group.members"
-                                                            :key="member.value"
-                                                            class="flex items-center gap-2"
-                                                        >
-                                                        <Checkbox
-                                                            v-model="selectedMembers"
-                                                            :value="member.value"
-                                                            class="w-4 h-4"
-                                                        />
-                                                        <span class="text-gray-950 text-sm">{{ member.label }}</span>
-                                                        </div>
-                                                    </AccordionContent>
-                                                </AccordionPanel>
-                                            </Accordion>
+                                                        <AccordionContent class="w-full flex flex-col justify-center gap-1 pl-[22px]">
+                                                            <div
+                                                                v-for="(member, idx) in group.members"
+                                                                :key="member.value"
+                                                                class="flex items-center gap-2"
+                                                            >
+                                                            <Checkbox
+                                                                v-model="selectedMembers"
+                                                                :value="member.value"
+                                                                class="w-4 h-4"
+                                                            />
+                                                            <span class="text-gray-950 text-sm">{{ member.label }}</span>
+                                                            </div>
+                                                        </AccordionContent>
+                                                    </AccordionPanel>
+                                                </Accordion>
+                                            </div>
                                         </div>
                                     </div>
                                     <InputError :message="form.errors.visible_to" />

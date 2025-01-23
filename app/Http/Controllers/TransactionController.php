@@ -51,9 +51,11 @@ class TransactionController extends Controller
     {
         $type = $request->query('type');
         $selectedMonths = $request->query('selectedMonths'); // Get selectedMonths as a comma-separated string
+        $selectedTeams = $request->query('selectedTeams'); // Get selectedTeams as a comma-separated string
 
         // Convert the comma-separated string to an array
         $selectedMonthsArray = !empty($selectedMonths) ? explode(',', $selectedMonths) : [];
+        $selectedTeamsArray = !empty($selectedTeams) ? explode(',', $selectedTeams) : [];
 
         // Define common fields
         $commonFields = [
@@ -90,6 +92,13 @@ class TransactionController extends Controller
                     // Add a condition to match transactions for this specific month-year
                     $q->orWhereBetween('created_at', [$startDate, $endDate]);
                 }
+            });
+        }
+
+        // Apply filtering for selected teams
+        if (!empty($selectedTeamsArray)) {
+            $query->whereHas('user.teamHasUser.team', function ($q) use ($selectedTeamsArray) {
+                $q->whereIn('id', $selectedTeamsArray);
             });
         }
 

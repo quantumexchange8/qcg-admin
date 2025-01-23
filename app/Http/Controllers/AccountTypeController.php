@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Team;
 use Inertia\Inertia;
 use App\Models\AccountType;
+use App\Models\UserAccountTypeVisibility;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -21,11 +22,12 @@ class AccountTypeController extends Controller
     public function accountTypeConfiguration(Request $request)
     {
         $accountType = AccountType::find($request->id);
-        
+        $visibleTo = UserAccountTypeVisibility::where('account_type_id', $request->id)->pluck('user_id');
+
         return Inertia::render('AccountType/Partials/AccountTypeConfiguration', [
             'accountType' => $accountType,
+            'visibleTo' => $visibleTo,
             'leverages' => (new GeneralController())->getLeverages(true),
-            'visibleToOptions' => (new GeneralController())->getVisibleToOptions(true),
         ]);
 
     }
@@ -279,6 +281,22 @@ class AccountTypeController extends Controller
         // $account_type->status = 'active';
         $account_type->save();
     
+        // If the visible_to is not 'public', handle user visibility assignment
+        if ($account_type->visible_to !== 'public') {
+            // Delete all existing UserAccountVisibility records for this account type
+            UserAccountTypeVisibility::where('account_type_id', $account_type->id)->delete();
+
+            // Add the new users for this account type
+            if (!empty($request->members)) {
+                foreach ($request->members as $user_id) {
+                    UserAccountTypeVisibility::create([
+                        'account_type_id' => $account_type->id,
+                        'user_id' => $user_id,
+                    ]);
+                }
+            }
+        }
+
         // Redirect to the index page with toast message
         return redirect()->route('accountType')->with('toast', [
             'title' => trans("public.toast_update_account_type_success"),

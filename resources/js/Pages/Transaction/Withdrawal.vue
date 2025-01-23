@@ -34,6 +34,7 @@ const transactions = ref();
 const totalAmount = ref();
 const type = ref('withdrawal');
 const months = ref([]);
+const selectedTeams = ref([]);
 const teams = ref(props.teams);
 const selectedMonths = ref([]);
 const filteredValue = ref();
@@ -74,7 +75,7 @@ const getTransactionMonths = async () => {
 
 getTransactionMonths()
 
-const getResults = async (selectedMonths = [], from = null) => {
+const getResults = async (selectedMonths = [], from = null, selectedTeams = []) => {
     loading.value = true;
 
     try {
@@ -92,6 +93,11 @@ const getResults = async (selectedMonths = [], from = null) => {
             url += `&from=${from}`;
         }
 
+        if (selectedTeams && selectedTeams.length > 0) {
+            const selectedTeamValues = selectedTeams.map((team) => team.value);
+            url += `&selectedTeams=${selectedTeamValues.join(',')}`;
+        }
+
         // Make the API call with the constructed URL
         const response = await axios.get(url);
         transactions.value = response.data.transactions;
@@ -106,14 +112,20 @@ const getResults = async (selectedMonths = [], from = null) => {
 
 // Watch for changes in selectedMonths
 watch(selectedMonths, (newMonths) => {
-    getResults(newMonths, withdrawalFrom.value);
+    getResults(newMonths, withdrawalFrom.value, selectedTeams.value);
     // console.log('Selected Months:', newMonths);
 });
 
 // Watch for changes in withdrawalFrom
 watch(withdrawalFrom, (newWithdrawalFrom) => {
-    getResults(selectedMonths.value, newWithdrawalFrom);
+    getResults(selectedMonths.value, newWithdrawalFrom, selectedTeams.value);
     // console.log('Withdrawal From:', newWithdrawalFrom);
+});
+
+// Watch for changes in selectedTeams
+watch(selectedTeams, (newTeams) => {
+    getResults(selectedMonths.value, withdrawalFrom.value, newTeams);
+    // console.log(newTeams)
 });
 
 const filters = ref({
@@ -153,10 +165,9 @@ const recalculateTotals = () => {
         const matchesNameFilter = !filters.value.name?.value || transaction.name.startsWith(filters.value.name.value);
         const matchesEmailFilter = !filters.value.email?.value || transaction.email.startsWith(filters.value.email.value);
         const matchesStatusFilter = !filters.value.status?.value || transaction.status === filters.value.status.value;
-        const matchesTeamFilter = !filters.value.team_id?.value || transaction.team_id === filters.value.team_id.value;
 
         // Only return transactions that match both global and specific filters
-        return matchesGlobalFilter && matchesNameFilter && matchesEmailFilter && matchesStatusFilter && matchesTeamFilter;
+        return matchesGlobalFilter && matchesNameFilter && matchesEmailFilter && matchesStatusFilter;
     });
 
     // Calculate the total for successful transactions
@@ -181,7 +192,7 @@ const clearFilter = () => {
     };
     selectedMonths.value = [getCurrentMonthYear()];
     withdrawalFrom.value = null;
-    selectedTeam.value = null;
+    selectedTeams.value = [];
     filteredValue.value = null;
 };
 
@@ -386,32 +397,40 @@ const copyToClipboard = (text) => {
                                 class="w-full md:w-auto font-normal"
                                 scroll-height="236px"
                             />
-                            <Select
-                                v-model="selectedTeam"
+                            <MultiSelect
+                                v-model="selectedTeams"
                                 :options="teams"
-                                filter
-                                :filterFields="['name']"
-                                optionLabel="name"
                                 :placeholder="$t('public.filter_by_sales_team')"
-                                class="w-full md:min-w-32 font-normal"
-                                scroll-height="236px"
+                                :maxSelectedLabels="1"
+                                :selectedItemsLabel="`${selectedTeams.length} ${$t('public.teams_selected')}`"
+                                class="w-full md:max-w-60 h-12 font-normal"
                             >
-                                <template #value="slotProps">
-                                    <div v-if="slotProps.value" class="flex items-center gap-3">
+                                <template #header>
+                                    <div class="absolute flex left-10 top-2">
+                                        {{ $t('public.select_all') }}
+                                    </div>
+                                </template>
+                                <template #option="{option}">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-4 h-4 rounded-full overflow-hidden grow-0 shrink-0" :style="{ backgroundColor: `#${option.color}` }"></div>
+                                        <div>{{ option.name }}</div>
+                                    </div>
+                                </template>
+                                <template #value>
+                                    <div v-if="selectedTeams.length === 1" class="flex items-center gap-3">
                                         <div class="flex items-center gap-2">
-                                            <div class="w-4 h-4 rounded-full overflow-hidden grow-0 shrink-0" :style="{ backgroundColor: `#${slotProps.value.color}` }"></div>
-                                            <div>{{ slotProps.value.name }}</div>
+                                            <div class="w-4 h-4 rounded-full overflow-hidden grow-0 shrink-0" :style="{ backgroundColor: `#${selectedTeams[0].color}` }"></div>
+                                            <div>{{ selectedTeams[0].name }}</div>
                                         </div>
                                     </div>
-                                    <span v-else class="text-gray-400">{{ slotProps.placeholder }}</span>
+                                    <span v-else-if="selectedTeams.length > 1">
+                                        {{ selectedTeams.length }} {{ $t('public.teams_selected') }}
+                                    </span>
+                                    <span v-else class="text-gray-400">
+                                        {{ $t('public.filter_by_sales_team') }}
+                                    </span>
                                 </template>
-                                <template #option="slotProps">
-                                    <div class="flex items-center gap-2">
-                                        <div class="w-4 h-4 rounded-full overflow-hidden grow-0 shrink-0" :style="{ backgroundColor: `#${slotProps.option.color}` }"></div>
-                                        <div>{{ slotProps.option.name }}</div>
-                                    </div>
-                                </template>
-                            </Select>
+                            </MultiSelect>
                         </div>
                         <Button
                             type="button"

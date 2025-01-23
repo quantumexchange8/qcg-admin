@@ -342,6 +342,7 @@ return [
     'view_team_transactions' => "View Team Transactions",
     'fee' => "Fee",
     'edit_sales_team' => "Edit Sales Team",
+    'teams_selected' => "teams selected",
     'month_placeholder' => "Select months",
     'months_selected' => "months selected",
     'month' => "Months",

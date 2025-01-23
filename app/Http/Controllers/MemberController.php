@@ -29,10 +29,12 @@ use App\Jobs\TeamMemberAssignmentJob;
 use App\Services\RunningNumberService;
 use App\Http\Requests\AddMemberRequest;
 use App\Services\DropdownOptionService;
+use App\Services\Data\UpdateTradingUser;
 use App\Services\ChangeTraderBalanceType;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
 use App\Http\Controllers\GeneralController;
+use App\Services\Data\UpdateTradingAccount;
 use Illuminate\Validation\ValidationException;
 
 class MemberController extends Controller
@@ -900,7 +902,16 @@ class MemberController extends Controller
             foreach ($tradingAccounts as $tradingAccount) {
                 // Get user info from cTrader service
                 try {
-                    $cTraderService->getUserInfo($tradingAccount->meta_login);
+                    $accData = (new CTraderService())->getUser($tradingAccount->meta_login);
+
+                    if (empty($accData)) {
+                        $tradingAccount->trading_user->delete();
+                        $tradingAccount->delete();
+                    } else {
+                        // Proceed with updating tradingAccount information
+                        (new UpdateTradingUser)->execute($tradingAccount->meta_login, $accData);
+                        (new UpdateTradingAccount)->execute($tradingAccount->meta_login, $accData);
+                    }
                 } catch (\Throwable $e) {
                     Log::error($e->getMessage());
                     return back()->with('toast', [
