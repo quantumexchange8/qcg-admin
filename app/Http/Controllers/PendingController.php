@@ -40,7 +40,7 @@ class PendingController extends Controller
         ])
             ->where('transaction_type', 'withdrawal')
             ->where('status', 'processing')
-            ->whereNotIn('category', ['incentive_wallet', 'bonus_wallet'])
+            ->whereNotIn('category', ['incentive_wallet', 'bonus'])
             ->latest()
             ->get()
             ->map(function ($transaction) {
@@ -127,7 +127,7 @@ class PendingController extends Controller
                     'created_at' => $transaction->created_at,
                     'user_name' => $transaction->user->first_name,
                     'user_email' => $transaction->user->email,
-                    'from' => $transaction->from_meta_login ? $transaction->from_meta_login : 'bonus_wallet',
+                    'from' => $transaction->from_meta_login ? $transaction->from_meta_login : 'bonus',
                     'balance' => $balance, // Get balance after ensuring it's updated
                     'amount' => $transaction->amount,
                     'transaction_charges' => $transaction->transaction_charges,
