@@ -604,4 +604,7 @@ return [
     'credit_withdraw_policy_2' => "System withdraw on specified date",
     'credit_withdraw_policy_3' => "System withdraw after specified period",
     'created_on' => "Created on",
+    'account_report' => "Account Report",
+    'no_record_message' => "There are no records found.",
+    'loading_caption' => "正在加载数据, 请稍候.",
 ];

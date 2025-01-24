@@ -604,4 +604,7 @@ return [
     'credit_withdraw_policy_3' => "如已到達指定日期後, 系統將自動收回信用額",
     'credit_withdraw_policy_2' => "如已到達促銷期限後, 系統將自動收回信用額",
     'created_on' => "创建于",
+    'account_report' => '帳戶報告',
+    'no_record_message' => '未找到任何記錄.',
+    'loading_caption' => "正在加載數據, 請稍候.",
 ];

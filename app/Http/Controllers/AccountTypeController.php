@@ -197,6 +197,7 @@ class AccountTypeController extends Controller
         
     public function updatePromotionConfiguration(Request $request)
     {
+        $visibleTo = $request->input('visible_to');
         $promotionPeriodType = $request->input('promotion_period_type');
         $promotionType = $request->input('promotion_type');
         $creditWithdrawPolicy = $request->input('credit_withdraw_policy');
@@ -212,7 +213,7 @@ class AccountTypeController extends Controller
             'max_account' => ['required', 'numeric'],
             'color' => ['required'],
             'visible_to' => ['required'],
-            'members' => ['nullable', 'array'],
+            'members' => [$visibleTo === 'public' ? 'nullable' : 'min:1', 'array'],
             'promotion_title' => ['required'],
             'promotion_description' => ['required'],
             'promotion_period_type' => ['required'],

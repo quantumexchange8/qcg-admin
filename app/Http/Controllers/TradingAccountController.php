@@ -209,13 +209,13 @@ class TradingAccountController extends Controller
                 $account->account_type = $account->accountType->name;
                 // Calculate `is_active` dynamically
                 $account->is_active = (
-                    ($account->last_login >= $inactiveThreshold) ||
+                    ($account->last_login && $account->last_login >= $inactiveThreshold) ||  // Check if last_login is not null
                     ($account->created_at >= $inactiveThreshold) ||
                     ($account->balance > 0) ||
                     ($account->credit > 0) ||
                     ($account->equity > 0)
                 );
-
+                
                 $account->status = $account->trading_account->status;
                 $account->team_id = $account->userData->teamHasUser->team_id ?? null;
                 $account->team_name = $account->userData->teamHasUser->team->name ?? null;
@@ -303,6 +303,70 @@ class TradingAccountController extends Controller
                 'data' => $accounts,
             ]);
         }
+    }
+
+    public function getAccountReport(Request $request)
+    {
+        $meta_login = $request->query('meta_login');
+        $startDate = $request->query('startDate');
+        $endDate = $request->query('endDate');
+        $type = $request->query('type');
+
+        $query = Transaction::query()->where('status', 'successful');
+
+        if ($meta_login) {
+            $query->where(function($subQuery) use ($meta_login) {
+                $subQuery->where('from_meta_login', $meta_login)
+                    ->orWhere('to_meta_login', $meta_login);
+            });
+        }
+
+        if ($startDate && $endDate) {
+            $start_date = Carbon::createFromFormat('Y-m-d', $startDate)->startOfDay();
+            $end_date = Carbon::createFromFormat('Y-m-d', $endDate)->endOfDay();
+
+            $query->whereBetween('created_at', [$start_date, $end_date]);
+        }
+
+        // Apply type filter
+        if ($type && $type !== 'all') {
+            // Filter based on specific transaction types directly
+            if ($type === 'deposit') {
+                $query->where('transaction_type', 'deposit');
+            } elseif ($type === 'withdrawal') {
+                $query->where('transaction_type', 'withdrawal');
+            } elseif ($type === 'transfer') {
+                $query->whereIn('transaction_type', ['transfer_to_account', 'account_to_account']);
+            }
+        }
+
+        $transactions = $query
+            ->latest()
+            ->get()
+            ->map(function ($transaction) {
+                return [
+                    'category' => $transaction->category,
+                    'transaction_type' => $transaction->transaction_type,
+                    'from_meta_login' => $transaction->from_meta_login,
+                    'to_meta_login' => $transaction->to_meta_login,
+                    'transaction_number' => $transaction->transaction_number,
+                    'payment_account_id' => $transaction->payment_account_id,
+                    'from_wallet_address' => $transaction->from_wallet_address,
+                    'to_wallet_address' => $transaction->to_wallet_address,
+                    'txn_hash' => $transaction->txn_hash,
+                    'amount' => $transaction->amount,
+                    'transaction_charges' => $transaction->transaction_charges,
+                    'transaction_amount' => $transaction->transaction_amount,
+                    'status' => $transaction->status,
+                    'comment' => $transaction->comment,
+                    'remarks' => $transaction->remarks,
+                    'created_at' => $transaction->created_at,
+                    'wallet_name' => $transaction->payment_account->payment_account_name ?? '-',
+                    'wallet_type' => $transaction->from_wallet->type ?? '-',
+                ];
+            });
+
+        return response()->json($transactions);
     }
 
     public function accountAdjustment(Request $request)

@@ -19,35 +19,35 @@ class UpdateCTraderAccountsCommand extends Command
     {
         // Disable PHP execution timeout
         ini_set('max_execution_time', 0);  // No timeout, runs indefinitely
-
+    
         $this->info('Starting to refresh cTrader accounts...');
-
-        TradingUser::where('acc_status', 'active')
-            ->chunk(100, function ($trading_accounts) {
-                foreach ($trading_accounts as $account) {
-                    try {
-                        // Attempt to fetch user data
-                        $accData = (new CTraderService())->getUser($account->meta_login);
-
-                        // If no data is returned (null or empty), mark the account as inactive
-                        if (empty($accData)) {
-                            if ($account->acc_status !== 'inactive') {
-                                $account->update(['acc_status' => 'inactive']);
-                                // $this->warn("Account {$account->meta_login} marked as inactive.");
-                            }
-                        } else {
-                            // Proceed with updating account information
-                            (new UpdateTradingUser)->execute($account->meta_login, $accData);
-                            (new UpdateTradingAccount)->execute($account->meta_login, $accData);
-                        }
-                    } catch (\Exception $e) {
-                        // Log the error message
-                        Log::error("Failed to refresh account {$account->meta_login}: {$e->getMessage()}");
-                        // $this->error("Error processing account {$account->meta_login}: {$e->getMessage()}");
+    
+        // Fetch all active accounts without chunking
+        $trading_accounts = TradingUser::where('acc_status', 'active')->get();
+    
+        foreach ($trading_accounts as $account) {
+            try {
+                // Attempt to fetch user data
+                $accData = (new CTraderService())->getUser($account->meta_login);
+    
+                // If no data is returned (null or empty), mark the account as inactive
+                if (empty($accData)) {
+                    if ($account->acc_status !== 'inactive') {
+                        $account->update(['acc_status' => 'inactive']);
+                        // $this->warn("Account {$account->meta_login} marked as inactive.");
                     }
+                } else {
+                    // Proceed with updating account information
+                    (new UpdateTradingUser)->execute($account->meta_login, $accData);
+                    (new UpdateTradingAccount)->execute($account->meta_login, $accData);
                 }
-            });
-
+            } catch (\Exception $e) {
+                // Log the error message
+                Log::error("Failed to refresh account {$account->meta_login}: {$e->getMessage()}");
+                // $this->error("Error processing account {$account->meta_login}: {$e->getMessage()}");
+            }
+        }
+    
         // $this->info('Completed refreshing cTrader accounts.');
     }
 }
