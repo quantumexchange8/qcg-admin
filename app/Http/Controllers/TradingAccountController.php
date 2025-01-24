@@ -144,9 +144,12 @@ class TradingAccountController extends Controller
                 ->with(['userData:id,first_name,email', 'userData.teamHasUser.team', 'trading_account:id,meta_login,equity,status', 'accountType']) // Eager load related models
                 ->where('acc_status', 'active');
 
-            // Check if type is 'promotion'
-            if ($type === 'promotion') {
-                // Filter accounts where the category is 'promotion'
+            // Apply category filter based on the $type
+            if ($type === 'all') {
+                $query->whereHas('accountType', function($query) {
+                    $query->where('category', '!=', 'promotion'); // Ensure it's not 'promotion'
+                });
+            } else if ($type === 'promotion') {
                 $query->whereHas('accountType', function($query) {
                     $query->where('category', 'promotion');
                 });
@@ -191,6 +194,7 @@ class TradingAccountController extends Controller
                     'id',
                     'user_id',
                     'meta_login',
+                    'account_type_id',
                     'account_type',
                     'balance',
                     'credit',
@@ -275,6 +279,7 @@ class TradingAccountController extends Controller
                     'id',
                     'user_id',
                     'meta_login',
+                    'account_type_id',
                     'account_type',
                     'balance',
                     DB::raw('0 as equity'), // Inactive accounts have no equity

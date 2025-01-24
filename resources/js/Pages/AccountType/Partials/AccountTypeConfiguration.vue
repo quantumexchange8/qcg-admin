@@ -141,7 +141,7 @@ const visibilityOptions = ref([
 const promotionPeriods = ref([
     'no_expiry_date',
     'specific_date_range',
-    'from_account_opening'
+    // 'from_account_opening',
 ]);
 
 const PromotionTypes = ref([
@@ -168,7 +168,7 @@ const applicableDepositTypes = ref([
 const radioOptions = ref([
     {name: 'credit_withdraw_policy_1', value: 'no_withdraw'},
     {name: 'credit_withdraw_policy_2', value: 'withdraw_on_date'},
-    {name: 'credit_withdraw_policy_3', value: 'withdraw_after_period'},
+    // {name: 'credit_withdraw_policy_3', value: 'withdraw_after_period'},
 ]);
 
 // Get current date
@@ -386,8 +386,10 @@ const submitForm = () => {
         form.promotion_period = dayjs(form.promotion_period).format('YYYY-MM-DD');
     }
 
-    if (form.credit_withdraw_policy === 'withdraw_on_date' && form.credit_withdraw_date_period) {
-        form.credit_withdraw_date_period = dayjs(form.credit_withdraw_date_period).format('YYYY-MM-DD');
+    if (form.credit_withdraw_policy === 'withdraw_on_date') {
+        if (form.promotion_period) {
+            form.credit_withdraw_date_period = form.promotion_period;
+        }
     }
 
     form.post(route('accountType.updatePromotionConfiguration'), {
@@ -917,7 +919,7 @@ const submitForm = () => {
                                                 />
                                                 <span class="text-gray-950 text-sm">{{ $t('public.' + option.name) }}</span>
                                             </div>
-                                            <div v-if="option.value === 'withdraw_on_date' && form.credit_withdraw_policy === 'withdraw_on_date'" class="w-full flex items-center pl-7 gap-3">
+                                            <!-- <div v-if="option.value === 'withdraw_on_date' && form.credit_withdraw_policy === 'withdraw_on_date'" class="w-full flex items-center pl-7 gap-3">
                                                 <span class="text-gray-950 text-sm text-nowrap">{{ $t('public.promotion_select_date') }}:</span>
                                                 <div class="relative w-full">
                                                     <DatePicker 
@@ -941,8 +943,7 @@ const submitForm = () => {
                                                     </div>
                                                 </div>
                                                 <InputError :message="form.errors.credit_withdraw_date_period" />
-
-                                            </div>
+                                            </div> -->
                                             <div v-if="option.value === 'withdraw_after_period' && form.credit_withdraw_policy === 'withdraw_after_period'" class="w-full flex items-center pl-7 gap-3">
                                                 <span class="text-gray-950 text-sm text-nowrap">{{ $t('public.enter_number_of_days') }}:</span>
                                                 <InputNumber

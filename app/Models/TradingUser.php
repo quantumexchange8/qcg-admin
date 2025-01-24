@@ -35,9 +35,9 @@ class TradingUser extends Model
         return $this->belongsTo(TradingAccount::class, 'meta_login', 'meta_login');
     }
 
-    public function accountType(): HasOne
+    public function accountType(): BelongsTo
     {
-        return $this->hasOne(AccountType::class, 'id', 'account_type');
+        return $this->belongsTo(AccountType::class, 'account_type_id', 'id');
     }
 
     public function transactions(): HasMany

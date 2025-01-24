@@ -20,7 +20,7 @@ class CreateTradingUser
         $tradingUser->meta_login = $data['login'];
         $tradingUser->meta_group = $data['groupName'];
         $tradingUser->registration = $data['registrationTimestamp'];
-        $tradingUser->last_access = $data['lastUpdateTimestamp'];
+        // $tradingUser->last_access = $data['lastUpdateTimestamp'];
         $tradingUser->balance = $data['balance'] / 100;
         $tradingUser->credit = $data['nonWithdrawableBonus'] / 100;
         $tradingUser->remarks = $remarks;

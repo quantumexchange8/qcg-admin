@@ -15,10 +15,13 @@ class UpdateCTraderAccountsCommand extends Command
 
     protected $description = 'Update cTrader accounts for active trading users';
 
+    // Disable the Laravel command timeout
+    protected $timeout = null;
+
     public function handle(): void
     {
-        // Disable PHP execution timeout
-        ini_set('max_execution_time', 0);  // No timeout, runs indefinitely
+        // Disable PHP execution timeout (unlimited time)
+        ini_set('max_execution_time', 0);  // No timeout for PHP script execution
     
         $this->info('Starting to refresh cTrader accounts...');
     
@@ -50,4 +53,4 @@ class UpdateCTraderAccountsCommand extends Command
     
         // $this->info('Completed refreshing cTrader accounts.');
     }
-}
+    }
