@@ -7,10 +7,11 @@ use App\Models\Wallet;
 use App\Models\TradingUser;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
+use App\Models\TradingAccount;
 use App\Services\CTraderService;
-use App\Services\ChangeTraderBalanceType;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use App\Services\ChangeTraderBalanceType;
 
 class PendingController extends Controller
 {
@@ -94,7 +95,7 @@ class PendingController extends Controller
         ])
             ->where('transaction_type', 'withdrawal')
             ->where('status', 'processing')
-            ->where('category', 'bonus_wallet')
+            ->where('category', 'bonus')
             ->latest()
             ->get()
             ->map(function ($transaction) {
@@ -223,6 +224,15 @@ class PendingController extends Controller
                         'incentive' => trans('public.toast_approve_incentive_request_success'),
                     ];
                     $message = $messages[$type];
+
+                    // Check if the category is 'bonus' and handle accordingly
+                    if ($transaction->category == 'bonus') {
+                        $tradingAccount = TradingAccount::where('meta_login', $transaction->from_meta_login)->first();
+
+                        if ($tradingAccount) {
+                            $tradingAccount->increment('claimed_amount', $transaction->transaction_amount);
+                        }
+                    }
                 }
             } else {
                 return redirect()->back()->with('toast', [
