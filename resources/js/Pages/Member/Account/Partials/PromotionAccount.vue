@@ -334,8 +334,10 @@ watch(filters, (newFilters) => {
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.last_logged_in') }}</span>
                     <span class="w-full truncate text-gray-950 text-sm font-medium">    
-                        {{ dayjs(dayjs(data.last_login).isAfter(dayjs(data.created_at)) ? data.last_login : data.created_at).format('YYYY/MM/DD HH:mm:ss') }} 
-                        ({{ dayjs().diff(dayjs(dayjs(data.last_login).isAfter(dayjs(data.created_at)) ? data.last_login : data.created_at), 'day') }} {{ $t('public.days') }})
+                        <!-- {{ data.last_login ? dayjs(data.last_login).format('YYYY/MM/DD HH:mm:ss') : dayjs(data.created_at).format('YYYY/MM/DD HH:mm:ss')}}
+                        ({{data.last_login ? dayjs().diff(dayjs(data.last_login), 'day') : dayjs().diff(dayjs(data.created_at), 'day')}} {{ $t('public.days') }}) -->
+                        {{ data.last_login ? dayjs(data.last_login).format('YYYY/MM/DD HH:mm:ss') : '-'}}
+                        ({{data.last_login ? dayjs().diff(dayjs(data.last_login), 'day') : '-'}} {{ $t('public.days') }})
                     </span>
                 </div>
             </div>

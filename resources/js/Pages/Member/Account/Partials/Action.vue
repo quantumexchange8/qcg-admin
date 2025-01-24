@@ -1,6 +1,8 @@
 <script setup>
 import {
     IconDotsVertical,
+    IconReportMoney,
+    IconTool,
     IconSettingsDollar,
     IconTrashX,
     IconChevronRight,
@@ -16,6 +18,7 @@ import { useConfirm } from "primevue/useconfirm";
 import { trans, wTrans } from "laravel-vue-i18n";
 import Dialog from "primevue/dialog";
 import Adjustment from "@/Components/Adjustment.vue";
+import AccountReport from "@/Pages/Member/Account/Partials/AccountReport.vue";
 
 const props = defineProps({
     account: Object,
@@ -29,24 +32,38 @@ const adjustmentType = ref('')
 
 const items = ref([
     {
-        label: 'account_balance',
-        icon: h(IconSettingsDollar),
+        label: 'account_report',
+        icon: h(IconReportMoney),
         command: () => {
             visible.value = true;
-            dialogType.value = 'adjustment';
-            adjustmentType.value = 'account_balance';
-            title.value = 'balance';
+            dialogType.value = 'account_report';
         },
     },
     {
-        label: 'account_credit',
-        icon: h(IconSettingsDollar),
-        command: () => {
-            visible.value = true;
-            dialogType.value = 'adjustment';
-            adjustmentType.value = 'account_credit';
-            title.value = 'credit';
-        },
+        label: 'adjustment', // Main item for adjustments
+        icon: h(IconTool),
+        items: [  // Submenu items for "adjustment_options"
+            {
+                label: 'account_balance',
+                // icon: h(IconSettingsDollar),
+                command: () => {
+                    visible.value = true;
+                    dialogType.value = 'adjustment';
+                    adjustmentType.value = 'account_balance';
+                    title.value = 'balance';
+                },
+            },
+            {
+                label: 'account_credit',
+                // icon: h(IconSettingsDollar),
+                command: () => {
+                    visible.value = true;
+                    dialogType.value = 'adjustment';
+                    adjustmentType.value = 'account_credit';
+                    title.value = 'credit';
+                },
+            },
+        ],
     },
     {
         label: 'delete_trading_account',
@@ -192,8 +209,9 @@ const handleAccountStatus = () => {
     <Dialog
         v-model:visible="visible"
         modal
-        :header="$t('public.adjustment_header', {type: $t(`public.${title}`)})"
-        class="dialog-xs md:dialog-sm"
+        :header="dialogType === 'adjustment' ? $t('public.adjustment_header', {type: $t(`public.${title}`)}) : $t(`public.${dialogType}`)"
+        class="dialog-xs"
+        :class="(dialogType === 'account_report') ? 'md:dialog-md' : 'md:dialog-sm'"
     >
         <template v-if="dialogType === 'adjustment'">
             <Adjustment
@@ -202,5 +220,13 @@ const handleAccountStatus = () => {
                 @update:visible="visible = false"
             />
         </template>
+
+        <template v-if="dialogType === 'account_report'">
+            <AccountReport
+                :account="props.account"
+                @update:visible="visible = $event"
+            />
+        </template>
+
     </Dialog>
 </template>

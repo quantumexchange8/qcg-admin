@@ -288,7 +288,7 @@ watch(search, debounce(() => {
 }, 1000));
 
 // Arrays to track selected members and groups globally
-const selectedMembers = ref(props.visibleTo);
+const selectedMembers = ref(props.visibleTo || []);
 const selectedGroups = ref([]);
 
 // Helper to optimize lookups in arrays
@@ -346,6 +346,8 @@ watch(selectedGroups, (newSelectedGroups, oldSelectedGroups) => {
         }
     });
 
+    // Reset the flag after processing
+    removingDueToDeselect = false;
 }, { deep: false }); // Use shallow watch
 
 // Function to update group selection status based on the current visibleToOptions and selectedMembers
@@ -529,7 +531,11 @@ const submitForm = () => {
                                             <span class="text-gray-950 text-sm">{{ $t('public.' + option.name) }}</span>
                                         </div>
                                     </div>
-                                    <div v-if="form.visible_to === 'selected_members'" class="w-full h-[500px] flex flex-col items-center rounded border border-gray-200 bg-white">
+                                    <div 
+                                        v-if="form.visible_to === 'selected_members'" 
+                                        class="w-full h-[500px] flex flex-col items-center border bg-white"
+                                        :class="{'rounded border-gray-200': !form.errors.members, 'border-error-500': form.errors.members}"
+                                    >
                                         <div class="w-full flex flex-col justify-center items-center p-3 gap-3 bg-white">
                                             <div class="relative w-full">
                                                 <div class="absolute top-2/4 -mt-[9px] left-3 text-gray-500">
@@ -549,44 +555,46 @@ const submitForm = () => {
                                                     <IconCircleXFilled size="16" />
                                                 </div>
                                             </div>
-                                            <div class="w-full flex flex-col justify-center items-center overflow-y-auto max-h-[415px]">
+                                            <div class="w-full flex flex-col justify-center items-center">
                                                 <Accordion multiple class="w-full flex flex-col justify-center items-center gap-1">
-                                                    <AccordionPanel
-                                                        v-for="(group, index) in visibleToOptions"
-                                                        :key="index"
-                                                        :value="group.value"
-                                                        class="w-full flex flex-col justify-center gap-1"
-                                                    >
-                                                        <AccordionHeader class="w-full flex flex-row-reverse justify-end items-center gap-2">
-                                                            <span class="text-gray-950 text-sm">{{ group.name }}</span>
-                                                            <Checkbox
-                                                                v-model="selectedGroups"
-                                                                :value="group.name"
-                                                                class="w-4 h-4"
-                                                                @click.stop
-                                                            />
-                                                        </AccordionHeader>
+                                                    <div class="w-full max-h-[415px] overflow-y-auto">
+                                                        <AccordionPanel
+                                                            v-for="(group, index) in visibleToOptions"
+                                                            :key="index"
+                                                            :value="group.value"
+                                                            class="w-full flex flex-col justify-center gap-1"
+                                                        >
+                                                            <AccordionHeader class="w-full flex flex-row-reverse justify-end items-center gap-2">
+                                                                <span class="text-gray-950 text-sm">{{ group.name }}</span>
+                                                                <Checkbox
+                                                                    v-model="selectedGroups"
+                                                                    :value="group.name"
+                                                                    class="w-4 h-4"
+                                                                    @click.stop
+                                                                />
+                                                            </AccordionHeader>
 
-                                                        <AccordionContent class="w-full flex flex-col justify-center gap-1 pl-[22px]">
-                                                            <div
-                                                                v-for="(member, idx) in group.members"
-                                                                :key="member.value"
-                                                                class="flex items-center gap-2"
-                                                            >
-                                                            <Checkbox
-                                                                v-model="selectedMembers"
-                                                                :value="member.value"
-                                                                class="w-4 h-4"
-                                                            />
-                                                            <span class="text-gray-950 text-sm">{{ member.label }}</span>
-                                                            </div>
-                                                        </AccordionContent>
-                                                    </AccordionPanel>
+                                                            <AccordionContent class="w-full flex flex-col justify-center gap-1 pl-[22px]">
+                                                                <div
+                                                                    v-for="(member, idx) in group.members"
+                                                                    :key="member.value"
+                                                                    class="flex items-center gap-2"
+                                                                >
+                                                                    <Checkbox
+                                                                        v-model="selectedMembers"
+                                                                        :value="member.value"
+                                                                        class="w-4 h-4"
+                                                                    />
+                                                                    <span class="text-gray-950 text-sm">{{ member.label }}</span>
+                                                                </div>
+                                                            </AccordionContent>
+                                                        </AccordionPanel>
+                                                    </div>
                                                 </Accordion>
                                             </div>
                                         </div>
                                     </div>
-                                    <InputError :message="form.errors.visible_to" />
+                                    <InputError v-if="form.visible_to === 'selected_members'" :message="form.errors.members" />
                                 </div>
                             </div>
                         </div>
