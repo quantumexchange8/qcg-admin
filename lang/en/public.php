@@ -606,5 +606,6 @@ return [
     'created_on' => "Created on",
     'account_report' => "Account Report",
     'no_record_message' => "There are no records found.",
-    'loading_caption' => "正在加载数据, 请稍候.",
+    'loading_caption' => "Loading data, please wait.",
+    'today' => "Today",
 ];

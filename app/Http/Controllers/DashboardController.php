@@ -2,17 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Team;
 use App\Models\User;
 use Inertia\Inertia;
 use App\Models\AccountType;
+use App\Models\TeamHasUser;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use App\Models\TradingAccount;
 use Illuminate\Support\Carbon;
 use App\Services\CTraderService;
+use App\Models\TradeBrokerHistory;
+use App\Models\TradeLotSizeVolume;
 use App\Models\TradeRebateSummary;
 use App\Jobs\CashWalletTransferJob;
-use App\Models\TradeBrokerHistory;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 
@@ -22,6 +25,7 @@ class DashboardController extends Controller
     {
         return Inertia::render('Dashboard', [
             'months' => (new GeneralController())->getTradeMonths(true),
+            'teamMonths' => (new GeneralController())->getTransactionMonths(true),
         ]);
     }
 
@@ -52,8 +56,6 @@ class DashboardController extends Controller
 
     public function getDashboardData()
     {
-        $user = Auth::user();
-
         $total_deposit = Transaction::where('transaction_type', 'deposit')
             ->where('status', 'successful')
             ->sum('transaction_amount');
@@ -66,11 +68,29 @@ class DashboardController extends Controller
 
         $total_member = User::where('role', 'member')->count();
 
+        $today_deposit = Transaction::where('transaction_type', 'deposit')
+            ->where('status', 'successful')
+            ->whereDate('created_at', today())
+            ->sum('transaction_amount');
+
+        $today_withdrawal = Transaction::where('transaction_type', 'withdrawal')
+            ->where('status', 'successful')
+            ->whereDate('created_at', today())
+            ->sum('amount');
+
+        $today_agent = User::where('role', 'agent')->whereDate('created_at', today())->count();
+
+        $today_member = User::where('role', 'member')->whereDate('created_at', today())->count();
+
         return response()->json([
             'totalDeposit' => $total_deposit,
             'totalWithdrawal' => $total_withdrawal,
             'totalAgent' => $total_agent,
             'totalMember' => $total_member,
+            'todayDeposit' => $today_deposit,
+            'todayWithdrawal' => $today_withdrawal,    
+            'todayAgent' => $today_agent,
+            'todayMember' => $today_member,
         ]);
     }
 
@@ -171,13 +191,15 @@ class DashboardController extends Controller
         $month = $carbonDate->month;
         
         // Calculate total trade lots and volume for the selected month and year
-        $totalTradeLots = TradeBrokerHistory::whereYear('trade_close_time', $year)
-                                            ->whereMonth('trade_close_time', $month)
-                                            ->sum('trade_lots');
+        $totalTradeLots = TradeLotSizeVolume::where('tlv_year', $year)
+                                            ->where('tlv_month', $month)
+                                            ->where('tlv_day', 0)
+                                            ->sum('tlv_lotsize');
     
-        $totalVolume = TradeBrokerHistory::whereYear('trade_close_time', $year)
-                                         ->whereMonth('trade_close_time', $month)
-                                         ->sum('trade_volume_usd');
+        $totalVolume = TradeLotSizeVolume::where('tlv_year', $year)
+                                            ->where('tlv_month', $month)
+                                            ->where('tlv_day', 0)
+                                         ->sum('tlv_volume_usd');
         
         // Return the total balance and total equity as a JSON response
         return response()->json([
@@ -186,4 +208,65 @@ class DashboardController extends Controller
         ]);
     }
     
+    public function getTeamsData(Request $request)
+    {
+        // Get the selected month (in format "m/Y")
+        $monthYear = $request->input('selectedMonth');
+        
+        // Parse the month/year string into a Carbon date
+        $carbonDate = Carbon::createFromFormat('F Y', $monthYear);
+        
+        // Get the year and month as integers
+        $year = $carbonDate->year;
+        $month = $carbonDate->month;
+        
+        // Retrieve all teams and their related data
+        $teams = Team::all()->map(function ($team) use ($year, $month) {
+            // Get all user ids in the team
+            $teamUserIds = TeamHasUser::where('team_id', $team->id)
+                ->pluck('user_id')
+                ->toArray();
+
+            // Calculate total deposit for the team (filtered by month and year)
+            $total_deposit = Transaction::whereIn('user_id', $teamUserIds)
+                ->whereYear('approved_at', $year)
+                ->whereMonth('approved_at', $month)
+                ->whereIn('transaction_type', ['deposit', 'balance_in', 'rebate_in'])
+                ->where('status', 'successful')
+                ->sum('transaction_amount');
+
+            // Calculate total withdrawal for the team (filtered by month and year)
+            $total_withdrawal = Transaction::whereIn('user_id', $teamUserIds)
+                ->whereYear('approved_at', $year)
+                ->whereMonth('approved_at', $month)
+                ->whereIn('transaction_type', ['withdrawal', 'balance_out', 'rebate_out'])
+                ->where('status', 'successful')
+                ->sum('transaction_amount');
+
+            // Calculate the net balance for the team
+            $transaction_fee_charges = $team->fee_charges > 0 ? $total_deposit / $team->fee_charges : 0;
+            $net_balance = $total_deposit - $transaction_fee_charges - $total_withdrawal;
+
+            // Return the team data
+            return [
+                'id' => $team->id,
+                'name' => $team->name,
+                'fee_charges' => $team->fee_charges,
+                'color' => $team->color,
+                'leader_name' => $team->leader->first_name,
+                'leader_email' => $team->leader->email,
+                'profile_photo' => $team->leader->getFirstMediaUrl('profile_photo'),
+                'member_count' => $team->team_has_user->count(),
+                'deposit' => $total_deposit,
+                'withdrawal' => $total_withdrawal,
+                'transaction_fee_charges' => $transaction_fee_charges,
+                'net_balance' => $net_balance,
+            ];
+        });
+
+        return response()->json([
+            'teams' => $teams,
+        ]);
+    }
+
 }

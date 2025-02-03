@@ -251,7 +251,7 @@ watch(() => form.credit_withdraw_policy, (newPolicy) => {
     }
 });
 
-const search = ref();
+const search = ref('');
 
 const clearSearch = () => {
     search.value = null;
@@ -423,10 +423,10 @@ const submitForm = () => {
                     <IconChevronRight
                         :size="20"
                         stroke-width="1.25"
-                        class="text-gray-400"
+                        class="text-gray-400 grow-0 shrink-0"
                     />
-                    <div class="flex justify-center items-center py-2 px-4 gap-2 rounded">
-                        <span class="txt-gray-700 text-center text-sm font-medium">
+                    <div class="flex justify-center items-center py-2 px-4 gap-2 rounded min-w-0">
+                        <span class="txt-gray-700 text-center text-sm font-medium truncate">
                             {{ (props?.accountType ? props?.accountType?.name : '') + ` - ` + $t('public.account_configuration') }}
                         </span>
                     </div>
@@ -436,7 +436,7 @@ const submitForm = () => {
                     type="button"
                     variant="gray-outlined"
                     size="sm"
-                    class="whitespace-nowrap"
+                    class="whitespace-nowrap hidden md:block"
                     @click="handleCancel"
                 >
                     {{ $t('public.cancel') }}
@@ -444,7 +444,7 @@ const submitForm = () => {
                 <Button
                     variant="primary-flat"
                     size="sm"
-                    class="whitespace-nowrap"
+                    class="whitespace-nowrap hidden md:block"
                     @click="submitForm"
                 >
                     {{ $t('public.save_settings') }}
@@ -458,7 +458,7 @@ const submitForm = () => {
                         <div class="w-full flex flex-col justify-center items-center p-6 gap-5 rounded-lg bg-white shadow-card">
                             <span class="w-full text-gray-950 font-bold">{{ $t('public.account_information') }}</span>
                             <div class="w-full grid grid-cols-2 gap-5">
-                                <div class="w-full min-w-[300px] flex flex-col items-start gap-2">
+                                <div class="w-full col-span-2 md:col-span-1 flex flex-col items-start gap-2">
                                     <InputLabel for="account_type_name" :invalid="!!form.errors.account_type_name">{{ $t('public.account_type_name') }}</InputLabel>
                                     <InputText
                                         id="account_type_name"
@@ -471,7 +471,7 @@ const submitForm = () => {
                                     />
                                     <InputError :message="form.errors.account_type_name" />
                                 </div>
-                                <div class="w-full min-w-[300px] flex flex-col items-start gap-2">
+                                <div class="w-full col-span-2 md:col-span-1 flex flex-col items-start gap-2">
                                     <InputLabel for="category" :value="$t('public.account_type_category')" :invalid="!!form.errors.category"/>
                                     <Select
                                         v-model="form.category"
@@ -494,14 +494,14 @@ const submitForm = () => {
                                     </Select>
                                     <InputError :message="form.errors.category" />
                                 </div>
-                                <div class="w-full min-w-[400px] col-span-2 flex flex-col justify-center items-start gap-5">
+                                <div class="w-full col-span-2 flex flex-col justify-center items-start gap-5">
                                     <div class="w-full flex flex-col items-start gap-2">
                                         <span class="text-gray-700 text-sm">{{ $t('public.description') }}</span>
                                         <div class="w-full flex flex-col items-center gap-3">
                                             <div
                                                 v-for="(label, key) in languageLabels"
                                                 :key="key"
-                                                class="w-full flex items-center gap-3"
+                                                class="w-full flex flex-col md:flex-row gap-3"
                                             >
                                                 <div class="w-[120px] h-11 flex flex-shrink-0 items-start py-3 px-4 gap-3 rounded border border-gray-300 bg-white">
                                                     <span class="w-full text-gray-950 text-sm whitespace-nowrap">{{ label }}</span>
@@ -521,9 +521,9 @@ const submitForm = () => {
                                         </div>
                                     </div>
                                 </div>
-                                <div class="w-full min-w-[300px] col-span-2 flex flex-col items-start gap-2">
+                                <div class="w-full col-span-2 flex flex-col items-start gap-2">
                                     <InputLabel for="visible_to" :value="$t('public.visible_to')" :invalid="!!form.errors.visible_to"/>
-                                    <div class="w-full flex items-center gap-8">
+                                    <div class="w-full flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-8">
                                         <div v-for="option in visibilityOptions" :key="option.value" class="flex items-center gap-3">
                                             <RadioButton
                                                 v-model="form.visible_to"
@@ -559,7 +559,7 @@ const submitForm = () => {
                                             </div>
                                             <div class="w-full flex flex-col justify-center items-center">
                                                 <Accordion multiple class="w-full flex flex-col justify-center items-center gap-1">
-                                                    <div class="w-full max-h-[415px] overflow-y-auto">
+                                                    <div class="w-full max-h-[415px] overflow-auto">
                                                         <AccordionPanel
                                                             v-for="(group, index) in visibleToOptions"
                                                             :key="index"
@@ -585,7 +585,7 @@ const submitForm = () => {
                                                                     <Checkbox
                                                                         v-model="selectedMembers"
                                                                         :value="member.value"
-                                                                        class="w-4 h-4"
+                                                                        class="w-4 h-4 grow-0 shrink-0"
                                                                     />
                                                                     <span class="text-gray-950 text-sm">{{ member.label }}</span>
                                                                 </div>
@@ -605,7 +605,7 @@ const submitForm = () => {
                         <div class="w-full flex flex-col justify-center items-center p-6 gap-5 rounded-lg bg-white shadow-card">
                             <span class="w-full text-gray-950 font-bold">{{ $t('public.trading_conditions') }}</span>
                             <div class="w-full grid grid-cols-2 gap-5">
-                                <div class="w-full flex flex-col items-start gap-2">
+                                <div class="w-full col-span-2 md:col-span-1 flex flex-col items-start gap-2">
                                     <InputLabel for="leverage" :value="$t('public.leverage')" :invalid="!!form.errors.leverage"/>
                                     <Select
                                         v-model="form.leverage"
@@ -618,7 +618,7 @@ const submitForm = () => {
                                     </Select>
                                     <InputError :message="form.errors.leverage" />
                                 </div>
-                                <div class="w-full flex flex-col items-start gap-2">
+                                <div class="w-full col-span-2 md:col-span-1 flex flex-col items-start gap-2">
                                     <InputLabel for="trade_delay_duration" :value="$t('public.trade_delay_duration')" :invalid="!!form.errors.trade_delay_duration"/>
                                     <Select
                                         v-model="form.trade_delay_duration"
@@ -638,7 +638,7 @@ const submitForm = () => {
                         <div class="w-full flex flex-col justify-center items-center p-6 gap-5 rounded-lg bg-white shadow-card">
                             <span class="w-full text-gray-950 font-bold">{{ $t('public.other_settings') }}</span>
                             <div class="w-full grid grid-cols-2 gap-5">
-                                <div class="w-full flex flex-col items-start gap-2">
+                                <div class="w-full col-span-2 md:col-span-1 flex flex-col items-start gap-2">
                                     <InputLabel for="max_account" :value="$t('public.maximum_account_creation')" :invalid="!!form.errors.max_account"/>
                                     <InputNumber
                                         v-model="form.max_account"
@@ -653,7 +653,7 @@ const submitForm = () => {
                                     />
                                     <InputError :message="form.errors.max_account" />
                                 </div>
-                                <div class="w-full flex flex-col items-start gap-2">
+                                <div class="w-full col-span-2 md:col-span-1 flex flex-col items-start gap-2">
                                     <InputLabel for="color" :value="$t('public.colour')" :invalid="!!form.errors.color"/>
                                     <ColorPicker v-model="form.color" id="Color"/>
                                     <InputError :message="form.errors.color" />
@@ -697,7 +697,7 @@ const submitForm = () => {
                                         <Select
                                             v-model="form.promotion_period_type"
                                             :options="promotionPeriods"
-                                            class="block w-full font-normal"
+                                            class="block w-full font-normal col-span-2 md:col-span-1"
                                             scroll-height="236px"
                                         >
                                             <template #value="slotProps">
@@ -712,7 +712,7 @@ const submitForm = () => {
                                             </template>
                                         </Select>
                                         
-                                        <div v-if="form.promotion_period_type === 'specific_date_range'" class="relative w-full">
+                                        <div v-if="form.promotion_period_type === 'specific_date_range'" class="relative w-full col-span-2 md:col-span-1">
                                             <DatePicker 
                                                 v-model="form.promotion_period"
                                                 selectionMode="single"
@@ -722,7 +722,7 @@ const submitForm = () => {
                                                 showIcon
                                                 iconDisplay="input"
                                                 :placeholder="$t('public.promotion_select_date')"
-                                                class="font-normal w-full"
+                                                class="font-normal w-full col-span-2 md:col-span-1"
                                                 :invalid="!!form.errors.promotion_period"
                                             />
                                             <div
@@ -741,7 +741,7 @@ const submitForm = () => {
                                             size="sm"
                                             :min="0"
                                             :step="5"
-                                            class="w-full"
+                                            class="w-full col-span-2 md:col-span-1"
                                             inputClass="py-3 px-4"
                                             autofocus
                                             :invalid="!!form.errors.promotion_period"
@@ -753,7 +753,7 @@ const submitForm = () => {
                                 </div>
 
                                 <div class="w-full grid grid-cols-2 gap-5">
-                                    <div class="w-full h-full min-w-[300px] flex flex-col items-start gap-2">
+                                    <div class="w-full h-full col-span-2 md:col-span-1 flex flex-col items-start gap-2">
                                         <InputLabel for="promotion_type" :value="$t('public.promotion_type')" :invalid="!!form.errors.promotion_type"/>
                                         <Select
                                             v-model="promotionType"
@@ -773,7 +773,7 @@ const submitForm = () => {
                                             </template>
                                         </Select>
                                     </div>
-                                    <div class="w-full h-full min-w-[300px] flex flex-col items-start gap-2">
+                                    <div class="w-full h-full col-span-2 md:col-span-1 flex flex-col items-start gap-2">
                                         <InputLabel
                                             for="target_amount"
                                             :value="$t(form.promotion_type === 'deposit' ? 'public.minimum_deposit_amount' : 'public.minimum_trade_lot_target')"
@@ -801,11 +801,11 @@ const submitForm = () => {
                                 
                                 <div class="w-full flex flex-col items-start gap-2">
                                     <InputLabel for="bonus_type" :value="$t('public.bonus_type')" :invalid="!!form.errors.bonus_type"/>
-                                    <div class="w-full flex items-center gap-5">
+                                    <div class="w-full grid grid-cols-3 gap-5">
                                         <Select
                                             v-model="form.bonus_type"
                                             :options="BonusTypes"
-                                            class="block w-full font-normal"
+                                            class="block w-full font-normal col-span-3 md:col-span-1"
                                             scroll-height="236px"
                                         >
                                             <template #value="slotProps">
@@ -823,7 +823,7 @@ const submitForm = () => {
                                         <Select
                                             v-model="form.bonus_amount_type"
                                             :options="BonusAmountTypes"
-                                            class="block w-full font-normal"
+                                            class="block w-full font-normal col-span-3 md:col-span-1"
                                             scroll-height="236px"
                                             :disabled="form.promotion_type === 'trade_volume'"
                                         >
@@ -848,7 +848,7 @@ const submitForm = () => {
                                             :step="100"
                                             :prefix="form.bonus_amount_type == 'specified_amount' ? '$ ' : null"
                                             :suffix="form.bonus_amount_type == 'percentage_of_deposit' ? ' %' : null"
-                                            class="w-full"
+                                            class="w-full col-span-3 md:col-span-1"
                                             inputClass="py-3 px-4"
                                             autofocus
                                             :invalid="!!form.errors.bonus_amount"

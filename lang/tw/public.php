@@ -607,4 +607,5 @@ return [
     'account_report' => '帳戶報告',
     'no_record_message' => '未找到任何記錄.',
     'loading_caption' => "正在加載數據, 請稍候.",
+    'today' => "今天",
 ];

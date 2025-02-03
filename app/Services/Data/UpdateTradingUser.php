@@ -30,7 +30,7 @@ class UpdateTradingUser
         $tradingUser->registration = $data['registrationTimestamp'];
         
         if (isset($data['lastConnectionTimestamp'])) {
-            $tradingUser->last_access = Carbon::createFromTimestamp($data['lastConnectionTimestamp'] / 1000)->toDateTimeString();
+            $tradingUser->last_access = Carbon::createFromTimestampMs($data['lastConnectionTimestamp'])->toDateTimeString();
         }
         
         $tradingUser->balance = $data['balance'] / 100;
