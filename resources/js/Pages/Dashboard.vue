@@ -525,7 +525,7 @@ watch(() => usePage().props, (newProps, oldProps) => {
                     </Button>
                 </div>
 
-                <div class="w-full grid grid-cols-1 xl:grid-cols-2 4xl:grid-cols-1 gap-3 md:gap-6">
+                <div class="w-full max-h-[770px] overflow-auto grid grid-cols-1 xl:grid-cols-2 4xl:grid-cols-1 gap-3 md:gap-6">
                     <div
                         v-if="teamLoading"
                         class="w-full flex flex-col items-center rounded bg-white shadow-card"
