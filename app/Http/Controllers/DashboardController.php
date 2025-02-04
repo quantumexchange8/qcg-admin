@@ -56,24 +56,24 @@ class DashboardController extends Controller
 
     public function getDashboardData()
     {
-        $total_deposit = Transaction::where('transaction_type', 'deposit')
+        $total_deposit = Transaction::whereIn('transaction_type', ['deposit', 'rebate_in', 'balance_in', 'credit_in'])
             ->where('status', 'successful')
             ->sum('transaction_amount');
-
-        $total_withdrawal = Transaction::where('transaction_type', 'withdrawal')
+    
+        $total_withdrawal = Transaction::whereIn('transaction_type', ['withdrawal', 'rebate_out', 'balance_out', 'credit_out'])
             ->where('status', 'successful')
             ->sum('amount');
-
+        
         $total_agent = User::where('role', 'agent')->count();
 
         $total_member = User::where('role', 'member')->count();
 
-        $today_deposit = Transaction::where('transaction_type', 'deposit')
+        $today_deposit = Transaction::whereIn('transaction_type', ['deposit', 'rebate_in', 'balance_in', 'credit_in'])
             ->where('status', 'successful')
             ->whereDate('created_at', today())
             ->sum('transaction_amount');
 
-        $today_withdrawal = Transaction::where('transaction_type', 'withdrawal')
+        $today_withdrawal = Transaction::whereIn('transaction_type', ['withdrawal', 'rebate_out', 'balance_out', 'credit_out'])
             ->where('status', 'successful')
             ->whereDate('created_at', today())
             ->sum('amount');
