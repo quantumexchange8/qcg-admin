@@ -41,6 +41,14 @@ class UpdateCTraderAccountJob implements ShouldQueue
                     if ($account->acc_status !== 'inactive') {
                         $account->update(['acc_status' => 'inactive']);
                     }
+
+                    $tradingAccount = $account->trading_account;
+                    if ($tradingAccount) {
+                        $tradingAccount->delete();
+                    }
+                    
+                    $account->delete();
+
                 } else {
                     // Proceed with updating account information
                     (new UpdateTradingUser)->execute($account->meta_login, $accData);

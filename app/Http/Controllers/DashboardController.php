@@ -182,32 +182,49 @@ class DashboardController extends Controller
     {
         // Get the selected month (in format "m/Y")
         $monthYear = $request->input('selectedMonth');
-        
+    
         // Parse the month/year string into a Carbon date
         $carbonDate = Carbon::createFromFormat('m/Y', $monthYear);
-        
+    
         // Get the year and month as integers
         $year = $carbonDate->year;
         $month = $carbonDate->month;
-        
-        // Calculate total trade lots and volume for the selected month and year
-        $totalTradeLots = TradeLotSizeVolume::where('tlv_year', $year)
-                                            ->where('tlv_month', $month)
-                                            ->where('tlv_day', 0)
-                                            ->sum('tlv_lotsize');
     
-        $totalVolume = TradeLotSizeVolume::where('tlv_year', $year)
-                                            ->where('tlv_month', $month)
-                                            ->where('tlv_day', 0)
-                                         ->sum('tlv_volume_usd');
-        
-        // Return the total balance and total equity as a JSON response
+        // Check if any record exists where tlv_day = 0
+        $hasSummaryRecord = TradeLotSizeVolume::where('tlv_year', $year)
+                                              ->where('tlv_month', $month)
+                                              ->where('tlv_day', 0)
+                                              ->exists();
+    
+        if ($hasSummaryRecord) {
+            // Use the summary record where tlv_day = 0
+            $totalTradeLots = TradeLotSizeVolume::where('tlv_year', $year)
+                                                ->where('tlv_month', $month)
+                                                ->where('tlv_day', 0)
+                                                ->sum('tlv_lotsize');
+    
+            $totalVolume = TradeLotSizeVolume::where('tlv_year', $year)
+                                             ->where('tlv_month', $month)
+                                             ->where('tlv_day', 0)
+                                             ->sum('tlv_volume_usd');
+        } else {
+            // No summary record for this month, sum all available days
+            $totalTradeLots = TradeLotSizeVolume::where('tlv_year', $year)
+                                                ->where('tlv_month', $month)
+                                                ->sum('tlv_lotsize');
+    
+            $totalVolume = TradeLotSizeVolume::where('tlv_year', $year)
+                                             ->where('tlv_month', $month)
+                                             ->sum('tlv_volume_usd');
+        }
+    
+        // Return the total trade lots and volume as a JSON response
         return response()->json([
             'totalTradeLots' => $totalTradeLots,
             'totalVolume' => $totalVolume,
         ]);
     }
-    
+        
     public function getTeamsData(Request $request)
     {
         // Get the selected month (in format "m/Y")

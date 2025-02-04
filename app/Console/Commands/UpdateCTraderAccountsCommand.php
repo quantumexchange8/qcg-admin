@@ -39,6 +39,14 @@ class UpdateCTraderAccountsCommand extends Command
                         $account->update(['acc_status' => 'inactive']);
                         // $this->warn("Account {$account->meta_login} marked as inactive.");
                     }
+
+                    $tradingAccount = $account->trading_account;
+                    if ($tradingAccount) {
+                        $tradingAccount->delete();
+                    }
+                    
+                    $account->delete();
+
                 } else {
                     // Proceed with updating account information
                     (new UpdateTradingUser)->execute($account->meta_login, $accData);
@@ -53,4 +61,4 @@ class UpdateCTraderAccountsCommand extends Command
     
         // $this->info('Completed refreshing cTrader accounts.');
     }
-    }
+}
