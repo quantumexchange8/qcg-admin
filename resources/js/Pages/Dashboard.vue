@@ -562,19 +562,19 @@ watch(() => usePage().props, (newProps, oldProps) => {
                                     </span>
                                 </div>
                                 <div class="w-full flex flex-col items-start gap-1">
-                                    <span class="w-full truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.team_account_equity') }}</span>
+                                    <span class="w-full truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.dashboard_team_account_equity') }}</span>
                                     <span class="w-full truncate text-gray-950 font-semibold text-sm md:text-base animate-pulse">
                                         <div class="h-3 bg-gray-200 rounded-full w-30"></div>
                                     </span>
                                 </div>
                                 <div class="w-full flex flex-col items-start gap-1">
-                                    <span class="w-full truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.team_adjustment_in') }}</span>
+                                    <span class="w-full truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.dashboard_team_adjustment_in') }}</span>
                                     <span class="w-full truncate text-gray-950 font-semibold text-sm md:text-base animate-pulse">
                                         <div class="h-3 bg-gray-200 rounded-full w-30"></div>
                                     </span>
                                 </div>
                                 <div class="w-full flex flex-col items-start gap-1">
-                                    <span class="w-full truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.team_adjustment_out') }}</span>
+                                    <span class="w-full truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.dashboard_team_adjustment_out') }}</span>
                                     <span class="w-full truncate text-gray-950 font-semibold text-sm md:text-base animate-pulse">
                                         <div class="h-3 bg-gray-200 rounded-full w-30"></div>
                                     </span>
@@ -614,15 +614,15 @@ watch(() => usePage().props, (newProps, oldProps) => {
                                     <span class="w-full truncate text-gray-950 font-semibold text-sm md:text-base">$&nbsp;{{ formatAmount(team?.net_balance || 0) }}</span>
                                 </div>
                                 <div class="w-full flex flex-col items-start gap-1">
-                                    <span class="w-full truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.team_account_equity') }}</span>
+                                    <span class="w-full truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.dashboard_team_account_equity') }}</span>
                                     <span class="w-full truncate text-gray-950 font-semibold text-sm md:text-base">$&nbsp;{{ formatAmount(team?.account_equity || 0) }}</span>
                                 </div>
                                 <div class="w-full flex flex-col items-start gap-1">
-                                    <span class="w-full truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.team_adjustment_in') }}</span>
+                                    <span class="w-full truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.dashboard_team_adjustment_in') }}</span>
                                     <span class="w-full truncate text-gray-950 font-semibold text-sm md:text-base">$&nbsp;{{ formatAmount(team?.adjustment_in || 0) }}</span>
                                 </div>
                                 <div class="w-full flex flex-col items-start gap-1">
-                                    <span class="w-full truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.team_adjustment_out') }}</span>
+                                    <span class="w-full truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.dashboard_team_adjustment_out') }}</span>
                                     <span class="w-full truncate text-gray-950 font-semibold text-sm md:text-base">$&nbsp;{{ formatAmount(team?.adjustment_out || 0) }}</span>
                                 </div>
                             </div>
