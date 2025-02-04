@@ -319,6 +319,8 @@ return [
     'team_withdrawal' => "Withdrawal",
     'team_fee_charges' => "Fee Charges",
     'team_net_balance' => "Net Balance",
+    'team_adjustment_in' => "Adjustment In",
+    'team_adjustment_out' => "Adjustment Out",
     'team_account_balance' => "Account Balance",
     'team_account_equity' => "Account Equity",
     'no_sales_team_title' => "No Sales Team Yet",

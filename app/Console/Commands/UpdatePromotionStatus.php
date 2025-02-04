@@ -31,7 +31,7 @@ class UpdatePromotionStatus extends Command
         ini_set('max_execution_time', 0);  // No timeout for PHP script execution
 
         // Get all account types where the category is 'promotion'
-        $accountTypes = AccountType::where('category', 'promotion')->get();
+        $accountTypes = AccountType::where('category', 'promotion')->where('status', 'active')->get();
 
         if ($accountTypes->isEmpty()) {
             // $this->info('No account types found with category "promotion".');

@@ -319,6 +319,8 @@ return [
     'team_withdrawal' => "總提款額",
     'team_fee_charges' => "維護費用",
     'team_net_balance' => "總淨值",
+    'team_adjustment_in' => "總入金金額調整",
+    'team_adjustment_out' => "總出金金額調整",
     'team_account_balance' => "總帳戶餘額",
     'team_account_equity' => "總帳戶淨值",
     'no_sales_team_title' => "尚無銷售團隊",

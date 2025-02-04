@@ -542,7 +542,7 @@ watch(() => usePage().props, (newProps, oldProps) => {
                             </div>
                         </div>
                         <div class="w-full flex flex-col items-center p-3 gap-2 md:p-4 md:gap-3">
-                            <div class="w-full grid grid-cols-2 gap-2 xl:grid-cols-3">
+                            <div class="w-full grid grid-cols-3 gap-2">
                                 <div class="w-full flex flex-col items-start gap-1">
                                     <span class="w-full truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.team_deposit') }}</span>
                                     <span class="w-full truncate text-gray-950 font-semibold text-sm md:text-base animate-pulse">
@@ -557,6 +557,24 @@ watch(() => usePage().props, (newProps, oldProps) => {
                                 </div>
                                 <div class="w-full flex flex-col items-start gap-1">
                                     <span class="w-full truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.team_net_balance') }}</span>
+                                    <span class="w-full truncate text-gray-950 font-semibold text-sm md:text-base animate-pulse">
+                                        <div class="h-3 bg-gray-200 rounded-full w-30"></div>
+                                    </span>
+                                </div>
+                                <div class="w-full flex flex-col items-start gap-1">
+                                    <span class="w-full truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.team_account_equity') }}</span>
+                                    <span class="w-full truncate text-gray-950 font-semibold text-sm md:text-base animate-pulse">
+                                        <div class="h-3 bg-gray-200 rounded-full w-30"></div>
+                                    </span>
+                                </div>
+                                <div class="w-full flex flex-col items-start gap-1">
+                                    <span class="w-full truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.team_adjustment_in') }}</span>
+                                    <span class="w-full truncate text-gray-950 font-semibold text-sm md:text-base animate-pulse">
+                                        <div class="h-3 bg-gray-200 rounded-full w-30"></div>
+                                    </span>
+                                </div>
+                                <div class="w-full flex flex-col items-start gap-1">
+                                    <span class="w-full truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.team_adjustment_out') }}</span>
                                     <span class="w-full truncate text-gray-950 font-semibold text-sm md:text-base animate-pulse">
                                         <div class="h-3 bg-gray-200 rounded-full w-30"></div>
                                     </span>
@@ -582,18 +600,30 @@ watch(() => usePage().props, (newProps, oldProps) => {
                             </div>
                         </div>
                         <div class="w-full flex flex-col items-center p-3 gap-2 md:p-4 md:gap-3">
-                            <div class="w-full grid grid-cols-2 gap-2 xl:grid-cols-3">
+                            <div class="w-full grid grid-cols-3 gap-2 ">
                                 <div class="w-full flex flex-col items-start gap-1">
-                                    <span class="truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.team_deposit') }}</span>
-                                    <span class="truncate text-gray-950 font-semibold text-sm md:text-base">$&nbsp;{{ formatAmount(team?.deposit || 0) }}</span>
+                                    <span class="w-full truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.team_deposit') }}</span>
+                                    <span class="w-full truncate text-gray-950 font-semibold text-sm md:text-base">$&nbsp;{{ formatAmount(team?.deposit || 0) }}</span>
                                 </div>
                                 <div class="w-full flex flex-col items-start gap-1">
-                                    <span class="truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.team_withdrawal') }}</span>
-                                    <span class="truncate text-gray-950 font-semibold text-sm md:text-base">$&nbsp;{{ formatAmount(team?.withdrawal || 0) }}</span>
+                                    <span class="w-full truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.team_withdrawal') }}</span>
+                                    <span class="w-full truncate text-gray-950 font-semibold text-sm md:text-base">$&nbsp;{{ formatAmount(team?.withdrawal || 0) }}</span>
                                 </div>
                                 <div class="w-full flex flex-col items-start gap-1">
-                                    <span class="truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.team_net_balance') }}</span>
-                                    <span class="truncate text-gray-950 font-semibold text-sm md:text-base">$&nbsp;{{ formatAmount(team?.net_balance || 0) }}</span>
+                                    <span class="w-full truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.team_net_balance') }}</span>
+                                    <span class="w-full truncate text-gray-950 font-semibold text-sm md:text-base">$&nbsp;{{ formatAmount(team?.net_balance || 0) }}</span>
+                                </div>
+                                <div class="w-full flex flex-col items-start gap-1">
+                                    <span class="w-full truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.team_account_equity') }}</span>
+                                    <span class="w-full truncate text-gray-950 font-semibold text-sm md:text-base">$&nbsp;{{ formatAmount(team?.account_equity || 0) }}</span>
+                                </div>
+                                <div class="w-full flex flex-col items-start gap-1">
+                                    <span class="w-full truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.team_adjustment_in') }}</span>
+                                    <span class="w-full truncate text-gray-950 font-semibold text-sm md:text-base">$&nbsp;{{ formatAmount(team?.adjustment_in || 0) }}</span>
+                                </div>
+                                <div class="w-full flex flex-col items-start gap-1">
+                                    <span class="w-full truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.team_adjustment_out') }}</span>
+                                    <span class="w-full truncate text-gray-950 font-semibold text-sm md:text-base">$&nbsp;{{ formatAmount(team?.adjustment_out || 0) }}</span>
                                 </div>
                             </div>
                         </div>

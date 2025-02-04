@@ -226,7 +226,7 @@ class DashboardController extends Controller
             $teamUserIds = TeamHasUser::where('team_id', $team->id)
                 ->pluck('user_id')
                 ->toArray();
-
+    
             // Calculate total deposit for the team (filtered by month and year)
             $total_deposit = Transaction::whereIn('user_id', $teamUserIds)
                 ->whereYear('approved_at', $year)
@@ -234,7 +234,7 @@ class DashboardController extends Controller
                 ->whereIn('transaction_type', ['deposit', 'balance_in', 'rebate_in'])
                 ->where('status', 'successful')
                 ->sum('transaction_amount');
-
+    
             // Calculate total withdrawal for the team (filtered by month and year)
             $total_withdrawal = Transaction::whereIn('user_id', $teamUserIds)
                 ->whereYear('approved_at', $year)
@@ -242,11 +242,61 @@ class DashboardController extends Controller
                 ->whereIn('transaction_type', ['withdrawal', 'balance_out', 'rebate_out'])
                 ->where('status', 'successful')
                 ->sum('transaction_amount');
-
+    
+            // Calculate total adjustment in for the team (filtered by month and year)
+            $total_adjustment_in = Transaction::whereIn('user_id', $teamUserIds)
+                ->whereYear('approved_at', $year)
+                ->whereMonth('approved_at', $month)
+                ->whereIn('transaction_type', ['balance_in', 'rebate_in'])
+                ->where('status', 'successful')
+                ->sum('transaction_amount');
+        
+            // Calculate total adjustment out for the team (filtered by month and year)
+            $total_adjustment_out = Transaction::whereIn('user_id', $teamUserIds)
+                ->whereYear('approved_at', $year)
+                ->whereMonth('approved_at', $month)
+                ->whereIn('transaction_type', ['balance_out', 'rebate_out'])
+                ->where('status', 'successful')
+                ->sum('transaction_amount');
+    
             // Calculate the net balance for the team
             $transaction_fee_charges = $team->fee_charges > 0 ? $total_deposit / $team->fee_charges : 0;
             $net_balance = $total_deposit - $transaction_fee_charges - $total_withdrawal;
-
+    
+            // Calculate account balance and equity
+            $teamIds = AccountType::whereNotNull('account_group_id')
+                ->pluck('account_group_id')
+                ->toArray();
+    
+            $teamBalance = 0;
+            $teamEquity = 0;
+    
+            foreach ($teamIds as $teamId) {
+                $startDateFormatted = Carbon::createFromDate($year, $month, 1)->startOfMonth()->format('Y-m-d\TH:i:s.v');
+                $endDateFormatted = Carbon::createFromDate($year, $month, 1)->endOfMonth()->format('Y-m-d\TH:i:s.v');
+                    
+                $response = (new CTraderService)->getMultipleTraders($startDateFormatted, $endDateFormatted, $teamId);
+    
+                $accountType = AccountType::where('account_group_id', $teamId)->first();
+    
+                $meta_logins = TradingAccount::where('account_type_id', $accountType->id)
+                    ->whereIn('user_id', $teamUserIds)
+                    ->pluck('meta_login')
+                    ->toArray();
+    
+                if (isset($response['trader']) && is_array($response['trader'])) {
+                    foreach ($response['trader'] as $trader) {
+                        if (in_array($trader['login'], $meta_logins)) {
+                            $moneyDigits = isset($trader['moneyDigits']) ? (int)$trader['moneyDigits'] : 0;
+                            $divisor = $moneyDigits > 0 ? pow(10, $moneyDigits) : 1;
+    
+                            $teamBalance += $trader['balance'] / $divisor;
+                            $teamEquity += $trader['equity'] / $divisor;
+                        }
+                    }
+                }
+            }
+    
             // Return the team data
             return [
                 'id' => $team->id,
@@ -261,12 +311,16 @@ class DashboardController extends Controller
                 'withdrawal' => $total_withdrawal,
                 'transaction_fee_charges' => $transaction_fee_charges,
                 'net_balance' => $net_balance,
+                'adjustment_in' => $total_adjustment_in,
+                'adjustment_out' => $total_adjustment_out,
+                'account_balance' => $teamBalance,
+                'account_equity' => $teamEquity,
             ];
         });
-
+    
         return response()->json([
             'teams' => $teams,
         ]);
     }
-
+    
 }
