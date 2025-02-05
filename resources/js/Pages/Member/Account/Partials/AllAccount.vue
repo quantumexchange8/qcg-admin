@@ -246,14 +246,14 @@ watch(filters, (newFilters) => {
             <Column field="balance" :header="`${$t('public.balance')}&nbsp;($)`" sortable class="hidden md:table-cell w-[12%] max-w-0" headerClass="truncate">
                 <template #body="slotProps">
                     <div class="text-gray-950 text-sm truncate">
-                        {{ formatAmount(slotProps.data.balance || 0) }}
+                        {{ formatAmount((slotProps.data.balance || 0) - (slotProps.data?.credit || 0)) }}
                     </div>
                 </template>
             </Column>
             <Column field="equity" :header="`${$t('public.equity')}&nbsp;($)`" sortable class="hidden md:table-cell w-[12%] max-w-0" headerClass="truncate">
                 <template #body="slotProps">
                     <div class="text-gray-950 text-sm truncate">
-                        {{ formatAmount((slotProps.data?.equity || 0) - (slotProps.data?.credit || 0)) }}
+                        {{ formatAmount(slotProps.data?.equity || 0) }}
                     </div>
                 </template>
             </Column>
@@ -290,11 +290,11 @@ watch(filters, (newFilters) => {
                 </div>
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.balance') }}</span>
-                    <span class="w-full truncate text-gray-950 text-sm font-medium">$&nbsp;{{ formatAmount(data?.balance || 0) }}</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium">$&nbsp;{{ formatAmount((data?.balance || 0) - (data?.credit || 0)) }}</span>
                 </div>
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.equity') }}</span>
-                    <span class="w-full truncate text-gray-950 text-sm font-medium">$&nbsp;{{ formatAmount((data?.equity || 0) - (data?.credit || 0)) }}</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium">$&nbsp;{{ formatAmount(data?.equity || 0) }}</span>
                 </div>
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.credit') }}</span>

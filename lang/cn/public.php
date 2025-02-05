@@ -614,4 +614,5 @@ return [
     'no_record_message' => '未找到任何记录',
     'loading_caption' => "正在加载数据, 请稍候.",
     'today' => "今天",
+    'promotion_account' => '促销账户',
 ];

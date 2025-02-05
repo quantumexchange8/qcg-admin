@@ -613,4 +613,5 @@ return [
     'no_record_message' => "There are no records found.",
     'loading_caption' => "Loading data, please wait.",
     'today' => "Today",
+    'promotion_account' => 'Promotion Account',
 ];

@@ -613,4 +613,5 @@ return [
     'no_record_message' => '未找到任何記錄.',
     'loading_caption' => "正在加載數據, 請稍候.",
     'today' => "今天",
+    'promotion_account' => '促銷賬戶',
 ];
