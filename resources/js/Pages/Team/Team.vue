@@ -27,10 +27,10 @@ defineProps({
 const { formatAmount, formatDate } = transactionFormat();
 
 const counterDuration = ref(10);
-const totalDeposit = ref(99999);
-const totalWithdrawal = ref(99999);
-const totalFeeCharges = ref(99999);
-const totalNetBalance = ref(99999);
+const totalDeposit = ref(0);
+const totalWithdrawal = ref(0);
+const totalFeeCharges = ref(0);
+const totalNetBalance = ref(0);
 const teams = ref([]);
 const total = ref();
 const isLoading = ref(false);
@@ -203,9 +203,11 @@ const refreshTeam = async (teamId) => {
                             }"
                         />
                     </div>
-                    <span class="self-stretch text-gray-950 text-lg font-semibold">
-                        $&nbsp;
-                        <vue3-autocounter ref="counter" :startAmount="0" :endAmount="Number(item.total)" :duration="counterDuration" separator="," decimalSeparator="." :decimals="2" :autoinit="true" />
+                    <span v-if="(item.total || item.total === 0) && !isLoading" class="self-stretch text-gray-950 text-lg font-semibold">
+                        $&nbsp;{{ formatAmount(item.total) }}
+                    </span>
+                    <span v-else class="self-stretch truncate text-gray-950 text-lg font-semibold animate-pulse">
+                        <div class="h-2.5 bg-gray-200 rounded-full w-1/3"></div>
                     </span>
                 </div>
             </div>
