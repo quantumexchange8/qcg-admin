@@ -16,8 +16,8 @@ const props = defineProps({
     user_id: Number
 })
 
-const totalDeposit = ref(99999);
-const totalWithdrawal = ref(99999);
+const totalDeposit = ref(0);
+const totalWithdrawal = ref(0);
 const transactionHistory = ref([]);
 const rebateWallet = ref(null);
 const isLoading = ref(false);
@@ -80,8 +80,11 @@ watchEffect(() => {
                         }"
                      />
                     <div class="self-stretch text-center text-gray-700 text-xs font-medium md:text-sm flex-wrap break-all w-full">{{ overview.label }}</div>
-                    <div class="self-stretch text-center text-gray-950 font-semibold md:text-xl flex-wrap break-all w-full">$&nbsp;
-                        <Vue3autocounter ref="counter" :startAmount="0" :endAmount="Number(overview.value)" :duration="counterDuration" separator="," decimalSeparator="." :decimals="2" :autoinit="true" />
+                    <div v-if="(overview.value || overview.value === 0) && !isLoading" class="self-stretch text-center text-gray-950 font-semibold md:text-xl flex-wrap break-all w-full">
+                        $&nbsp;{{ formatAmount(overview.value) }}
+                    </div>
+                    <div v-else class="self-stretch text-center text-gray-950 font-semibold md:text-xl flex justify-center items-center break-all w-full truncate animate-pulse">
+                        <div class="h-2.5 bg-gray-200 rounded-full w-1/2"></div>
                     </div>
                 </div>
             </div>
