@@ -170,12 +170,7 @@ class UpdatePromotionStatus extends Command
                             $tradingAccount->trading_user->save();
                         }
 
-                        // Check if the bonus is not claimed and mark it as expired
-                        if ($tradingAccount->promotion_type === 'trade_volume' && $tradingAccount->is_claimed === null) {
-                            $tradingAccount->is_claimed = 'expired';
-                            // Log::info("Account {$tradingAccount->meta_login} bonus marked as expired.");
-                        }
-    
+                        $tradingAccount->is_claimed = 'expired';
                         $tradingAccount->save();  // Save the updated TradingAccount
     
                         // Create a transaction for the system withdrawal of the credit
