@@ -571,11 +571,11 @@ const submitForm = () => {
                                                             class="w-full flex flex-col justify-center gap-1"
                                                         >
                                                             <AccordionHeader class="w-full flex flex-row-reverse justify-end items-center gap-2">
-                                                                <span class="text-gray-950 text-sm">{{ group.name }}</span>
+                                                                <span class="truncate text-gray-950 text-sm">{{ group.name }}</span>
                                                                 <Checkbox
                                                                     v-model="selectedGroups"
                                                                     :value="group.name"
-                                                                    class="w-4 h-4"
+                                                                    class="w-4 h-4 grow-0 shrink-0"
                                                                     @click.stop
                                                                 />
                                                             </AccordionHeader>
@@ -591,7 +591,7 @@ const submitForm = () => {
                                                                         :value="member.value"
                                                                         class="w-4 h-4 grow-0 shrink-0"
                                                                     />
-                                                                    <span class="text-gray-950 text-sm">{{ member.label }}</span>
+                                                                    <span class="w-full truncate text-gray-950 text-sm">{{ member.label }}</span>
                                                                 </div>
                                                             </AccordionContent>
                                                         </AccordionPanel>
