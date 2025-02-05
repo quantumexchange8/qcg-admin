@@ -200,6 +200,7 @@ class AccountTypeController extends Controller
         $visibleTo = $request->input('visible_to');
         $promotionPeriodType = $request->input('promotion_period_type');
         $promotionType = $request->input('promotion_type');
+        $bonusAmountType = $request->input('bonus_amount_type');
         $creditWithdrawPolicy = $request->input('credit_withdraw_policy');
     
         // Validate the request data using Validator facade
@@ -219,11 +220,11 @@ class AccountTypeController extends Controller
             'promotion_period_type' => ['required'],
             'promotion_period' => ['nullable', $promotionPeriodType === 'no_expiry_date' ? 'nullable' : 'required'],
             'promotion_type' => ['required'],
-            'target_amount' => ['required'],
+            'min_threshold' => ['required'],
             'bonus_type' => ['required'],
             'bonus_amount_type' => ['required'],
             'bonus_amount' => ['required'],
-            'maximum_bonus_cap' => ['nullable', $promotionType === 'deposit' ? 'required' : 'nullable'],
+            'target_amount' => [$promotionType === 'deposit' && $bonusAmountType !== 'specified_amount' ? 'required' : 'nullable'],
             'applicable_deposit' => ['nullable', $promotionType === 'deposit' ? 'required' : 'nullable'],
             'credit_withdraw_policy' => ['required'],
             'credit_withdraw_date_period' => ['nullable', $creditWithdrawPolicy === 'no_withdraw' ? 'nullable' : 'required'],
@@ -241,11 +242,11 @@ class AccountTypeController extends Controller
             'promotion_period_type' => trans('public.promotion_period'),
             'promotion_period' => trans('public.date'),
             'promotion_type' => trans('public.promotion_type'),
-            'target_amount' => $promotionType === 'deposit' ? trans('public.minimum_deposit_amount') : trans('public.minimum_trade_lot_target'),
+            'min_threshold' => $promotionType === 'deposit' ? trans('public.minimum_deposit_amount') : trans('public.minimum_trade_lot_target'),
             'bonus_type' => trans('public.bonus_type'),
             'bonus_amount_type' => trans('public.bonus_amount_type'),
             'bonus_amount' => trans('public.amount'),
-            'maximum_bonus_cap' => trans('public.maximum_bonus_cap'),
+            'target_amount' => trans('public.maximum_bonus_cap'),
             'applicable_deposit' => trans('public.applicable_deposit'),
             'credit_withdraw_policy' => trans('public.credit_withdraw_policy'),
             'credit_withdraw_date_period' => trans('public.date'),
@@ -269,11 +270,11 @@ class AccountTypeController extends Controller
         $account_type->promotion_period_type = $request->promotion_period_type;
         $account_type->promotion_period = $request->promotion_period;
         $account_type->promotion_type = $request->promotion_type;
-        $account_type->target_amount = $request->target_amount;
+        $account_type->min_threshold = $request->min_threshold;
         $account_type->bonus_type = $request->bonus_type;
         $account_type->bonus_amount_type = $request->bonus_amount_type;
         $account_type->bonus_amount = $request->bonus_amount;
-        $account_type->maximum_bonus_cap = $request->maximum_bonus_cap;
+        $account_type->target_amount = $request->target_amount;
         $account_type->applicable_deposit = $request->applicable_deposit;
         $account_type->credit_withdraw_policy = $request->credit_withdraw_policy;
         $account_type->credit_withdraw_date_period = $request->credit_withdraw_date_period;

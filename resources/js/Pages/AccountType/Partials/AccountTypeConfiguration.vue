@@ -200,11 +200,11 @@ const form = useForm({
     promotion_period_type: props.accountType.promotion_period_type || promotionPeriods.value[0] || null,
     promotion_period: props.accountType.promotion_period_type === 'from_account_opening' ? Number(props.accountType.promotion_period) : props.accountType.promotion_period || null,
     promotion_type: props.accountType.promotion_type || PromotionTypes.value[0].value,
-    target_amount: Number(props.accountType.target_amount) || null,
+    min_threshold: Number(props.accountType.min_threshold) || null,
     bonus_type: props.accountType.bonus_type || BonusTypes.value[0] || null,
     bonus_amount_type: props.accountType.bonus_amount_type || BonusAmountTypes.value[0] || null,
     bonus_amount: Number(props.accountType.bonus_amount) || null,
-    maximum_bonus_cap: Number(props.accountType.maximum_bonus_cap) || null,
+    target_amount: Number(props.accountType.target_amount) || null,
     applicable_deposit: props.accountType.applicable_deposit || applicableDepositTypes.value[0] || null,
     credit_withdraw_policy: props.accountType.credit_withdraw_policy || radioOptions.value[0]?.value || null,
     credit_withdraw_date_period: props.accountType.credit_withdraw_policy === 'withdraw_after_period'? Number(props.accountType.credit_withdraw_date_period) : props.accountType.credit_withdraw_date_period || null,
@@ -224,14 +224,14 @@ watch(() => form.promotion_period_type, (newPromotionPeriod) => {
 watch(promotionType, (newPromotionType) => {
   if (newPromotionType) {
     form.promotion_type = newPromotionType.value
-    form.target_amount = null;
+    form.min_threshold = null;
   }
 });
 
 watch(() => form.promotion_type, (newPromotionType) => {
   if (newPromotionType === 'trade_volume') {
     form.bonus_amount_type = BonusAmountTypes.value[0];
-    form.maximum_bonus_cap = null;
+    form.target_amount = null;
     form.applicable_deposit = null;
   } else {
     form.applicable_deposit = applicableDepositTypes.value[0];
@@ -242,6 +242,10 @@ watch(() => form.bonus_amount_type, (newType) => {
     if (newType) {
         form.bonus_amount_type = newType
         form.bonus_amount = null;
+
+        if (newType === "specified_amount") {
+            form.target_amount = null;
+        }
     }
 });
 
@@ -775,13 +779,13 @@ const submitForm = () => {
                                     </div>
                                     <div class="w-full h-full col-span-2 md:col-span-1 flex flex-col items-start gap-2">
                                         <InputLabel
-                                            for="target_amount"
+                                            for="min_threshold"
                                             :value="$t(form.promotion_type === 'deposit' ? 'public.minimum_deposit_amount' : 'public.minimum_trade_lot_target')"
-                                            :invalid="!!form.errors.target_amount"
+                                            :invalid="!!form.errors.min_threshold"
                                         />
                                             
                                         <InputNumber
-                                            v-model="form.target_amount"
+                                            v-model="form.min_threshold"
                                             :minFractionDigits="2"
                                             fluid
                                             size="sm"
@@ -792,10 +796,10 @@ const submitForm = () => {
                                             class="w-full"
                                             inputClass="py-3 px-4"
                                             autofocus
-                                            :invalid="!!form.errors.target_amount"
+                                            :invalid="!!form.errors.min_threshold"
                                             :placeholder="form.promotion_type === 'deposit' ? '$ 0.00' : '0.00 Ł'"
                                         />
-                                        <InputError :message="form.errors.target_amount" />
+                                        <InputError :message="form.errors.min_threshold" />
                                     </div>
                                 </div>
                                 
@@ -859,11 +863,11 @@ const submitForm = () => {
                                 </div>
 
                                 <div v-if="form.promotion_type !== 'trade_volume'" class="w-full flex flex-col items-start gap-2">
-                                    <InputLabel for="maximum_bonus_cap" :invalid="!!form.errors.maximum_bonus_cap">
+                                    <InputLabel for="target_amount" :invalid="!!form.errors.target_amount">
                                         {{ $t('public.maximum_bonus_cap') }}
                                     </InputLabel>
                                     <InputNumber
-                                        v-model="form.maximum_bonus_cap"
+                                        v-model="form.target_amount"
                                         :minFractionDigits="2"
                                         fluid
                                         size="sm"
@@ -873,11 +877,11 @@ const submitForm = () => {
                                         class="w-full"
                                         inputClass="py-3 px-4"
                                         autofocus
-                                        :invalid="!!form.errors.maximum_bonus_cap"
+                                        :invalid="!!form.errors.target_amount"
                                         :placeholder="'$ 0.00'"
-                                        :disabled="form.promotion_type === 'trade_volume'"
+                                        :disabled="form.promotion_type === 'trade_volume' || form.bonus_amount_type === 'specified_amount'"
                                     />
-                                    <InputError :message="form.errors.maximum_bonus_cap" />
+                                    <InputError :message="form.errors.target_amount" />
                                 </div>
 
                                 <div v-if="form.promotion_type !== 'trade_volume'" class="w-full flex flex-col items-start gap-2">
