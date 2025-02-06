@@ -30,11 +30,11 @@ const tabs = ref([
         component: h(AllAccount),
         type: 'all'
     },
-    // {
-    //     title: 'promotion',
-    //     component: h(PromotionAccount),
-    //     type: 'promotion'
-    // },
+    {
+        title: 'promotion',
+        component: h(PromotionAccount),
+        type: 'promotion'
+    },
     {
         title: 'deleted',
         component: h(DeletedAccount),
