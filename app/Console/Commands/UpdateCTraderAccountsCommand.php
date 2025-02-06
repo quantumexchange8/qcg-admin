@@ -26,7 +26,7 @@ class UpdateCTraderAccountsCommand extends Command
         $this->info('Starting to refresh cTrader accounts...');
     
         // Fetch all active accounts without chunking
-        $trading_accounts = TradingUser::where('acc_status', 'active')->get();
+        $trading_accounts = TradingUser::get();
     
         foreach ($trading_accounts as $account) {
             try {

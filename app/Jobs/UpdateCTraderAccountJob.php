@@ -29,7 +29,7 @@ class UpdateCTraderAccountJob implements ShouldQueue
     public function handle(): void
     {
         // Process all active accounts at once (no chunking)
-        $trading_accounts = TradingUser::where('acc_status', 'active')->get();
+        $trading_accounts = TradingUser::get();
 
         foreach ($trading_accounts as $account) {
             try {
