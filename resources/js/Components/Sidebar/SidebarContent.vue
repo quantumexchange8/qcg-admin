@@ -88,13 +88,13 @@ watchEffect(() => {
                 v-if="hasRole('super-admin') || hasPermission('access_withdrawal_request')"
             />
 
-            <SidebarCollapsibleItem
+            <!-- <SidebarCollapsibleItem
                 :title="$t('public.bonus')"
                 :href="route('pending.bonus')"
                 :active="route().current('pending.bonus')"
                 :pendingCounts="pendingBonus"
                 v-if="hasRole('super-admin') || hasPermission('access_bonus_request')"
-            />
+            /> -->
 
             <SidebarCollapsibleItem
                 :title="$t('public.incentive')"

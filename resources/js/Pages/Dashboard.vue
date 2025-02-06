@@ -310,7 +310,7 @@ watch(() => usePage().props, (newProps, oldProps) => {
                         @click="navigateWithQueryParams(item.route, item.type)"
                     >
                         <div class="w-full flex items-center px-2 pt-2 pb-1 gap-2 self-stretch md:px-6 md:pt-4 md:pb-2">
-                            <div v-if="item.pendingCount" class="flex items-center justify-center">
+                            <div v-if="item.pendingCount || item.pendingCount === 0" class="flex items-center justify-center">
                                 <Badge 
                                     variant="error"
                                     class="w-6 h-6 md:w-9 md:h-9 self-stretch truncate text-white text-center text-xs font-medium md:text-base"
