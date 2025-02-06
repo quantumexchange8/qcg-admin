@@ -464,7 +464,7 @@ class TradingAccountController extends Controller
                 $claimable_status = false;
                 $bonus_amount = 0;
                 $achievedAmount = $trading_account->achieved_amount ?? 0;
-                
+                Log::info('Promotion detected');
                 if (!($trading_account->is_claimed === 'expired' || $trading_account->is_claimed === 'completed' || $achievedAmount >= $trading_account->target_amount) 
                     && $trading_account->promotion_type == 'deposit' && ($trading_account->applicable_deposit !== 'first_deposit_only' || $achievedAmount == 0)) {
                     if ($trading_account->bonus_amount_type === 'percentage_of_deposit') {
@@ -492,6 +492,7 @@ class TradingAccountController extends Controller
                         }
                         $trading_account->achieved_amount = $achievedAmount + $bonus_amount;
                     }
+                    Log::info('Updated Account : ' . $trading_account->meta_login);
                     $trading_account->save();
                 }
             }
