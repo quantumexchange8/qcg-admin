@@ -464,8 +464,11 @@ class TradingAccountController extends Controller
                 $claimable_status = false;
                 $bonus_amount = 0;
                 $achievedAmount = $trading_account->achieved_amount ?? 0;
+                $targetAmount = ($trading_account->bonus_amount_type === 'specified_amount') 
+                                ? $trading_account->min_threshold 
+                                : $trading_account->target_amount;
                 Log::info('Promotion detected');
-                if (!($trading_account->is_claimed === 'expired' || $trading_account->is_claimed === 'completed' || $achievedAmount >= $trading_account->target_amount) 
+                if (!($trading_account->is_claimed === 'expired' || $trading_account->is_claimed === 'completed' || ($targetAmount !== null && $achievedAmount >= $targetAmount)) 
                     && $trading_account->promotion_type == 'deposit' && ($trading_account->applicable_deposit !== 'first_deposit_only' || $achievedAmount == 0)) {
                     if ($trading_account->bonus_amount_type === 'percentage_of_deposit') {
                         $bonus_amount = ($transaction->amount * $account->bonus_amount / 100);
