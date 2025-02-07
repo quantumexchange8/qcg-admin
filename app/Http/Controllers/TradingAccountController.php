@@ -471,7 +471,7 @@ class TradingAccountController extends Controller
                 if (!($trading_account->is_claimed === 'expired' || $trading_account->is_claimed === 'completed' || ($targetAmount !== null && $achievedAmount >= $targetAmount)) 
                     && $trading_account->promotion_type == 'deposit' && ($trading_account->applicable_deposit !== 'first_deposit_only' || $achievedAmount == 0)) {
                     if ($trading_account->bonus_amount_type === 'percentage_of_deposit') {
-                        $bonus_amount = ($transaction->amount * $account->bonus_amount / 100);
+                        $bonus_amount = ($transaction->amount * $trading_account->bonus_amount / 100);
                             
                         if ($bonus_amount >= $trading_account->min_threshold) {
                             // achievedAmount = 600 target_amount = 1000 bonus_amount = 600 , remaining should be 400
