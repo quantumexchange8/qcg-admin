@@ -473,7 +473,7 @@ class TradingAccountController extends Controller
                     if ($trading_account->bonus_amount_type === 'percentage_of_deposit') {
                         $bonus_amount = ($transaction->amount * $trading_account->bonus_amount / 100);
                             
-                        if ($bonus_amount >= $trading_account->min_threshold) {
+                        if ($transaction->amount >= $trading_account->min_threshold) {
                             // achievedAmount = 600 target_amount = 1000 bonus_amount = 600 , remaining should be 400
                             $remainingAmount = $trading_account->target_amount - $achievedAmount;
                             if ($bonus_amount > $remainingAmount) {

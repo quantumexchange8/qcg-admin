@@ -93,7 +93,7 @@ class PendingController extends Controller
             'user.teamHasUser:id,team_id,user_id',
             'user.teamHasUser.team:id,name,color'
         ])
-            ->where('transaction_type', 'withdrawal')
+            ->whereIn('transaction_type', ['cash_bonus', 'credit_bonus'])
             ->where('status', 'processing')
             ->where('category', 'bonus')
             ->latest()
@@ -116,7 +116,7 @@ class PendingController extends Controller
                 
                 // Fetch the last deposit before the current transaction date
                 $lastDeposit = Transaction::where('user_id', $transaction->user_id)
-                    ->where('transaction_type', 'deposit')
+                    ->whereIn('transaction_type', ['deposit', 'balance_in'])
                     ->where('status', 'successful')
                     ->where('created_at', '<', $transaction->created_at) // Before the current transaction date
                     ->orderBy('created_at', 'desc') // Order by latest
@@ -138,7 +138,7 @@ class PendingController extends Controller
                     'team_name' => $transaction->user->teamHasUser->team->name ?? null,
                     'team_color' => $transaction->user->teamHasUser->team->color ?? null,
                     'deposit_date' => $lastDeposit->approved_at ?? null,
-                    'deposit_amount' => $$lastDeposit ? $lastDeposit->transaction_amount : 0,
+                    'deposit_amount' => $lastDeposit ? $lastDeposit->transaction_amount : 0,
                 ];
             });
     
