@@ -302,8 +302,21 @@ const copyToClipboard = (addressType, text) => {
 
                             <template #body="slotProps">
                                 <div class="flex flex-col items-start max-w-full">
-                                    <div class="font-medium truncate max-w-full">
-                                        {{ slotProps.data.user_name }}
+                                    <div class="flex max-w-full gap-2">
+                                        <div class="font-semibold truncate max-w-full">
+                                            {{ slotProps.data.user_name }}
+                                        </div>
+                                        <div
+                                            v-if="slotProps.data.team_id"
+                                            class="flex justify-center items-center gap-2 rounded-sm py-1 px-2 md:hidden"
+                                            :style="{ backgroundColor: formatRgbaColor(slotProps.data.team_color, 1) }"
+                                        >
+                                            <div
+                                                class="text-white text-xs text-center"
+                                            >
+                                                {{ slotProps.data.team_name }}
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="text-gray-500 text-xs truncate max-w-full">
                                         {{ slotProps.data.user_email }}
