@@ -66,6 +66,7 @@ class RoleAndPermissionMiddleware
             'access_deposit'            => 'transaction.deposit',
             'access_withdrawal'         => 'transaction.withdrawal',
             'access_transfer'           => 'transaction.transfer',
+            'access_bonus'              => 'transaction.bonus',
             'access_rebate_payout'      => 'transaction.rebate',
             'access_incentive_payout'   => 'transaction.incentive',
             'access_account_type'       => 'accountType',

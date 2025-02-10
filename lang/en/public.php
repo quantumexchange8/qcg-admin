@@ -614,4 +614,12 @@ return [
     'loading_caption' => "Loading data, please wait.",
     'today' => "Today",
     'promotion_account' => 'Promotion Account',
+    'access_bonus' => 'Access Bonus',
+    'all_credit_bonus' => 'All Credit Bonus',
+    'access_bonus_request' => 'Access Bonus Request',
+    'sidebar_bonus' => 'Bonus',
+    'empty_bonus_record_title' => "No Bonus Records Found",
+    'empty_bonus_record_message' => "There are no bonus transactions to display at this time. Please check back later for updates.",
+    'total_credit_bonus' => 'Total Credit Bonus',
+    'claim_amount' => 'Claim Amount',
 ];

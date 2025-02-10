@@ -32,6 +32,13 @@ class TransactionController extends Controller
         return Inertia::render('Transaction/Transfer');
     }
 
+    public function bonus()
+    {
+        return Inertia::render('Transaction/Bonus', [
+            'teams' => (new GeneralController())->getTeams(true),
+        ]);
+    }
+
     public function rebate()
     {
         return Inertia::render('Transaction/RebatePayout');
@@ -115,7 +122,7 @@ class TransactionController extends Controller
         }
 
         // Apply ordering based on the transaction type
-        if ($type === 'withdrawal') {
+        if ($type === 'withdrawal' || $type === 'credit_bonus') {
             $query->orderByDesc('approved_at');
         } else {
             $query->latest();
@@ -160,6 +167,29 @@ class TransactionController extends Controller
                 $result['from_wallet_name'] = $transaction->from_wallet ? ($transaction->from_wallet->type === 'rebate_wallet' ? 'rebate' : 'incentive') : null;
                 $result['to_wallet_id'] = $transaction->to_wallet ? $transaction->to_wallet->id : null;
                 $result['to_wallet_name'] = $transaction->to_wallet ? ($transaction->to_wallet->type === 'rebate_wallet' ? 'rebate' : 'incentive') : null;
+            } elseif ($type === 'credit_bonus') {
+                $result['team_id'] = $transaction->user->teamHasUser->team_id ?? null;
+                $result['team_name'] = $transaction->user->teamHasUser->team->name ?? null;
+                $result['team_color'] = $transaction->user->teamHasUser->team->color ?? null;
+                $result['to_meta_login'] = $transaction->to_meta_login;
+
+                $previousCreditBonus = Transaction::where('to_meta_login', $transaction->to_meta_login)
+                    ->where('transaction_type', 'credit_bonus')
+                    ->where('created_at', '<', $transaction->created_at)
+                    ->latest('created_at')
+                    ->first();
+
+                // Define the query
+                $depositQuery = Transaction::where('to_meta_login', $transaction->to_meta_login)
+                    ->whereIn('transaction_type', ['deposit', 'balance_in'])
+                    ->where('created_at', '<', $transaction->created_at);
+
+                // Modify query if previous credit_bonus exists
+                if ($previousCreditBonus) {
+                    $depositQuery->where('created_at', '>', $previousCreditBonus->created_at);
+                }
+
+                $result['deposit_amount'] = $depositQuery->sum('transaction_amount');
             }
 
             return $result;

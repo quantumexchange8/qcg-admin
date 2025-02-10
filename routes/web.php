@@ -219,6 +219,7 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
         Route::get('deposit', [TransactionController::class, 'deposit'])->name('transaction.deposit')->middleware('role_and_permission:admin,access_deposit');
         Route::get('withdrawal', [TransactionController::class, 'withdrawal'])->name('transaction.withdrawal')->middleware('role_and_permission:admin,access_withdrawal');
         Route::get('transfer', [TransactionController::class, 'transfer'])->name('transaction.transfer')->middleware('role_and_permission:admin,access_transfer');
+        Route::get('bonus', [TransactionController::class, 'bonus'])->name('transaction.bonus')->middleware('role_and_permission:admin,access_bonus');
         Route::get('rebate', [TransactionController::class, 'rebate'])->name('transaction.rebate')->middleware('role_and_permission:admin,access_rebate_payout');
         Route::get('incentive', [TransactionController::class, 'incentive'])->name('transaction.incentive')->middleware('role_and_permission:admin,access_incentive_payout');
         Route::get('adjustment', [TransactionController::class, 'adjustment'])->name('transaction.adjustment');

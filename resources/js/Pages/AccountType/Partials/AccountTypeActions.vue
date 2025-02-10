@@ -27,13 +27,13 @@ const props = defineProps({
 const visible = ref(false);
 
 const openDialog = () => {
-    if (props.accountType.category === 'promotion') {
+    // if (props.accountType.category === 'promotion') {
         router.get(route('accountType.accountTypeConfiguration'), {
             id: props.accountType.id,
         });
-    } else {
-        visible.value = true;
-    }
+    // } else {
+    //     visible.value = true;
+    // }
 }
 
 const closeDialog = () => {

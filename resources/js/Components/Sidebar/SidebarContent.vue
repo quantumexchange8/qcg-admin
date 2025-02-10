@@ -70,7 +70,7 @@ watchEffect(() => {
         <SidebarCollapsible
             :title="$t('public.request')"
             :active="route().current('pending.*')"
-            :pendingCounts="pendingWithdrawals + pendingIncentive"
+            :pendingCounts="pendingWithdrawals + pendingBonus + pendingIncentive"
             v-if="hasRole('super-admin') || hasPermission([
                 'access_withdrawal_request',
                 'access_incentive_request',
@@ -224,6 +224,13 @@ watchEffect(() => {
                 :href="route('transaction.transfer')"
                 :active="route().current('transaction.transfer')"
                 v-if="hasRole('super-admin') || hasPermission('access_transfer')"
+            />
+
+            <SidebarCollapsibleItem
+                :title="$t('public.sidebar_bonus')"
+                :href="route('transaction.bonus')"
+                :active="route().current('transaction.bonus')"
+                v-if="hasRole('super-admin') || hasPermission('access_bonus')"
             />
             
             <SidebarCollapsibleItem

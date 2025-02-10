@@ -52,6 +52,13 @@ const getResults = async () => {
 
 getResults();
 
+const form = useForm({
+    id: '',
+    action: '',
+    remarks: '',
+    type: 'bonus',
+})
+
 // Watch selectedRequests for changes
 watch(selectedRequests, (newValue) => {
 //   console.log('selectedRequests changed:', newValue);
@@ -126,6 +133,7 @@ const approvalAction = ref('');
 
 const closeDialog = () => {
   visible.value = false;
+  approvalAction.value = '';
 };
 
 const updateApprovalAction = (action) => {
@@ -270,8 +278,21 @@ const exportXLSX = () => {
 
                             <template #body="slotProps">
                                 <div class="flex flex-col items-start max-w-full">
-                                    <div class="font-medium truncate max-w-full">
-                                        {{ slotProps.data.user_name }}
+                                    <div class="flex max-w-full gap-2">
+                                        <div class="font-semibold truncate max-w-full">
+                                            {{ slotProps.data.user_name }}
+                                        </div>
+                                        <div
+                                            v-if="slotProps.data.team_id"
+                                            class="flex justify-center items-center gap-2 rounded-sm py-1 px-2 md:hidden"
+                                            :style="{ backgroundColor: formatRgbaColor(slotProps.data.team_color, 1) }"
+                                        >
+                                            <div
+                                                class="text-white text-xs text-center"
+                                            >
+                                                {{ slotProps.data.team_name }}
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="text-gray-500 text-xs truncate max-w-full">
                                         {{ slotProps.data.user_email }}
@@ -284,9 +305,9 @@ const exportXLSX = () => {
                                 {{ dayjs(slotProps.data.created_at).format('YYYY/MM/DD') }}
                             </template>
                         </Column>
-                        <Column field="from" :header="$t('public.from')" style="width: 10%" class="hidden md:table-cell">
+                        <Column field="from" :header="$t('public.account')" style="width: 10%" class="hidden md:table-cell">
                             <template #body="slotProps">
-                                {{ slotProps.data.from === 'rebate_wallet' ? ($t(`public.${slotProps.data.from}`) || '-') : (slotProps.data.from || '-') }}
+                                {{ slotProps.data.from }}
                             </template>
                         </Column>
                         <Column field="team" :header="$t('public.sales_team')" style="width: 15%" class="hidden md:table-cell">
@@ -313,18 +334,29 @@ const exportXLSX = () => {
                             <template #header>
                                 <span class="block truncate">{{ $t(`${$t('public.deposit')}&nbsp;($)`) }}</span>
                             </template>
-
-                            <template #body="slotProps">
+                            <!-- <template #body="slotProps">
                                 {{ formatAmount(slotProps.data?.deposit_amount || 0) }}
+                            </template> -->
+                            <template #body="slotProps">
+                                <div class="flex flex-col items-start max-w-full">
+                                    <div class="flex max-w-full gap-2">
+                                        <div class="font-semibold truncate max-w-full">
+                                            {{ formatAmount(slotProps.data?.deposit_amount || 0) }}
+                                        </div>
+                                    </div>
+                                    <div class="text-blue-500 text-xs truncate max-w-full md:hidden">
+                                        {{ formatAmount(slotProps.data?.transaction_amount || 0) }}
+                                    </div>
+                                </div>
                             </template>
                         </Column>
-                        <Column field="transaction_amount" sortable style="width: 15%; max-width: 0;" class="px-3">
+                        <Column field="transaction_amount" sortable style="width: 15%; max-width: 0;" class="px-3 hidden md:table-cell">
                             <template #header>
                                 <span class="block truncate">{{ $t(`${$t('public.credit')}&nbsp;($)`) }}</span>
                             </template>
 
                             <template #body="slotProps">
-                                {{ formatAmount(slotProps.data?.transaction_amount || 0) }}
+                                <span class="text-blue-500">{{ formatAmount(slotProps.data?.transaction_amount || 0) }}</span>
                             </template>
                         </Column>
                         <ColumnGroup type="footer">
