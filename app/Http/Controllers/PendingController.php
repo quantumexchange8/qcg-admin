@@ -230,7 +230,11 @@ class PendingController extends Controller
                         $tradingAccount = TradingAccount::where('meta_login', $transaction->from_meta_login)->first();
 
                         if ($tradingAccount) {
-                            $tradingAccount->increment('claimed_amount', $transaction->transaction_amount);
+                            $tradingAccount->decrement('claimable_amount', $transaction->transaction_amount);
+                            
+                            $tradeCredit = (new CTraderService)->createTrade($tradingAccount->meta_login, $transaction->amount, "Promotion Account Bonus", ChangeTraderBalanceType::DEPOSIT_NONWITHDRAWABLE_BONUS);
+                            $ticketCredit = $tradeCredit->getTicket();
+                            $transaction->update(['ticket' => $ticketCredit]);
                         }
                     }
                 }
