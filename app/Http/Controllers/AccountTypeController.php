@@ -203,8 +203,8 @@ class AccountTypeController extends Controller
         $bonusAmountType = $request->input('bonus_amount_type');
         $creditWithdrawPolicy = $request->input('credit_withdraw_policy');
     
-        // Validate the request data using Validator facade
-        $validator = Validator::make($request->all(), [
+
+        $rules = [
             'account_type_name' => ['required'],
             'category' => ['required'],
             'descriptions' => ['nullable', 'array'],
@@ -214,21 +214,28 @@ class AccountTypeController extends Controller
             'max_account' => ['required', 'numeric'],
             'color' => ['required'],
             'visible_to' => ['required'],
-            'members' => [$visibleTo === 'public' ? 'nullable' : 'min:1', 'array'],
-            'promotion_title' => ['required'],
-            'promotion_description' => ['required'],
-            'promotion_period_type' => ['required'],
-            'promotion_period' => ['nullable', $promotionPeriodType === 'no_expiry_date' ? 'nullable' : 'required'],
-            'promotion_type' => ['required'],
-            'min_threshold' => ['required'],
-            'bonus_type' => ['required'],
-            'bonus_amount_type' => ['required'],
-            'bonus_amount' => ['required'],
-            'target_amount' => [$promotionType === 'deposit' && $bonusAmountType !== 'specified_amount' ? 'required' : 'nullable'],
-            'applicable_deposit' => ['nullable', $promotionType === 'deposit' ? 'required' : 'nullable'],
-            'credit_withdraw_policy' => ['required'],
-            'credit_withdraw_date_period' => ['nullable', $creditWithdrawPolicy === 'no_withdraw' ? 'nullable' : 'required'],
-        ])->setAttributeNames([
+            'members' => ($visibleTo === 'public' ? 'nullable' : 'min:1') . '|array',
+        ];
+
+        if ($request->input('category') === 'promotion') {
+            $rules += [
+                'promotion_title' => ['required'],
+                'promotion_description' => ['required'],
+                'promotion_period_type' => ['required'],
+                'promotion_period' => ($promotionPeriodType === 'no_expiry_date' ? 'nullable' : 'required'),
+                'promotion_type' => ['required'],
+                'min_threshold' => ['required'],
+                'bonus_type' => ['required'],
+                'bonus_amount_type' => ['required'],
+                'bonus_amount' => ['required'],
+                'target_amount' => $promotionType === 'deposit' && $bonusAmountType !== 'specified_amount' ? 'required' : 'nullable',
+                'applicable_deposit' => $promotionType === 'deposit' ? 'required' : 'nullable',
+                'credit_withdraw_policy' => ['required'],
+                'credit_withdraw_date_period' => $creditWithdrawPolicy === 'no_withdraw' ? 'nullable' : 'required',
+            ];
+        }
+        
+        $validator = Validator::make($request->all(), $rules)->setAttributeNames([
             'account_type_name' => trans('public.account_type_name'),
             'category' => trans('public.category'),
             'descriptions.*' => trans('public.description'),

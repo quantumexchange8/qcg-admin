@@ -460,6 +460,51 @@ class TradingAccountController extends Controller
                 'status' => 'successful',
             ]);
 
+            if ($trading_account->promotion_type == 'deposit' && $changeType == ChangeTraderBalanceType::DEPOSIT) {
+                $claimable_status = false;
+                $bonus_amount = 0;
+                $achievedAmount = $trading_account->achieved_amount ?? 0;
+                $targetAmount = ($trading_account->bonus_amount_type === 'specified_amount') 
+                                ? $trading_account->min_threshold 
+                                : $trading_account->target_amount;
+                Log::info('Promotion detected');
+                if (!($trading_account->is_claimed === 'expired' || $trading_account->is_claimed === 'completed' || ($targetAmount !== null && $achievedAmount >= $targetAmount)) 
+                    && $trading_account->promotion_type == 'deposit' && ($trading_account->applicable_deposit !== 'first_deposit_only' || $achievedAmount == 0)) {
+                    if ($trading_account->bonus_amount_type === 'percentage_of_deposit') {
+                        $bonus_amount = ($transaction->amount * $trading_account->bonus_amount / 100);
+
+                        if ($transaction->amount >= $trading_account->min_threshold || 
+                        ($trading_account->achieved_amount * 100 /  $trading_account->bonus_amount) >= $trading_account->min_threshold) {
+                            // achievedAmount = 600 target_amount = 1000 bonus_amount = 600 , remaining should be 400
+                            $remainingAmount = $trading_account->target_amount - $achievedAmount;
+                            if ($bonus_amount > $remainingAmount) {
+                                $bonus_amount = $remainingAmount;
+                            }
+                            $trading_account->claimable_amount = $trading_account->claimable_amount + $bonus_amount;
+                            $trading_account->achieved_amount = $achievedAmount + $bonus_amount;
+                            if ($trading_account->is_claimed !== 'pending') {
+                                $trading_account->is_claimed = 'claimable';
+                            }
+                        }
+                    }
+                    else{
+                        $bonus_amount = $transaction->amount;
+                        $remainingAmount = $trading_account->min_threshold - $achievedAmount;
+
+                        if ($achievedAmount + $bonus_amount >= $trading_account->min_threshold) {
+                            $bonus_amount = $remainingAmount;
+                            $trading_account->claimable_amount = $trading_account->bonus_amount;
+                            if ($trading_account->is_claimed !== 'pending') {
+                                $trading_account->is_claimed = 'claimable';
+                            }
+                        }
+                        $trading_account->achieved_amount = $achievedAmount + $bonus_amount;
+                    }
+                    Log::info('Updated Account : ' . $trading_account->meta_login);
+                    $trading_account->save();
+                }
+            }
+
             return redirect()->back()->with('toast', [
                 'title' => $type == 'account_balance' ? trans('public.toast_balance_adjustment_success') : trans('public.toast_credit_adjustment_success'),
                 'type' => 'success'

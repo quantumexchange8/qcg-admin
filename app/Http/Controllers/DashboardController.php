@@ -36,8 +36,8 @@ class DashboardController extends Controller
             ->where('status', 'processing')
             ->count();
 
-        $pendingBonus = Transaction::where('category', 'bonus_wallet')
-            ->where('transaction_type', 'withdrawal')
+        $pendingBonus = Transaction::where('category', 'bonus')
+            ->where('transaction_type', 'credit_bonus')
             ->where('status', 'processing')
             ->count();
 

@@ -93,41 +93,51 @@ class PendingController extends Controller
             'user.teamHasUser:id,team_id,user_id',
             'user.teamHasUser.team:id,name,color'
         ])
-            ->where('transaction_type', 'withdrawal')
+            ->whereIn('transaction_type', ['credit_bonus'])
             ->where('status', 'processing')
             ->where('category', 'bonus')
             ->latest()
             ->get()
             ->map(function ($transaction) {
-                // Check if from_meta_login exists and fetch the latest balance
-                if ($transaction->from_meta_login) {
+                // Check if to_meta_login exists and fetch the latest balance
+                if ($transaction->to_meta_login) {
                     // Only call getUserInfo in production
                     if (app()->environment('production')) {
                         // Call getUserInfo to ensure the balance is up to date
-                        (new CTraderService())->getUserInfo($transaction->from_meta_login); // Pass the from_meta_login object
+                        (new CTraderService())->getUserInfo($transaction->to_meta_login); // Pass the to_meta_login object
                     }
                     
                     // After calling getUserInfo, fetch the latest balance
-                    $balance = $transaction->from_meta_login->balance ?? 0;
+                    $balance = $transaction->to_meta_login->balance ?? 0;
                 } else {
-                    // Fallback to using the wallet balance if from_meta_login is not available
+                    // Fallback to using the wallet balance if to_meta_login is not available
                     $balance = $transaction->from_wallet->balance ?? 0;
                 }
                 
-                // Fetch the last deposit before the current transaction date
-                $lastDeposit = Transaction::where('user_id', $transaction->user_id)
-                    ->where('transaction_type', 'deposit')
-                    ->where('status', 'successful')
-                    ->where('created_at', '<', $transaction->created_at) // Before the current transaction date
-                    ->orderBy('created_at', 'desc') // Order by latest
+                $previousCreditBonus = Transaction::where('to_meta_login', $transaction->to_meta_login)
+                    ->where('transaction_type', 'credit_bonus')
+                    ->where('created_at', '<', $transaction->created_at)
+                    ->latest('created_at')
                     ->first();
+
+                // Define the query
+                $depositQuery = Transaction::where('to_meta_login', $transaction->to_meta_login)
+                    ->whereIn('transaction_type', ['deposit', 'balance_in'])
+                    ->where('created_at', '<', $transaction->created_at);
+
+                // Modify query if previous credit_bonus exists
+                if ($previousCreditBonus) {
+                    $depositQuery->where('created_at', '>', $previousCreditBonus->created_at);
+                }
+
+                $deposit_amount = $depositQuery->sum('transaction_amount');
 
                 return [
                     'id' => $transaction->id,
                     'created_at' => $transaction->created_at,
                     'user_name' => $transaction->user->first_name,
                     'user_email' => $transaction->user->email,
-                    'from' => $transaction->from_meta_login ? $transaction->from_meta_login : 'bonus',
+                    'from' => $transaction->to_meta_login ? $transaction->to_meta_login : 'bonus',
                     'balance' => $balance, // Get balance after ensuring it's updated
                     'amount' => $transaction->amount,
                     'transaction_charges' => $transaction->transaction_charges,
@@ -137,8 +147,8 @@ class PendingController extends Controller
                     'team_id' => $transaction->user->teamHasUser->team_id ?? null,
                     'team_name' => $transaction->user->teamHasUser->team->name ?? null,
                     'team_color' => $transaction->user->teamHasUser->team->color ?? null,
-                    'deposit_date' => $lastDeposit->approved_at ?? null,
-                    'deposit_amount' => $$lastDeposit ? $lastDeposit->transaction_amount : 0,
+                    // 'deposit_date' => $lastDeposit->approved_at ?? null,
+                    'deposit_amount' => $deposit_amount ?? 0,
                 ];
             });
     
@@ -209,7 +219,16 @@ class PendingController extends Controller
                                 'type' => 'error'
                             ]);
                         }
+                    } elseif ($transaction->category == 'bonus') {
+                        $tradingAccount = TradingAccount::where('meta_login', $transaction->to_meta_login)->first();
+
+                        if ($tradingAccount) {
+                            $tradingAccount->update([
+                                'is_claimed' => 'claimable',
+                            ]);
+                        }
                     }
+
     
                     $messages = [
                         'withdrawal' => trans('public.toast_reject_withdrawal_request_success'),
@@ -218,6 +237,29 @@ class PendingController extends Controller
                     ];
                     $message = $messages[$type];
                 } else {
+                    // Check if the category is 'bonus' and handle accordingly
+                    if ($transaction->category == 'bonus') {
+                        $tradingAccount = TradingAccount::where('meta_login', $transaction->to_meta_login)->first();
+
+                        if ($tradingAccount) {
+                            $tradingAccount->decrement('claimable_amount', $transaction->transaction_amount);
+                            
+                            $tradeCredit = (new CTraderService)->createTrade($tradingAccount->meta_login, $transaction->amount, "Promotion Account Bonus", ChangeTraderBalanceType::DEPOSIT_NONWITHDRAWABLE_BONUS);
+                            $ticketCredit = $tradeCredit->getTicket();
+                            $transaction->update(['ticket' => $ticketCredit]);
+                            if ($tradingAccount->achieved_amount == $tradingAccount->target_amount || $tradingAccount->applicable_deposit == 'first_deposit_only') {
+                                $tradingAccount->update([
+                                    'is_claimed' => 'completed',
+                                ]);
+                            }
+                            else {
+                                $tradingAccount->update([
+                                    'is_claimed' => 'claimable',
+                                ]);
+                            }
+                        }
+                    }
+
                     $messages = [
                         'withdrawal' => trans('public.toast_approve_withdrawal_request_success'),
                         'bonus' => trans('public.toast_approve_bonus_request_success'),
@@ -225,14 +267,6 @@ class PendingController extends Controller
                     ];
                     $message = $messages[$type];
 
-                    // Check if the category is 'bonus' and handle accordingly
-                    if ($transaction->category == 'bonus') {
-                        $tradingAccount = TradingAccount::where('meta_login', $transaction->from_meta_login)->first();
-
-                        if ($tradingAccount) {
-                            $tradingAccount->increment('claimed_amount', $transaction->transaction_amount);
-                        }
-                    }
                 }
             } else {
                 return redirect()->back()->with('toast', [

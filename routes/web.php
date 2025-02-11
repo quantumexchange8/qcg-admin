@@ -75,7 +75,7 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
      */
     Route::prefix('pending')->middleware('role_and_permission:admin,access_withdrawal_request,access_incentive_request')->group(callback: function () {
         Route::get('withdrawal', [PendingController::class, 'withdrawal'])->name('pending.withdrawal')->middleware('role_and_permission:admin,access_withdrawal_request');
-        // Route::get('bonus', [PendingController::class, 'bonus'])->name('pending.bonus')->middleware('role_and_permission:admin,access_bonus_request');
+        Route::get('bonus', [PendingController::class, 'bonus'])->name('pending.bonus')->middleware('role_and_permission:admin,access_bonus_request');
         Route::get('incentive', [PendingController::class, 'incentive'])->name('pending.incentive')->middleware('role_and_permission:admin,access_incentive_request');
         Route::get('/getPendingWithdrawalData', [PendingController::class, 'getPendingWithdrawalData'])->name('pending.getPendingWithdrawalData')->middleware('role_and_permission:admin,access_withdrawal_request');
         Route::get('/getPendingBonusData', [PendingController::class, 'getPendingBonusData'])->name('pending.getPendingBonusData')->middleware('role_and_permission:admin,access_bonus_request');
@@ -219,6 +219,7 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
         Route::get('deposit', [TransactionController::class, 'deposit'])->name('transaction.deposit')->middleware('role_and_permission:admin,access_deposit');
         Route::get('withdrawal', [TransactionController::class, 'withdrawal'])->name('transaction.withdrawal')->middleware('role_and_permission:admin,access_withdrawal');
         Route::get('transfer', [TransactionController::class, 'transfer'])->name('transaction.transfer')->middleware('role_and_permission:admin,access_transfer');
+        Route::get('bonus', [TransactionController::class, 'bonus'])->name('transaction.bonus')->middleware('role_and_permission:admin,access_bonus');
         Route::get('rebate', [TransactionController::class, 'rebate'])->name('transaction.rebate')->middleware('role_and_permission:admin,access_rebate_payout');
         Route::get('incentive', [TransactionController::class, 'incentive'])->name('transaction.incentive')->middleware('role_and_permission:admin,access_incentive_payout');
         Route::get('adjustment', [TransactionController::class, 'adjustment'])->name('transaction.adjustment');

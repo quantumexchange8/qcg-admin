@@ -37,19 +37,24 @@ const handleApproval = (action) => {
 const selectedTotalAmount = ref(0);
 const selectedRequestsCount = ref(0);
 // Watch selectedRequests for changes
-watch(() => props.selectedRequests, (newValue) => {
-  selectedTotalAmount.value = newValue.reduce((sum, request) => {
-    const transactionAmount = parseFloat(request.transaction_amount);
-    if (!isNaN(transactionAmount)) {
-      return sum + transactionAmount;
+watch(
+  () => props.selectedRequests,
+  (newValue) => {
+    if (!Array.isArray(newValue)) {
+      selectedTotalAmount.value = 0;
+      selectedRequestsCount.value = 0;
+      return;
     }
-    return sum;
-  }, 0);
 
-    // Update selectedRecordCount to reflect the number of records
+    selectedTotalAmount.value = newValue.reduce((sum, request) => {
+      const transactionAmount = parseFloat(request.transaction_amount);
+      return !isNaN(transactionAmount) ? sum + transactionAmount : sum;
+    }, 0);
+
     selectedRequestsCount.value = newValue.length;
-
-}, { immediate: true });
+  },
+  { immediate: true }
+);
 
 // Chips data based on approvalAction
 const chips = ref({
@@ -312,20 +317,28 @@ const submit = () => {
                         ></Tag>
                     </div>
                 </div>
-                <div class="flex flex-col md:flex-row md:items-center gap-1 self-stretch">
+                <!-- <div class="flex flex-col md:flex-row md:items-center gap-1 self-stretch">
                     <div class="w-[140px] text-gray-500 text-sm">
                         {{ $t('public.deposit_date') }}
                     </div>
                     <div class="text-gray-950 text-sm font-medium">
                         {{ dayjs(props?.pendingData.deposit_date).format('YYYY/MM/DD HH:mm:ss') }}
                     </div>
-                </div>
+                </div> -->
                 <div class="flex flex-col md:flex-row md:items-center gap-1 self-stretch">
                     <div class="w-[140px] text-gray-500 text-sm">
                         {{ $t('public.deposit_amount') }}
                     </div>
                     <div class="text-gray-950 text-sm font-medium">
                         $ {{ formatAmount(props?.pendingData?.deposit_amount || 0) }}
+                    </div>
+                </div>
+                <div class="flex flex-col md:flex-row md:items-center gap-1 self-stretch">
+                    <div class="w-[140px] text-gray-500 text-sm">
+                        {{ $t('public.claim_amount') }}
+                    </div>
+                    <div class="text-blue-500 text-sm font-medium">
+                        $ {{ formatAmount(props?.pendingData?.transaction_amount || 0) }}
                     </div>
                 </div>
                 <div class="flex flex-col md:flex-row md:items-center gap-1 self-stretch">
@@ -349,7 +362,7 @@ const submit = () => {
                 </div>
             </div>
 
-            <div class="flex flex-col items-center p-3 gap-3 self-stretch w-full bg-gray-50">
+            <div v-if="props.type !== 'bonus'" class="flex flex-col items-center p-3 gap-3 self-stretch w-full bg-gray-50">
                 <div class="flex flex-col md:flex-row md:items-center gap-1 self-stretch">
                     <div class="w-[140px] text-gray-500 text-sm">
                         {{ $t('public.wallet_name') }}

@@ -615,4 +615,12 @@ return [
     'loading_caption' => "正在加载数据, 请稍候.",
     'today' => "今天",
     'promotion_account' => '促销账户',
+    'access_bonus' => '访问信用额',
+    'all_credit_bonus' => '所有信用额',
+    'access_bonus_request' => '访问信用额申请',
+    'sidebar_bonus' => '信用额',
+    'empty_bonus_record_title' => '未找到信用额记录',
+    'empty_bonus_record_message' => '目前没有信用额交易可显示。请稍后再查看更新。',
+    'total_credit_bonus' => '总信用额',
+    'claim_amount' => '领取金额',
 ];

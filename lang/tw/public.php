@@ -614,4 +614,12 @@ return [
     'loading_caption' => "正在加載數據, 請稍候.",
     'today' => "今天",
     'promotion_account' => '促銷賬戶',
+    'access_bonus' => '訪問信用額',
+    'all_credit_bonus' => '所有信用額',
+    'access_bonus_request' => '訪問信用額申請',
+    'sidebar_bonus' => '信用額',
+    'empty_bonus_record_title' => '未找到信用額記錄',
+    'empty_bonus_record_message' => '目前沒有信用額交易可顯示。請稍後再查看更新。',
+    'total_credit_bonus' => '總信用信用額',
+    'claim_amount' => '領取金額',
 ];

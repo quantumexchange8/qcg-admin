@@ -525,7 +525,7 @@ const submitForm = () => {
                                         </div>
                                     </div>
                                 </div>
-                                <div class="w-full col-span-2 flex flex-col items-start gap-2">
+                                <div v-if="accountType.category === 'promotion'" class="w-full col-span-2 flex flex-col items-start gap-2">
                                     <InputLabel for="visible_to" :value="$t('public.visible_to')" :invalid="!!form.errors.visible_to"/>
                                     <div class="w-full flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-8">
                                         <div v-for="option in visibilityOptions" :key="option.value" class="flex items-center gap-3">
@@ -666,7 +666,7 @@ const submitForm = () => {
                         </div>
 
                         <!-- Promotion Details Configuration -->
-                        <div class="w-full flex flex-col justify-center items-center p-6 gap-5 rounded-lg bg-white shadow-card">
+                        <div v-if="form.category==='promotion'" class="w-full flex flex-col justify-center items-center p-6 gap-5 rounded-lg bg-white shadow-card">
                             <span class="w-full text-gray-950 font-bold">{{ $t('public.promotion_details_configuration') }}</span>
                             <div class="w-full flex flex-col justify-center items-center gap-5">
                                 <div class="w-full flex flex-col items-start gap-2">
