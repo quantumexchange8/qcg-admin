@@ -219,7 +219,16 @@ class PendingController extends Controller
                                 'type' => 'error'
                             ]);
                         }
+                    } elseif ($transaction->category == 'bonus') {
+                        $tradingAccount = TradingAccount::where('meta_login', $transaction->to_meta_login)->first();
+
+                        if ($tradingAccount) {
+                            $tradingAccount->update([
+                                'is_claimed' => 'claimable',
+                            ]);
+                        }
                     }
+
     
                     $messages = [
                         'withdrawal' => trans('public.toast_reject_withdrawal_request_success'),
@@ -238,6 +247,16 @@ class PendingController extends Controller
                             $tradeCredit = (new CTraderService)->createTrade($tradingAccount->meta_login, $transaction->amount, "Promotion Account Bonus", ChangeTraderBalanceType::DEPOSIT_NONWITHDRAWABLE_BONUS);
                             $ticketCredit = $tradeCredit->getTicket();
                             $transaction->update(['ticket' => $ticketCredit]);
+                            if ($tradingAccount->achieved_amount == $tradingAccount->target_amount || $tradingAccount->applicable_deposit == 'first_deposit_only') {
+                                $tradingAccount->update([
+                                    'is_claimed' => 'completed',
+                                ]);
+                            }
+                            else {
+                                $tradingAccount->update([
+                                    'is_claimed' => 'claimable',
+                                ]);
+                            }
                         }
                     }
 

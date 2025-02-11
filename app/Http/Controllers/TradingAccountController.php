@@ -472,16 +472,19 @@ class TradingAccountController extends Controller
                     && $trading_account->promotion_type == 'deposit' && ($trading_account->applicable_deposit !== 'first_deposit_only' || $achievedAmount == 0)) {
                     if ($trading_account->bonus_amount_type === 'percentage_of_deposit') {
                         $bonus_amount = ($transaction->amount * $trading_account->bonus_amount / 100);
-                            
-                        if ($transaction->amount >= $trading_account->min_threshold) {
+
+                        if ($transaction->amount >= $trading_account->min_threshold || 
+                        ($trading_account->achieved_amount * 100 /  $trading_account->bonus_amount) >= $trading_account->min_threshold) {
                             // achievedAmount = 600 target_amount = 1000 bonus_amount = 600 , remaining should be 400
                             $remainingAmount = $trading_account->target_amount - $achievedAmount;
                             if ($bonus_amount > $remainingAmount) {
                                 $bonus_amount = $remainingAmount;
                             }
                             $trading_account->claimable_amount = $trading_account->claimable_amount + $bonus_amount;
-                            $trading_account->is_claimed = 'claimable';
                             $trading_account->achieved_amount = $achievedAmount + $bonus_amount;
+                            if ($trading_account->is_claimed !== 'pending') {
+                                $trading_account->is_claimed = 'claimable';
+                            }
                         }
                     }
                     else{
@@ -491,7 +494,9 @@ class TradingAccountController extends Controller
                         if ($achievedAmount + $bonus_amount >= $trading_account->min_threshold) {
                             $bonus_amount = $remainingAmount;
                             $trading_account->claimable_amount = $trading_account->bonus_amount;
-                            $trading_account->is_claimed = 'claimable';
+                            if ($trading_account->is_claimed !== 'pending') {
+                                $trading_account->is_claimed = 'claimable';
+                            }
                         }
                         $trading_account->achieved_amount = $achievedAmount + $bonus_amount;
                     }
