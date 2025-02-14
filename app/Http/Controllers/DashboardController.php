@@ -156,12 +156,12 @@ class DashboardController extends Controller
 
     public function getPendingData()
     {
-        $pending_withdrawal = Transaction::whereNotIn('category', ['incentive_wallet', 'bonus_wallet'])
+        $pending_withdrawal = Transaction::whereNotIn('category', ['incentive_wallet', 'bonus'])
             ->where('transaction_type', 'withdrawal')
             ->where('status', 'processing');
 
-        $pending_bonus = Transaction::where('category', 'bonus_wallet')
-            ->where('transaction_type', 'withdrawal')
+        $pending_bonus = Transaction::where('category', 'bonus')
+            ->where('transaction_type', 'credit_bonus')
             ->where('status', 'processing');
 
         $pending_incentive = Transaction::where('category', 'incentive_wallet')

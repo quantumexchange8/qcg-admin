@@ -176,6 +176,7 @@ class TransactionController extends Controller
                 $previousCreditBonus = Transaction::where('to_meta_login', $transaction->to_meta_login)
                     ->where('transaction_type', 'credit_bonus')
                     ->where('created_at', '<', $transaction->created_at)
+                    ->whereNot('status', 'rejected')
                     ->latest('created_at')
                     ->first();
 
