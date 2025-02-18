@@ -79,10 +79,10 @@ const teamDuration = ref(10);
 
 watch([months, teamMonths], ([newMonths, newTeamMonths]) => {
     if (newMonths.length > 0) {
-        selectedMonth.value = newMonths[newMonths.length - 1].value;
+        selectedMonth.value = newMonths[0].value;
     }
     if (newTeamMonths.length > 0) {
-        selectedTeamMonth.value = newTeamMonths[newTeamMonths.length - 1];
+        selectedTeamMonth.value = newTeamMonths[0];
     }
 }, { immediate: true });
 

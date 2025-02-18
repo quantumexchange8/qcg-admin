@@ -10,15 +10,15 @@ import {
     NetBalanceIcon,
 } from '@/Components/Icons/outline.jsx';
 import Button from '@/Components/Button.vue';
-import Calendar from 'primevue/calendar';
 import Vue3Autocounter from 'vue3-autocounter';
 import Empty from '@/Components/Empty.vue';
 import { usePage } from '@inertiajs/vue3';
 import { wTrans, trans } from "laravel-vue-i18n";
-import DatePicker from 'primevue/datepicker';
 import CreateTeam from '@/Pages/Team/Partials/CreateTeam.vue';
 import SettlementReport from '@/Pages/Team/Partials/SettlementReport.vue'
 import TeamAction from '@/Pages/Team/Partials/TeamAction.vue';
+import Select from "primevue/select";
+import dayjs from "dayjs";
 
 defineProps({
     teamCount: Number
@@ -59,49 +59,48 @@ const dataOverviews = computed(() => [
     },
 ]);
 
-// Get current date
-const today = new Date();
+const months = ref([]);
+const selectedMonth = ref('');
 
-// Define minDate and maxDate
-const minDate = ref(new Date(today.getFullYear(), today.getMonth(), 1));
-const maxDate = ref(today);
-
-// Reactive variable for selected date range
-const selectedDate = ref([minDate.value, maxDate.value]);
-
-// Clear date selection
-const clearDate = () => {
-    selectedDate.value = null;
+const getCurrentMonthYear = () => {
+    const date = new Date();
+    return `01 ${dayjs(date).format('MMMM YYYY')}`;
 };
 
-watch(selectedDate, (newDateRange) => {
-    if (Array.isArray(newDateRange)) {
-        const [startDate, endDate] = newDateRange;
+// Fetch settlement months from API
+const getTransactionMonths = async () => {
+    try {
+        const response = await axios.get('/getTransactionMonths');
+        months.value = ['select_all', ...response.data.months];
 
-        if (startDate && endDate) {
-            getResults([startDate, endDate]);
-        } else if (startDate || endDate) {
-            getResults([startDate || endDate, endDate || startDate]);
-        } else {
-            getResults([]);
+        if (months.value.length) {
+            selectedMonth.value = [getCurrentMonthYear()];
         }
-    } else if (newDateRange === null) {
-        getResults([]);
-    } else {
-        console.warn('Invalid date range format:', newDateRange);
+    } catch (error) {
+        console.error('Error transaction months:', error);
     }
+};
+
+getTransactionMonths()
+
+// Watchers for selectedMonths
+watch(selectedMonth, (newMonths) => {
+    getResults(newMonths);
 });
 
-const getResults = async (selectedDate = []) => {
+const getResults = async (selectedMonth = '') => {
     isLoading.value = true
     try {
         let response;
-        const [startDate, endDate] = selectedDate;
 
         let url = `/team/getTeams`;
 
-        if (startDate && endDate) {
-            url += `?startDate=${formatDate(startDate)}&endDate=${formatDate(endDate)}`;
+        if (selectedMonth) {
+            const formattedMonth = selectedMonth === 'select_all' 
+                ? 'select_all' 
+                : dayjs(selectedMonth, 'DD MMMM YYYY').format('MMMM YYYY');
+
+            url += `?selectedMonth=${formattedMonth}`;
         }
 
         response = await axios.get(url);
@@ -120,13 +119,9 @@ const getResults = async (selectedDate = []) => {
     }
 };
 
-onMounted(() => {
-    getResults(selectedDate.value);
-})
-
 watchEffect(() => {
     if (usePage().props.toast !== null) {
-        getResults(selectedDate.value);
+        getResults(selectedMonth.value);
     }
 });
 
@@ -137,18 +132,14 @@ const refreshTeam = async (teamId) => {
         refreshingTeam[teamId] = true;
         let response;
 
-        // Destructure selectedDate safely, defaulting to null if selectedDate is not valid
-        const [startDate, endDate] = (Array.isArray(selectedDate.value) && selectedDate.value.length > 0) ? selectedDate.value : [null, null];
-
         let url = `/team/refreshTeam`;
 
-        // If both startDate and endDate are available, add them to the URL
-        if (startDate && endDate) {
-            url += `?startDate=${formatDate(startDate)}&endDate=${formatDate(endDate)}`;
-        } else if (startDate || endDate) {
-            // If one date is available, use it for both start and end
-            const dateToUse = startDate || endDate;
-            url += `?startDate=${formatDate(dateToUse)}&endDate=${formatDate(dateToUse)}`;
+        if (selectedMonth.value) {
+            const formattedMonth = selectedMonth.value === 'select_all' 
+                ? 'select_all' 
+                : dayjs(selectedMonth.value, 'DD MMMM YYYY').format('MMMM YYYY');
+
+            url += `?selectedMonth=${formattedMonth}`;
         }
 
         // Add teamId to the URL if it exists
@@ -215,26 +206,36 @@ const refreshTeam = async (teamId) => {
             <div class="w-full flex flex-col justify-center items-center px-3 py-5 gap-5 self-stretch rounded-lg bg-white shadow-card md:p-6 md:gap-6">
                 <!-- toolbar -->
                  <div class="flex flex-col items-center gap-3 self-stretch md:flex-row md:justify-between">
-                    <div class="relative w-full md:w-60">
-                        <DatePicker 
-                            v-model="selectedDate"
-                            selectionMode="range"
-                            :manualInput="false"
-                            :maxDate="maxDate"
-                            dateFormat="dd/mm/yy"
-                            showIcon
-                            iconDisplay="input"
-                            :placeholder="$t('public.select_date')"
-                            class="font-normal w-full md:w-60"
-                        />
-                        <div
-                            v-if="selectedDate && selectedDate.length > 0"
-                            class="absolute top-[11px] right-3 flex justify-center items-center text-gray-400 select-none cursor-pointer bg-white w-6 h-6 "
-                            @click="clearDate"
-                        >
-                            <IconCircleXFilled size="20" />
-                        </div>
-                    </div>
+                    <Select 
+                        v-model="selectedMonth" 
+                        :options="months" 
+                        :placeholder="$t('public.month_placeholder')"
+                        class="w-full md:w-60 font-normal truncate" scroll-height="236px" 
+                    >
+                        <template #option="{option}">
+                            <span class="text-sm">
+                                <template v-if="option === 'select_all'">
+                                    {{ $t('public.select_all') }}
+                                </template>
+                                <template v-else>
+                                    {{ $t(`public.${option.split(' ')[1]}`) }} {{ option.split(' ')[2] }}
+                                </template>
+                            </span>
+                        </template>
+                        <template #value>
+                            <span v-if="selectedMonth">
+                                <template v-if="selectedMonth === 'select_all'">
+                                    {{ $t('public.select_all') }}
+                                </template>
+                                <template v-else>
+                                    {{ $t(`public.${dayjs(selectedMonth).format('MMMM')}`) }} {{ dayjs(selectedMonth).format('YYYY') }}
+                                </template>
+                            </span>
+                            <span v-else>
+                                {{ $t('public.month_placeholder') }}
+                            </span>
+                        </template>
+                    </Select>
 
                     <div class="flex flex-col items-center gap-3 self-stretch md:flex-row md:gap-5">
                         <SettlementReport />

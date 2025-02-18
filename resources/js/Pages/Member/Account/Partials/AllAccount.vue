@@ -171,7 +171,7 @@ watch(filters, (newFilters) => {
                             <IconCircleXFilled size="16" />
                         </div>
                     </div>
-                    <Select
+                    <!-- <Select
                         v-model="filters['account_type_id']"
                         :options="accountTypes"
                         filter
@@ -181,7 +181,7 @@ watch(filters, (newFilters) => {
                         :placeholder="$t('public.filter_by_account_type')"
                         class="w-full md:w-60 font-normal"
                         scroll-height="236px"
-                    />
+                    /> -->
                 </div>
                 <Button
                     type="button"
