@@ -9,10 +9,11 @@ import DataTable from "primevue/datatable";
 import Column from "primevue/column";
 import ColumnGroup from 'primevue/columngroup';
 import Row from 'primevue/row';
-import dayjs from 'dayjs'
 import Loader from "@/Components/Loader.vue";
 import Empty from "@/Components/Empty.vue";
 import { trans, wTrans } from "laravel-vue-i18n";
+import Select from "primevue/select";
+import dayjs from "dayjs";
 
 const { formatAmount, formatDate } = transactionFormat();
 
@@ -31,22 +32,47 @@ const dt = ref();
 const bonuses = ref()
 const totalBonusAmount = ref(0);
 
-// Reactive variable for selected date range
-const selectedDate = ref([]);
+const months = ref([]);
+const selectedMonth = ref('');
 
-// Get current date
-const today = new Date();
-const maxDate = ref(today);
+const getCurrentMonthYear = () => {
+    const date = new Date();
+    return `01 ${dayjs(date).format('MMMM YYYY')}`;
+};
 
-const getResults = async (dateRanges = null) => {
+// Fetch settlement months from API
+const getIncentiveMonths = async () => {
+    try {
+        const response = await axios.get('/getIncentiveMonths');
+        months.value = ['select_all', ...response.data.months];
+
+        if (months.value.length) {
+            selectedMonth.value = [getCurrentMonthYear()];
+        }
+    } catch (error) {
+        console.error('Error incentive months:', error);
+    }
+};
+
+getIncentiveMonths()
+
+// Watchers for selectedMonths
+watch(selectedMonth, (newMonths) => {
+    getResults(newMonths);
+});
+
+const getResults = async (selectedMonth = '') => {
     loading.value = true;
 
     try {
         let url = `/leaderboard/getStatementData?profile_id=${props.profile.id}`;
 
-        if (dateRanges) {
-            const [startDate, endDate] = dateRanges;
-            url += `&startDate=${dayjs(startDate).format('YYYY-MM-DD')}&endDate=${dayjs(endDate).format('YYYY-MM-DD')}`;
+        if (selectedMonth) {
+            const formattedMonth = selectedMonth === 'select_all' 
+                ? 'select_all' 
+                : dayjs(selectedMonth, 'DD MMMM YYYY').format('MMMM YYYY');
+
+            url += `&selectedMonth=${formattedMonth}`;
         }
 
         const response = await axios.get(url);
@@ -57,31 +83,6 @@ const getResults = async (dateRanges = null) => {
     } finally {
         loading.value = false;
     }
-};
-
-getResults();
-
-watch(selectedDate, (newDateRange) => {
-    if (Array.isArray(newDateRange)) {
-        const [startDate, endDate] = newDateRange;
-
-        if (startDate && endDate) {
-            getResults([startDate, endDate]);
-        } else if (startDate || endDate) {
-            getResults([startDate || endDate, endDate || startDate]);
-        } else {
-            getResults([]);
-        }
-    } else if (newDateRange === null) {
-        // Handle the case when selectedDate is null
-        getResults();
-    } else {
-        console.warn('Invalid date range format:', newDateRange);
-    }
-});
-
-const clearDate = () => {
-    selectedDate.value = null;
 };
 
 const exportXLSX = () => {
@@ -151,26 +152,36 @@ const exportXLSX = () => {
             <template #header>
                 <div class="flex flex-col items-center gap-4 mb-4 md:mb-8">
                     <div class="flex flex-col items-center gap-3 self-stretch md:flex-row md:justify-between">
-                        <div class="relative w-full md:w-60">
-                            <DatePicker 
-                                v-model="selectedDate"
-                                selectionMode="range"
-                                :manualInput="false"
-                                :maxDate="maxDate"
-                                dateFormat="dd/mm/yy"
-                                showIcon
-                                iconDisplay="input"
-                                :placeholder="$t('public.select_date')"
-                                class="font-normal w-full md:w-60"
-                            />
-                            <div
-                                v-if="selectedDate && selectedDate.length > 0"
-                                class="absolute top-[11px] right-3 flex justify-center items-center text-gray-400 select-none cursor-pointer bg-white w-6 h-6 "
-                                @click="clearDate"
-                            >
-                                <IconCircleXFilled size="20" />
-                            </div>
-                        </div>
+                        <Select 
+                            v-model="selectedMonth" 
+                            :options="months" 
+                            :placeholder="$t('public.month_placeholder')"
+                            class="w-full md:w-60 font-normal truncate" scroll-height="236px" 
+                        >
+                            <template #option="{option}">
+                                <span class="text-sm">
+                                    <template v-if="option === 'select_all'">
+                                        {{ $t('public.select_all') }}
+                                    </template>
+                                    <template v-else>
+                                        {{ $t(`public.${option.split(' ')[1]}`) }} {{ option.split(' ')[2] }}
+                                    </template>
+                                </span>
+                            </template>
+                            <template #value>
+                                <span v-if="selectedMonth">
+                                    <template v-if="selectedMonth === 'select_all'">
+                                        {{ $t('public.select_all') }}
+                                    </template>
+                                    <template v-else>
+                                        {{ $t(`public.${dayjs(selectedMonth).format('MMMM')}`) }} {{ dayjs(selectedMonth).format('YYYY') }}
+                                    </template>
+                                </span>
+                                <span v-else>
+                                    {{ $t('public.month_placeholder') }}
+                                </span>
+                            </template>
+                        </Select>
 
                         <Button
                             variant="primary-outlined"

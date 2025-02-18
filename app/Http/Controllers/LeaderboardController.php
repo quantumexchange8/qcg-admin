@@ -398,14 +398,19 @@ class LeaderboardController extends Controller
     {
         $bonusQuery = LeaderboardBonus::where('leaderboard_profile_id', $request->profile_id);
 
-        $startDate = $request->query('startDate');
-        $endDate = $request->query('endDate');
-        if ($startDate && $endDate) {
-            $start_date = Carbon::createFromFormat('Y-m-d', $startDate)->startOfDay();
-            $end_date = Carbon::createFromFormat('Y-m-d', $endDate)->endOfDay();
+        $monthYear = $request->input('selectedMonth');
 
-            $bonusQuery->whereBetween('created_at', [$start_date, $end_date]);
+        if ($monthYear === 'select_all') {
+            $startDate = Carbon::createFromDate(2020, 1, 1)->startOfDay();
+            $endDate = Carbon::now()->endOfDay();
+        } else {
+            $carbonDate = Carbon::createFromFormat('F Y', $monthYear);
+
+            $startDate = (clone $carbonDate)->startOfMonth()->startOfDay();
+            $endDate = (clone $carbonDate)->endOfMonth()->endOfDay();
         }
+
+        $bonusQuery->whereBetween('created_at', [$startDate, $endDate]);
 
         $bonuses = $bonusQuery
             ->get()

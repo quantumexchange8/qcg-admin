@@ -16,6 +16,7 @@ use App\Services\CTraderService;
 use Illuminate\Support\Facades\Auth;
 use App\Jobs\TeamMemberAssignmentJob;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 class TeamController extends Controller
 {
@@ -37,20 +38,28 @@ class TeamController extends Controller
             'total_charges' => 0,
         ];
 
-        $startDateInput = $request->input('startDate', '2020/01/01');
-        $endDateInput = $request->input('endDate', today()->endOfDay()->format('Y/m/d'));
-            
-        $startDate = Carbon::createFromFormat('Y/m/d', $startDateInput)->startOfDay();
-        $endDate = Carbon::createFromFormat('Y/m/d', $endDateInput)->endOfDay();
+        $monthYear = $request->input('selectedMonth');
 
+        if ($monthYear === 'select_all') {
+            $startDate = Carbon::createFromDate(2020, 1, 1)->startOfDay();
+            $endDate = Carbon::now()->endOfDay();
+        } else {
+            $carbonDate = Carbon::createFromFormat('F Y', $monthYear);
+
+            $startDate = (clone $carbonDate)->startOfMonth()->startOfDay();
+            $endDate = (clone $carbonDate)->endOfMonth()->endOfDay();
+        }
+        
         $teams = Team::get()
             ->map(function ($team) use ($request, $startDate, $endDate, &$totals) {
                 $teamUserIds = TeamHasUser::where('team_id', $team->id)
                     ->pluck('user_id')
                     ->toArray();
-
+        
                 $total_deposit = Transaction::whereIn('user_id', $teamUserIds)
-                    ->whereBetween('approved_at', [$startDate, $endDate])
+                    ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
+                        return $query->whereBetween('approved_at', [$startDate, $endDate]);
+                    })
                     ->where(function ($query) {
                         $query->where('transaction_type', 'deposit')
                             ->orWhere('transaction_type', 'balance_in')
@@ -58,9 +67,11 @@ class TeamController extends Controller
                     })
                     ->where('status', 'successful')
                     ->sum('transaction_amount');
-
+        
                 $total_withdrawal = Transaction::whereIn('user_id', $teamUserIds)
-                    ->whereBetween('approved_at', [$startDate, $endDate])
+                    ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
+                        return $query->whereBetween('approved_at', [$startDate, $endDate]);
+                    })
                     ->where(function ($query) {
                         $query->where('transaction_type', 'withdrawal')
                             ->orWhere('transaction_type', 'balance_out')
@@ -68,34 +79,37 @@ class TeamController extends Controller
                     })
                     ->where('status', 'successful')
                     ->sum('transaction_amount');
-
+        
                 $transaction_fee_charges = $team->fee_charges > 0 ? $total_deposit / $team->fee_charges : 0;
                 $net_balance = $total_deposit - $transaction_fee_charges - $total_withdrawal;
-
+        
                 // Calculate account balance and equity
                 $teamIds = AccountType::whereNotNull('account_group_id')
                     ->pluck('account_group_id')
                     ->toArray();
-
+        
                 $teamBalance = 0;
                 $teamEquity = 0;
-
+        
                 foreach ($teamIds as $teamId) {
                     $startDateFormatted = $startDate->format('Y-m-d\TH:i:s.v');
                     $endDateFormatted = $endDate->format('Y-m-d\TH:i:s.v');
-
+        
                     $response = (new CTraderService)->getMultipleTraders($startDateFormatted, $endDateFormatted, $teamId);
-
+        
                     $accountType = AccountType::where('account_group_id', $teamId)->first();
-
-                    $meta_logins = TradingAccount::where('account_type_id', $accountType->id)->whereIn('user_id', $teamUserIds)->pluck('meta_login')->toArray();
-
+        
+                    $meta_logins = TradingAccount::where('account_type_id', $accountType->id)
+                        ->whereIn('user_id', $teamUserIds)
+                        ->pluck('meta_login')
+                        ->toArray();
+        
                     if (isset($response['trader']) && is_array($response['trader'])) {
                         foreach ($response['trader'] as $trader) {
                             if (in_array($trader['login'], $meta_logins)) {
                                 $moneyDigits = isset($trader['moneyDigits']) ? (int)$trader['moneyDigits'] : 0;
                                 $divisor = $moneyDigits > 0 ? pow(10, $moneyDigits) : 1;
-
+                                
                                 $teamBalance += $trader['balance'] / $divisor;
                                 $teamEquity += $trader['equity'] / $divisor;
                             }
@@ -184,8 +198,17 @@ class TeamController extends Controller
     public function getTeamTransaction(Request $request)
     {
         $teamId = $request->query('team_id');
-        $startDate = $request->query('startDate');
-        $endDate = $request->query('endDate');
+        $monthYear = $request->input('selectedMonth');
+
+        if ($monthYear === 'select_all') {
+            $startDate = Carbon::createFromDate(2020, 1, 1)->startOfDay();
+            $endDate = Carbon::now()->endOfDay();
+        } else {
+            $carbonDate = Carbon::createFromFormat('F Y', $monthYear);
+
+            $startDate = (clone $carbonDate)->startOfMonth()->startOfDay();
+            $endDate = (clone $carbonDate)->endOfMonth()->endOfDay();
+        }
 
         // Get all user IDs associated with the teamId
         $userIds = TeamHasUser::where('team_id', $teamId)
@@ -514,14 +537,22 @@ class TeamController extends Controller
                 ->pluck('user_id')
                 ->toArray();
 
-            $startDateInput = $request->input('startDate', '2020/01/01');
-            $endDateInput = $request->input('endDate', today()->endOfDay()->format('Y/m/d'));
-                
-            $startDate = Carbon::createFromFormat('Y/m/d', $startDateInput)->startOfDay();
-            $endDate = Carbon::createFromFormat('Y/m/d', $endDateInput)->endOfDay();
+            $monthYear = $request->input('selectedMonth');
+
+            if ($monthYear === 'select_all') {
+                $startDate = Carbon::createFromDate(2020, 1, 1)->startOfDay();
+                $endDate = Carbon::now()->endOfDay();
+            } else {
+                $carbonDate = Carbon::createFromFormat('F Y', $monthYear);
+
+                $startDate = (clone $carbonDate)->startOfMonth()->startOfDay();
+                $endDate = (clone $carbonDate)->endOfMonth()->endOfDay();
+            }
             
             $total_deposit = Transaction::whereIn('user_id', $teamUserIds)
-                ->whereBetween('approved_at', [$startDate, $endDate])
+                ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
+                    return $query->whereBetween('approved_at', [$startDate, $endDate]);
+                })
                 ->where(function ($query) {
                     $query->where('transaction_type', 'deposit')
                         ->orWhere('transaction_type', 'balance_in')
@@ -531,7 +562,9 @@ class TeamController extends Controller
                 ->sum('transaction_amount');
 
             $total_withdrawal = Transaction::whereIn('user_id', $teamUserIds)
-                ->whereBetween('approved_at', [$startDate, $endDate])
+                ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
+                    return $query->whereBetween('approved_at', [$startDate, $endDate]);
+                })
                 ->where(function ($query) {
                     $query->where('transaction_type', 'withdrawal')
                         ->orWhere('transaction_type', 'balance_out')
@@ -606,7 +639,9 @@ class TeamController extends Controller
                     ->toArray();
 
                 $total_deposit = Transaction::whereIn('user_id', $teamUserIds)
-                    ->whereBetween('approved_at', [$startDate, $endDate])
+                    ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
+                        return $query->whereBetween('approved_at', [$startDate, $endDate]);
+                    })
                     ->where(function ($query) {
                         $query->where('transaction_type', 'deposit')
                             ->orWhere('transaction_type', 'balance_in')
@@ -616,7 +651,9 @@ class TeamController extends Controller
                     ->sum('transaction_amount');
 
                 $total_withdrawal = Transaction::whereIn('user_id', $teamUserIds)
-                    ->whereBetween('approved_at', [$startDate, $endDate])
+                    ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
+                        return $query->whereBetween('approved_at', [$startDate, $endDate]);
+                    })
                     ->where(function ($query) {
                         $query->where('transaction_type', 'withdrawal')
                             ->orWhere('transaction_type', 'balance_out')

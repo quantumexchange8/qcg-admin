@@ -146,6 +146,7 @@ class GeneralController extends Controller
                 // Reformat the unique months to include "01" in front
                 return '01 ' . $month;
             })
+            ->reverse()
             ->values();
     
         // Add the current month at the end if it's not already in the list
@@ -175,6 +176,7 @@ class GeneralController extends Controller
                 // Reformat the unique months to include "01" in front
                 return '01 ' . $month;
             })
+            ->reverse()
             ->values();
 
         // Add the current month at the end if it's not already in the list
@@ -252,6 +254,7 @@ class GeneralController extends Controller
                 // Reformat the unique months to include "01" in front
                 return '01 ' . $month;
             })
+            ->reverse()
             ->values();
 
         if ($returnAsArray) {
@@ -328,7 +331,7 @@ class GeneralController extends Controller
         // Group the trade records by month and year using database functions
         $months = TradeBrokerHistory::selectRaw("DATE_FORMAT(trade_close_time, '%m/%Y') as value, DATE_FORMAT(trade_close_time, '%M %Y') as name")
             ->groupBy('value', 'name')
-            ->orderByRaw('MIN(trade_close_time) ASC') // Ensure the results are ordered by the most recent month
+            ->orderByRaw('MIN(trade_close_time) DESC') // Ensure the results are ordered by the most recent month
             ->get();
         
         // Add current month if it's not already in the list

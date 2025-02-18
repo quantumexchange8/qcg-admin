@@ -313,8 +313,17 @@ class TradingAccountController extends Controller
     public function getAccountReport(Request $request)
     {
         $meta_login = $request->query('meta_login');
-        $startDate = $request->query('startDate');
-        $endDate = $request->query('endDate');
+        $monthYear = $request->input('selectedMonth');
+
+        if ($monthYear === 'select_all') {
+            $startDate = Carbon::createFromDate(2020, 1, 1)->startOfDay();
+            $endDate = Carbon::now()->endOfDay();
+        } else {
+            $carbonDate = Carbon::createFromFormat('F Y', $monthYear);
+
+            $startDate = (clone $carbonDate)->startOfMonth()->startOfDay();
+            $endDate = (clone $carbonDate)->endOfMonth()->endOfDay();
+        }
         $type = $request->query('type');
 
         $query = Transaction::query()->where('status', 'successful');
@@ -326,12 +335,7 @@ class TradingAccountController extends Controller
             });
         }
 
-        if ($startDate && $endDate) {
-            $start_date = Carbon::createFromFormat('Y-m-d', $startDate)->startOfDay();
-            $end_date = Carbon::createFromFormat('Y-m-d', $endDate)->endOfDay();
-
-            $query->whereBetween('created_at', [$start_date, $end_date]);
-        }
+        $query->whereBetween('created_at', [$startDate, $endDate]);
 
         // Apply type filter
         if ($type && $type !== 'all') {

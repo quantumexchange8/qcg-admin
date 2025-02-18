@@ -21,7 +21,6 @@ const props = defineProps({
 });
 
 const transactions = ref(null);
-const selectedDate = ref();
 const selectedOption = ref('all');
 const loading = ref(false);
 const visible = ref(false);
@@ -35,16 +34,48 @@ const transferOptions = [
   { name: wTrans('public.transfer'), value: 'transfer' }
 ];
 
-const getAccountReport = async (filterDate = null, selectedOption = null) => {
+const months = ref([]);
+const selectedMonth = ref('');
+
+const getCurrentMonthYear = () => {
+    const date = new Date();
+    return `01 ${dayjs(date).format('MMMM YYYY')}`;
+};
+
+// Fetch settlement months from API
+const getTransactionMonths = async () => {
+    try {
+        const response = await axios.get('/getTransactionMonths');
+        months.value = ['select_all', ...response.data.months];
+
+        if (months.value.length) {
+            selectedMonth.value = [getCurrentMonthYear()];
+        }
+    } catch (error) {
+        console.error('Error transaction months:', error);
+    }
+};
+
+getTransactionMonths()
+
+// Watchers for selectedMonths
+watch(selectedMonth, (newMonths) => {
+    getAccountReport(newMonths, selectedOption.value);
+});
+
+const getAccountReport = async (selectedMonth = '', selectedOption = null) => {
     if (loading.value) return;
     loading.value = true;
 
     try {
         let url = `/member/getAccountReport?meta_login=${props.account.meta_login}`;
 
-        if (filterDate) {
-            const [startDate, endDate] = filterDate;
-            url += `&startDate=${dayjs(startDate).format('YYYY-MM-DD')}&endDate=${dayjs(endDate).format('YYYY-MM-DD')}`;
+        if (selectedMonth) {
+            const formattedMonth = selectedMonth === 'select_all' 
+                ? 'select_all' 
+                : dayjs(selectedMonth, 'DD MMMM YYYY').format('MMMM YYYY');
+
+            url += `&selectedMonth=${formattedMonth}`;
         }
 
         if (selectedOption) {
@@ -61,39 +92,9 @@ const getAccountReport = async (filterDate = null, selectedOption = null) => {
     }
 };
 
-const today = dayjs();
-const ninetyDaysAgo = today.subtract(90, 'day');
-
-selectedDate.value = [ninetyDaysAgo.toDate(), today.toDate()];
-
-getAccountReport(selectedDate.value, selectedOption.value);
-
-
-watch(selectedDate, (newDateRange) => {
-    if (Array.isArray(newDateRange)) {
-        const [startDate, endDate] = newDateRange;
-
-        if (startDate && endDate) {
-            getAccountReport([startDate, endDate], selectedOption.value);
-        } else if (startDate || endDate) {
-            getAccountReport([startDate || endDate, endDate || startDate], selectedOption.value);
-        } else {
-            getAccountReport(null, selectedOption.value);
-        }
-    } else if (newDateRange === null) {
-        getAccountReport(null, selectedOption.value);
-    } else {
-        console.warn('Invalid date range format:', newDateRange);
-    }
-});
-
 watch(selectedOption, (newOption) => {
-    getAccountReport(selectedDate.value, newOption);
+    getAccountReport(selectedMonth.value, newOption);
 });
-
-const clearDate = () => {
-    selectedDate.value = null;
-};
 
 const openDialog = (rowData) => {
     visible.value = true;
@@ -141,24 +142,36 @@ function copyToClipboard(text) {
         >
             <template #header>
                 <div class="grid grid-cols-1 md:grid-cols-2 w-full gap-3 mb-8">
-                    <div class="relative w-full">
-                        <Datepicker
-                            v-model="selectedDate"
-                            selectionMode="range"
-                            dateFormat="yy/mm/dd"
-                            showIcon
-                            iconDisplay="input"
-                            :placeholder="$t('public.select_date')"
-                            class="w-full font-normal"
-                        />
-                        <div
-                            v-if="selectedDate && selectedDate.length > 0"
-                            class="absolute top-[11px] right-3 flex justify-center items-center text-gray-400 select-none cursor-pointer bg-white w-6 h-6 "
-                            @click="clearDate"
-                        >
-                            <IconX size="20" />
-                        </div>
-                    </div>
+                    <Select 
+                        v-model="selectedMonth" 
+                        :options="months" 
+                        :placeholder="$t('public.month_placeholder')"
+                        class="w-full font-normal truncate" scroll-height="236px" 
+                    >
+                        <template #option="{option}">
+                            <span class="text-sm">
+                                <template v-if="option === 'select_all'">
+                                    {{ $t('public.select_all') }}
+                                </template>
+                                <template v-else>
+                                    {{ $t(`public.${option.split(' ')[1]}`) }} {{ option.split(' ')[2] }}
+                                </template>
+                            </span>
+                        </template>
+                        <template #value>
+                            <span v-if="selectedMonth">
+                                <template v-if="selectedMonth === 'select_all'">
+                                    {{ $t('public.select_all') }}
+                                </template>
+                                <template v-else>
+                                    {{ $t(`public.${dayjs(selectedMonth).format('MMMM')}`) }} {{ dayjs(selectedMonth).format('YYYY') }}
+                                </template>
+                            </span>
+                            <span v-else>
+                                {{ $t('public.month_placeholder') }}
+                            </span>
+                        </template>
+                    </Select>
                     <Select
                         v-model="selectedOption"
                         :options="transferOptions"

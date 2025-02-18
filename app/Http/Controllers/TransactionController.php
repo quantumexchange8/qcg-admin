@@ -172,6 +172,7 @@ class TransactionController extends Controller
                 $result['team_name'] = $transaction->user->teamHasUser->team->name ?? null;
                 $result['team_color'] = $transaction->user->teamHasUser->team->color ?? null;
                 $result['to_meta_login'] = $transaction->to_meta_login;
+                $result['approved_at'] = $transaction->approved_at;
 
                 $previousCreditBonus = Transaction::where('to_meta_login', $transaction->to_meta_login)
                     ->where('transaction_type', 'credit_bonus')
