@@ -89,7 +89,7 @@ class TransactionController extends Controller
         ];
 
         $query = Transaction::with('user.teamHasUser.team', 'from_wallet', 'to_wallet')
-        ->whereBetween('created_at', [$startDate, $endDate]);;
+        ->whereBetween('created_at', [$startDate, $endDate]);
 
         // Apply filtering for selected teams
         if (!empty($selectedTeamsArray)) {
@@ -222,25 +222,24 @@ class TransactionController extends Controller
 
     public function getRebatePayoutData(Request $request)
     {
-        // Retrieve query parameters
-        $startDate = $request->query('startDate');
-        $endDate = $request->query('endDate');
+        $monthYear = $request->input('selectedMonth');
+
+        if ($monthYear === 'select_all') {
+            $startDate = Carbon::createFromDate(2020, 1, 1)->startOfDay();
+            $endDate = Carbon::now()->endOfDay();
+        } else {
+            $carbonDate = Carbon::createFromFormat('F Y', $monthYear);
+
+            $startDate = (clone $carbonDate)->startOfMonth()->startOfDay();
+            $endDate = (clone $carbonDate)->endOfMonth()->endOfDay();
+        }
 
         // Fetch all symbol groups from the database
         $allSymbolGroups = SymbolGroup::pluck('display', 'id')->toArray();
 
         // Initialize query for TradeRebateSummary
-        $query = TradeRebateSummary::with('upline_user', 'account_type');
-
-        // Apply date filter based on availability of startDate and/or endDate
-        if ($startDate && $endDate) {
-            // Both startDate and endDate are provided
-            $query->whereDate('execute_at', '>=', $startDate)
-                ->whereDate('execute_at', '<=', $endDate);
-        } else {
-            // Apply default start date if no endDate is provided
-            $query->whereDate('execute_at', '>=', '2020-01-01');
-        }
+        $query = TradeRebateSummary::with('upline_user', 'account_type')
+                ->whereBetween('execute_at', [$startDate, $endDate]);
 
         // Fetch and map summarized data from TradeRebateSummary
         $data = $query->get()->map(function ($item) {
@@ -320,37 +319,22 @@ class TransactionController extends Controller
 
     public function getIncentivePayoutData(Request $request)
     {
-        // Get selectedMonths as a comma-separated string
-        $selectedMonths = $request->query('selectedMonths');
-    
-        // Convert the comma-separated string to an array
-        $selectedMonthsArray = !empty($selectedMonths) ? explode(',', $selectedMonths) : [];
-    
-        if (empty($selectedMonthsArray)) {
-            // If selectedMonths is empty, return an empty result
-            return response()->json([
-                'transactions' => [],
-                'totalAmount' => 0,
-            ]);
+        $monthYear = $request->input('selectedMonth');
+
+        if ($monthYear === 'select_all') {
+            $startDate = Carbon::createFromDate(2020, 1, 1)->startOfDay();
+            $endDate = Carbon::now()->endOfDay();
+        } else {
+            $carbonDate = Carbon::createFromFormat('F Y', $monthYear);
+
+            $startDate = (clone $carbonDate)->startOfMonth()->startOfDay();
+            $endDate = (clone $carbonDate)->endOfMonth()->endOfDay();
         }
     
         // Start the query for LeaderboardBonus with related models
-        $query = LeaderboardBonus::with('leaderboard_profile', 'user');
-    
-        // Apply filtering for each selected month-year pair
-        if (!empty($selectedMonthsArray)) {
-            $query->where(function ($q) use ($selectedMonthsArray) {
-                foreach ($selectedMonthsArray as $range) {
-                    [$month, $year] = explode('/', $range);
-                    $startDate = "$year-$month-01";
-                    $endDate = date("Y-m-t 23:59:59", strtotime($startDate)); // Last day of the month
-    
-                    // Add a condition to match transactions for this specific month-year
-                    $q->orWhereBetween('created_at', [$startDate, $endDate]);
-                }
-            });
-        }
-    
+        $query = LeaderboardBonus::with('leaderboard_profile', 'user')
+                ->whereBetween('created_at', [$startDate, $endDate]);
+
         // Fetch and map the data to a cleaner structure
         $data = $query->get()->map(function ($transaction) {
             return [
@@ -379,35 +363,24 @@ class TransactionController extends Controller
 
     public function getAdjustmentHistoryData(Request $request)
     {
-        // Get selectedMonths as a comma-separated string
-        $selectedMonths = $request->query('selectedMonths');
-        
-        // Convert the comma-separated string to an array
-        $selectedMonthsArray = !empty($selectedMonths) ? explode(',', $selectedMonths) : [];
-        
-        // If no months are selected, return an empty result
-        if (empty($selectedMonthsArray)) {
-            return response()->json([
-                'transactions' => [],
-                'totalAmount' => 0,
-            ]);
+        $monthYear = $request->input('selectedMonth');
+
+        if ($monthYear === 'select_all') {
+            $startDate = Carbon::createFromDate(2020, 1, 1)->startOfDay();
+            $endDate = Carbon::now()->endOfDay();
+        } else {
+            $carbonDate = Carbon::createFromFormat('F Y', $monthYear);
+
+            $startDate = (clone $carbonDate)->startOfMonth()->startOfDay();
+            $endDate = (clone $carbonDate)->endOfMonth()->endOfDay();
         }
-    
+
         // Initialize the query
         $query = Transaction::whereIn('transaction_type', [
                 'rebate_in', 'rebate_out', 'balance_in', 'balance_out', 'credit_in', 'credit_out',
             ])
-            ->where('status', 'successful');
-        
-        // Apply filtering for each selected month-year pair
-        $query->where(function ($q) use ($selectedMonthsArray) {
-            foreach ($selectedMonthsArray as $range) {
-                [$month, $year] = explode('/', $range);
-                $startDate = "$year-$month-01";
-                $endDate = date("Y-m-t 23:59:59", strtotime($startDate)); // Last day of the month
-                $q->orWhereBetween('created_at', [$startDate, $endDate]);
-            }
-        });
+            ->where('status', 'successful')
+            ->whereBetween('created_at', [$startDate, $endDate]);
         
         // Fetch transactions
         $adjustment_history = $query->latest()->get();
