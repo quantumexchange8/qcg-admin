@@ -9,6 +9,8 @@ use App\Models\LeaderboardBonus;
 use App\Models\SymbolGroup;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use App\Models\TradeRebateSummary;
 
 class TransactionController extends Controller
@@ -229,92 +231,86 @@ class TransactionController extends Controller
             $endDate = Carbon::now()->endOfDay();
         } else {
             $carbonDate = Carbon::createFromFormat('F Y', $monthYear);
-
             $startDate = (clone $carbonDate)->startOfMonth()->startOfDay();
             $endDate = (clone $carbonDate)->endOfMonth()->endOfDay();
         }
 
-        // Fetch all symbol groups from the database
         $allSymbolGroups = SymbolGroup::pluck('display', 'id')->toArray();
 
-        // Initialize query for TradeRebateSummary
-        $query = TradeRebateSummary::with('upline_user', 'account_type')
-                ->whereBetween('execute_at', [$startDate, $endDate]);
+        $query = TradeRebateSummary::select([
+                'upline_user_id',
+                'symbol_group_id',
+                'execute_at',
+                'volume',
+                'net_rebate',
+                'rebate'
+            ])
+            ->with([
+                'upline_user:id,first_name,email', 
+                'account_type:id,slug'
+            ])
+            ->whereBetween('execute_at', [$startDate, $endDate])
+            ->orderByDesc('execute_at'); 
 
-        // Fetch and map summarized data from TradeRebateSummary
-        $data = $query->get()->map(function ($item) {
-            return [
-                'user_id' => $item->upline_user_id,
-                'name' => $item->upline_user->first_name,
-                'email' => $item->upline_user->email,
-                'account_type' => $item->account_type->slug ?? null,
-                'execute_at' => $item->execute_at,
-                'symbol_group_id' => $item->symbol_group_id,
-                'volume' => $item->volume,
-                'net_rebate' => $item->net_rebate,
-                'rebate' => $item->rebate,
-            ];
+        $data = collect();
+        $query->chunk(500, function ($chunk) use (&$data) {
+            foreach ($chunk as $item) {
+                $data->push([
+                    'user_id' => $item->upline_user_id,
+                    'name' => $item->upline_user->first_name,
+                    'email' => $item->upline_user->email,
+                    'account_type' => $item->account_type->slug ?? null,
+                    'execute_at' => $item->execute_at,
+                    'symbol_group_id' => $item->symbol_group_id,
+                    'volume' => $item->volume,
+                    'net_rebate' => $item->net_rebate,
+                    'rebate' => $item->rebate,
+                ]);
+            }
         });
 
-        // Generate summary and details
-        $summary = $data->groupBy(function ($item) {
-            return $item['execute_at'] . '-' . $item['user_id'];
-        })->map(function ($group) use ($allSymbolGroups) {
-            $group = collect($group);
+        $summary = $data->groupBy(fn($item) => $item['execute_at'] . '-' . $item['user_id'])
+            ->map(function ($group) use ($allSymbolGroups) {
+                $group = collect($group);
 
-            // Generate detailed data for this summary item
-            $symbolGroupDetails = $group->groupBy('symbol_group_id')->map(function ($symbolGroupItems) use ($allSymbolGroups) {
-                $symbolGroupId = $symbolGroupItems->first()['symbol_group_id'];
+                $symbolGroupDetails = $group->groupBy('symbol_group_id')->map(function ($symbolGroupItems) use ($allSymbolGroups) {
+                    return [
+                        'id' => $symbolGroupItems->first()['symbol_group_id'],
+                        'name' => $allSymbolGroups[$symbolGroupItems->first()['symbol_group_id']] ?? 'Unknown',
+                        'volume' => $symbolGroupItems->sum('volume'),
+                        'rebate' => $symbolGroupItems->sum('rebate'),
+                    ];
+                })->values();
+
+                foreach ($allSymbolGroups as $symbolGroupId => $symbolGroupName) {
+                    if (!$symbolGroupDetails->pluck('id')->contains($symbolGroupId)) {
+                        $symbolGroupDetails->push([
+                            'id' => $symbolGroupId,
+                            'name' => $symbolGroupName,
+                            'volume' => 0,
+                            'net_rebate' => 0,
+                            'rebate' => 0,
+                        ]);
+                    }
+                }
 
                 return [
-                    'id' => $symbolGroupId,
-                    'name' => $allSymbolGroups[$symbolGroupId] ?? 'Unknown',
-                    'volume' => $symbolGroupItems->sum('volume'),
-                    'net_rebate' => $symbolGroupItems->first()['net_rebate'] ?? 0,
-                    'rebate' => $symbolGroupItems->sum('rebate'),
+                    'user_id' => $group->first()['user_id'],
+                    'name' => $group->first()['name'],
+                    'email' => $group->first()['email'],
+                    'account_type' => $group->first()['account_type'],
+                    'execute_at' => $group->first()['execute_at'],
+                    'volume' => $group->sum('volume'),
+                    'rebate' => $group->sum('rebate'),
+                    'details' => $symbolGroupDetails->sortBy('id')->values(),
                 ];
             })->values();
 
-            // Add missing symbol groups with volume, net_rebate, and rebate as 0
-            foreach ($allSymbolGroups as $symbolGroupId => $symbolGroupName) {
-                if (!$symbolGroupDetails->pluck('id')->contains($symbolGroupId)) {
-                    $symbolGroupDetails->push([
-                        'id' => $symbolGroupId,
-                        'name' => $symbolGroupName,
-                        'volume' => 0,
-                        'net_rebate' => 0,
-                        'rebate' => 0,
-                    ]);
-                }
-            }
-
-            // Sort the symbol group details array to match the order of symbol groups
-            $symbolGroupDetails = $symbolGroupDetails->sortBy('id')->values();
-
-            // Return summary item with details included
-            return [
-                'user_id' => $group->first()['user_id'],
-                'name' => $group->first()['name'],
-                'email' => $group->first()['email'],
-                'account_type' => $group->first()['account_type'],
-                'execute_at' => $group->first()['execute_at'],
-                'volume' => $group->sum('volume'),
-                'rebate' => $group->sum('rebate'),
-                'details' => $symbolGroupDetails,
-            ];
-        })->values();
-
-        // Sort summary by execute_at in descending order to get the latest dates first
-        $summary = $summary->sortByDesc('execute_at');
-
-        $totalAmount = 0;
-
-        $totalAmount = $summary->sum('rebate');
-
         return response()->json([
-            'transactions' => $summary->values(),
-            'totalAmount' => $totalAmount,
+            'transactions' => $summary,
+            'totalAmount' => $summary->sum('rebate'),
         ]);
+
     }
 
     public function getIncentivePayoutData(Request $request)

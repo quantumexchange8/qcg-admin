@@ -50,6 +50,7 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
     Route::get('/getTeams', [GeneralController::class, 'getTeams'])->name('getTeams');
     Route::get('/getIncentiveMonths', [GeneralController::class, 'getIncentiveMonths'])->name('getIncentiveMonths');
     Route::get('/getTradeMonths', [GeneralController::class, 'getTradeMonths'])->name('getTradeMonths');
+    Route::get('/getRebateMonths', [GeneralController::class, 'getRebateMonths'])->name('getRebateMonths');
     Route::get('/getVisibleToOptions', [GeneralController::class, 'getVisibleToOptions'])->name('getVisibleToOptions');
 
     /**

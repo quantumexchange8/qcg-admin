@@ -56,20 +56,20 @@ const getCurrentMonthYear = () => {
 };
 
 // Fetch settlement months from API
-const getTradeMonths = async () => {
+const getRebateMonths = async () => {
     try {
-        const response = await axios.get('/getTradeMonths');
+        const response = await axios.get('/getRebateMonths');
         months.value = ['select_all', ...response.data.months];
 
         if (months.value.length) {
             selectedMonth.value = [getCurrentMonthYear()];
         }
     } catch (error) {
-        console.error('Error trade months:', error);
+        console.error('Error rebate months:', error);
     }
 };
 
-getTradeMonths()
+getRebateMonths()
 const getResults = async (selectedMonth = '') => {
     loading.value = true;
 
