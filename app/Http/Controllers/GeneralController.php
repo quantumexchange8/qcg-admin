@@ -328,28 +328,30 @@ class GeneralController extends Controller
 
     public function getTradeMonths($returnAsArray = false)
     {
-        // Group the trade records by month and year using database functions
-        $months = TradeBrokerHistory::selectRaw("DATE_FORMAT(trade_close_time, '%m/%Y') as value, DATE_FORMAT(trade_close_time, '%M %Y') as name")
-            ->groupBy('value', 'name')
-            ->orderByRaw('MIN(trade_close_time) DESC') // Ensure the results are ordered by the most recent month
-            ->get();
-        
-        // Add current month if it's not already in the list
-        $currentMonth = Carbon::now()->format('m/Y');
-        $currentMonthName = Carbon::now()->format('F Y');
-    
-        $monthsArray = $months->toArray();
-        if (!in_array(['value' => $currentMonth, 'name' => $currentMonthName], $monthsArray)) {
-            $monthsArray[] = ['value' => $currentMonth, 'name' => $currentMonthName];
+        $firstTransaction = TradeRebateSummary::oldest()
+        ->value('execute_at'); // Get only the first transaction date
+
+        $months = collect();
+
+        if ($firstTransaction) {
+            $firstMonth = Carbon::parse($firstTransaction)->startOfMonth();
+            $currentMonth = Carbon::now()->startOfMonth();
+
+            // Generate all months from first transaction to current month
+            while ($firstMonth <= $currentMonth) {
+                $months->push('01 ' . $firstMonth->format('F Y'));
+                $firstMonth->addMonth();
+            }
+
+            $months = $months->reverse()->values();
         }
-    
-        // Return the result as either an array or a JSON response
+
         if ($returnAsArray) {
-            return $monthsArray;
+            return $months;
         }
-    
+
         return response()->json([
-            'months' => $monthsArray,
+            'months' => $months,
         ]);
     }
     
