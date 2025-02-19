@@ -57,13 +57,22 @@ class TransactionController extends Controller
     public function getTransactionData(Request $request)
     {
         $type = $request->query('type');
-        $selectedMonths = $request->query('selectedMonths'); // Get selectedMonths as a comma-separated string
         $selectedTeams = $request->query('selectedTeams'); // Get selectedTeams as a comma-separated string
 
         // Convert the comma-separated string to an array
-        $selectedMonthsArray = !empty($selectedMonths) ? explode(',', $selectedMonths) : [];
         $selectedTeamsArray = !empty($selectedTeams) ? explode(',', $selectedTeams) : [];
 
+        $monthYear = $request->input('selectedMonth');
+
+        if ($monthYear === 'select_all') {
+            $startDate = Carbon::createFromDate(2020, 1, 1)->startOfDay();
+            $endDate = Carbon::now()->endOfDay();
+        } else {
+            $carbonDate = Carbon::createFromFormat('F Y', $monthYear);
+
+            $startDate = (clone $carbonDate)->startOfMonth()->startOfDay();
+            $endDate = (clone $carbonDate)->endOfMonth()->endOfDay();
+        }
         // Define common fields
         $commonFields = [
             'id',
@@ -79,28 +88,8 @@ class TransactionController extends Controller
             'created_at',
         ];
 
-        if (empty($selectedMonthsArray)) {
-            // If selectedMonths is empty, return an empty result
-            return response()->json([
-                'transactions' => [],
-            ]);
-        }
-
-        $query = Transaction::with('user.teamHasUser.team', 'from_wallet', 'to_wallet');
-
-        // Apply filtering for each selected month-year pair
-        if (!empty($selectedMonthsArray)) {
-            $query->where(function ($q) use ($selectedMonthsArray) {
-                foreach ($selectedMonthsArray as $range) {
-                    [$month, $year] = explode('/', $range);
-                    $startDate = "$year-$month-01";
-                    $endDate = date("Y-m-t 23:59:59", strtotime($startDate)); // Last day of the month
-
-                    // Add a condition to match transactions for this specific month-year
-                    $q->orWhereBetween('created_at', [$startDate, $endDate]);
-                }
-            });
-        }
+        $query = Transaction::with('user.teamHasUser.team', 'from_wallet', 'to_wallet')
+        ->whereBetween('created_at', [$startDate, $endDate]);;
 
         // Apply filtering for selected teams
         if (!empty($selectedTeamsArray)) {

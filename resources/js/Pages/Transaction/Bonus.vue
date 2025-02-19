@@ -34,10 +34,8 @@ const dt = ref(null);
 const transactions = ref();
 const totalAmount = ref();
 const type = ref('credit_bonus');
-const months = ref([]);
 const selectedTeams = ref([]);
 const teams = ref(props.teams);
-const selectedMonths = ref([]);
 const filteredValue = ref();
 
 // Define the status options
@@ -46,6 +44,9 @@ const statusOption = [
     { name: wTrans('public.successful'), value: 'successful' },
     { name: wTrans('public.rejected'), value: 'rejected' }
 ];
+
+const months = ref([]);
+const selectedMonth = ref('');
 
 const getCurrentMonthYear = () => {
     const date = new Date();
@@ -56,10 +57,10 @@ const getCurrentMonthYear = () => {
 const getTransactionMonths = async () => {
     try {
         const response = await axios.get('/getTransactionMonths');
-        months.value = response.data.months;
+        months.value = ['select_all', ...response.data.months];
 
         if (months.value.length) {
-            selectedMonths.value = [getCurrentMonthYear()];
+            selectedMonth.value = [getCurrentMonthYear()];
         }
     } catch (error) {
         console.error('Error transaction months:', error);
@@ -68,17 +69,19 @@ const getTransactionMonths = async () => {
 
 getTransactionMonths()
 
-const getResults = async (selectedMonths = [], selectedTeams = []) => {
+const getResults = async (selectedMonth = '', selectedTeams = []) => {
     loading.value = true;
 
     try {
         // Create the base URL with the type parameter directly in the URL
         let url = `/transaction/getTransactionData?type=${type.value}`;
 
-        // Convert the array to a comma-separated string if not empty
-        if (selectedMonths && selectedMonths.length > 0) {
-            const selectedMonthString = selectedMonths.map(month => dayjs(month, '01 MMMM YYYY').format('MM/YYYY')).join(',');
-            url += `&selectedMonths=${selectedMonthString}`;
+        if (selectedMonth) {
+            const formattedMonth = selectedMonth === 'select_all' 
+                ? 'select_all' 
+                : dayjs(selectedMonth, 'DD MMMM YYYY').format('MMMM YYYY');
+
+            url += `&selectedMonth=${formattedMonth}`;
         }
 
         if (selectedTeams && selectedTeams.length > 0) {
@@ -99,13 +102,13 @@ const getResults = async (selectedMonths = [], selectedTeams = []) => {
 };
 
 // Watchers for selectedMonths and selectedTeams
-watch(selectedMonths, (newMonths) => {
-    getResults(newMonths, selectedTeams.value);
+watch(selectedMonth, (newMonth) => {
+    getResults(newMonth, selectedTeams.value);
     // console.log(newMonths)
 });
 
 watch(selectedTeams, (newTeams) => {
-    getResults(selectedMonths.value, newTeams);
+    getResults(selectedMonth.value, newTeams);
     // console.log(newTeams)
 });
 
@@ -162,7 +165,7 @@ const clearFilter = () => {
         status: { value: 'successful', matchMode: FilterMatchMode.EQUALS },
         team_id: { value: null, matchMode: FilterMatchMode.CONTAINS },
     };
-    selectedMonths.value = [getCurrentMonthYear()];
+    selectedMonth.value = [getCurrentMonthYear()];
     selectedTeams.value = [];
     filteredValue.value = null; 
 };
@@ -321,34 +324,36 @@ const copyToClipboard = (addressType, text) => {
                 <template #header>
                     <div class="flex flex-col justify-between items-center pb-5 gap-3 self-stretch md:flex-row md:pb-6">
                         <div class="grid grid-cols-1 md:grid-cols-3 items-center gap-3 self-stretch md:gap-5">
-                            <MultiSelect
-                                v-model="selectedMonths"
-                                :options="months"
+                            <Select 
+                                v-model="selectedMonth" 
+                                :options="months" 
                                 :placeholder="$t('public.month_placeholder')"
-                                :maxSelectedLabels="1"
-                                :selectedItemsLabel="`${selectedMonths.length} ${$t('public.months_selected')}`"
-                                class="w-full md:max-w-60 h-12 font-normal"
+                                class="w-full font-normal truncate" scroll-height="236px" 
                             >
-                                <template #header>
-                                    <div class="absolute flex left-10 top-2">
-                                        {{ $t('public.select_all') }}
-                                    </div>
-                                </template>
                                 <template #option="{option}">
-                                    <span class="text-sm">{{ option.replace(/^\d+\s/, '') }}</span>
+                                    <span class="text-sm">
+                                        <template v-if="option === 'select_all'">
+                                            {{ $t('public.select_all') }}
+                                        </template>
+                                        <template v-else>
+                                            {{ $t(`public.${option.split(' ')[1]}`) }} {{ option.split(' ')[2] }}
+                                        </template>
+                                    </span>
                                 </template>
                                 <template #value>
-                                    <span v-if="selectedMonths.length === 1">
-                                        {{ dayjs(selectedMonths[0]).format('MMMM YYYY') }}
-                                    </span>
-                                    <span v-else-if="selectedMonths.length > 1">
-                                        {{ selectedMonths.length }} {{ $t('public.months_selected') }}
+                                    <span v-if="selectedMonth">
+                                        <template v-if="selectedMonth === 'select_all'">
+                                            {{ $t('public.select_all') }}
+                                        </template>
+                                        <template v-else>
+                                            {{ $t(`public.${dayjs(selectedMonth).format('MMMM')}`) }} {{ dayjs(selectedMonth).format('YYYY') }}
+                                        </template>
                                     </span>
                                     <span v-else>
                                         {{ $t('public.month_placeholder') }}
                                     </span>
                                 </template>
-                            </MultiSelect>
+                            </Select>
                             <Select
                                 v-model="filters['status'].value"
                                 :options="statusOption"

@@ -18,7 +18,6 @@ import { transactionFormat, generalFormat } from "@/Composables/index.js";
 import dayjs from "dayjs";
 import { trans, wTrans } from "laravel-vue-i18n";
 import StatusBadge from '@/Components/StatusBadge.vue';
-import MultiSelect from "primevue/multiselect";
 import Tag from 'primevue/tag';
 
 const { formatAmount } = transactionFormat();
@@ -29,8 +28,6 @@ const loading = ref(false);
 const dt = ref(null);
 const transactions = ref();
 const totalAmount = ref();
-const months = ref([]);
-const selectedMonths = ref([]);
 const filteredValue = ref();
 
 // Define the status options
@@ -41,6 +38,9 @@ const statusOption = [
     { name: wTrans('public.failed'), value: 'failed' }
 ];
 
+const months = ref([]);
+const selectedMonth = ref('');
+
 const getCurrentMonthYear = () => {
     const date = new Date();
     return `01 ${dayjs(date).format('MMMM YYYY')}`;
@@ -50,10 +50,10 @@ const getCurrentMonthYear = () => {
 const getTransactionMonths = async () => {
     try {
         const response = await axios.get('/getTransactionMonths');
-        months.value = response.data.months;
+        months.value = ['select_all', ...response.data.months];
 
         if (months.value.length) {
-            selectedMonths.value = [getCurrentMonthYear()];
+            selectedMonth.value = [getCurrentMonthYear()];
         }
     } catch (error) {
         console.error('Error transaction months:', error);
@@ -62,17 +62,19 @@ const getTransactionMonths = async () => {
 
 getTransactionMonths()
 
-const getResults = async (selectedMonths = []) => {
+const getResults = async (selectedMonth = '') => {
     loading.value = true;
 
     try {
         // Create the base URL with the type parameter directly in the URL
         let url = `/transaction/getAdjustmentHistoryData`;
 
-        // Convert the array to a comma-separated string if not empty
-        if (selectedMonths && selectedMonths.length > 0) {
-            const selectedMonthString = selectedMonths.map(month => dayjs(month, '01 MMMM YYYY').format('MM/YYYY')).join(',');
-            url += `?selectedMonths=${selectedMonthString}`;
+        if (selectedMonth) {
+            const formattedMonth = selectedMonth === 'select_all' 
+                ? 'select_all' 
+                : dayjs(selectedMonth, 'DD MMMM YYYY').format('MMMM YYYY');
+
+            url += `?selectedMonth=${formattedMonth}`;
         }
 
         // Make the API call with the constructed URL
@@ -87,8 +89,8 @@ const getResults = async (selectedMonths = []) => {
     }
 };
 
-watch(selectedMonths, (newMonths) => {
-    getResults(newMonths);
+watch(selectedMonth, (newMonth) => {
+    getResults(newMonth);
     // console.log(newMonths)
 });
 
@@ -144,7 +146,7 @@ const clearFilter = () => {
         email: { value: null, matchMode: FilterMatchMode.CONTAINS },
         status: { value: 'successful', matchMode: FilterMatchMode.EQUALS },
     };
-    selectedMonths.value = [getCurrentMonthYear()];
+    selectedMonth.value = [getCurrentMonthYear()];
     filteredValue.value = null; 
 };
 
@@ -303,34 +305,36 @@ const copyToClipboard = (addressType, text) => {
                 <template #header>
                     <div class="flex flex-col justify-between items-center pb-5 gap-3 self-stretch md:flex-row md:pb-6">
                         <div class="flex flex-col items-center gap-3 self-stretch md:flex-row md:gap-5">
-                            <MultiSelect
-                                v-model="selectedMonths"
-                                :options="months"
+                            <Select 
+                                v-model="selectedMonth" 
+                                :options="months" 
                                 :placeholder="$t('public.month_placeholder')"
-                                :maxSelectedLabels="1"
-                                :selectedItemsLabel="`${selectedMonths.length} ${$t('public.months_selected')}`"
-                                class="w-full md:w-60 h-12 font-normal"
+                                class="w-full font-normal truncate" scroll-height="236px" 
                             >
-                                <template #header>
-                                    <div class="absolute flex left-10 top-2">
-                                        {{ $t('public.select_all') }}
-                                    </div>
-                                </template>
                                 <template #option="{option}">
-                                    <span class="text-sm">{{ option.replace(/^\d+\s/, '') }}</span>
+                                    <span class="text-sm">
+                                        <template v-if="option === 'select_all'">
+                                            {{ $t('public.select_all') }}
+                                        </template>
+                                        <template v-else>
+                                            {{ $t(`public.${option.split(' ')[1]}`) }} {{ option.split(' ')[2] }}
+                                        </template>
+                                    </span>
                                 </template>
                                 <template #value>
-                                    <span v-if="selectedMonths.length === 1">
-                                        {{ dayjs(selectedMonths[0]).format('MMMM YYYY') }}
-                                    </span>
-                                    <span v-else-if="selectedMonths.length > 1">
-                                        {{ selectedMonths.length }} {{ $t('public.months_selected') }}
+                                    <span v-if="selectedMonth">
+                                        <template v-if="selectedMonth === 'select_all'">
+                                            {{ $t('public.select_all') }}
+                                        </template>
+                                        <template v-else>
+                                            {{ $t(`public.${dayjs(selectedMonth).format('MMMM')}`) }} {{ dayjs(selectedMonth).format('YYYY') }}
+                                        </template>
                                     </span>
                                     <span v-else>
                                         {{ $t('public.month_placeholder') }}
                                     </span>
                                 </template>
-                            </MultiSelect>
+                            </Select>
                             <Select
                                 v-model="filters['status'].value"
                                 :options="statusOption"

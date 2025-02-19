@@ -17,8 +17,6 @@ import Empty from "@/Components/Empty.vue";
 import { transactionFormat } from "@/Composables/index.js";
 import dayjs from "dayjs";
 import { trans, wTrans } from "laravel-vue-i18n";
-import StatusBadge from '@/Components/StatusBadge.vue';
-import DatePicker from 'primevue/datepicker';
 
 const { formatAmount } = transactionFormat();
 
@@ -49,30 +47,41 @@ const getAccountTypes = async () => {
 
 getAccountTypes()
 
-// Get current date
-const today = new Date();
+const months = ref([]);
+const selectedMonth = ref('');
 
-// Define minDate and maxDate
-const minDate = ref(new Date(today.getFullYear(), today.getMonth(), 1));
-const maxDate = ref(today);
-
-// Reactive variable for selected date range
-const selectedDate = ref([maxDate.value, maxDate.value]);
-
-// Clear date selection
-const clearDate = () => {
-    selectedDate.value = null;
+const getCurrentMonthYear = () => {
+    const date = new Date();
+    return `01 ${dayjs(date).format('MMMM YYYY')}`;
 };
 
-const getResults = async (dateRanges = null) => {
+// Fetch settlement months from API
+const getTradeMonths = async () => {
+    try {
+        const response = await axios.get('/getTradeMonths');
+        months.value = ['select_all', ...response.data.months];
+
+        if (months.value.length) {
+            selectedMonth.value = [getCurrentMonthYear()];
+        }
+    } catch (error) {
+        console.error('Error trade months:', error);
+    }
+};
+
+getTradeMonths()
+const getResults = async (selectedMonth = '') => {
     loading.value = true;
 
     try {
         let url = `/transaction/getRebatePayoutData`;
 
-        if (dateRanges) {
-            const [startDate, endDate] = dateRanges;
-            url += `?startDate=${dayjs(startDate).format('YYYY-MM-DD')}&endDate=${dayjs(endDate).format('YYYY-MM-DD')}`;
+        if (selectedMonth) {
+            const formattedMonth = selectedMonth === 'select_all' 
+                ? 'select_all' 
+                : dayjs(selectedMonth, 'DD MMMM YYYY').format('MMMM YYYY');
+
+            url += `?selectedMonth=${formattedMonth}`;
         }
 
         const response = await axios.get(url);
@@ -87,27 +96,10 @@ const getResults = async (dateRanges = null) => {
     }
 };
 
-getResults(selectedDate.value)
-
-watch(selectedDate, (newDateRange) => {
-    if (Array.isArray(newDateRange)) {
-        const [startDate, endDate] = newDateRange;
-
-        if (startDate && endDate) {
-            getResults([startDate, endDate]);
-        } else if (startDate || endDate) {
-            getResults([startDate || endDate, endDate || startDate]);
-        } else {
-            getResults([]);
-        }
-    } else if (newDateRange === null) {
-        // Handle the case when selectedDate is null
-        getResults();
-    } else {
-        console.warn('Invalid date range format:', newDateRange);
-    }
+watch(selectedMonth, (newMonth) => {
+    getResults(newMonth);
+    // console.log(newMonths)
 });
-
 
 const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -159,7 +151,7 @@ const clearFilter = () => {
         email: { value: null, matchMode: FilterMatchMode.CONTAINS },
         account_type: { value: null, matchMode: FilterMatchMode.CONTAINS },
     };
-    selectedDate.value = [maxDate.value, maxDate.value];
+    selectedMonth.value = [getCurrentMonthYear()];
     filteredValue.value = null; 
 };
 
@@ -301,26 +293,36 @@ const copyToClipboard = (text) => {
                 <template #header>
                     <div class="flex flex-col justify-between items-center pb-5 gap-3 self-stretch md:flex-row md:pb-6">
                         <div class="flex flex-col items-center gap-3 self-stretch md:flex-row md:gap-5">
-                            <div class="relative w-full md:w-60">
-                                <DatePicker 
-                                    v-model="selectedDate"
-                                    selectionMode="range"
-                                    :manualInput="false"
-                                    :maxDate="maxDate"
-                                    dateFormat="dd/mm/yy"
-                                    showIcon
-                                    iconDisplay="input"
-                                    :placeholder="$t('public.select_date')"
-                                    class="font-normal w-full md:w-60"
-                                />
-                                <div
-                                    v-if="selectedDate && selectedDate.length > 0"
-                                    class="absolute top-[11px] right-3 flex justify-center items-center text-gray-400 select-none cursor-pointer bg-white w-6 h-6 "
-                                    @click="clearDate"
-                                >
-                                    <IconCircleXFilled size="20" />
-                                </div>
-                            </div>
+                            <Select 
+                                v-model="selectedMonth" 
+                                :options="months" 
+                                :placeholder="$t('public.month_placeholder')"
+                                class="w-full font-normal truncate" scroll-height="236px" 
+                            >
+                                <template #option="{option}">
+                                    <span class="text-sm">
+                                        <template v-if="option === 'select_all'">
+                                            {{ $t('public.select_all') }}
+                                        </template>
+                                        <template v-else>
+                                            {{ $t(`public.${option.split(' ')[1]}`) }} {{ option.split(' ')[2] }}
+                                        </template>
+                                    </span>
+                                </template>
+                                <template #value>
+                                    <span v-if="selectedMonth">
+                                        <template v-if="selectedMonth === 'select_all'">
+                                            {{ $t('public.select_all') }}
+                                        </template>
+                                        <template v-else>
+                                            {{ $t(`public.${dayjs(selectedMonth).format('MMMM')}`) }} {{ dayjs(selectedMonth).format('YYYY') }}
+                                        </template>
+                                    </span>
+                                    <span v-else>
+                                        {{ $t('public.month_placeholder') }}
+                                    </span>
+                                </template>
+                            </Select>
                             <Select
                                 v-model="filters['account_type'].value"
                                 :options="accountTypeOption"
