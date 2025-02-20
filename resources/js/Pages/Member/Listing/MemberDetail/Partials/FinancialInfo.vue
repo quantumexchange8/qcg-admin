@@ -114,7 +114,7 @@ watchEffect(() => {
                         <Column field="approved_at" :header="$t('public.date')" style="width: 25%" class="px-3">
                             <template #body="slotProps">
                                 <div class="text-gray-950 text-sm break-all">
-                                    {{ dayjs(slotProps.data.approved_at).format('YYYY/MM/DD') }}
+                                    {{ dayjs(slotProps.data.approved_at ?? slotProps.data.created_at).format('YYYY/MM/DD') }}
                                 </div>
                             </template>
                         </Column>

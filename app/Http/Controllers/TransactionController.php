@@ -237,51 +237,43 @@ class TransactionController extends Controller
 
         $allSymbolGroups = SymbolGroup::pluck('display', 'id')->toArray();
 
-        $query = TradeRebateSummary::select([
-                'upline_user_id',
-                'symbol_group_id',
-                'execute_at',
-                'volume',
-                'net_rebate',
-                'rebate'
-            ])
-            ->with([
-                'upline_user:id,first_name,email', 
-                'account_type:id,slug'
-            ])
-            ->whereBetween('execute_at', [$startDate, $endDate])
-            ->orderByDesc('execute_at'); 
-
-        $data = collect();
-        $query->chunk(500, function ($chunk) use (&$data) {
-            foreach ($chunk as $item) {
-                $data->push([
-                    'user_id' => $item->upline_user_id,
-                    'name' => $item->upline_user->first_name,
-                    'email' => $item->upline_user->email,
-                    'account_type' => $item->account_type->slug ?? null,
-                    'execute_at' => $item->execute_at,
-                    'symbol_group_id' => $item->symbol_group_id,
-                    'volume' => $item->volume,
-                    'net_rebate' => $item->net_rebate,
-                    'rebate' => $item->rebate,
-                ]);
-            }
+        $query = TradeRebateSummary::with('upline_user', 'account_type')
+                ->whereBetween('created_at', [$startDate, $endDate]);
+                
+        // Fetch and map summarized data from TradeRebateSummary
+        $data = $query->get()->map(function ($item) {
+            return [
+                'user_id' => $item->upline_user_id,
+                'name' => $item->upline_user->first_name,
+                'email' => $item->upline_user->email,
+                'account_type' => $item->account_type->slug ?? null,
+                'execute_at' => $item->execute_at,
+                'symbol_group_id' => $item->symbol_group_id,
+                'volume' => $item->volume,
+                'net_rebate' => $item->net_rebate,
+                'rebate' => $item->rebate,
+            ];
         });
 
-        $summary = $data->groupBy(fn($item) => $item['execute_at'] . '-' . $item['user_id'])
+        // Generate summary and details
+        $summary = $data->groupBy(fn($item) => Carbon::parse($item['execute_at'])->format('Y-m-d') . '-' . $item['user_id'])
             ->map(function ($group) use ($allSymbolGroups) {
-                $group = collect($group);
+                $group = $group->values(); // Ensure it's a collection and maintain access
 
+                // Generate detailed data for this summary item
                 $symbolGroupDetails = $group->groupBy('symbol_group_id')->map(function ($symbolGroupItems) use ($allSymbolGroups) {
+                    $symbolGroupId = $symbolGroupItems->first()['symbol_group_id'] ?? null;
+
                     return [
-                        'id' => $symbolGroupItems->first()['symbol_group_id'],
-                        'name' => $allSymbolGroups[$symbolGroupItems->first()['symbol_group_id']] ?? 'Unknown',
+                        'id' => $symbolGroupId,
+                        'name' => $allSymbolGroups[$symbolGroupId] ?? 'Unknown',
                         'volume' => $symbolGroupItems->sum('volume'),
+                        'net_rebate' => $symbolGroupItems->first()['net_rebate'] ?? 0,
                         'rebate' => $symbolGroupItems->sum('rebate'),
                     ];
                 })->values();
 
+                // Add missing symbol groups with volume, net_rebate, and rebate as 0
                 foreach ($allSymbolGroups as $symbolGroupId => $symbolGroupName) {
                     if (!$symbolGroupDetails->pluck('id')->contains($symbolGroupId)) {
                         $symbolGroupDetails->push([
@@ -294,6 +286,10 @@ class TransactionController extends Controller
                     }
                 }
 
+                // Sort the symbol group details array to match the order of symbol groups
+                $symbolGroupDetails = $symbolGroupDetails->sortBy('id')->values();
+
+                // Return summary item with details included
                 return [
                     'user_id' => $group->first()['user_id'],
                     'name' => $group->first()['name'],
@@ -302,13 +298,18 @@ class TransactionController extends Controller
                     'execute_at' => $group->first()['execute_at'],
                     'volume' => $group->sum('volume'),
                     'rebate' => $group->sum('rebate'),
-                    'details' => $symbolGroupDetails->sortBy('id')->values(),
+                    'details' => $symbolGroupDetails,
                 ];
             })->values();
 
+        // Sort summary by execute_at in descending order to get the latest dates first
+        $summary = $summary->sortByDesc('execute_at');
+
+        $totalAmount = $summary->sum('rebate');
+
         return response()->json([
-            'transactions' => $summary,
-            'totalAmount' => $summary->sum('rebate'),
+            'transactions' => $summary->values(),
+            'totalAmount' => $totalAmount,
         ]);
 
     }

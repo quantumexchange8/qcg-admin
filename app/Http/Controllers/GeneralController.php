@@ -204,6 +204,7 @@ class GeneralController extends Controller
                 return [
                     'value' => $accountType->id,
                     'name' => $accountType->name,
+                    'slug' => $accountType->slug,
                     'category' => $accountType->category,
                 ];
             });

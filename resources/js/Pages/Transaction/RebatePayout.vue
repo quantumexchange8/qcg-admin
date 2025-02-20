@@ -69,6 +69,10 @@ const getRebateMonths = async () => {
     }
 };
 
+watch(selectedMonth, (newMonth) => {
+    getResults(newMonth);
+});
+
 getRebateMonths()
 const getResults = async (selectedMonth = '') => {
     loading.value = true;
@@ -95,11 +99,6 @@ const getResults = async (selectedMonth = '') => {
         loading.value = false;
     }
 };
-
-watch(selectedMonth, (newMonth) => {
-    getResults(newMonth);
-    // console.log(newMonths)
-});
 
 const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -131,7 +130,6 @@ const recalculateTotals = () => {
         // Only return transactions that match both global and specific filters
         return matchesGlobalFilter && matchesNameFilter && matchesEmailFilter && matchesTransactionTypeFilter;
     });
-
     // Calculate the total for successful transactions
     totalAmount.value = filtered.reduce((acc, item) => acc + parseFloat(item.rebate || 0), 0);
 };
@@ -327,7 +325,7 @@ const copyToClipboard = (text) => {
                                 v-model="filters['account_type'].value"
                                 :options="accountTypeOption"
                                 optionLabel="name"
-                                optionValue="value"
+                                optionValue="slug"
                                 :placeholder="$t('public.filter_by_account_type')"
                                 class="w-full md:w-60 font-normal"
                                 scroll-height="236px"
@@ -430,7 +428,7 @@ const copyToClipboard = (text) => {
                 </div>
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.account_type') }}</span>
-                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ data.account_type }}</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ $t('public.' + data.account_type) }}</span>
                 </div>
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.total_volume') }}</span>

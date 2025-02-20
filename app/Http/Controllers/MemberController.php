@@ -680,7 +680,7 @@ class MemberController extends Controller
         $query = Transaction::query()
             ->where('user_id', $request->id)
             ->where('status', 'successful')
-            ->select('id', 'from_meta_login', 'to_meta_login', 'transaction_type', 'amount', 'transaction_amount', 'status', 'created_at');
+            ->select('id', 'from_meta_login', 'to_meta_login', 'transaction_type', 'amount', 'transaction_amount', 'status', 'approved_at', 'created_at');
 
         $total_deposit = (clone $query)->where('transaction_type', 'deposit')->sum('transaction_amount');
         $total_withdrawal = (clone $query)->where('transaction_type', 'withdrawal')->sum('amount');
