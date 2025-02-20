@@ -131,6 +131,23 @@ watch(filters, (newFilters) => {
     emit('update:filters', newFilters); // Emit the filters to the parent component
 }, { deep: true });
 
+// Function to handle different timestamp formats (this is TEMPORARY until all data is updated)
+const formatDate = (timestamp) => {
+    if (!timestamp) return '-';
+
+    if (!isNaN(timestamp)) {
+        timestamp = Number(timestamp);
+        
+        if (timestamp > 9999999999) {
+            timestamp = timestamp / 1000;
+        }
+
+        return dayjs.unix(timestamp).format('YYYY/MM/DD HH:mm:ss');
+    }
+
+    return dayjs(timestamp).format('YYYY/MM/DD HH:mm:ss');
+};
+
 </script>
 
 <template>
@@ -230,7 +247,7 @@ watch(filters, (newFilters) => {
                         <div class="text-gray-500 text-xs md:hidden">:</div>
                         <div class="text-gray-700 md:text-gray-950 text-xs md:text-sm font-medium md:font-normal">
                             <!-- {{ dayjs(slotProps.data.last_login ? slotProps.data.last_login : slotProps.data.created_at).format('YYYY/MM/DD HH:mm:ss') }} -->
-                            {{ slotProps.data.last_login ? dayjs(slotProps.data.last_login).format('YYYY/MM/DD HH:mm:ss') : '-' }}
+                            {{ slotProps.data.last_login ? formatDate(slotProps.data.last_login) : '-' }}
                         </div>
                     </div>
                 </template>

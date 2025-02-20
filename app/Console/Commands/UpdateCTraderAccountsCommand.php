@@ -24,7 +24,7 @@ class UpdateCTraderAccountsCommand extends Command
         ini_set('max_execution_time', 0);  // No timeout for PHP script execution
     
         $this->info('Starting to refresh cTrader accounts...');
-    
+        Log::info("Refreshing...");
         // Fetch all active accounts without chunking
         $trading_accounts = TradingUser::get();
     

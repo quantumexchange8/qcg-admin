@@ -4,6 +4,7 @@ namespace App\Services\Data;
 
 use App\Models\AccountType;
 use App\Models\TradingUser;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -30,7 +31,14 @@ class UpdateTradingUser
         $tradingUser->registration = $data['registrationTimestamp'];
         
         if (isset($data['lastConnectionTimestamp'])) {
-            $tradingUser->last_access = Carbon::createFromTimestamp($data['lastConnectionTimestamp'] / 1000)->toDateTimeString();
+            $timestamp = (int) $data['lastConnectionTimestamp'];
+
+            if ($timestamp > 9999999999) {
+                $timestamp = $timestamp / 1000;
+            }
+
+            $tradingUser->last_access = Carbon::createFromTimestamp($timestamp)->toDateTimeString();
+            Log::info("Refreshing last access for account {$meta_login} to {$tradingUser->last_access}");
         } else {
             $tradingUser->last_access = null;
         }
