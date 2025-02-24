@@ -35,6 +35,7 @@ class UpdateCTraderAccountsCommand extends Command
     
                 // If no data is returned (null or empty), mark the account as inactive
                 if (empty($accData)) {
+                    Log::info("Inactive account {$account->meta_login}");
                     if ($account->acc_status !== 'inactive') {
                         $account->acc_status = 'inactive';
                         $account->save();
