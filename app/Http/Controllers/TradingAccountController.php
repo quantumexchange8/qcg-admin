@@ -175,7 +175,7 @@ class TradingAccountController extends Controller
 
             // Handle sorting
             $sortField = $request->input('sortField', 'last_access'); // Default to 'created_at'
-            $sortOrder = $request->input('sortOrder', -11); // 1 for ascending, -1 for descending
+            $sortOrder = $request->input('sortOrder', -1); // 1 for ascending, -1 for descending
             if ($sortField === 'last_access') { // prevent null error
                 $query->orderByRaw("COALESCE(last_access, created_at) " . ($sortOrder == 1 ? 'asc' : 'desc'));
             } else {
