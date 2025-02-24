@@ -237,7 +237,7 @@ const formatDate = (timestamp) => {
                     </div>
                 </template>
             </Column>
-            <Column field="last_login" :header="$t('public.last_logged_in')" sortable class="w-full md:w-[20%] max-w-0" headerClass="hidden md:table-cell truncate">
+            <Column field="last_access" :header="$t('public.last_logged_in')" sortable class="w-full md:w-[20%] max-w-0" headerClass="hidden md:table-cell truncate">
                 <template #body="slotProps">
                     <div class="text-gray-950 text-sm font-semibold truncate max-w-full md:hidden">
                         {{ slotProps.data.meta_login }}
@@ -247,7 +247,7 @@ const formatDate = (timestamp) => {
                         <div class="text-gray-500 text-xs md:hidden">:</div>
                         <div class="text-gray-700 md:text-gray-950 text-xs md:text-sm font-medium md:font-normal">
                             <!-- {{ dayjs(slotProps.data.last_login ? slotProps.data.last_login : slotProps.data.created_at).format('YYYY/MM/DD HH:mm:ss') }} -->
-                            {{ slotProps.data.last_login ? formatDate(slotProps.data.last_login) : '-' }}
+                            {{ slotProps.data.last_access ? formatDate(slotProps.data.last_access) : '-' }}
                         </div>
                     </div>
                 </template>
@@ -329,8 +329,8 @@ const formatDate = (timestamp) => {
                     <span class="w-full truncate text-gray-950 text-sm font-medium">    
                         <!-- {{ dayjs(dayjs(data.last_login).isAfter(dayjs(data.created_at)) && data.last_login ? data.last_login : data.created_at).format('YYYY/MM/DD HH:mm:ss')}}
                         ({{dayjs().diff(dayjs((data.last_login && dayjs(data.last_login).isAfter(dayjs(data.created_at))) ? data.last_login : data.created_at), 'day') }} {{ $t('public.days') }}) -->
-                        {{ data.last_login ? dayjs(data.last_login).format('YYYY/MM/DD HH:mm:ss') : '-'}}
-                        ({{data.last_login ? dayjs().diff(dayjs(data.last_login), 'day') : '-'}} {{ $t('public.days') }})
+                        {{ data.last_access ? dayjs(data.last_access).format('YYYY/MM/DD HH:mm:ss') : '-'}}
+                        ({{data.last_access ? dayjs().diff(dayjs(data.last_access), 'day') : '-'}} {{ $t('public.days') }})
                     </span>
                 </div>
             </div>

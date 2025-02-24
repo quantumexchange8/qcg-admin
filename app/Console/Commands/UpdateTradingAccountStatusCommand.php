@@ -25,6 +25,8 @@ class UpdateTradingAccountStatusCommand extends Command
     
         foreach ($tradingAccounts as $account) {
             // Refresh account data directly if needed
+            $trade_user = TradingUser::firstWhere('meta_login', $account->meta_login);
+
             try {
                 $cTraderService->getUserInfo($account->meta_login); // Update user data (if needed)
             } catch (\Exception $e) {
@@ -34,7 +36,7 @@ class UpdateTradingAccountStatusCommand extends Command
                 // Handle "Not found" case, updating the acc_status to "inactive"
                 if ($e->getMessage() == "Not found") {
                     // Update TradingUser acc_status to "inactive"
-                    TradingUser::firstWhere('meta_login', $account->meta_login)->update(['acc_status' => 'inactive']);
+                    $trade_user->update(['acc_status' => 'inactive']);
                 }
                 
             }
@@ -52,9 +54,11 @@ class UpdateTradingAccountStatusCommand extends Command
     
             // Check if the account's creation date is within the last 90 days
             $isRecentlyCreated = $account->created_at >= $inactiveThreshold;
+
+            $isRecentlyLoggedIn = $trade_user->last_access >= $inactiveThreshold;
     
             // Determine if the account is active
-            $isActive = $isRecentlyCreated || 
+            $isActive = $isRecentlyCreated || $isRecentlyLoggedIn || 
                         $hasPositiveBalance || 
                         ($lastTransaction && $lastTransaction->created_at >= $inactiveThreshold);
     

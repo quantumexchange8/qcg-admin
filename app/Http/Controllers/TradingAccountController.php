@@ -174,9 +174,13 @@ class TradingAccountController extends Controller
             }
 
             // Handle sorting
-            $sortField = $request->input('sortField', 'meta_login'); // Default to 'created_at'
-            $sortOrder = $request->input('sortOrder', -1); // 1 for ascending, -1 for descending
-            $query->orderBy($sortField, $sortOrder == 1 ? 'asc' : 'desc');
+            $sortField = $request->input('sortField', 'last_access'); // Default to 'created_at'
+            $sortOrder = $request->input('sortOrder', -11); // 1 for ascending, -1 for descending
+            if ($sortField === 'last_access') { // prevent null error
+                $query->orderByRaw("COALESCE(last_access, created_at) " . ($sortOrder == 1 ? 'asc' : 'desc'));
+            } else {
+                $query->orderBy($sortField, $sortOrder == 1 ? 'asc' : 'desc');
+            }
 
             // Handle pagination
             $rowsPerPage = $request->input('rows', 15); // Default to 15 if 'rows' not provided
@@ -199,7 +203,7 @@ class TradingAccountController extends Controller
                     'balance',
                     'credit',
                     'leverage',
-                    'last_access as last_login',
+                    'last_access',
                     'created_at',
                 ])
                 ->paginate($rowsPerPage, ['*'], 'page', $currentPage);
@@ -213,7 +217,7 @@ class TradingAccountController extends Controller
                 $account->account_type = $account->accountType->name;
                 // Calculate `is_active` dynamically
                 $account->is_active = (
-                    ($account->last_login && $account->last_login >= $inactiveThreshold) ||  // Check if last_login is not null
+                    ($account->last_access && $account->last_access >= $inactiveThreshold) ||  // Check if last_login is not null
                     ($account->created_at >= $inactiveThreshold) ||
                     ($account->balance > 0) ||
                     ($account->credit > 0) ||
@@ -260,7 +264,7 @@ class TradingAccountController extends Controller
                 }
 
                 // Handle sorting
-                $sortField = $request->input('sortField', 'meta_login'); // Default to 'created_at'
+                $sortField = $request->input('sortField', 'deleted_at'); // Default to 'created_at'
                 $sortOrder = $request->input('sortOrder', -1); // 1 for ascending, -1 for descending
                 $query->orderBy($sortField, $sortOrder == 1 ? 'asc' : 'desc');
 
