@@ -37,7 +37,9 @@ class UpdateTradingUser
                 $timestamp = $timestamp / 1000;
             }
 
-            $tradingUser->last_access = Carbon::createFromTimestamp($timestamp)->toDateTimeString();
+            // $tradingUser->last_access = Carbon::createFromTimestamp($timestamp)->toDateTimeString();
+            // $tradingUser->setAttribute('last_access', $tradingUser->last_access); // Mark as dirty
+            $tradingUser->forceFill(['last_access' => Carbon::createFromTimestamp($timestamp)->toDateTimeString()])->save(); // Laravel Eloquent forcechange
             Log::info("Refreshing last access for account {$meta_login} to {$tradingUser->last_access}");
         } else {
             $tradingUser->last_access = null;
@@ -45,7 +47,7 @@ class UpdateTradingUser
         
         $tradingUser->balance = $data['balance'] / 100;
         $tradingUser->credit = $data['nonWithdrawableBonus'] / 100;
-
+        Log::info('Dirty attributes:', $tradingUser->getDirty());
         DB::transaction(function () use ($tradingUser) {
             $tradingUser->save();
         });
