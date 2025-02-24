@@ -78,7 +78,7 @@ class TradingAccountController extends Controller
                 ->get()
                 ->map(function ($account) use ($inactiveThreshold): array {
                     // Determine if the account is active based on transaction activity
-                    $isActive = $account->created_at >= $inactiveThreshold ||
+                    $isActive = $account->created_at >= $inactiveThreshold || $account->last_access >= $inactiveThreshold || 
                                 ($account->last_transaction_at && $account->last_transaction_at >= $inactiveThreshold);
 
                     return [

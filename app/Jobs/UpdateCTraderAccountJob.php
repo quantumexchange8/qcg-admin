@@ -28,6 +28,7 @@ class UpdateCTraderAccountJob implements ShouldQueue
 
     public function handle(): void
     {
+        Log::info("Refreshing...");
         // Process all active accounts at once (no chunking)
         $trading_accounts = TradingUser::get();
 
@@ -52,6 +53,7 @@ class UpdateCTraderAccountJob implements ShouldQueue
 
                 } else {
                     // Proceed with updating account information
+                    Log::info("Refreshing {$account->meta_login}");
                     (new UpdateTradingUser)->execute($account->meta_login, $accData);
                     (new UpdateTradingAccount)->execute($account->meta_login, $accData);
                 }
