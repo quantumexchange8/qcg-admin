@@ -132,8 +132,8 @@ function copyToClipboard(text) {
             paginator
             removableSort
             selectionMode="single"
-            :rows="10"
-            :rowsPerPageOptions="[10, 20, 50, 100]"
+            :rows="20"
+            :rowsPerPageOptions="[20, 50, 100]"
             tableStyle="md:min-width: 50rem"
             paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
             currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"

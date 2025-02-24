@@ -30,7 +30,7 @@ const dt = ref(null);
 const accounts = ref();
 const accountTypes = ref(props.accountTypes);
 const selectedBrand = ref(null);
-const rows = ref(10);
+const rows = ref(20);
 const page = ref(0);
 const first = ref(0);
 const sortField = ref(null);  
@@ -153,7 +153,7 @@ const formatDate = (timestamp) => {
 <template>
     <DataTable
         :value="accounts"
-        :rowsPerPageOptions="[10, 20, 50, 100]"
+        :rowsPerPageOptions="[20, 50, 100]"
         lazy
         paginator
         removableSort

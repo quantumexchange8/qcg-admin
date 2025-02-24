@@ -277,8 +277,8 @@ const copyToClipboard = (text) => {
                 :value="transactions"
                 :paginator="transactions?.length > 0 && filteredValue?.length > 0"
                 removableSort
-                :rows="10"
-                :rowsPerPageOptions="[10, 20, 50, 100]"
+                :rows="20"
+                :rowsPerPageOptions="[20, 50, 100]"
                 paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
                 :currentPageReportTemplate="$t('public.paginator_caption')"
                 :globalFilterFields="['name', 'email']"
