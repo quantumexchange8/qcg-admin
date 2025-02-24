@@ -39,7 +39,7 @@ class UpdateTradingUser
 
             // $tradingUser->last_access = Carbon::createFromTimestamp($timestamp)->toDateTimeString();
             // $tradingUser->setAttribute('last_access', $tradingUser->last_access); // Mark as dirty
-            $tradingUser->forceFill(['last_access' => Carbon::createFromTimestamp($timestamp)->toDateTimeString()])->save(); // Laravel Eloquent forcechange
+            $tradingUser->forceFill(['last_access' => Carbon::createFromTimestamp($timestamp)->toDateTimeString()]); // Laravel Eloquent forcechange
             Log::info("Refreshing last access for account {$meta_login} to {$tradingUser->last_access}");
         } else {
             $tradingUser->last_access = null;
