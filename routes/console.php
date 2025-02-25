@@ -12,4 +12,4 @@ use Illuminate\Support\Facades\Schedule;
 Schedule::command('distribute:sales-incentive')->weekly();
 Schedule::command('tradingAccount:check-status')->daily();
 Schedule::command('accountType:updatePromotionStatus')->daily();
-Schedule::command('refresh_accounts')->timezone('Asia/Kuala_Lumpur')->at('8:00');
+Schedule::command('tradingUser:refresh_accounts')->timezone('Asia/Kuala_Lumpur')->at('8:00');
