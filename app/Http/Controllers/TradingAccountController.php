@@ -203,7 +203,12 @@ class TradingAccountController extends Controller
                     'balance',
                     'credit',
                     'leverage',
-                    'last_access',
+                    DB::raw("
+                        CASE 
+                            WHEN CHAR_LENGTH(last_access) = 13 THEN FROM_UNIXTIME(last_access / 1000) 
+                            ELSE last_access 
+                        END as last_access
+                    "),
                     'created_at',
                 ])
                 ->paginate($rowsPerPage, ['*'], 'page', $currentPage);

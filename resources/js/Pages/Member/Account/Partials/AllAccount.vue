@@ -90,7 +90,7 @@ const getResults = async () => {
         // Directly set the results data
         accounts.value = results?.data?.data;
         totalRecords.value = results?.data?.total;
-
+        
         loading.value = false;
     } catch (error) {
         console.error('Error fetching leads data:', error);

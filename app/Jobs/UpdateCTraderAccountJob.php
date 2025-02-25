@@ -23,7 +23,7 @@ class UpdateCTraderAccountJob implements ShouldQueue
     // Job will run in a specific queue
     public function __construct()
     {
-        $this->queue = 'refresh_accounts';
+        $this->queue = 'manual_refresh_accounts';
     }
 
     public function handle(): void
