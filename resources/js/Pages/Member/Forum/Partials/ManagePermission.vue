@@ -80,6 +80,7 @@ onUnmounted(() => {
         modal
         :header="$t('public.manage_permission')"
         class="dialog-xs"
+        :dismissableMask="true"
     >
         <div class="flex flex-col items-center py-4 gap-4 self-stretch md:py-6 md:gap-6">
             <div class="relative w-full">

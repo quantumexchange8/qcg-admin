@@ -428,6 +428,7 @@ const exportXLSX = () => {
                     modal
                     :header="$t(`public.${type}_request`, { action: approvalAction ? $t(`public.${approvalAction}`) : '' })"
                     class="dialog-xs md:dialog-md"
+                    :dismissableMask="true"
                 >
                     <PendingConfirmation 
                         :pendingData="pendingData" 

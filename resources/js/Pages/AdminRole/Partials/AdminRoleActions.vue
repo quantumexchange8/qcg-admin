@@ -196,6 +196,7 @@ const handleAdminStatus = () => {
         modal
         :header="$t('public.' + title)"
         class="dialog-xs md:dialog-sm"
+        :dismissableMask="true"
     >
         <template v-if="dialogType === 'manage_permissions'">
             <ManagePermissions

@@ -74,6 +74,7 @@ const submitForm = () => {
         modal
         :header="$t('public.create_member')"
         class="dialog-xs md:dialog-md"
+        :dismissableMask="true"
     >
         <form @submit.prevent="submitForm()">
             <div class="flex flex-col items-center py-4 gap-6 self-stretch md:py-6 md:gap-8">

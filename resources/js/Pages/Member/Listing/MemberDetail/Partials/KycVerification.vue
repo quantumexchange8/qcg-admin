@@ -83,6 +83,7 @@ const submitForm = () => {
         modal
         :header="$t('public.kyc_verification')"
         class="dialog-xs md:dialog-lg"
+        :dismissableMask="true"
     >
         <div class="w-full flex flex-col items-center pt-4 gap-5 self-stretch md:pt-6">
             <div v-if="kycVerification" class="flex justify-center">

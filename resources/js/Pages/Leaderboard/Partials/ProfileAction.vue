@@ -130,6 +130,7 @@ const toggle = (event) => {
             'md:dialog-lg': dialogType === 'report',
             'md:dialog-md': dialogType === 'edit',
         }"
+        :dismissableMask="true"
     >
         <template v-if="dialogType === 'report'">
             <ViewIncentiveReport

@@ -260,6 +260,7 @@ const handleMemberStatus = () => {
             'md:dialog-md': dialogType === 'upgrade_to_agent',
             'md:dialog-sm': dialogType !== 'upgrade_to_agent',
         }"
+        :dismissableMask="true"
     >
         <template v-if="dialogType === 'transfer_upline'">
             <TransferUpline

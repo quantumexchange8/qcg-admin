@@ -182,6 +182,7 @@ const submitForm = () => {
         modal
         :header="$t('public.edit_member_info')"
         class="dialog-xs md:dialog-sm"
+        :dismissableMask="true"
     >
         <form>
             <div class="flex flex-col gap-5 py-4 md:py-6">

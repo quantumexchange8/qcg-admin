@@ -463,6 +463,7 @@ watchEffect(() => {
         modal
         :header="$t('public.edit_rebate_details')"
         class="dialog-xs"
+        :dismissableMask="true"
     >
         <div class="flex flex-col py-4 md:py-6 gap-6 items-center self-stretch">
             <!-- agent details -->

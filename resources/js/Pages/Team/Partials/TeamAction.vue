@@ -199,6 +199,7 @@ watch(() => props.team, (newTeam) => {
             'md:dialog-lg': dialogType === 'report',
             'md:dialog-sm': dialogType === 'edit',
         }"
+        :dismissableMask="true"
     >
         <template v-if="dialogType === 'report'">
             <ViewTeamTransactions

@@ -177,6 +177,7 @@ const submitForm = () => {
         modal
         :header="$t('public.account_configuration')"
         class="dialog-xs md:dialog-md"
+        :dismissableMask="true"
     >
         <form>
             <div class="flex flex-col gap-6 items-center self-stretch py-4 md:py-8">

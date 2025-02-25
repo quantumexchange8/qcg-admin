@@ -62,6 +62,7 @@ const submitForm = () => {
         modal
         :header="$t('public.edit_rebate_details')"
         class="dialog-xs md:dialog-sm"
+        :dismissableMask="true"
     >
         <form>
             <div class="flex flex-col items-center py-4 self-stretch md:py-6">

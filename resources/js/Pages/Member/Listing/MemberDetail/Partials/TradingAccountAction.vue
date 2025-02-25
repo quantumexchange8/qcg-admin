@@ -212,6 +212,7 @@ const handleAccountStatus = () => {
         :header="dialogType === 'adjustment' ? $t('public.adjustment_header', {type: $t(`public.${title}`)}) : $t(`public.${dialogType}`)"
         class="dialog-xs"
         :class="(dialogType === 'account_report') ? 'md:dialog-md' : 'md:dialog-sm'"
+        :dismissableMask="true"
     >
         <template v-if="dialogType === 'adjustment'">
             <Adjustment

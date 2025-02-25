@@ -198,6 +198,7 @@ watchEffect(() => {
         modal
         :header="$t('public.view_settlement_report')"
         class="dialog-xs md:dialog-lg"
+        :dismissableMask="true"
     >
         <div class="w-full flex flex-col justify-center items-center pt-4 md:pt-6 self-stretch">
             <DataTable

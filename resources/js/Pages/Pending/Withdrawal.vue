@@ -380,6 +380,7 @@ const copyToClipboard = (addressType, text) => {
                     modal
                     :header="$t('public.withdrawal_request', { action: approvalAction ? $t(`public.${approvalAction}`) : '' })"
                     class="dialog-xs md:dialog-md"
+                    :dismissableMask="true"
                 >
                     <template
                         v-if="!approvalAction"

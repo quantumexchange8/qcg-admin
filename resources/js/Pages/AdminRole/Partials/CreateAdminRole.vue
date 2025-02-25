@@ -130,6 +130,7 @@ const submit = () => {
         modal
         :header="$t('public.create_admin_role')"
         class="dialog-xs md:dialog-sm"
+        :dismissableMask="true"
     >
         <form>
             <div class="flex flex-col items-center pt-4 self-stretch md:pt-6">
