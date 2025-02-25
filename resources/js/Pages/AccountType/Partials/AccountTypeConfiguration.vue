@@ -435,7 +435,7 @@ const submitForm = () => {
                         </span>
                     </div>
                 </div>
-                <Button
+                <!-- <Button
                     external
                     type="button"
                     variant="gray-outlined"
@@ -452,7 +452,7 @@ const submitForm = () => {
                     @click="submitForm"
                 >
                     {{ $t('public.save_settings') }}
-                </Button>
+                </Button> -->
             </nav>
             <div class="flex flex-1 justify-center items-start p-5 gap-5 md:px-5">
                 <ConfirmationDialog />
@@ -662,6 +662,27 @@ const submitForm = () => {
                                     <ColorPicker v-model="form.color" id="Color"/>
                                     <InputError :message="form.errors.color" />
                                 </div>
+                            </div>
+
+                            <div v-if="form.category!=='promotion'" class="w-full flex items-center justify-center gap-4">
+                                <Button
+                                    external
+                                    type="button"
+                                    variant="gray-outlined"
+                                    size="sm"
+                                    class="whitespace-nowrap w-full min-h-12"
+                                    @click="handleCancel"
+                                >
+                                    {{ $t('public.cancel') }}
+                                </Button>
+                                <Button
+                                    variant="primary-flat"
+                                    size="sm"
+                                    class="whitespace-nowrap w-full min-h-12"
+                                    @click="submitForm"
+                                >
+                                    {{ $t('public.save_settings') }}
+                                </Button>
                             </div>
                         </div>
 
