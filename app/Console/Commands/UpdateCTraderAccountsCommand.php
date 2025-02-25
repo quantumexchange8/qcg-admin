@@ -11,7 +11,7 @@ use App\Services\Data\UpdateTradingAccount;
 
 class UpdateCTraderAccountsCommand extends Command
 {
-    protected $signature = 'refresh_accounts';
+    protected $signature = 'tradingUser:refresh_accounts';
 
     protected $description = 'Update cTrader accounts for active trading users';
 
