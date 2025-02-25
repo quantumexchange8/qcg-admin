@@ -30,8 +30,6 @@ const { formatRgbaColor } = generalFormat();
 const loading = ref(false);
 const dt = ref();
 const pendingBonus = ref();
-const selectedRequests = ref();
-const selectedTotalAmount = ref(0);
 const type = ref('bonus');
 const totalAmount = ref();
 const filteredValue = ref();
@@ -58,25 +56,6 @@ const form = useForm({
     remarks: '',
     type: 'bonus',
 })
-
-// Watch selectedRequests for changes
-watch(selectedRequests, (newValue) => {
-//   console.log('selectedRequests changed:', newValue);
-
-  // Update selectedTotalAmount with the sum of transaction_amount, safely handling strings and numbers
-  selectedTotalAmount.value = newValue.reduce((sum, request) => {
-    const transactionAmount = parseFloat(request.transaction_amount);
-
-    // Only add valid amounts (if it's a number and not NaN)
-    if (!isNaN(transactionAmount)) {
-      return sum + transactionAmount;
-    }
-
-    return sum; // Skip invalid amounts (such as non-numeric strings)
-  }, 0);
-//   console.log(selectedTotalAmount.value);
-
-});
 
 const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -146,16 +125,6 @@ const rowClicked = (data) => {
     form.reset();
 }
 
-const handleApproval = (action) => {
-    approvalAction.value = action;
-}
-
-const handleSelectedApproval = (action) => {
-    pendingData.value = null;
-    visible.value = true;
-    approvalAction.value = action;
-}
-
 const handleFilter = (e) => {
     filteredValue.value = e.filteredValue;
 };
@@ -219,7 +188,6 @@ const exportXLSX = () => {
                 <!-- data table -->
                 <DataTable
                     v-model:filters="filters"
-                    v-model:selection="selectedRequests"
                     :value="pendingBonus"
                     :paginator="pendingBonus?.length > 0 && filteredValue?.length > 0"
                     removableSort
@@ -230,7 +198,7 @@ const exportXLSX = () => {
                     :globalFilterFields="['user_name', 'user_email', 'from']"
                     ref="dt"
                     :loading="loading"
-                    selectionMode="multiple"
+                    selectionMode="single"
                     @row-click="rowClicked($event.data)"
                     @filter="handleFilter"
                 >
@@ -270,7 +238,6 @@ const exportXLSX = () => {
                         </div>
                     </template>
                     <template v-if="pendingBonus?.length > 0 && filteredValue?.length > 0">
-                        <Column selectionMode="multiple" style="width: 10%;" class="px-3 text-white"></Column>
                         <Column field="name" sortable style="width: 20%; max-width: 0;" class="px-3">
                             <template #header>
                                 <span class="block truncate">{{ $t('public.name') }}</span>
@@ -361,63 +328,11 @@ const exportXLSX = () => {
                         </Column>
                         <ColumnGroup type="footer">
                             <Row>
-                                <Column v-if="!selectedRequests?.length" class="hidden md:table-cell" :footer="$t('public.total') + ' ($) :'" :colspan="6" footerStyle="text-align:right" />
-                                <Column v-if="!selectedRequests?.length" class="hidden md:table-cell" :footer="formatAmount(totalAmount ? totalAmount : 0)" />
-                                <Column v-else class="hidden md:table-cell" :colspan="7" style="max-width: 0;">
-                                    <template #footer>
-                                        <div class="w-full flex items-center">
-                                            <span class="block truncate text-gray-950 text-sm font-semibold">
-                                                {{ $t('public.total') + ' ($) : ' }} {{ formatAmount(selectedTotalAmount ? selectedTotalAmount : 0) }}
-                                            </span>
-                                            <div class="flex items-center px-3 gap-3 self-stretch">
-                                                <Button
-                                                    type="button"
-                                                    variant="error-flat"
-                                                    class="w-full min-w-20"
-                                                    @click="handleSelectedApproval('reject')"
-                                                >
-                                                    {{ $t('public.reject') }}
-                                                </Button>
-                                                <Button
-                                                    variant="success-flat"
-                                                    class="w-full min-w-20"
-                                                    @click="handleSelectedApproval('approve')"
-                                                >
-                                                    {{ $t('public.approve') }}
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </template>
-                                </Column>
+                                <Column class="hidden md:table-cell" :footer="$t('public.total') + ' ($) :'" :colspan="5" footerStyle="text-align:right" />
+                                <Column class="hidden md:table-cell" :footer="formatAmount(totalAmount ? totalAmount : 0)" />
                                 
-                                <Column v-if="!selectedRequests?.length" class="md:hidden" :footer="$t('public.total') + ' ($) :'" :colspan="2" footerStyle="text-align:right" />
-                                <Column v-if="!selectedRequests?.length" class="md:hidden" :footer="formatAmount(totalAmount ? totalAmount : 0)" />
-                                <Column v-else class="md:hidden" :colspan="3" style="max-width: 0;">
-                                    <template #footer>
-                                        <div class="w-full flex flex-wrap items-center content-center gap-3">
-                                            <span class="block truncate text-gray-950 text-sm font-semibold">
-                                                {{ $t('public.total') + ' ($) : ' }} {{ formatAmount(selectedTotalAmount ? selectedTotalAmount : 0) }}
-                                            </span>
-                                            <div class="flex items-center px-3 gap-3 self-stretch w-full">
-                                                <Button
-                                                    type="button"
-                                                    variant="error-flat"
-                                                    class="w-full"
-                                                    @click="handleApproval('reject')"
-                                                >
-                                                    {{ $t('public.reject') }}
-                                                </Button>
-                                                <Button
-                                                    variant="success-flat"
-                                                    class="w-full"
-                                                    @click="handleApproval('approve')"
-                                                >
-                                                    {{ $t('public.approve') }}
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </template>
-                                </Column>
+                                <Column class="md:hidden" :footer="$t('public.total') + ' ($) :'" :colspan="1" footerStyle="text-align:right" />
+                                <Column class="md:hidden" :footer="formatAmount(totalAmount ? totalAmount : 0)" />
                             </Row>
                         </ColumnGroup>
                     </template>
@@ -432,7 +347,6 @@ const exportXLSX = () => {
                 >
                     <PendingConfirmation 
                         :pendingData="pendingData" 
-                        :selectedRequests="selectedRequests"
                         :approvalAction="approvalAction"
                         :type="type"
                         @update:approvalAction="updateApprovalAction"
