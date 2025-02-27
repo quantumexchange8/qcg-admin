@@ -407,7 +407,7 @@ watch(() => usePage().props, (newProps, oldProps) => {
                 </div>
                 <div class="w-full h-full flex flex-col xl:flex-row 4xl:flex-col items-center gap-3 md:gap-5">
                     <!-- account balance & equity, request -->
-                    <div class="w-full h-full flex flex-col items-center pt-2 pb-3 px-3 gap-3 rounded-lg bg-white shadow-card md:p-6 md:gap-8">
+                    <div class="w-full h-full flex flex-col items-center pt-2 pb-3 px-3 gap-3 rounded-lg bg-white shadow-card md:p-6 md:gap-5">
                         <div class="w-full flex items-center md:h-9">
                             <span class="w-full truncate text-gray-950 text-sm font-semibold md:text-base">{{ $t('public.account_balance_equity') }}</span>
                             <Button 
@@ -445,7 +445,7 @@ watch(() => usePage().props, (newProps, oldProps) => {
                         </div>
                     </div>
 
-                    <div class="w-full h-full flex flex-col items-center p-3 gap-3 rounded-lg bg-white shadow-card md:p-6 md:gap-8">
+                    <div class="w-full h-full flex flex-col items-center p-3 gap-3 rounded-lg bg-white shadow-card md:p-6 md:gap-5">
                         <div class="w-full flex justify-between items-center">
                             <Select 
                                 v-model="selectedMonth" 
@@ -491,9 +491,92 @@ watch(() => usePage().props, (newProps, oldProps) => {
                             </div>
                         </div>
                     </div>
+
+                    <!-- P&L Section -->
+                    <div class="w-full h-full flex flex-col items-center p-3 gap-3 rounded-lg bg-white shadow-card md:p-6 md:gap-5">
+                        <div class="w-full flex justify-between items-center">
+                            <Select 
+                                v-model="selectedMonth" 
+                                :options="months" 
+                                optionLabel="name" 
+                                optionValue="value"
+                                :placeholder="$t('public.month_placeholder')"
+                                class="w-60 font-normal truncate" scroll-height="236px" 
+                            />
+                            <Button 
+                                variant="gray-text" 
+                                size="sm" 
+                                type="button" 
+                                iconOnly 
+                                v-slot="{ iconSizeClasses }"
+                                @click="updateTradeLotVolume()"
+                            >
+                                <IconRefresh size="16" stroke-width="1.25" color="#374151" />
+                            </Button>
+
+                            <!-- <Select 
+                                v-model="selectedPnlMonth" 
+                                :options="pnlMonths" 
+                                optionLabel="name" 
+                                optionValue="value"
+                                :placeholder="$t('public.month_placeholder')"
+                                class="w-60 font-normal truncate" scroll-height="236px" 
+                            />
+                            <Button 
+                                variant="gray-text" 
+                                size="sm" 
+                                type="button" 
+                                iconOnly 
+                                v-slot="{ iconSizeClasses }"
+                                @click="updatePnL()"
+                            >
+                                <IconRefresh size="16" stroke-width="1.25" color="#374151" />
+                            </Button> -->
+                        </div>
+
+                        <div class="w-full h-full flex justify-center items-center gap-2 md:gap-5 xl:flex-col 4xl:flex-row">
+                            <div class="min-w-60 w-full h-full grid grid-cols-1 justify-center items-center p-3 gap-2 bg-gray-50">
+                                <div class="flex flex-row gap-1 w-full justify-between items-center">
+                                    <span class="text-xs text-gray-500 w-[140px]">Swap P&L ($)</span>
+                                    <span class="text-sm font-medium text-gray-950 self-stretch">0.00</span>
+                                </div>
+                                <div class="flex flex-row gap-1 w-full justify-between items-center">
+                                    <span class="text-xs text-gray-500 w-[140px]">Markup P&L ($)</span>
+                                    <span class="text-sm font-medium text-gray-950 self-stretch">0.00</span>
+                                </div>
+                                <div class="flex flex-row gap-1 w-full justify-between items-center">
+                                    <span class="text-xs text-gray-500 w-[140px]">Gross P&L ($)</span>
+                                    <span class="text-sm font-medium text-gray-950 self-stretch">0.00</span>
+                                </div>
+                                <div class="flex flex-row gap-1 w-full justify-between items-center">
+                                    <span class="text-xs text-gray-500 w-[140px]">Broker P&L ($)</span>
+                                    <span class="text-sm font-medium text-gray-950 self-stretch">0.00</span>
+                                </div>
+                            </div>
+
+                            <div class="min-w-60 w-full h-full grid grid-cols-1 justify-center items-center p-3 gap-2 bg-gray-50">
+                                <div class="flex flex-row gap-1 w-full justify-between items-center">
+                                    <span class="text-xs text-gray-500 w-[140px]">Net P&L ($)</span>
+                                    <span class="text-sm font-medium text-gray-950 self-stretch">0.00</span>
+                                </div>
+                                <div class="flex flex-row gap-1 w-full justify-between items-center">
+                                    <span class="text-xs text-gray-500 w-[140px]">Losing Deals ($)</span>
+                                    <span class="text-sm font-medium text-gray-950 self-stretch">0.00</span>
+                                </div>
+                                <div class="flex flex-row gap-1 w-full justify-between items-center">
+                                    <span class="text-xs text-gray-500 w-[140px]">Win. Deals ($)</span>
+                                    <span class="text-sm font-medium text-gray-950 self-stretch">0.00</span>
+                                </div>
+                                <div class="flex flex-row gap-1 w-full justify-between items-center">
+                                    <span class="text-xs text-gray-500 w-[140px]">Trader P&L ($)</span>
+                                    <span class="text-sm font-medium text-gray-950 self-stretch">0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="w-full h-full flex flex-col items-center p-3 gap-3 rounded-lg bg-white shadow-card md:p-6 md:gap-8">
+            <div class="w-full h-full flex flex-col items-center p-3 gap-3 rounded-lg bg-white shadow-card md:p-6 md:gap-5">
                 <div class="w-full flex justify-between items-center">
                     <Select 
                         v-model="selectedTeamMonth" 

@@ -17,6 +17,8 @@ import {
     IconShieldCheckered,
     IconCategory2,
     IconComponents,
+    IconGift,
+    IconChartArrowsVertical
 } from '@tabler/icons-vue';
 import { usePermission } from "@/Composables/index.js";
 
@@ -164,6 +166,18 @@ watchEffect(() => {
             </template>
         </SidebarLink>
 
+        <!-- Reward Setting -->
+        <SidebarLink
+            :title="$t('public.reward_setting')"
+            :href="route('reward_setting')"
+            :active="route().current('reward_setting')"
+            v-if="hasRole('super-admin') || hasPermission('access_reward_setting')"
+        >
+            <template #icon>
+                <IconGift :size="20" stroke-width="1.25" />
+            </template>
+        </SidebarLink>
+
         <!-- Rebate Setting -->
         <SidebarLink
             :title="$t('public.rebate_setting')"
@@ -254,6 +268,18 @@ watchEffect(() => {
             />
 
         </SidebarCollapsible>
+
+        <!-- Broker P&L -->
+        <SidebarLink
+            :title="$t('public.broker_pnl')"
+            :href="route('broker_pnl')"
+            :active="route().current('broker_pnl')"
+            v-if="hasRole('super-admin') || hasPermission('access_broker_pnl')"
+        >
+            <template #icon>
+                <IconChartArrowsVertical :size="20" stroke-width="1.25" />
+            </template>
+        </SidebarLink>
 
         <!-- Account Type -->
         <SidebarLink

@@ -20,6 +20,8 @@ use App\Http\Controllers\AccountTypeController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\TradingAccountController;
+use App\Http\Controllers\RewardController;
+use App\Http\Controllers\BrokerController;
 
 Route::get('locale/{locale}', function ($locale) {
     App::setLocale($locale);
@@ -179,6 +181,16 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
 
     /**
      * ==============================
+     *        Reward Setting
+     * ==============================
+     */
+    Route::prefix('reward')->middleware('role_and_permission:admin,access_reward_setting')->group(function () {
+        Route::get('/', [RewardController::class, 'index'])->name('reward_setting');
+
+    });
+
+    /**
+     * ==============================
      *        Rebate Setting
      * ==============================
      */
@@ -229,6 +241,16 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
         Route::get('/getRebatePayoutData', [TransactionController::class, 'getRebatePayoutData'])->name('transaction.getRebatePayoutData')->middleware('role_and_permission:admin,access_rebate_payout');
         Route::get('/getIncentivePayoutData', [TransactionController::class, 'getIncentivePayoutData'])->name('transaction.getIncentivePayoutData')->middleware('role_and_permission:admin,access_incentive_payout');
         Route::get('/getAdjustmentHistoryData', [TransactionController::class, 'getAdjustmentHistoryData'])->name('transaction.getAdjustmentHistoryData');
+    });
+
+    /**
+     * ==============================
+     *        Broker P&L
+     * ==============================
+     */
+    Route::prefix('broker')->middleware('role_and_permission:admin,access_broker_pnl')->group(function () {
+        Route::get('/', [BrokerController::class, 'index'])->name('broker_pnl');
+
     });
 
     /**
