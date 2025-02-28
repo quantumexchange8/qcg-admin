@@ -3,8 +3,10 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import Button from "@/Components/Button.vue";
 import Select from "primevue/select";
 import { IconPlus } from "@tabler/icons-vue";
+import {
+    PointIcon
+} from '@/Components/Icons/outline.jsx';
 import { ref, watch, watchEffect } from "vue";
-import Image from 'primevue/image';
 import Action from "@/Pages/RewardSetting/Partials/Action.vue"
 import CreateRewards from "@/Pages/RewardSetting/Partials/CreateRewards.vue";
 
@@ -37,19 +39,23 @@ const rewards = ref([
                     class="w-full md:w-60 font-normal truncate" scroll-height="236px" 
                 />
             </div>
-            <div class="grid gap-3 md:gap-5 w-full grid-cols-1 md:grid-cols-2">
+            <div class="grid gap-3 md:gap-5 w-full grid-cols-1 md:grid-cols-2 2xl:grid-cols-3">
                 <div
                     class="flex flex-col gap-2 justify-center px-3 md:px-4 py-3 rounded w-full shadow-card bg-white border border-gray-100"
                 >
-                    <Image src="/img/checker.png" alt="reward_image" class=" md:h-[225px] xl:h-[321px]"/>
+                    <img src="/img/checker.png" alt="reward_image" class="h-[186px] md:h-[225px] xl:h-[321px]"/>
                     <div class="flex flex-col gap-1 md:gap-0 w-full">
                         <div class="flex flex-row justify-between items-center">
-                            <div>CR-000000</div>
-                            <div>
-                                <Action 
-                                    
-                                />
+                            <div class="flex flex-row gap-3">
+                                <span class="text-sm text-gray-500">CR-000000</span>
+                                <span class="flex flex-row gap-1 text-sm text-warning-500 font-medium items-center">
+                                    <PointIcon class="w-4 h-4"/>
+                                    <span>100 tp</span>
+                                </span>
                             </div>
+                            <Action 
+                                
+                            />
                         </div>
                         <span class="font-semibold">💰 Cash Rewards or 🎁 Item here</span>
                         <div class="flex flex-row justify-between pt-1 md:pt-3">
@@ -61,15 +67,19 @@ const rewards = ref([
                 <div
                     class="flex flex-col gap-2 justify-center px-3 md:px-4 py-3 rounded w-full shadow-card bg-white border border-gray-100"
                 >
-                    <Image src="/img/checker.png" alt="reward_image" class=" md:h-[225px] xl:h-[321px]"/>
+                    <img src="/img/checker.png" alt="reward_image" class="h-[186px] md:h-[225px] xl:h-[321px]"/>
                     <div class="flex flex-col gap-1 md:gap-0 w-full">
                         <div class="flex flex-row justify-between items-center">
-                            <div>CR-000001</div>
-                            <div>
-                                <Action 
-                                    
-                                />
+                            <div class="flex flex-row gap-3">
+                                <span class="text-sm text-gray-500">CR-000001</span>
+                                <span class="flex flex-row gap-1 text-sm text-warning-500 font-medium items-center">
+                                    <PointIcon class="w-4 h-4"/>
+                                    <span>150 tp</span>
+                                </span>
                             </div>
+                            <Action 
+                                
+                            />
                         </div>
                         <span class="font-semibold">💰 Cash Rewards or 🎁 Item here</span>
                         <div class="flex flex-row justify-between pt-1 md:pt-3">

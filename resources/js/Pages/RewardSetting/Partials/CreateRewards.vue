@@ -81,16 +81,16 @@ const removeAttachment = () => {
 const today = new Date();
 
 const submitForm = () => {
-    visible.value = false;
-    form.reset();
-    removeAttachment();
-    // form.post(route('reward.createReward'), {
-    //     onSuccess: () => {
-    //         visible.value = false;
-    //         form.reset();
-    //         removeAttachment();
-    //     },
-    // });
+    // visible.value = false;
+    // form.reset();
+    // removeAttachment();
+    form.post(route('reward.createReward'), {
+        onSuccess: () => {
+            visible.value = false;
+            form.reset();
+            removeAttachment();
+        },
+    });
 };
 
 </script>
@@ -208,6 +208,7 @@ const submitForm = () => {
                                 class="w-full"
                                 inputClass="py-3 px-4"
                                 placeholder="0.00"
+                                :invalid="!!form.errors.trade_point_required"
                             />
                         </div>
                         <div class="flex flex-col gap-3">

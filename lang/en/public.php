@@ -658,4 +658,5 @@ return [
     'physical_rewards' => 'Physical Rewards',
     'delete_rewards' => 'Delete Rewards',
     'delete_rewards_desc' => 'Are you sure you want to delete this rewards? This action cannot be undone.',
+    'toast_create_reward_success' => 'You’ve successfully created a new rewards!',
 ];

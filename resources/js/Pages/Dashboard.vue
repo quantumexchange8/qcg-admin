@@ -405,7 +405,7 @@ watch(() => usePage().props, (newProps, oldProps) => {
                         </Button>
                     </div>
                 </div>
-                <div class="w-full h-full flex flex-col xl:flex-row 4xl:flex-col items-center gap-3 md:gap-5">
+                <div class="w-full h-full flex flex-col items-center gap-3 md:gap-5">
                     <!-- account balance & equity, request -->
                     <div class="w-full h-full flex flex-col items-center pt-2 pb-3 px-3 gap-3 rounded-lg bg-white shadow-card md:p-6 md:gap-5">
                         <div class="w-full flex items-center md:h-9">
@@ -422,7 +422,7 @@ watch(() => usePage().props, (newProps, oldProps) => {
                             </Button>
                         </div>
 
-                        <div class="w-full h-full flex justify-center items-center gap-2 md:gap-5 xl:flex-col 4xl:flex-row">
+                        <div class="w-full h-full flex flex-row justify-center items-center gap-2 md:gap-5 ">
                             <div class="w-full h-full grid grid-cols-1 justify-center items-center py-3 px-0.5 gap-1 bg-gray-50 md:px-0">
                                 <span class="w-full truncate text-gray-500 text-center text-xxs md:text-sm">{{ $t('public.total_balance') }}</span>
                                 <span v-if="(balance || balance === 0) && !accountLoading" class="w-full truncate text-gray-950 text-center font-semibold md:text-xl">
@@ -467,7 +467,7 @@ watch(() => usePage().props, (newProps, oldProps) => {
                             </Button>
                         </div>
 
-                        <div class="w-full h-full flex justify-center items-center gap-2 md:gap-5 xl:flex-col 4xl:flex-row">
+                        <div class="w-full h-full flex flex-row justify-center items-center gap-2 md:gap-5 ">
                             <div class="w-full h-full grid grid-cols-1 justify-center items-center py-3 px-0.5 gap-1 bg-gray-50 md:px-0">
                                 <span class="w-full truncate text-gray-500 text-center text-xxs md:text-sm">{{
                                     $t('public.total_trade_lots') }}</span>
@@ -534,7 +534,7 @@ watch(() => usePage().props, (newProps, oldProps) => {
                             </Button> -->
                         </div>
 
-                        <div class="w-full h-full flex justify-center items-center gap-2 md:gap-5 xl:flex-col 4xl:flex-row">
+                        <div class="w-full h-full flex flex-col justify-center items-center gap-2 md:gap-5 md:flex-row ">
                             <div class="min-w-60 w-full h-full grid grid-cols-1 justify-center items-center p-3 gap-2 bg-gray-50">
                                 <div class="flex flex-row gap-1 w-full justify-between items-center">
                                     <span class="text-xs text-gray-500 w-[140px]">Swap P&L ($)</span>

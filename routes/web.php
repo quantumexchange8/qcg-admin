@@ -186,6 +186,7 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
      */
     Route::prefix('reward')->middleware('role_and_permission:admin,access_reward_setting')->group(function () {
         Route::get('/', [RewardController::class, 'index'])->name('reward_setting');
+        Route::post('/createReward', [RewardController::class, 'createReward'])->name('reward.createReward');
 
     });
 
