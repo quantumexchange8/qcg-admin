@@ -407,8 +407,8 @@ watch(() => usePage().props, (newProps, oldProps) => {
                 </div>
                 <div class="w-full h-full flex flex-col xl:flex-row 4xl:flex-col items-center gap-3 md:gap-5">
                     <!-- account balance & equity, request -->
-                    <div class="w-full h-full flex flex-col items-center pt-2 pb-3 px-3 gap-3 rounded-lg bg-white shadow-card md:p-6 md:gap-8">
-                        <div class="w-full flex items-center md:h-9">
+                    <div class="w-full h-full flex flex-col items-center p-3 gap-3 rounded-lg bg-white shadow-card md:p-6 md:gap-8">
+                        <div class="w-full min-h-[46px] flex items-center md:h-9">
                             <span class="w-full truncate text-gray-950 text-sm font-semibold md:text-base">{{ $t('public.account_balance_equity') }}</span>
                             <Button 
                                 variant="gray-text" 
