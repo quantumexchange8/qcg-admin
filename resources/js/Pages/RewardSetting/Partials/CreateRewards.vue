@@ -29,6 +29,7 @@ const visible = ref(false)
 
 const openDialog = () => {
     form.reset();
+    form.clearErrors();
     removeAttachment();
     visible.value = true;
 }
@@ -46,7 +47,7 @@ const form = useForm({
         cn: '',
     },
     trade_point_required: null,
-    attachment: '',
+    reward_thumbnail: '',
     start_date: '',
     expiry_date: '',
     maximum_redemption: null,
@@ -67,7 +68,7 @@ const handleAttachment = (event) => {
         };
         reader.readAsDataURL(file);
         selectedAttachmentName.value = file.name;
-        form.attachment = event.target.files[0];
+        form.reward_thumbnail = event.target.files[0];
     } else {
         selectedAttachment.value = null;
     }
@@ -75,15 +76,12 @@ const handleAttachment = (event) => {
 
 const removeAttachment = () => {
     selectedAttachment.value = null;
-    form.attachment = '';
+    form.reward_thumbnail = '';
 };
 
 const today = new Date();
 
 const submitForm = () => {
-    // visible.value = false;
-    // form.reset();
-    // removeAttachment();
     form.post(route('reward.createReward'), {
         onSuccess: () => {
             visible.value = false;

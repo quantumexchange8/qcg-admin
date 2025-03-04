@@ -13,10 +13,13 @@ import Datepicker from 'primevue/datepicker';
 import { IconPlus, IconUpload, IconX } from "@tabler/icons-vue";
 import RadioButton from 'primevue/radiobutton';
 import ToggleSwitch from 'primevue/toggleswitch';
+import { transactionFormat } from "@/Composables/index.js";
 
 const props = defineProps({
-
+    reward:Object,
 });
+
+const { formatAmount, formatDate } = transactionFormat();
 
 const languageLabels = {
   en: 'English',
@@ -24,34 +27,36 @@ const languageLabels = {
   cn: '中文（简体）',
 };
 
-const visible = ref(false)
+// const visible = ref(false)
 
-const openDialog = () => {
-    form.reset();
-    removeAttachment();
-    visible.value = true;
-}
+// const openDialog = () => {
+//     form.reset();
+//     removeAttachment();
+//     visible.value = true;
+// }
 
 const emit = defineEmits(['update:visible'])
 
 const form = useForm({
-    rewards_type: 'cash_rewards',
-    code: '',
+    reward_id: props.reward.reward_id,
+    rewards_type: props.reward.type,
+    code: props.reward.code,
     name: {
-        en: '',
-        tw: '',
-        cn: '',
+        en: props.reward.name.en,
+        tw: props.reward.name.tw,
+        cn: props.reward.name.cn,
     },
-    trade_point_required: null,
-    attachment: '',
-    start_date: '',
-    expiry_date: '',
-    maximum_redemption: null,
-    autohide_after_expiry: false,
+    trade_point_required: props.reward.trade_point_required,
+    reward_thumbnail: props.reward.reward_thumbnail,
+    start_date: props.reward.start_date ? formatDate(props.reward.start_date) : '',
+    expiry_date: props.reward.expiry_date ? formatDate(props.reward.expiry_date) : '',
+    maximum_redemption: props.reward.maximum_redemption ?? null,
+    autohide_after_expiry: props.reward.autohide_after_expiry ?? false,
 });
 
-const selectedAttachment = ref(null);
-const selectedAttachmentName = ref(null);
+const selectedAttachment = ref(props.reward.reward_thumbnail || null);
+const selectedAttachmentName = ref(props.reward.reward_thumbnail ? props.reward.reward_thumbnail.split('/').pop() : null);
+
 const handleAttachment = (event) => {
     const attachmentInput = event.target;
     const file = attachmentInput.files[0];
@@ -64,7 +69,7 @@ const handleAttachment = (event) => {
         };
         reader.readAsDataURL(file);
         selectedAttachmentName.value = file.name;
-        form.attachment = event.target.files[0];
+        form.reward_thumbnail = event.target.files[0];
     } else {
         selectedAttachment.value = null;
     }
@@ -72,22 +77,17 @@ const handleAttachment = (event) => {
 
 const removeAttachment = () => {
     selectedAttachment.value = null;
-    form.attachment = '';
+    form.reward_thumbnail = '';
 };
 
 const today = new Date();
 
 const submitForm = () => {
-    visible.value = false;
-    form.reset();
-    removeAttachment();
-    // form.post(route('reward.createReward'), {
-    //     onSuccess: () => {
-    //         visible.value = false;
-    //         form.reset();
-    //         removeAttachment();
-    //     },
-    // });
+    form.post(route('reward.editReward'), {
+        onSuccess: () => {
+            closeDialog();
+        },
+    });
 };
 
 const closeDialog = () => {

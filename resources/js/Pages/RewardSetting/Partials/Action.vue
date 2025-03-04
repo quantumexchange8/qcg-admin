@@ -4,8 +4,8 @@ import {
     IconPencilMinus,
     IconTrashX,
     IconChevronRight,
-    IconUserCheck,
-    IconUserCancel,
+    IconEyeCheck,
+    IconEyeCancel,
 } from "@tabler/icons-vue";
 import Button from "@/Components/Button.vue";
 import { h, ref, watch } from "vue";
@@ -48,42 +48,48 @@ const toggle = (event) => {
     menu.value.toggle(event);
 };
 
-const checked = ref('active')
+const checked = ref(props.reward.status === 'active')
+
+watch(() => props.reward.status, (newStatus) => {
+    checked.value = newStatus === 'active';
+});
 
 const confirm = useConfirm();
 
-const requireConfirmation = (action_type, meta_login) => {
+const requireConfirmation = (action_type) => {
     const messages = {
-        // activate_trading_account: {
-        //     group: 'headless',
-        //     color: 'primary',
-        //     icon: h(IconUserCheck),
-        //     header: trans('public.activate_trading_account'),
-        //     message: trans('public.activate_trading_account_caption', {account: `${meta_login}`}),
-        //     cancelButton: trans('public.cancel'),
-        //     acceptButton: trans('public.confirm'),
-        //     action: () => {
-        //         router.post(route('member.updateAccountStatus'), {
-        //         })
+        activate_rewards: {
+            group: 'headless',
+            color: 'primary',
+            icon: h(IconEyeCheck),
+            header: trans('public.activate_rewards'),
+            message: trans('public.activate_rewards_caption'),
+            cancelButton: trans('public.cancel'),
+            acceptButton: trans('public.activate'),
+            action: () => {
+                router.post(route('reward.updateRewardStatus'), {
+                    reward_id: props.reward.reward_id,
+                })
 
-        //         checked.value = !checked.value;
-        //     }
-        // },
-        // deactivate_trading_account: {
-        //     group: 'headless',
-        //     color: 'error',
-        //     icon: h(IconUserCancel),
-        //     header: trans('public.deactivate_trading_account'),
-        //     message: trans('public.deactivate_trading_account_caption', {account: `${meta_login}`}),
-        //     cancelButton: trans('public.cancel'),
-        //     acceptButton: trans('public.confirm'),
-        //     action: () => {
-        //         router.post(route('member.updateAccountStatus'), {
-        //         })
+                checked.value = !checked.value;
+            }
+        },
+        deactivate_rewards: {
+            group: 'headless',
+            color: 'error',
+            icon: h(IconEyeCancel),
+            header: trans('public.deactivate_rewards'),
+            message: trans('public.deactivate_rewards_caption'),
+            cancelButton: trans('public.cancel'),
+            acceptButton: trans('public.deactivate'),
+            action: () => {
+                router.post(route('reward.updateRewardStatus'), {
+                    reward_id: props.reward.reward_id,
+                })
 
-        //         checked.value = !checked.value;
-        //     }
-        // },
+                checked.value = !checked.value;
+            }
+        },
         delete_rewards: {
             group: 'headless',
             color: 'error',
@@ -93,8 +99,9 @@ const requireConfirmation = (action_type, meta_login) => {
             cancelButton: trans('public.cancel'),
             acceptButton: trans('public.delete'),
             action: () => {
-                router.delete(route('rewards.rewardDelete'), {
+                router.delete(route('reward.deleteReward'), {
                     data: {
+                        reward_id: props.reward.reward_id,
                     },
                 })
             }
@@ -116,6 +123,11 @@ const requireConfirmation = (action_type, meta_login) => {
 };
 
 const handleAccountStatus = () => {
+    if (props.reward.status === 'active') {
+        requireConfirmation('deactivate_rewards')
+    } else {
+        requireConfirmation('activate_rewards')
+    }
 }
 
 </script>
@@ -124,7 +136,7 @@ const handleAccountStatus = () => {
     <div class="flex gap-3 items-center justify-center">
         <ToggleSwitch
             v-model="checked"
-           
+            readonly
             @click="handleAccountStatus"
         />
         <Button
@@ -172,7 +184,7 @@ const handleAccountStatus = () => {
     >
         <template v-if="dialogType === 'edit'">
             <Edit
-                
+                :reward="reward"
                 @update:visible="visible = false"
             />
         </template>

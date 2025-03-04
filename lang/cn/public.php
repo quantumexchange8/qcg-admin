@@ -659,4 +659,13 @@ return [
     'physical_rewards' => '实物奖励',
     'delete_rewards' => '删除奖励',
     'delete_rewards_desc' => '您确定要删除此奖励吗? 此操作无法撤销.',
+    'toast_create_reward_success' => '您已成功创建新奖励!',
+    'toast_delete_reward_success' => '奖励已被删除!',
+    'toast_update_reward_success' => '您已成功更新奖励!',
+    'activate_rewards' => '启用奖励',
+    'activate_rewards_caption' => '您确定要启用此奖励吗? 这将使其可见并可供用户兑换.',
+    'deactivate_rewards' => '停用奖励',
+    'deactivate_rewards_caption' => '您确定要停用此奖励吗? 此奖励将对用户隐藏, 并且不再可供兑换.',
+    'toast_rewards_has_activated' => '您已成功启用奖励!',
+    'toast_rewards_has_deactivated' => '奖励已被停用!',
 ];

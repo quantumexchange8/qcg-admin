@@ -187,7 +187,10 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
     Route::prefix('reward')->middleware('role_and_permission:admin,access_reward_setting')->group(function () {
         Route::get('/', [RewardController::class, 'index'])->name('reward_setting');
         Route::post('/createReward', [RewardController::class, 'createReward'])->name('reward.createReward');
-
+        Route::get('/getRewardData', [RewardController::class, 'getRewardData'])->name('reward.getRewardData');
+        Route::post('/editReward', [RewardController::class, 'editReward'])->name('reward.editReward');
+        Route::delete('/deleteReward', [RewardController::class, 'deleteReward'])->name('reward.deleteReward');
+        Route::post('/updateRewardStatus', [RewardController::class, 'updateRewardStatus'])->name('reward.updateRewardStatus');
     });
 
     /**

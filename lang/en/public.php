@@ -659,4 +659,12 @@ return [
     'delete_rewards' => 'Delete Rewards',
     'delete_rewards_desc' => 'Are you sure you want to delete this rewards? This action cannot be undone.',
     'toast_create_reward_success' => 'You’ve successfully created a new rewards!',
+    'toast_delete_reward_success' => 'Rewards has been deleted!',
+    'toast_update_reward_success' => 'You’ve successfully updated a rewards!',
+    'activate_rewards' => 'Activate Rewards',
+    'activate_rewards_caption' => 'Are you sure you want to activate this rewards? This will make it visible and available for users to redeem.',
+    'deactivate_rewards' => 'Deactivate Rewards',
+    'deactivate_rewards_caption' => 'Are you sure you want to deactivate this rewards? This reward will be hidden from users and will no longer be available for redemption.',
+    'toast_rewards_has_activated' => 'You’ve successfully activated the rewards!',
+    'toast_rewards_has_deactivated' => 'Rewards has been deactivated!',
 ];
