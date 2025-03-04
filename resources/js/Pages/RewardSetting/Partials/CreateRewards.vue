@@ -266,7 +266,7 @@ const submitForm = () => {
                 <div class="flex flex-col gap-3">
                     <span class="text-sm font-bold text-gray-950">{{ $t('public.availability_n_expiry') }}</span>
                     <div class="grid grid-cols-2 gap-5">
-                        <div class="flex flex-col gap-2">
+                        <!-- <div class="flex flex-col gap-2">
                             <InputLabel>{{ $t('public.start_date') }}</InputLabel>
                             <Datepicker
                                 v-model="form.start_date"
@@ -277,7 +277,7 @@ const submitForm = () => {
                                 :placeholder="$t('public.select_date')"
                                 class="w-full font-normal"
                             />
-                        </div>
+                        </div> -->
                         <div class="flex flex-col gap-2">
                             <InputLabel>{{ $t('public.expiry_date') }}</InputLabel>
                             <Datepicker
@@ -292,6 +292,14 @@ const submitForm = () => {
                             />
                         </div>
                         <div class="flex flex-col gap-2">
+                            <InputLabel>{{ $t('public.autohide_after_expiry') }}</InputLabel>
+                            <ToggleSwitch
+                                v-model="form.autohide_after_expiry"
+                                :disabled="!form.expiry_date"
+                                class="my-auto"
+                            />
+                        </div>
+                        <div class="flex flex-col gap-2 col-span-2">
                             <InputLabel>{{ $t('public.maximum_redemption') }}</InputLabel>
                             <InputNumber
                                 v-model="form.maximum_redemption"
@@ -305,13 +313,13 @@ const submitForm = () => {
                                 placeholder="0"
                             />
                         </div>
-                        <div class="flex flex-col gap-2">
+                        <!-- <div class="flex flex-col gap-2">
                             <InputLabel>{{ $t('public.autohide_after_expiry') }}</InputLabel>
                             <ToggleSwitch
                                 v-model="form.autohide_after_expiry"
                                 :disabled="!form.expiry_date"
                             />
-                        </div>
+                        </div> -->
                     </div>
                 </div>
             </div>

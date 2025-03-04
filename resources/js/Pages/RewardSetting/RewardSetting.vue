@@ -97,9 +97,7 @@ watchEffect(() => {
                         <div class="flex flex-row justify-between pt-1 md:pt-3">
                             <span class="text-error-600 text-sm font-medium">
                                 {{
-                                    item.start_date && item.expiry_date
-                                    ? `${formatDate(item.start_date)} - ${formatDate(item.expiry_date)}`
-                                    : item.expiry_date
+                                    item.expiry_date
                                     ? formatDate(item.expiry_date)
                                     : $t('public.no_expiry_date')
                                 }}

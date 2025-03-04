@@ -667,4 +667,7 @@ return [
     'deactivate_rewards_caption' => 'Are you sure you want to deactivate this rewards? This reward will be hidden from users and will no longer be available for redemption.',
     'toast_rewards_has_activated' => 'You’ve successfully activated the rewards!',
     'toast_rewards_has_deactivated' => 'Rewards has been deactivated!',
+    'trade_points' => 'Trade Points',
+    'points_in' => 'Points In',
+    'points_out' => 'Points Out',
 ];

@@ -99,7 +99,16 @@ const items = ref([
                     adjustmentType.value = 'account_credit';
                     title.value = 'credit';
                 },
-            }
+            },
+            // {
+            //     label: 'trade_points',
+            //     command: () => {
+            //         visible.value = true;
+            //         dialogType.value = 'adjustment';
+            //         adjustmentType.value = 'trade_points';
+            //         title.value = 'trade_points';
+            //     },
+            // }
         ]
 
     },

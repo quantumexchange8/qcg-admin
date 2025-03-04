@@ -81,7 +81,11 @@ const radioOptions = computed(() => {
         account_credit: [
             { label: 'credit_in', value: 'credit_in' },
             { label: 'credit_out', value: 'credit_out' }
-        ]
+        ],
+        trade_points: [
+            { label: 'points_in', value: 'points_in' },
+            { label: 'points_out', value: 'points_out' }
+        ],
     };
 
     // Return the correct options based on type
@@ -103,6 +107,10 @@ const chips = computed(() => {
             { label: 'Fix account credit' },
             { label: '修改信用餘額' },
         ],
+        trade_points: [
+            { label: 'Fix trade points' },
+            { label: '修改交易積分' },
+        ],
     };
 
     return chipsMapping[props.type] || [];
@@ -114,6 +122,7 @@ const placeholderText = computed(() => {
         rebate: 'Rebate balance adjustment',
         account_balance: 'Account balance adjustment',
         account_credit: 'Account credit adjustment',
+        trade_points: 'Trade points adjustment',
     };
 
     return placeholderMapping[props.type] || 'Enter remarks here';
@@ -156,7 +165,7 @@ const submitForm = () => {
                     {{
                         type === 'rebate' 
                         ? $t('public.rebate_balance') 
-                        : `#${selectedAccount ? selectedAccount.meta_login : '' } - ${type === 'account_balance' ? $t('public.available_account_balance') : $t('public.current_account_credit')}`
+                        : type === 'trade_points' ? $t('public.trade_points') : `#${selectedAccount ? selectedAccount.meta_login : '' } - ${type === 'account_balance' ? $t('public.available_account_balance') : $t('public.current_account_credit')}`
                     }}
                 </div>
                 <div v-if="isLoading" class="animate-pulse">
@@ -168,14 +177,14 @@ const submitForm = () => {
                         {{
                             type === 'rebate' 
                             ? formatAmount(walletData ? walletData.balance : 0) 
-                            : type === 'account_balance' ? formatAmount(selectedAccount ? selectedAccount.balance : 0) : formatAmount(selectedAccount ? selectedAccount.credit : 0)
+                            : type === 'trade_points' ? $t('public.trade_points') : type === 'account_balance' ? formatAmount(selectedAccount ? selectedAccount.balance : 0) : formatAmount(selectedAccount ? selectedAccount.credit : 0)
                         }}
                     </span>
                 </div>
             </div>
 
             <!-- trading account -->
-            <div v-if="props.type !== 'rebate' && !props.account" class="flex flex-col items-start gap-2 self-stretch">
+            <div v-if="props.type !== 'rebate' && props.type !== 'trade_points' && !props.account" class="flex flex-col items-start gap-2 self-stretch">
                 <InputLabel for="trading_account" :value="$t('public.trading_account')" :invalid="!!form.errors.meta_login" />
                 <Select
                     v-model="selectedAccount"
