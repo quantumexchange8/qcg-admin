@@ -301,7 +301,7 @@ watch(() => usePage().props, (newProps, oldProps) => {
 
 <template>
     <AuthenticatedLayout :title="$t('public.dashboard')">
-        <div v-if="hasRole('super-admin') || hasPermission('access_dashboard')" class="w-full grid grid-cols-1 4xl:grid-cols-2 items-center gap-3 md:gap-5">
+        <div v-if="hasRole('super-admin') || hasPermission('access_dashboard')" class="w-full grid grid-cols-1 2xl:grid-cols-2 items-center gap-3 md:gap-5">
             <div class="w-full flex flex-col items-start gap-3 md:gap-5">
                 <!-- overview data -->
                 <div class="w-full grid grid-cols-2 gap-3 md:gap-5">
@@ -503,7 +503,7 @@ watch(() => usePage().props, (newProps, oldProps) => {
                                 :placeholder="$t('public.month_placeholder')"
                                 class="w-60 font-normal truncate" scroll-height="236px" 
                             />
-                            <Button 
+                            <!-- <Button 
                                 variant="gray-text" 
                                 size="sm" 
                                 type="button" 
@@ -512,7 +512,7 @@ watch(() => usePage().props, (newProps, oldProps) => {
                                 @click="updateTradeLotVolume()"
                             >
                                 <IconRefresh size="16" stroke-width="1.25" color="#374151" />
-                            </Button>
+                            </Button> -->
 
                             <!-- <Select 
                                 v-model="selectedPnlMonth" 
@@ -576,6 +576,8 @@ watch(() => usePage().props, (newProps, oldProps) => {
                     </div>
                 </div>
             </div>
+
+            <!-- sales team -->
             <div class="w-full h-full flex flex-col items-center p-3 gap-3 rounded-lg bg-white shadow-card md:p-6 md:gap-5">
                 <div class="w-full flex justify-between items-center">
                     <Select 
@@ -608,10 +610,10 @@ watch(() => usePage().props, (newProps, oldProps) => {
                     </Button>
                 </div>
 
-                <div class="w-full max-h-[770px] overflow-auto grid grid-cols-1 xl:grid-cols-2 4xl:grid-cols-1 gap-3 md:gap-6">
+                <div class="w-full max-h-[770px] grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-1 gap-3 md:gap-6">
                     <div
                         v-if="teamLoading"
-                        class="w-full flex flex-col items-center rounded bg-white shadow-card"
+                        class="w-full flex flex-col items-center rounded bg-white overflow-hidden"
                     >
                         <div class="w-full flex py-1 px-3 items-center gap-3 bg-gray-500 md:py-2 md:px-4">
                             <span class="w-full text-white font-medium truncate animate-pulse">
@@ -670,7 +672,7 @@ watch(() => usePage().props, (newProps, oldProps) => {
                         v-else
                         v-for="team in teams"
                         :key="team.id"
-                        class="w-full flex flex-col items-center rounded bg-white shadow-card"
+                        class="w-full flex flex-col items-center rounded bg-white shadow-card overflow-hidden"
                     >
                         <div 
                             class="w-full flex py-1 px-3 items-center gap-3 md:py-2 md:px-4"
