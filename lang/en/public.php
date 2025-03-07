@@ -670,4 +670,8 @@ return [
     'trade_points' => 'Trade Points',
     'points_in' => 'Points In',
     'points_out' => 'Points Out',
+    'least_trade_point' => 'Least Trade Point',
+    'most_redeemed' => 'Most Redeemed',
+    'cash_rewards_only' => 'Cash Rewards Only',
+    'physical_rewards_only' => 'Physical Rewards Only',
 ];

@@ -12,16 +12,17 @@ import Action from "@/Pages/RewardSetting/Partials/Action.vue"
 import CreateRewards from "@/Pages/RewardSetting/Partials/CreateRewards.vue";
 import {useLangObserver} from "@/Composables/localeObserver.js";
 import { transactionFormat } from "@/Composables/index.js";
+import { trans, wTrans } from "laravel-vue-i18n";
 
 const {locale} = useLangObserver();
 const selectedReward = ref('least_trade_point');
 const { formatAmount, formatDate } = transactionFormat();
 
-const rewardFilters = ref([
-    { name: 'Least Trade Point', value: 'least_trade_point' },
-    { name: 'Most Redeemed', value: 'most_redeemed' },
-    { name: 'Cash Rewards Only', value: 'cash_rewards_only' },
-    { name: 'Physical Rewards Only', value: 'physical_rewards_only' },
+const rewardFilters = computed(() => [
+    { name: trans('public.least_trade_point'), value: 'least_trade_point' },
+    { name: trans('public.most_redeemed'), value: 'most_redeemed' },
+    { name: trans('public.cash_rewards_only'), value: 'cash_rewards_only' },
+    { name: trans('public.physical_rewards_only'), value: 'physical_rewards_only' },
 ]);
 
 const rewards = ref([]);
@@ -47,7 +48,7 @@ const getRewardData = async (selectedReward = '') => {
     }
 };
 
-getRewardData();
+getRewardData(selectedReward.value);
 
 watch(selectedReward, (newReward) => {
     getRewardData(newReward);
@@ -56,7 +57,7 @@ watch(selectedReward, (newReward) => {
 
 watchEffect(() => {
     if (usePage().props.toast !== null) {
-        getRewardData();
+        getRewardData(selectedReward.value);
     }
 });
 </script>
