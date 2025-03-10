@@ -27,6 +27,7 @@ const { hasRole, hasPermission } = usePermission();
 const pendingWithdrawals = ref(0);
 const pendingBonus = ref(0);
 const pendingIncentive = ref(0);
+const pendingRewards = ref(0);
 
 const getPendingCounts = async () => {
     try {
@@ -34,6 +35,7 @@ const getPendingCounts = async () => {
         pendingWithdrawals.value = response.data.pendingWithdrawals
         pendingBonus.value = response.data.pendingBonus
         pendingIncentive.value = response.data.pendingIncentive
+        pendingRewards.value = response.data.pendingRewards
     } catch (error) {
         console.error('Error pending counts:', error);
     }
@@ -104,6 +106,14 @@ watchEffect(() => {
                 :active="route().current('pending.incentive')"
                 :pendingCounts="pendingIncentive"
                 v-if="hasRole('super-admin') || hasPermission('access_incentive_request')"
+            />
+
+            <SidebarCollapsibleItem
+                :title="$t('public.rewards')"
+                :href="route('pending.rewards')"
+                :active="route().current('pending.rewards')"
+                :pendingCounts="pendingRewards"
+                v-if="hasRole('super-admin') || hasPermission('access_rewards_request')"
             />
 
         </SidebarCollapsible>
@@ -245,6 +255,13 @@ watchEffect(() => {
                 :href="route('transaction.bonus')"
                 :active="route().current('transaction.bonus')"
                 v-if="hasRole('super-admin') || hasPermission('access_bonus')"
+            />
+
+            <SidebarCollapsibleItem
+                :title="$t('public.sidebar_rewards')"
+                :href="route('transaction.rewards')"
+                :active="route().current('transaction.rewards')"
+                v-if="hasRole('super-admin') || hasPermission('access_rewards')"
             />
             
             <SidebarCollapsibleItem

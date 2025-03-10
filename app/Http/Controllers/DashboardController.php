@@ -46,11 +46,17 @@ class DashboardController extends Controller
             ->where('status', 'processing')
             ->count();
 
+        $pendingRewards = Transaction::where('category', 'trade_points')
+            ->where('transaction_type', 'redemption')
+            ->where('status', 'processing')
+            ->count();
+
 
         return response()->json([
             'pendingWithdrawals' => $pendingWithdrawals,
             'pendingBonus' => $pendingBonus,
             'pendingIncentive' => $pendingIncentive,
+            'pendingRewards' => $pendingRewards,
         ]);
     }
 

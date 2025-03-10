@@ -40,6 +40,7 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(function () {
     Route::get('/getWalletData', [GeneralController::class, 'getWalletData'])->name('getWalletData');
+    Route::get('/getTradePointData', [GeneralController::class, 'getTradePointData'])->name('getTradePointData');
     Route::get('/getLeverages', [GeneralController::class, 'getLeverages'])->name('getLeverages');
     Route::get('/getTradingAccountData', [GeneralController::class, 'getTradingAccountData'])->name('getTradingAccountData');
     Route::get('/updateAccountData', [GeneralController::class, 'updateAccountData'])->name('updateAccountData');
@@ -80,9 +81,11 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
         Route::get('withdrawal', [PendingController::class, 'withdrawal'])->name('pending.withdrawal')->middleware('role_and_permission:admin,access_withdrawal_request');
         Route::get('bonus', [PendingController::class, 'bonus'])->name('pending.bonus')->middleware('role_and_permission:admin,access_bonus_request');
         Route::get('incentive', [PendingController::class, 'incentive'])->name('pending.incentive')->middleware('role_and_permission:admin,access_incentive_request');
+        Route::get('rewards', [PendingController::class, 'rewards'])->name('pending.rewards')->middleware('role_and_permission:admin,access_rewards_request');
         Route::get('/getPendingWithdrawalData', [PendingController::class, 'getPendingWithdrawalData'])->name('pending.getPendingWithdrawalData')->middleware('role_and_permission:admin,access_withdrawal_request');
         Route::get('/getPendingBonusData', [PendingController::class, 'getPendingBonusData'])->name('pending.getPendingBonusData')->middleware('role_and_permission:admin,access_bonus_request');
         Route::get('/getPendingIncentiveData', [PendingController::class, 'getPendingIncentiveData'])->name('pending.getPendingIncentiveData')->middleware('role_and_permission:admin,access_incentive_request');
+        Route::get('/getPendingRewardsData', [PendingController::class, 'getPendingRewardsData'])->name('pending.getPendingRewardsData')->middleware('role_and_permission:admin,access_rewards_request');
 
         Route::post('withdrawalApproval', [PendingController::class, 'withdrawalApproval'])->name('pending.withdrawalApproval');
     });
@@ -111,6 +114,7 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
             Route::post('/uploadKyc', [MemberController::class, 'uploadKyc'])->name('member.uploadKyc');
             Route::post('/resetPassword', [MemberController::class, 'resetPassword'])->name('member.resetPassword');
             Route::post('/walletAdjustment', [MemberController::class, 'walletAdjustment'])->name('member.walletAdjustment');
+            Route::post('/pointAdjustment', [MemberController::class, 'pointAdjustment'])->name('member.pointAdjustment');
             Route::delete('/deleteMember', [MemberController::class, 'deleteMember'])->name('member.deleteMember');
 
             // Details Routes
@@ -237,11 +241,13 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
         Route::get('withdrawal', [TransactionController::class, 'withdrawal'])->name('transaction.withdrawal')->middleware('role_and_permission:admin,access_withdrawal');
         Route::get('transfer', [TransactionController::class, 'transfer'])->name('transaction.transfer')->middleware('role_and_permission:admin,access_transfer');
         Route::get('bonus', [TransactionController::class, 'bonus'])->name('transaction.bonus')->middleware('role_and_permission:admin,access_bonus');
+        Route::get('rewards', [TransactionController::class, 'rewards'])->name('transaction.rewards')->middleware('role_and_permission:admin,access_rewards');
         Route::get('rebate', [TransactionController::class, 'rebate'])->name('transaction.rebate')->middleware('role_and_permission:admin,access_rebate_payout');
         Route::get('incentive', [TransactionController::class, 'incentive'])->name('transaction.incentive')->middleware('role_and_permission:admin,access_incentive_payout');
         Route::get('adjustment', [TransactionController::class, 'adjustment'])->name('transaction.adjustment');
 
         Route::get('/getTransactionData', [TransactionController::class, 'getTransactionData'])->name('transaction.getTransactionData')->middleware('role_and_permission:admin,access_deposit,access_withdrawal,access_transfer');
+        Route::get('/getRewardsData', [TransactionController::class, 'getRewardsData'])->name('transaction.getRewardsData')->middleware('role_and_permission:admin,access_rewards');
         Route::get('/getRebatePayoutData', [TransactionController::class, 'getRebatePayoutData'])->name('transaction.getRebatePayoutData')->middleware('role_and_permission:admin,access_rebate_payout');
         Route::get('/getIncentivePayoutData', [TransactionController::class, 'getIncentivePayoutData'])->name('transaction.getIncentivePayoutData')->middleware('role_and_permission:admin,access_incentive_payout');
         Route::get('/getAdjustmentHistoryData', [TransactionController::class, 'getAdjustmentHistoryData'])->name('transaction.getAdjustmentHistoryData');

@@ -20,6 +20,11 @@ class PendingController extends Controller
         return Inertia::render('Pending/Withdrawal');
     }
 
+    public function rewards()
+    {
+        return Inertia::render('Pending/Rewards');
+    }
+
     public function bonus()
     {
         return Inertia::render('Pending/Bonus');
@@ -81,6 +86,53 @@ class PendingController extends Controller
     
         return response()->json([
             'pendingWithdrawals' => $pendingWithdrawals,
+            'totalAmount' => $totalAmount,
+        ]);
+    }
+
+    public function getPendingRewardsData()
+    {
+        $pendingRewards = Transaction::with([
+            'user:id,email,first_name',
+            'user.teamHasUser:id,team_id,user_id',
+            'user.teamHasUser.team:id,name,color',
+            'redemption',
+            'redemption.reward:id,type,code,name'
+        ])
+            ->where('transaction_type', 'redemption')
+            ->where('status', 'processing')
+            ->where('category', 'trade_points')
+            ->latest()
+            ->get()
+            ->map(function ($transaction) {
+                    // Fallback to using the wallet balance if from_meta_login is not available
+                $balance = $transaction->from_wallet->balance ?? 0;
+                $reward_name = json_decode($transaction->redemption->reward->name, true);
+    
+                return [
+                    'id' => $transaction->id,
+                    'created_at' => $transaction->created_at,
+                    'user_name' => $transaction->user->first_name,
+                    'user_email' => $transaction->user->email,
+                    'balance' => $balance, // Get balance after ensuring it's updated
+                    'amount' => $transaction->amount,
+                    'transaction_charges' => $transaction->transaction_charges,
+                    'transaction_amount' => $transaction->transaction_amount,
+                    'team_id' => $transaction->user->teamHasUser->team_id ?? null,
+                    'team_name' => $transaction->user->teamHasUser->team->name ?? null,
+                    'team_color' => $transaction->user->teamHasUser->team->color ?? null,
+                    'reward_id' => $transaction->redemption->reward_id ?? null,
+                    'reward_details' => $transaction->redemption ?? null,
+                    'reward_type' => $transaction->redemption->reward->type ?? null,
+                    'reward_code' => $transaction->redemption->reward->code ?? null,
+                    'reward_name' => $reward_name ?? null,
+                ];
+            });
+    
+        $totalAmount = $pendingRewards->sum('amount');
+    
+        return response()->json([
+            'pendingRewards' => $pendingRewards,
             'totalAmount' => $totalAmount,
         ]);
     }
@@ -235,6 +287,7 @@ class PendingController extends Controller
                         'withdrawal' => trans('public.toast_reject_withdrawal_request_success'),
                         'bonus' => trans('public.toast_reject_bonus_request_success'),
                         'incentive' => trans('public.toast_reject_incentive_request_success'),
+                        'rewards' => trans('public.toast_reject_rewards_request_success'),
                     ];
                     $message = $messages[$type];
                 } else {
@@ -265,6 +318,7 @@ class PendingController extends Controller
                         'withdrawal' => trans('public.toast_approve_withdrawal_request_success'),
                         'bonus' => trans('public.toast_approve_bonus_request_success'),
                         'incentive' => trans('public.toast_approve_incentive_request_success'),
+                        'rewards' => trans('public.toast_approve_rewards_request_success'),
                     ];
                     $message = $messages[$type];
 

@@ -113,6 +113,11 @@ class User extends Authenticatable implements HasMedia
         return $this->hasOne(Wallet::class, 'user_id', 'id')->where('type', 'incentive_wallet');
     }
 
+    public function trade_points(): HasOne
+    {
+        return $this->hasOne(Wallet::class, 'user_id', 'id')->where('type', 'trade_points');
+    }
+
     public function tradingAccounts(): HasMany
     {
         return $this->hasMany(TradingAccount::class, 'user_id', 'id');

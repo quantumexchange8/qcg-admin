@@ -7,7 +7,7 @@ import { IconPlus } from "@tabler/icons-vue";
 import {
     PointIcon
 } from '@/Components/Icons/outline.jsx';
-import { ref, watch, watchEffect } from "vue";
+import { ref, watch, watchEffect, computed } from "vue";
 import Action from "@/Pages/RewardSetting/Partials/Action.vue"
 import CreateRewards from "@/Pages/RewardSetting/Partials/CreateRewards.vue";
 import {useLangObserver} from "@/Composables/localeObserver.js";

@@ -41,6 +41,13 @@ class TransactionController extends Controller
         ]);
     }
 
+    public function rewards()
+    {
+        return Inertia::render('Transaction/Rewards', [
+            'teams' => (new GeneralController())->getTeams(true),
+        ]);
+    }
+
     public function rebate()
     {
         return Inertia::render('Transaction/RebatePayout');
@@ -81,6 +88,7 @@ class TransactionController extends Controller
             'user_id',
             'category',
             'transaction_type',
+            'redemption_id',
             'transaction_number',
             'amount',
             'transaction_charges',
@@ -90,7 +98,7 @@ class TransactionController extends Controller
             'created_at',
         ];
 
-        $query = Transaction::with('user.teamHasUser.team', 'from_wallet', 'to_wallet')
+        $query = Transaction::with('user.teamHasUser.team', 'from_wallet', 'to_wallet', 'redemption.reward')
         ->whereBetween('created_at', [$startDate, $endDate]);
 
         // Apply filtering for selected teams
@@ -113,7 +121,7 @@ class TransactionController extends Controller
         }
 
         // Apply ordering based on the transaction type
-        if ($type === 'withdrawal' || $type === 'credit_bonus') {
+        if ($type === 'withdrawal' || $type === 'credit_bonus' || $type === 'redemption') {
             $query->orderByDesc('approved_at');
         } else {
             $query->latest();
@@ -183,8 +191,22 @@ class TransactionController extends Controller
                 }
 
                 $result['deposit_amount'] = $depositQuery->sum('transaction_amount');
-            }
+            } elseif ($type === 'redemption') {
+                $reward_name = json_decode($transaction->redemption->reward->name, true);
 
+                $result['team_id'] = $transaction->user->teamHasUser->team_id ?? null;
+                $result['team_name'] = $transaction->user->teamHasUser->team->name ?? null;
+                $result['team_color'] = $transaction->user->teamHasUser->team->color ?? null;
+                $result['from_wallet_id'] = $transaction->from_wallet ? $transaction->from_wallet->id : null;
+                $result['approved_at'] = $transaction->approved_at;
+                $result['reward_type'] = $transaction->redemption->reward->type;
+                $result['reward_code'] = $transaction->redemption->reward->code;
+                $result['reward_name'] = $reward_name;
+                $result['receiving_account'] = $transaction->redemption->receiving_account ?? null;
+                $result['recipient_name'] = $transaction->redemption->recipient_name ?? null;
+                $result['phone_number'] = $transaction->redemption->phone_number ?? null;
+                $result['address'] = $transaction->redemption->address ?? null;
+            }
             return $result;
         });
 

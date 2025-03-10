@@ -19,6 +19,7 @@ const props = defineProps({
 
 const isLoading = ref(false);
 const walletData = ref(null);
+const tradePointData = ref(null);
 const accountData = ref(null);
 const selectedAccount = ref(null);
 const { formatAmount } = transactionFormat();
@@ -36,6 +37,9 @@ const getResults = async () => {
         } else if (props.type == 'rebate') {
             response = await axios.get(`/getWalletData?user_id=${props.member.id}`);
             walletData.value = response.data.walletData;
+        } else if (props.type == 'trade_points') {
+            response = await axios.get(`/getTradePointData?user_id=${props.member.id}`);
+            tradePointData.value = response.data.tradePointData ?? 0;
         } else {
             response = await axios.get(`/getTradingAccountData?user_id=${props.member.id}`);
             accountData.value = response.data.accountData;
@@ -142,8 +146,8 @@ const submitForm = () => {
     }
 
     // Determine the correct route based on the type
-    const routeName = props.type === 'rebate' ? 'member.walletAdjustment' : 'member.accountAdjustment';
-
+    const routeName = props.type === 'rebate' ? 'member.walletAdjustment' : props.type === 'trade_points' ? 'member.pointAdjustment' : 'member.accountAdjustment';
+    console.log(routeName)
     form.post(route(routeName), {
         onSuccess: () => {
             closeDialog();
@@ -177,7 +181,7 @@ const submitForm = () => {
                         {{
                             type === 'rebate' 
                             ? formatAmount(walletData ? walletData.balance : 0) 
-                            : type === 'trade_points' ? $t('public.trade_points') : type === 'account_balance' ? formatAmount(selectedAccount ? selectedAccount.balance : 0) : formatAmount(selectedAccount ? selectedAccount.credit : 0)
+                            : type === 'trade_points' ? formatAmount(tradePointData ? tradePointData.balance : 0) : type === 'account_balance' ? formatAmount(selectedAccount ? selectedAccount.balance : 0) : formatAmount(selectedAccount ? selectedAccount.credit : 0)
                         }}
                     </span>
                 </div>
@@ -280,7 +284,7 @@ const submitForm = () => {
             <Button
                 variant="primary-flat"
                 class="w-full"
-                :disabled="form.processing || isLoading || selectedAccount == null && walletData == null"
+                :disabled="form.processing || isLoading || selectedAccount == null && walletData == null && tradePointData == null"
                 @click.prevent="submitForm"
             >
                 {{ $t('public.confirm') }}

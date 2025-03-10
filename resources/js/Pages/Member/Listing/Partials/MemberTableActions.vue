@@ -100,15 +100,15 @@ const items = ref([
                     title.value = 'credit';
                 },
             },
-            // {
-            //     label: 'trade_points',
-            //     command: () => {
-            //         visible.value = true;
-            //         dialogType.value = 'adjustment';
-            //         adjustmentType.value = 'trade_points';
-            //         title.value = 'trade_points';
-            //     },
-            // }
+            {
+                label: 'trade_points',
+                command: () => {
+                    visible.value = true;
+                    dialogType.value = 'adjustment';
+                    adjustmentType.value = 'trade_points';
+                    title.value = 'trade_points';
+                },
+            }
         ]
 
     },

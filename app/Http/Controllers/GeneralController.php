@@ -38,6 +38,21 @@ class GeneralController extends Controller
         ]);
     }
 
+    public function getTradePointData(Request $request, $returnAsArray = false)
+    {
+        $trade_points = Wallet::where('user_id', $request->user_id)
+                         ->where('type', 'trade_points')
+                         ->first();
+
+        if ($returnAsArray) {
+            return $trade_points;
+        }
+
+        return response()->json([
+            'tradePointData' => $trade_points,
+        ]);
+    }
+
     public function getTradingAccountData(Request $request, $returnAsArray = false)
     {
         $conn = (new CTraderService)->connectionStatus();

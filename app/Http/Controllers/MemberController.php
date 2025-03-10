@@ -715,7 +715,7 @@ class MemberController extends Controller
 
         $action = $request->action;
         $amount = $request->amount;
-        $wallet = Wallet::where('user_id', $request->user_id)->first();
+        $wallet = Wallet::where('user_id', $request->user_id)->where('type', 'rebate_wallet')->first();
 
         if ($action == 'rebate_out' && $wallet->balance < $amount) {
             throw ValidationException::withMessages(['amount' => trans('public.insufficient_balance')]);
@@ -744,6 +744,63 @@ class MemberController extends Controller
 
         return redirect()->back()->with('toast', [
             'title' => trans('public.toast_rebate_adjustment_success'),
+            'type' => 'success'
+        ]);
+    }
+
+    public function pointAdjustment(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'action' => ['required'],
+            'amount' => ['required', 'numeric', 'gt:0'],
+            'remarks' => ['nullable'],
+        ])->setAttributeNames([
+            'action' => trans('public.action'),
+            'amount' => trans('public.amount'),
+            'remarks' => trans('public.remarks'),
+        ]);
+        $validator->validate();
+
+        $action = $request->action;
+        $amount = $request->amount;
+        $wallet = Wallet::where('user_id', $request->user_id)->where('type', 'trade_points')->first();
+
+        if (empty($wallet)) {
+            $wallet = Wallet::create([
+                'user_id' => $request->user_id,
+                'type' => 'trade_points',
+                'address' => 'TP' . Str::padLeft($request->user_id, 5, "0"),
+                'balance' => 0
+            ]);
+        }
+
+        if ($action == 'points_out' && $wallet->balance < $amount) {
+            throw ValidationException::withMessages(['amount' => trans('public.insufficient_balance')]);
+        }
+
+        Transaction::create([
+            'user_id' => $wallet->user_id,
+            'category' => 'trade_points',
+            'transaction_type' => $action,
+            'from_wallet_id' => $action == 'points_out' ? $wallet->id : null,
+            'to_wallet_id' => $action == 'points_in' ? $wallet->id : null,
+            'transaction_number' => RunningNumberService::getID('transaction'),
+            'amount' => $amount,
+            'transaction_charges' => 0,
+            'transaction_amount' => $amount,
+            'old_wallet_amount' => $wallet->balance,
+            'new_wallet_amount' => $action == 'points_out' ? $wallet->balance - $amount : $wallet->balance + $amount,
+            'status' => 'successful',
+            'remarks' => $request->remarks,
+            'approved_at' => now(),
+            'handle_by' => Auth::id(),
+        ]);
+
+        $wallet->balance = $action === 'points_out' ? $wallet->balance - $amount : $wallet->balance + $amount;
+        $wallet->save();
+
+        return redirect()->back()->with('toast', [
+            'title' => trans('public.toast_points_adjustment_success'),
             'type' => 'success'
         ]);
     }
