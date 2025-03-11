@@ -530,7 +530,7 @@ const copyToClipboard = (addressType, text) => {
                                     <span class="self-stretch text-gray-500 text-sm truncate">{{ pendingData.user_email }}</span>
                                 </div>
                                 <div class="min-w-[180px] text-gray-950 font-semibold text-lg self-stretch md:text-right">
-                                    $ {{ formatAmount(pendingData?.transaction_amount || 0) }}
+                                    {{ formatAmount(pendingData?.transaction_amount || 0) }} tp
                                 </div>
                             </div>
 

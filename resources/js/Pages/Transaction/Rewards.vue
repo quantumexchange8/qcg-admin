@@ -552,7 +552,7 @@ const copyToClipboard = (addressType, text) => {
                 </div>
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.processing_date') }}</span>
-                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ dayjs(data.approved_at).format('YYYY/MM/DD HH:mm:ss') }}</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ data.approved_at ? dayjs(data.approved_at).format('YYYY/MM/DD HH:mm:ss') : '-' }}</span>
                 </div>
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.sales_team') }}</span>
