@@ -147,7 +147,7 @@ const submitForm = () => {
 
     // Determine the correct route based on the type
     const routeName = props.type === 'rebate' ? 'member.walletAdjustment' : props.type === 'trade_points' ? 'member.pointAdjustment' : 'member.accountAdjustment';
-    console.log(routeName)
+
     form.post(route(routeName), {
         onSuccess: () => {
             closeDialog();
@@ -177,11 +177,16 @@ const submitForm = () => {
                 </div>
                 <div v-else class="text-gray-950 text-center text-lg font-semibold">
                     <span >
-                        $
                         {{
-                            type === 'rebate' 
-                            ? formatAmount(walletData ? walletData.balance : 0) 
-                            : type === 'trade_points' ? formatAmount(tradePointData ? tradePointData.balance : 0) : type === 'account_balance' ? formatAmount(selectedAccount ? selectedAccount.balance : 0) : formatAmount(selectedAccount ? selectedAccount.credit : 0)
+                            type === 'trade_points' 
+                                ? formatAmount(tradePointData ? tradePointData.balance : 0) + ' tp'
+                                : '$ ' + (
+                                    type === 'rebate' 
+                                    ? formatAmount(walletData ? walletData.balance : 0) 
+                                    : type === 'account_balance' 
+                                        ? formatAmount(selectedAccount ? selectedAccount.balance : 0) 
+                                        : formatAmount(selectedAccount ? selectedAccount.credit : 0)
+                                )
                         }}
                     </span>
                 </div>
@@ -231,7 +236,8 @@ const submitForm = () => {
                 <InputNumber
                     v-model="form.amount"
                     inputId="currency-us"
-                    prefix="$ "
+                    :prefix="type === 'trade_points' ? '' : '$ '"
+                    :suffix="type === 'trade_points' ? ' tp' : ''"
                     class="w-full"
                     inputClass="py-3 px-4"
                     :min="0"

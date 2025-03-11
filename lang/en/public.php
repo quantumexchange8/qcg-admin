@@ -687,4 +687,5 @@ return [
     'toast_approve_rewards_request_success' => 'Rewards request has been approved!',
     'all_rewards_redemption' => 'All Rewards Redemption',
     'redemption_details' => 'Redemption Details',
+    'toast_points_adjustment_success' => 'Trade points have been adjusted.',
 ];

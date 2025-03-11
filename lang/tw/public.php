@@ -687,4 +687,5 @@ return [
     'toast_approve_rewards_request_success' => '獎勵請求已被批准！',
     'all_rewards_redemption' => '所有獎勵兌換',
     'redemption_details' => '兌換詳情',
+    'toast_points_adjustment_success' => '交易積分已調整.',
 ];
