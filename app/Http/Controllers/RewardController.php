@@ -81,10 +81,10 @@ class RewardController extends Controller
 
     public function getRewardData(Request $request)
     {
-        $query = Reward::query();
+        $query = Reward::withCount('redemption');
 
         if ($request->filter == 'most_redeemed') {
-            $query->orderByDesc('trade_point_required');
+            $query->orderByDesc('redemption_count');
         } elseif ($request->filter == 'cash_rewards_only') {
             $query->where('type', 'cash_rewards');
         } elseif ($request->filter == 'physical_rewards_only') {
@@ -110,6 +110,7 @@ class RewardController extends Controller
                     'status' => $reward->status,
                     'name' => $name,
                     'reward_thumbnail' => $reward_thumbnail,
+                    'redeem_count' => $reward->redemption_count,
                 ];
             })
             ->values(); 

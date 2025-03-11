@@ -103,7 +103,7 @@ watchEffect(() => {
                                     : $t('public.no_expiry_date')
                                 }}
                             </span>
-                            <span class="text-gray-500 text-sm">- redeemed</span>
+                            <span class="text-gray-500 text-sm">{{ item.redeem_count }} redeemed</span>
                         </div>
                     </div>
                 </div>
