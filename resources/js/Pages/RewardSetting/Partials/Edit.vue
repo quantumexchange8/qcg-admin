@@ -48,9 +48,10 @@ const form = useForm({
     },
     trade_point_required: props.reward.trade_point_required,
     reward_thumbnail: props.reward.reward_thumbnail,
-    start_date: props.reward.start_date ? formatDate(props.reward.start_date) : '',
+    // start_date: props.reward.start_date ? formatDate(props.reward.start_date) : '',
     expiry_date: props.reward.expiry_date ? formatDate(props.reward.expiry_date) : '',
     maximum_redemption: props.reward.maximum_redemption ?? null,
+    max_per_person: props.reward.max_per_person ?? null,
     autohide_after_expiry: props.reward.autohide_after_expiry ?? false,
 });
 
@@ -251,7 +252,7 @@ const closeDialog = () => {
         <div class="flex flex-col gap-3">
             <span class="text-sm font-bold text-gray-950">{{ $t('public.availability_n_expiry') }}</span>
             <div class="grid grid-cols-2 gap-5">
-                <div class="flex flex-col gap-2">
+                <!-- <div class="flex flex-col gap-2">
                     <InputLabel>{{ $t('public.start_date') }}</InputLabel>
                     <Datepicker
                         v-model="form.start_date"
@@ -262,7 +263,7 @@ const closeDialog = () => {
                         :placeholder="$t('public.select_date')"
                         class="w-full font-normal"
                     />
-                </div>
+                </div> -->
                 <div class="flex flex-col gap-2">
                     <InputLabel>{{ $t('public.expiry_date') }}</InputLabel>
                     <Datepicker
@@ -277,7 +278,15 @@ const closeDialog = () => {
                     />
                 </div>
                 <div class="flex flex-col gap-2">
-                    <InputLabel>{{ $t('public.maximum_redemption') }}</InputLabel>
+                    <InputLabel>{{ $t('public.autohide_after_expiry') }}</InputLabel>
+                    <ToggleSwitch
+                        v-model="form.autohide_after_expiry"
+                        :disabled="!form.expiry_date"
+                        class="my-auto"
+                    />
+                </div>
+                <div class="flex flex-col gap-2">
+                    <InputLabel>{{ $t('public.maximum_redemption_quantity') }}</InputLabel>
                     <InputNumber
                         v-model="form.maximum_redemption"
                         id="maximum_redemption"
@@ -291,10 +300,17 @@ const closeDialog = () => {
                     />
                 </div>
                 <div class="flex flex-col gap-2">
-                    <InputLabel>{{ $t('public.autohide_after_expiry') }}</InputLabel>
-                    <ToggleSwitch
-                        v-model="form.autohide_after_expiry"
-                        :disabled="!form.expiry_date"
+                    <InputLabel>{{ $t('public.maximum_per_person') }}</InputLabel>
+                    <InputNumber
+                        v-model="form.max_per_person"
+                        id="max_per_person"
+                        fluid
+                        size="sm"
+                        :min="0"
+                        :step="1"
+                        class="w-full"
+                        inputClass="py-3 px-4"
+                        placeholder="0"
                     />
                 </div>
             </div>

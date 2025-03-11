@@ -54,6 +54,7 @@ class RewardController extends Controller
                 // 'start_date' => $request->start_date ? Carbon::parse($request->start_date)->startOfDay() : null,
                 'expiry_date' => $request->expiry_date ? Carbon::parse($request->expiry_date)->endOfDay() : null,
                 'maximum_redemption' => $request->maximum_redemption,
+                'max_per_person' => $request->max_per_person,
                 'autohide_after_expiry' => $request->autohide_after_expiry,
                 'status' => 'inactive',
             ]);
@@ -106,6 +107,7 @@ class RewardController extends Controller
                     // 'start_date' => $reward->start_date,
                     'expiry_date' => $reward->expiry_date,
                     'maximum_redemption' => $reward->maximum_redemption,
+                    'max_per_person' => $reward->max_per_person,
                     'autohide_after_expiry' => $reward->autohide_after_expiry,
                     'status' => $reward->status,
                     'name' => $name,
@@ -169,6 +171,7 @@ class RewardController extends Controller
             // 'start_date' => $request->start_date ? Carbon::parse($request->start_date)->startOfDay() : null,
             'expiry_date' => $request->expiry_date ? Carbon::parse($request->expiry_date)->endOfDay() : null,
             'maximum_redemption' => $request->maximum_redemption,
+            'max_per_person' => $request->max_per_person,
             'autohide_after_expiry' => $request->autohide_after_expiry,
         ]);
 

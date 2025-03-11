@@ -48,9 +48,10 @@ const form = useForm({
     },
     trade_point_required: null,
     reward_thumbnail: '',
-    start_date: '',
+    // start_date: '',
     expiry_date: '',
     maximum_redemption: null,
+    max_per_person: null,
     autohide_after_expiry: false,
 });
 
@@ -299,8 +300,8 @@ const submitForm = () => {
                                 class="my-auto"
                             />
                         </div>
-                        <div class="flex flex-col gap-2 col-span-2">
-                            <InputLabel>{{ $t('public.maximum_redemption') }}</InputLabel>
+                        <div class="flex flex-col gap-2">
+                            <InputLabel>{{ $t('public.maximum_redemption_quantity') }}</InputLabel>
                             <InputNumber
                                 v-model="form.maximum_redemption"
                                 id="maximum_redemption"
@@ -313,13 +314,20 @@ const submitForm = () => {
                                 placeholder="0"
                             />
                         </div>
-                        <!-- <div class="flex flex-col gap-2">
-                            <InputLabel>{{ $t('public.autohide_after_expiry') }}</InputLabel>
-                            <ToggleSwitch
-                                v-model="form.autohide_after_expiry"
-                                :disabled="!form.expiry_date"
+                        <div class="flex flex-col gap-2">
+                            <InputLabel>{{ $t('public.maximum_per_person') }}</InputLabel>
+                            <InputNumber
+                                v-model="form.max_per_person"
+                                id="max_per_person"
+                                fluid
+                                size="sm"
+                                :min="0"
+                                :step="1"
+                                class="w-full"
+                                inputClass="py-3 px-4"
+                                placeholder="0"
                             />
-                        </div> -->
+                        </div>
                     </div>
                 </div>
             </div>

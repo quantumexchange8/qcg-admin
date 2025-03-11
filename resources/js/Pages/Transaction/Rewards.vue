@@ -489,7 +489,7 @@ const copyToClipboard = (addressType, text) => {
                             </div>
                         </template>
                     </Column>
-                    <Column field="transaction_amount" :header="`${$t('public.tp_used')}&nbsp;($)`" sortable class="hidden md:table-cell w-[15%]">
+                    <Column field="transaction_amount" :header="`${$t('public.tp_used')}`" sortable class="hidden md:table-cell w-[15%]">
                         <template #body="slotProps">
                             <div class="text-gray-950 text-sm">
                                 {{ formatAmount(slotProps.data?.transaction_amount || 0) }}

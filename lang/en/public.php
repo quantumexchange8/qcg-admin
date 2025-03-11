@@ -688,4 +688,6 @@ return [
     'all_rewards_redemption' => 'All Rewards Redemption',
     'redemption_details' => 'Redemption Details',
     'toast_points_adjustment_success' => 'Trade points have been adjusted.',
+    'maximum_redemption_quantity' => 'Maximum Redemption Quantity',
+    'maximum_per_person' => 'Maximum Redemption Per Person',
 ];
