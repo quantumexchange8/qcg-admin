@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class RewardRedemption extends Model
 {
@@ -28,5 +29,10 @@ class RewardRedemption extends Model
     public function reward(): belongsTo
     {
         return $this->belongsTo(Reward::class, 'reward_id', 'id');
+    }
+
+    public function transaction(): HasOne
+    {
+        return $this->hasOne(Transaction::class, 'redemption_id', 'id')->where('transaction_type', 'redemption');
     }
 }

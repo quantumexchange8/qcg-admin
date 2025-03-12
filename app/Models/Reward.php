@@ -14,13 +14,16 @@ class Reward extends Model implements HasMedia
 
     protected $fillable = [
         'type',
+        'cash_amount',
         'code',
         'name',
         'trade_point_required',
         'start_date',
         'expiry_date',
         'maximum_redemption',
+        'max_per_person',
         'autohide_after_expiry',
+        'status',
         'edited_by',
     ];
 

@@ -25,6 +25,10 @@ class RewardController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'rewards_type' => ['required'],
+            'cash_amount' => [
+                Rule::requiredIf($request->rewards_type === 'cash_rewards'),
+                'numeric',
+            ],
             'code' => ['required', Rule::unique(Reward::class)],
             'name' => ['required', 'array'],
             'name.*' => ['required', 'string'],
@@ -32,6 +36,7 @@ class RewardController extends Controller
             'reward_thumbnail' => ['required'],
         ])->setAttributeNames([
             'rewards_type' => trans('public.rewards_type'),
+            'cash_amount' => trans('public.cash_amount'),
             'code' => trans('public.code'),
             'name.*' => trans('public.name'),
             'trade_point_required' => trans('public.trade_point_required'),
@@ -48,6 +53,7 @@ class RewardController extends Controller
         try {
             $reward = Reward::create([
                 'type' => $request->rewards_type,
+                'cash_amount' => $request->cash_amount,
                 'code' => $request->code,
                 'name' => json_encode($request->name),
                 'trade_point_required' => $request->trade_point_required,
@@ -82,7 +88,11 @@ class RewardController extends Controller
 
     public function getRewardData(Request $request)
     {
-        $query = Reward::withCount('redemption');
+        $query = Reward::withCount(['redemption as redemption_count' => function ($query) {
+            $query->whereHas('transaction', function ($q) {
+                $q->where('status', '!=', 'rejected');
+            });
+        }]);
 
         if ($request->filter == 'most_redeemed') {
             $query->orderByDesc('redemption_count');
@@ -102,6 +112,7 @@ class RewardController extends Controller
                 return [
                     'reward_id' => $reward->id,
                     'type' => $reward->type,
+                    'cash_amount' => (float) $reward->cash_amount,
                     'code' => $reward->code,
                     'trade_point_required' => $reward->trade_point_required,
                     // 'start_date' => $reward->start_date,
@@ -147,6 +158,10 @@ class RewardController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'rewards_type' => ['required'],
+            'cash_amount' => [
+                Rule::requiredIf($request->rewards_type === 'cash_rewards'),
+                'numeric',
+            ],
             'code' => ['required', Rule::unique(Reward::class)->ignore($request->reward_id)],
             'name' => ['required', 'array'],
             'name.*' => ['required', 'string'],
@@ -154,6 +169,7 @@ class RewardController extends Controller
             'reward_thumbnail' => ['required'],
         ])->setAttributeNames([
             'rewards_type' => trans('public.rewards_type'),
+            'cash_amount' => trans('public.cash_amount'),
             'code' => trans('public.code'),
             'name.*' => trans('public.name'),
             'trade_point_required' => trans('public.trade_point_required'),
@@ -165,6 +181,7 @@ class RewardController extends Controller
 
         $reward->update([
             'type' => $request->rewards_type,
+            'cash_amount' => $request->cash_amount,
             'code' => $request->code,
             'name' => json_encode($request->name),
             'trade_point_required' => $request->trade_point_required,

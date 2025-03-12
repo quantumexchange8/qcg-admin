@@ -688,4 +688,5 @@ return [
     'all_rewards_redemption' => '所有獎勵兌換',
     'redemption_details' => '兌換詳情',
     'toast_points_adjustment_success' => '交易積分已調整.',
+    'cash_amount' => '現金金額',
 ];

@@ -690,4 +690,5 @@ return [
     'toast_points_adjustment_success' => 'Trade points have been adjusted.',
     'maximum_redemption_quantity' => 'Maximum Redemption Quantity',
     'maximum_per_person' => 'Maximum Redemption Per Person',
+    'cash_amount' => 'Cash Amount',
 ];

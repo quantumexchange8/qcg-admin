@@ -1,7 +1,7 @@
 <script setup>
 import Button from "@/Components/Button.vue";
 import Dialog from 'primevue/dialog';
-import {ref, watchEffect} from "vue";
+import {ref, watch, watchEffect} from "vue";
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import InputText from 'primevue/inputtext';
@@ -40,6 +40,7 @@ const openDialog = () => {
 
 const form = useForm({
     rewards_type: 'cash_rewards',
+    cash_amount: null,
     code: '',
     name: {
         en: '',
@@ -92,6 +93,11 @@ const submitForm = () => {
     });
 };
 
+watch(() => form.rewards_type, (newValue) => {
+    if (newValue !== 'cash_rewards') {
+        form.cash_amount = null;
+    }
+});
 </script>
 
 <template>
@@ -146,6 +152,27 @@ const submitForm = () => {
                                 </div>
                             </div>
                         </div>
+                        <div v-if="form.rewards_type === 'cash_rewards'" class="flex flex-col gap-2">
+                            <InputLabel
+                                for="cash_amount"
+                                :value="`${$t('public.cash_amount')} ($)`"
+                                :invalid="!!form.errors.cash_amount"
+                            />
+                            <InputNumber
+                                v-model="form.cash_amount"
+                                :minFractionDigits="2"
+                                id="cash_amount"
+                                fluid
+                                size="sm"
+                                :min="0"
+                                :step="1"
+                                class="w-full"
+                                inputClass="py-3 px-4"
+                                placeholder="0.00"
+                                :invalid="!!form.errors.cash_amount"
+                            />
+                            <InputError :message="form.errors.cash_amount" />
+                        </div>
                         <div class="flex flex-col gap-2">
                             <InputLabel
                                 for="code"
@@ -160,6 +187,7 @@ const submitForm = () => {
                                 placeholder="Unique identifier for internal tracking"
                                 :invalid="!!form.errors.code"
                             />
+                            <InputError :message="form.errors.code" />
                         </div>
                         <div class="flex flex-col gap-2">
                             <InputLabel
@@ -209,6 +237,7 @@ const submitForm = () => {
                                 placeholder="0.00"
                                 :invalid="!!form.errors.trade_point_required"
                             />
+                            <InputError :message="form.errors.trade_point_required" />
                         </div>
                         <div class="flex flex-col gap-3">
                             <div class="flex flex-col gap-1">

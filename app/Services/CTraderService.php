@@ -157,6 +157,26 @@ class CTraderService
         }
     }
 
+    public function changeBonus($meta_login, $amount, $comment, $type): Trade
+    {
+        $response = Http::acceptJson()->post($this->baseURL . "/v2/webserv/traders/$meta_login/changebonus?token=$this->token", [
+            'login' => $meta_login,
+            'preciseAmount' => (double) $amount,
+            'type' => $type,
+            'comment' => $comment,
+        ]);
+        $response = $response->json();
+
+        $trade = new Trade();
+        $trade->setAmount($amount);
+        $trade->setComment($comment);
+        $trade->setType($type);
+        $trade->setTicket($response['bonusHistoryId']);
+
+        $this->getUserInfo($meta_login);
+        return $trade;
+    }
+
 }
 
 class CTraderAccessRights

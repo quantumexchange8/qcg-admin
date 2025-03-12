@@ -689,4 +689,5 @@ return [
     'all_rewards_redemption' => '所有奖励兑换',
     'redemption_details' => '兑换详情',
     'toast_points_adjustment_success' => '交易积分已调整.',
+    'cash_amount' => '现金金额',
 ];

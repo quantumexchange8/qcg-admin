@@ -312,6 +312,29 @@ class PendingController extends Controller
                                 ]);
                             }
                         }
+                    } elseif ($transaction->category == 'trade_points' || $transaction->transaction_type == 'redemption') {
+                        if ($transaction->redemption->reward->type = 'cash_rewards') {
+                            $tradingAccount = TradingAccount::where('meta_login', $transaction->redemption->receiving_account)->first();
+
+                            if ($tradingAccount) { 
+                                $tradeCash = (new CTraderService)->createTrade($tradingAccount->meta_login, $transaction->amount, "Cash Reward", ChangeTraderBalanceType::DEPOSIT);
+                                $ticketCash = $tradeCash->getTicket();
+
+                                Transaction::create([
+                                    'user_id' => $tradingAccount->user_id,
+                                    'category' => 'trading_account',
+                                    'transaction_type' => 'cash_reward',
+                                    'to_meta_login' => $transaction->redemption->receiving_account,
+                                    'ticket' => $ticketCash,
+                                    'transaction_number' => RunningNumberService::getID('transaction'),
+                                    'amount' => $transaction->redemption->reward->cash_amount,
+                                    'transaction_amount' => $transaction->redemption->reward->cash_amount,
+                                    'status' => 'successful',
+                                    'remarks' => 'Cash Reward Approved',
+                                    'handle_by' => Auth::id(),
+                                ]);
+                            }
+                        }
                     }
 
                     $messages = [
