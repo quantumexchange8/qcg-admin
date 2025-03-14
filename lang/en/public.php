@@ -691,4 +691,6 @@ return [
     'maximum_redemption_quantity' => 'Maximum Redemption Quantity',
     'maximum_per_person' => 'Maximum Redemption Per Person',
     'cash_amount' => 'Cash Amount',
+    'toast_delete_reward_failed_processing' => 'Unable to delete due to pending requests!',
+    'total_tp_used' => 'Total TP Used',
 ];

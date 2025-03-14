@@ -690,4 +690,6 @@ return [
     'redemption_details' => '兑换详情',
     'toast_points_adjustment_success' => '交易积分已调整.',
     'cash_amount' => '现金金额',
+    'toast_delete_reward_failed_processing' => '由於有待處理的請求, 無法刪除!',
+    'total_tp_used' => '总使用积分',
 ];

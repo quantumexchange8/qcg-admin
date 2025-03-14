@@ -5,8 +5,11 @@ namespace App\Console\Commands;
 use App\Models\TradeBrokerHistory;
 use App\Models\TradePointHistory;
 use App\Models\Wallet;
+use App\Models\User;
 use Illuminate\Console\Command;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class UpdateTradePointsCommand extends Command
 {
@@ -25,12 +28,14 @@ class UpdateTradePointsCommand extends Command
         $walletUpdates = [];
 
         // Get previous day's date
-        $yesterday = Carbon::yesterday();
+        // $yesterday = Carbon::yesterday();
+        $lastMonth = Carbon::now()->subMonth();
 
         // Retrieve trade lots grouped by user_id and symbol_group_id for the previous day
-        $tradeLots = TradeBrokerHistory::selectRaw('user_id, symbol_group_id, SUM(trade_lots) as total_trade_lots')
-            ->whereDate('created_at', $yesterday)
-            ->groupBy('user_id', 'symbol_group_id')
+        $tradeLots = TradeBrokerHistory::selectRaw('db_user_id, db_symgroup_id, SUM(trade_lots) as total_trade_lots')
+            ->whereMonth('trade_close_time', $lastMonth->month)
+            ->whereYear('trade_close_time', $lastMonth->year)
+            ->groupBy('db_user_id', 'db_symgroup_id')
             ->get();
 
         if ($tradeLots->isEmpty()) {
@@ -39,7 +44,7 @@ class UpdateTradePointsCommand extends Command
         }
 
         foreach ($tradeLots as $tradeLot) {
-            $userId = $tradeLot->user_id;
+            $userId = $tradeLot->db_user_id;
             $points = $tradeLot->total_trade_lots; // Convert trade lots to points if needed
         
             // Accumulate trade points for the user
@@ -49,12 +54,17 @@ class UpdateTradePointsCommand extends Command
             TradePointHistory::create([
                 'user_id' => $userId,
                 'category' => 'trade_lots',
-                'symbol_group_id' => $tradeLot->symbol_group_id,
-                'trade_lots' => $tradeLot->total_trade_lots,
+                'symbol_group_id' => $tradeLot->db_symgroup_id,
+                'trade_points' => $tradeLot->total_trade_lots,
             ]);
         }
 
         foreach ($walletUpdates as $userId => $tradePoints) {
+            if (!User::where('id', $userId)->exists()) {
+                Log::warning("User ID {$userId} not found. Skipping wallet update.");
+                continue;
+            }
+        
             $wallet = Wallet::firstOrCreate(
                 ['user_id' => $userId, 'type' => 'trade_points'],
                 [

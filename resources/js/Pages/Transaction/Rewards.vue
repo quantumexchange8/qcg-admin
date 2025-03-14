@@ -458,7 +458,7 @@ const copyToClipboard = (addressType, text) => {
                     <Column field="approved_at" :header="$t('public.processing_date')" sortable class="hidden md:table-cell w-full md:w-[20%] max-w-0">
                         <template #body="slotProps">
                             <div class="text-gray-950 text-sm truncate max-w-full">
-                                {{ dayjs(slotProps.data.approved_at).format('YYYY/MM/DD') }}
+                                {{ dayjs(slotProps.data.approved_at ?? slotProps.data.created_at).format('YYYY/MM/DD') }}
                             </div>
                         </template>
                     </Column>
@@ -505,9 +505,9 @@ const copyToClipboard = (addressType, text) => {
                     </Column>
                     <ColumnGroup type="footer">
                         <Row>
-                            <Column class="hidden md:table-cell" :footer="$t('public.total_credit_bonus') + '&nbsp;($)&nbsp;:'" :colspan="5" footerStyle="text-align:right" />
+                            <Column class="hidden md:table-cell" :footer="$t('public.total_tp_used') + '&nbsp;:'" :colspan="5" footerStyle="text-align:right" />
                             <Column class="hidden md:table-cell" :colspan="6" :footer="formatAmount(totalAmount ? totalAmount : 0)" />
-                            <Column class="md:hidden" :footer="$t('public.total_credit_bonus') + '&nbsp;($)&nbsp;:'" :colspan="1" footerStyle="text-align:right" />
+                            <Column class="md:hidden" :footer="$t('public.total_tp_used') + '&nbsp;:'" :colspan="1" footerStyle="text-align:right" />
                             <Column class="md:hidden" :colspan="2" :footer="formatAmount(totalAmount ? totalAmount : 0)" />
                         </Row>
                     </ColumnGroup>

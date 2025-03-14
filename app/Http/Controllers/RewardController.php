@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 use App\Models\Reward;
+use App\Models\Transaction;
 
 class RewardController extends Controller
 {
@@ -27,7 +28,6 @@ class RewardController extends Controller
             'rewards_type' => ['required'],
             'cash_amount' => [
                 Rule::requiredIf($request->rewards_type === 'cash_rewards'),
-                'numeric',
             ],
             'code' => ['required', Rule::unique(Reward::class)],
             'name' => ['required', 'array'],
@@ -58,7 +58,7 @@ class RewardController extends Controller
                 'name' => json_encode($request->name),
                 'trade_point_required' => $request->trade_point_required,
                 // 'start_date' => $request->start_date ? Carbon::parse($request->start_date)->startOfDay() : null,
-                'expiry_date' => $request->expiry_date ? Carbon::parse($request->expiry_date)->endOfDay() : null,
+                'expiry_date' => $request->expiry_date ? Carbon::createFromFormat('Y-m-d', $request->expiry_date)->endOfDay() : null,
                 'maximum_redemption' => $request->maximum_redemption,
                 'max_per_person' => $request->max_per_person,
                 'autohide_after_expiry' => $request->autohide_after_expiry,
@@ -138,6 +138,21 @@ class RewardController extends Controller
         $reward = Reward::find($request->reward_id);
 
         try {
+            $hasProcessingTransactions = Transaction::where('transaction_type', 'redemption')
+                ->where('status', 'processing')
+                ->where('category', 'trade_points')
+                ->whereHas('redemption', function ($query) use ($request) {
+                    $query->where('reward_id', $request->reward_id);
+                })
+                ->exists();
+
+            if ($hasProcessingTransactions) {
+                return back()->with('toast', [
+                    'title' => trans("public.toast_delete_reward_failed_processing"),
+                    'type' => 'error',
+                ]);
+            }
+
             $reward->delete();
 
             return back()->with('toast', [
@@ -160,7 +175,6 @@ class RewardController extends Controller
             'rewards_type' => ['required'],
             'cash_amount' => [
                 Rule::requiredIf($request->rewards_type === 'cash_rewards'),
-                'numeric',
             ],
             'code' => ['required', Rule::unique(Reward::class)->ignore($request->reward_id)],
             'name' => ['required', 'array'],
@@ -186,7 +200,7 @@ class RewardController extends Controller
             'name' => json_encode($request->name),
             'trade_point_required' => $request->trade_point_required,
             // 'start_date' => $request->start_date ? Carbon::parse($request->start_date)->startOfDay() : null,
-            'expiry_date' => $request->expiry_date ? Carbon::parse($request->expiry_date)->endOfDay() : null,
+            'expiry_date' => $request->expiry_date ? Carbon::createFromFormat('Y-m-d', $request->expiry_date)->endOfDay() : null,
             'maximum_redemption' => $request->maximum_redemption,
             'max_per_person' => $request->max_per_person,
             'autohide_after_expiry' => $request->autohide_after_expiry,

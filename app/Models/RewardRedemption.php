@@ -28,7 +28,7 @@ class RewardRedemption extends Model
 
     public function reward(): belongsTo
     {
-        return $this->belongsTo(Reward::class, 'reward_id', 'id');
+        return $this->belongsTo(Reward::class, 'reward_id', 'id')->withTrashed();
     }
 
     public function transaction(): HasOne

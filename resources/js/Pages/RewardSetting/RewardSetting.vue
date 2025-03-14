@@ -54,9 +54,10 @@ watch(selectedReward, (newReward) => {
     getRewardData(newReward);
 });
 
+const toast = ref(usePage().props.toast);
 
-watchEffect(() => {
-    if (usePage().props.toast !== null) {
+watch(() => usePage().props.toast, (newValue) => {
+    if (newValue !== null) {
         getRewardData(selectedReward.value);
     }
 });
