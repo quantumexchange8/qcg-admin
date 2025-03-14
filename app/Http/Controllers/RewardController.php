@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Carbon\Carbon;
+use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
@@ -58,7 +58,7 @@ class RewardController extends Controller
                 'name' => json_encode($request->name),
                 'trade_point_required' => $request->trade_point_required,
                 // 'start_date' => $request->start_date ? Carbon::parse($request->start_date)->startOfDay() : null,
-                'expiry_date' => $request->expiry_date ? Carbon::createFromFormat('Y-m-d', $request->expiry_date)->endOfDay() : null,
+                'expiry_date' => $request->expiry_date ? Carbon::parse($request->expiry_date)->endOfDay() : null,
                 'maximum_redemption' => $request->maximum_redemption,
                 'max_per_person' => $request->max_per_person,
                 'autohide_after_expiry' => $request->autohide_after_expiry,
@@ -200,7 +200,7 @@ class RewardController extends Controller
             'name' => json_encode($request->name),
             'trade_point_required' => $request->trade_point_required,
             // 'start_date' => $request->start_date ? Carbon::parse($request->start_date)->startOfDay() : null,
-            'expiry_date' => $request->expiry_date ? Carbon::createFromFormat('Y-m-d', $request->expiry_date)->endOfDay() : null,
+            'expiry_date' => $request->expiry_date ? Carbon::parse($request->expiry_date)->endOfDay() : null,
             'maximum_redemption' => $request->maximum_redemption,
             'max_per_person' => $request->max_per_person,
             'autohide_after_expiry' => $request->autohide_after_expiry,
