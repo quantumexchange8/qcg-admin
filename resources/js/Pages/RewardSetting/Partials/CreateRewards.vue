@@ -13,11 +13,13 @@ import Datepicker from 'primevue/datepicker';
 import { IconPlus, IconUpload, IconX } from "@tabler/icons-vue";
 import RadioButton from 'primevue/radiobutton';
 import ToggleSwitch from 'primevue/toggleswitch';
-
+import { transactionFormat } from "@/Composables/index.js";
 
 const props = defineProps({
 
 });
+
+const { formatAmount, formatDate } = transactionFormat();
 
 const languageLabels = {
   en: 'English',
@@ -84,7 +86,10 @@ const removeAttachment = () => {
 const today = new Date();
 
 const submitForm = () => {
-    form.expiry_date = formatDate(form.expiry_date);
+    if (form.expiry_date) {
+        form.expiry_date = formatDate(form.expiry_date);
+    }
+    
     form.post(route('reward.createReward'), {
         onSuccess: () => {
             visible.value = false;

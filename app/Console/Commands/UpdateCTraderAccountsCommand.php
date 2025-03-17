@@ -51,7 +51,7 @@ class UpdateCTraderAccountsCommand extends Command
 
                 } else {
                     // Proceed with updating account information
-                    Log::info("Refreshing {$account->meta_login}");
+                    // Log::info("Refreshing {$account->meta_login}");
                     (new UpdateTradingUser)->execute($account->meta_login, $accData);
                     (new UpdateTradingAccount)->execute($account->meta_login, $accData);
                 }

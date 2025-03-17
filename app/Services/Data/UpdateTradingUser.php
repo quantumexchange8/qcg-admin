@@ -40,22 +40,22 @@ class UpdateTradingUser
     
                 // $tradingUser->last_access = Carbon::createFromTimestamp($timestamp)->toDateTimeString();
                 $tradingUser->forceFill(['last_access' => Carbon::createFromTimestamp($timestamp)->toDateTimeString()]); // Laravel Eloquent forcechange
-                Log::info("Refreshing last access for account {$meta_login} to {$tradingUser->last_access}");
+                // Log::info("Refreshing last access for account {$meta_login} to {$tradingUser->last_access}");
             } else {
                 $tradingUser->last_access = null;
             }
             
             $tradingUser->balance = $data['balance'] / 100;
             $tradingUser->credit = $data['nonWithdrawableBonus'] / 100;
-            Log::info('Dirty attributes:', $tradingUser->getDirty());
+            // Log::info('Dirty attributes:', $tradingUser->getDirty());
     
             $tradingUser->save();
     
-            if ($tradingUser->wasChanged('last_access')) {
-                Log::info("Successfully updated last_access for {$tradingUser->meta_login}");
-            } else {
-                Log::warning("Warning: last_access did not change for {$tradingUser->meta_login}");
-            }
+            // if ($tradingUser->wasChanged('last_access')) {
+            //     Log::info("Successfully updated last_access for {$tradingUser->meta_login}");
+            // } else {
+            //     Log::warning("Warning: last_access did not change for {$tradingUser->meta_login}");
+            // }
         } catch (\Exception $e) {
             Log::error("Failed to update last_access for {$tradingUser->meta_login}: " . $e->getMessage());
         }

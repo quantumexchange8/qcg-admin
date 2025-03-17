@@ -26,10 +26,11 @@ class Reward extends Model implements HasMedia
         'status',
         'edited_by',
     ];
+
+    protected $dates = [];
     
     protected $casts = [
         'trade_point_required' => 'float',
-        'expiry_date' => 'datetime',
     ];
 
     public function redemption(): HasMany

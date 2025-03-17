@@ -85,7 +85,10 @@ const removeAttachment = () => {
 const today = new Date();
 
 const submitForm = () => {
-    form.expiry_date = formatDate(form.expiry_date);
+    if (form.expiry_date) {
+        form.expiry_date = formatDate(form.expiry_date);
+    }
+    
     form.post(route('reward.editReward'), {
         onSuccess: () => {
             closeDialog();
