@@ -18,6 +18,7 @@ use App\Models\TradeRebateSummary;
 use App\Jobs\CashWalletTransferJob;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -183,41 +184,71 @@ class DashboardController extends Controller
         // Get the selected month (in format "m/Y")
         $monthYear = $request->input('selectedMonth');
     
-        // Parse the month/year string into a Carbon date
-        $carbonDate = Carbon::createFromFormat('m/Y', $monthYear);
-    
-        // Get the year and month as integers
-        $year = $carbonDate->year;
-        $month = $carbonDate->month;
-    
-        // Check if any record exists where tlv_day = 0
-        $hasSummaryRecord = TradeLotSizeVolume::where('tlv_year', $year)
-                                              ->where('tlv_month', $month)
-                                              ->where('tlv_day', 0)
-                                              ->exists();
-    
-        if ($hasSummaryRecord) {
-            // Use the summary record where tlv_day = 0
-            $totalTradeLots = TradeLotSizeVolume::where('tlv_year', $year)
+        if ($monthYear === 'select_all') {
+            $totals = TradeLotSizeVolume::selectRaw("
+                tlv_year, tlv_month,
+                COALESCE(SUM(CASE WHEN tlv_day = 0 THEN tlv_lotsize END), SUM(tlv_lotsize)) AS total_trade_lots,
+                COALESCE(SUM(CASE WHEN tlv_day = 0 THEN tlv_volume_usd END), SUM(tlv_volume_usd)) AS total_volume
+            ")
+            ->groupBy('tlv_year', 'tlv_month')
+            ->get();
+
+            $totalTradeLots = $totals->sum('total_trade_lots');
+            $totalVolume = $totals->sum('total_volume');
+        } elseif (str_starts_with($monthYear, 'last_')) {
+            preg_match('/last_(\d+)?_?week?/', $monthYear, $matches);
+            $weekNumber = $matches[1] ?? 1;
+
+            $startOfWeek = Carbon::now()->subWeeks($weekNumber)->startOfWeek();
+            $endOfWeek = Carbon::now()->subWeeks($weekNumber)->endOfWeek();
+
+            $totalTradeLots = TradeLotSizeVolume::whereBetween(
+                    DB::raw('DATE(CONCAT(tlv_year, "-", LPAD(tlv_month, 2, "0"), "-", LPAD(tlv_day, 2, "0")))'),
+                    [$startOfWeek, $endOfWeek]
+                )->sum('tlv_lotsize');
+
+            $totalVolume = TradeLotSizeVolume::whereBetween(
+                    DB::raw('DATE(CONCAT(tlv_year, "-", LPAD(tlv_month, 2, "0"), "-", LPAD(tlv_day, 2, "0")))'),
+                    [$startOfWeek, $endOfWeek]
+                )->sum('tlv_volume_usd');
+        } else {
+            // Parse the month/year string into a Carbon date
+            $carbonDate = Carbon::createFromFormat('m/Y', $monthYear);
+
+            // Get the year and month as integers
+            $year = $carbonDate->year;
+            $month = $carbonDate->month;
+        
+            // Check if any record exists where tlv_day = 0
+            $hasSummaryRecord = TradeLotSizeVolume::where('tlv_year', $year)
                                                 ->where('tlv_month', $month)
                                                 ->where('tlv_day', 0)
-                                                ->sum('tlv_lotsize');
-    
-            $totalVolume = TradeLotSizeVolume::where('tlv_year', $year)
-                                             ->where('tlv_month', $month)
-                                             ->where('tlv_day', 0)
-                                             ->sum('tlv_volume_usd');
-        } else {
-            // No summary record for this month, sum all available days
-            $totalTradeLots = TradeLotSizeVolume::where('tlv_year', $year)
+                                                ->exists();
+        
+            if ($hasSummaryRecord) {
+                // Use the summary record where tlv_day = 0
+                $totalTradeLots = TradeLotSizeVolume::where('tlv_year', $year)
+                                                    ->where('tlv_month', $month)
+                                                    ->where('tlv_day', 0)
+                                                    ->sum('tlv_lotsize');
+        
+                $totalVolume = TradeLotSizeVolume::where('tlv_year', $year)
                                                 ->where('tlv_month', $month)
-                                                ->sum('tlv_lotsize');
-    
-            $totalVolume = TradeLotSizeVolume::where('tlv_year', $year)
-                                             ->where('tlv_month', $month)
-                                             ->sum('tlv_volume_usd');
+                                                ->where('tlv_day', 0)
+                                                ->sum('tlv_volume_usd');
+            } else {
+                // No summary record for this month, sum all available days
+                $totalTradeLots = TradeLotSizeVolume::where('tlv_year', $year)
+                                                    ->where('tlv_month', $month)
+                                                    ->sum('tlv_lotsize');
+        
+                $totalVolume = TradeLotSizeVolume::where('tlv_year', $year)
+                                                ->where('tlv_month', $month)
+                                                ->sum('tlv_volume_usd');
+            }
         }
-    
+
+   
         // Return the total trade lots and volume as a JSON response
         return response()->json([
             'totalTradeLots' => $totalTradeLots,
@@ -229,68 +260,93 @@ class DashboardController extends Controller
     {
         // Get the selected month (in format "m/Y")
         $monthYear = $request->input('selectedMonth');
-        
-        // Parse the month/year string into a Carbon date
-        $carbonDate = Carbon::createFromFormat('F Y', $monthYear);
-        
-        // Get the year and month as integers
-        $year = $carbonDate->year;
-        $month = $carbonDate->month;
-        
+        $startDate = null;
+        $endDate = null;
+
+        if ($monthYear === 'select_all') {
+            // No date filtering for "select_all"
+            $startDate = null;
+            $endDate = null;
+        } elseif (str_starts_with($monthYear, 'last_')) {
+            // Calculate the weeks based on the input (last_week, last_2_weeks, etc.)
+            preg_match('/last_(\d+)_week/', $monthYear, $matches);
+            $weeks = $matches[1] ?? 1;
+
+            // Start from the beginning of the week `x` weeks ago to the end of the last week
+            $startDate = Carbon::now()->subWeeks($weeks)->startOfWeek();
+            $endDate = Carbon::now()->subWeek($weeks)->endOfWeek();
+        } else {
+            // Assume month/year format (F Y)
+            try {
+                // Parse the month/year string into a Carbon date
+                $carbonDate = Carbon::createFromFormat('F Y', $monthYear);
+                $year = $carbonDate->year;
+                $month = $carbonDate->month;
+
+                // Define start and end dates for the selected month
+                $startDate = Carbon::create($year, $month, 1)->startOfMonth();
+                $endDate = Carbon::create($year, $month, 1)->endOfMonth();
+            } catch (\Exception $e) {
+                return response()->json(['error' => 'Invalid date format'], 400);
+            }
+        }
+
         // Retrieve all teams and their related data
-        $teams = Team::all()->map(function ($team) use ($year, $month) {
+        $teams = Team::all()->map(function ($team) use ($startDate, $endDate) {
             // Get all user ids in the team
             $teamUserIds = TeamHasUser::where('team_id', $team->id)
                 ->pluck('user_id')
                 ->toArray();
-    
-            // Calculate total deposit for the team (filtered by month and year)
-            $total_deposit = Transaction::whereIn('user_id', $teamUserIds)
-                ->whereYear('approved_at', $year)
-                ->whereMonth('approved_at', $month)
+
+            // Query base for transactions
+            $transactionQuery = Transaction::whereIn('user_id', $teamUserIds)
+                ->where('status', 'successful');
+
+            // Apply date filtering if needed
+            if ($startDate && $endDate) {
+                $transactionQuery->whereBetween('approved_at', [$startDate, $endDate]);
+            }
+
+            // Calculate total deposit for the team
+            $total_deposit = (clone $transactionQuery)
                 ->whereIn('transaction_type', ['deposit', 'balance_in', 'rebate_in'])
-                ->where('status', 'successful')
                 ->sum('transaction_amount');
-    
-            // Calculate total withdrawal for the team (filtered by month and year)
-            $total_withdrawal = Transaction::whereIn('user_id', $teamUserIds)
-                ->whereYear('approved_at', $year)
-                ->whereMonth('approved_at', $month)
+
+            // Calculate total withdrawal for the team
+            $total_withdrawal = (clone $transactionQuery)
                 ->whereIn('transaction_type', ['withdrawal', 'balance_out', 'rebate_out'])
-                ->where('status', 'successful')
                 ->sum('transaction_amount');
-    
-            // Calculate total adjustment in for the team (filtered by month and year)
-            $total_adjustment_in = Transaction::whereIn('user_id', $teamUserIds)
-                ->whereYear('approved_at', $year)
-                ->whereMonth('approved_at', $month)
+
+            // Calculate total adjustment in for the team
+            $total_adjustment_in = (clone $transactionQuery)
                 ->whereIn('transaction_type', ['balance_in', 'rebate_in'])
-                ->where('status', 'successful')
                 ->sum('transaction_amount');
-        
-            // Calculate total adjustment out for the team (filtered by month and year)
-            $total_adjustment_out = Transaction::whereIn('user_id', $teamUserIds)
-                ->whereYear('approved_at', $year)
-                ->whereMonth('approved_at', $month)
+
+            // Calculate total adjustment out for the team
+            $total_adjustment_out = (clone $transactionQuery)
                 ->whereIn('transaction_type', ['balance_out', 'rebate_out'])
-                ->where('status', 'successful')
                 ->sum('transaction_amount');
-    
+
             // Calculate the net balance for the team
             $transaction_fee_charges = $team->fee_charges > 0 ? $total_deposit / $team->fee_charges : 0;
             $net_balance = $total_deposit - $transaction_fee_charges - $total_withdrawal;
-    
+
             // Calculate account balance and equity
             $teamIds = AccountType::whereNotNull('account_group_id')
                 ->pluck('account_group_id')
                 ->toArray();
-    
+
             $teamBalance = 0;
             $teamEquity = 0;
-    
+        
             foreach ($teamIds as $teamId) {
-                $startDateFormatted = Carbon::createFromDate($year, $month, 1)->startOfMonth()->format('Y-m-d\TH:i:s.v');
-                $endDateFormatted = Carbon::createFromDate($year, $month, 1)->endOfMonth()->format('Y-m-d\TH:i:s.v');
+                if (!$startDate || !$endDate) {
+                    $startDate = Carbon::createFromDate(2020, 1, 1)->startOfDay();
+                    $endDate = Carbon::now()->endOfDay();
+                }
+                
+                $startDateFormatted = $startDate->format('Y-m-d\TH:i:s.v');
+                $endDateFormatted = $endDate->format('Y-m-d\TH:i:s.v');
                     
                 $response = (new CTraderService)->getMultipleTraders($startDateFormatted, $endDateFormatted, $teamId);
     

@@ -77,12 +77,24 @@ const counterTeam = ref(null);
 const teamLoading = ref(false);
 const teamDuration = ref(10);
 
+const getCurrentMonthYear = () => {
+    const date = new Date();
+    return `01 ${dayjs(date).format('MMMM YYYY')}`;
+};
+
+const getCurrentMonth = () => {
+    const date = new Date();
+    return dayjs(date).format('MM/YYYY');
+};
+
 watch([months, teamMonths], ([newMonths, newTeamMonths]) => {
     if (newMonths.length > 0) {
-        selectedMonth.value = newMonths[0].value;
+        // console.log(newMonths[0].value)
+        selectedMonth.value = getCurrentMonth();
     }
     if (newTeamMonths.length > 0) {
-        selectedTeamMonth.value = newTeamMonths[0];
+        // console.log(newTeamMonths[0])
+        selectedTeamMonth.value = getCurrentMonthYear();
     }
 }, { immediate: true });
 
@@ -231,8 +243,14 @@ watch(selectedMonth,(newMonth, oldMonth) => {
 const getTeamsData = async () => {
     teamLoading.value = true;
     try {
-        const response = await axios.get(`dashboard/getTeamsData?selectedMonth=${dayjs(selectedTeamMonth.value, 'DD MMMM YYYY').format('MMMM YYYY')}`);
-        
+        let formattedMonth = selectedTeamMonth.value;
+
+        if (!formattedMonth.startsWith('select_') && !formattedMonth.startsWith('last_')) {
+            formattedMonth = dayjs(selectedTeamMonth.value, 'DD MMMM YYYY').format('MMMM YYYY');
+        }
+
+        const response = await axios.get(`dashboard/getTeamsData?selectedMonth=${formattedMonth}`);
+                
         // Process response data here
         teams.value = response.data.teams;
 
@@ -301,24 +319,24 @@ watch(() => usePage().props, (newProps, oldProps) => {
 
 <template>
     <AuthenticatedLayout :title="$t('public.dashboard')">
-        <div v-if="hasRole('super-admin') || hasPermission('access_dashboard')" class="w-full grid grid-cols-1 4xl:grid-cols-2 items-center gap-3 md:gap-5">
-            <div class="w-full flex flex-col items-start gap-3 md:gap-5">
+        <div v-if="hasRole('super-admin') || hasPermission('access_dashboard')" class="grid grid-cols-1 w-full 4xl:grid-cols-2 gap-3 items-center md:gap-5">
+            <div class="flex flex-col w-full gap-3 items-start md:gap-5">
                 <!-- overview data -->
-                <div class="w-full grid grid-cols-2 gap-3 md:gap-5">
-                    <div class="w-full flex flex-col justify-center items-center rounded-lg bg-white shadow-card cursor-pointer"
+                <div class="grid grid-cols-2 w-full gap-3 md:gap-5">
+                    <div class="flex flex-col bg-white justify-center rounded-lg shadow-card w-full cursor-pointer items-center"
                         v-for="(item, index) in dataOverviews" :key="index"
                         @click="navigateWithQueryParams(item.route, item.type)"
                     >
-                        <div class="w-full flex items-center px-2 pt-2 pb-1 gap-2 self-stretch md:px-6 md:pt-4 md:pb-2">
-                            <div v-if="item.pendingCount || item.pendingCount === 0" class="flex items-center justify-center">
+                        <div class="flex w-full gap-2 items-center md:pb-2 md:pt-4 md:px-6 pb-1 pt-2 px-2 self-stretch">
+                            <div v-if="item.pendingCount || item.pendingCount === 0" class="flex justify-center items-center">
                                 <Badge 
                                     variant="error"
-                                    class="w-6 h-6 md:w-9 md:h-9 self-stretch truncate text-white text-center text-xs font-medium md:text-base"
+                                    class="h-6 text-center text-white text-xs w-6 font-medium md:h-9 md:text-base md:w-9 self-stretch truncate"
                                 >
                                     {{ item.pendingCount }}
                                 </Badge>
                             </div>
-                            <component v-if="item.icon" :is="item.icon" class="w-6 h-6 md:w-9 md:h-9 grow-0 shrink-0"
+                            <component v-if="item.icon" :is="item.icon" class="h-6 w-6 grow-0 md:h-9 md:w-9 shrink-0"
                                 :class="{
                                     'text-success-600': item.icon == DepositIcon,
                                     'text-error-600': item.icon == WithdrawalIcon,
@@ -327,9 +345,9 @@ watch(() => usePage().props, (newProps, oldProps) => {
                                 }" 
                             />
 
-                            <div class="w-full grid grid-cols-1 items-end gap-1">
-                                <span class="self-stretch truncate text-gray-500 text-right text-xxs md:text-sm">{{ item.label }}</span>
-                                <span v-if="(item.total || item.total === 0) && !pendingLoading" class="self-stretch truncate text-gray-950 text-right font-semibold md:text-xl">
+                            <div class="grid grid-cols-1 w-full gap-1 items-end">
+                                <span class="text-gray-500 text-right text-xxs md:text-sm self-stretch truncate">{{ item.label }}</span>
+                                <span v-if="(item.total || item.total === 0) && !pendingLoading" class="text-gray-950 text-right font-semibold md:text-xl self-stretch truncate">
                                     <template v-if="item.icon === AgentIcon || item.icon === MemberIcon">
                                         {{ formatAmount(item.total, 0) }}
                                     </template>
@@ -337,18 +355,18 @@ watch(() => usePage().props, (newProps, oldProps) => {
                                         $ {{ formatAmount(item.total) }}
                                     </template>
                                 </span>
-                                <span v-else class="self-stretch truncate text-gray-950 text-right font-semibold md:text-xl animate-pulse flex justify-end">
-                                    <div class="h-2.5 bg-gray-200 rounded-full w-1/3"></div>
+                                <span v-else class="flex justify-end text-gray-950 text-right animate-pulse font-semibold md:text-xl self-stretch truncate">
+                                    <div class="bg-gray-200 h-2.5 rounded-full w-1/3"></div>
                                 </span>
-                                <div v-if="(item.today || item.today === 0)  && !pendingLoading" class="flex items-center gap-2">
-                                    <div class="w-full justify-end flex items-center gap-0.5">
+                                <div v-if="(item.today || item.today === 0)  && !pendingLoading" class="flex gap-2 items-center">
+                                    <div class="flex justify-end w-full gap-0.5 items-center">
                                         <IconCaretUpFilled 
                                             v-if="[DepositIcon, AgentIcon, MemberIcon].includes(item.icon)"
-                                            class="w-3 h-3 md:w-4 md:h-4"
+                                            class="h-3 w-3 md:h-4 md:w-4"
                                             :class="{'text-success-500': item.today > 0, 'text-gray-950': item.today <= 0}"
                                         />
                                         <span 
-                                            class="truncate text-right text-sm font-medium"
+                                            class="text-right text-sm font-medium truncate"
                                             :class="{
                                                 'text-success-500': item.today > 0 && item.icon !== WithdrawalIcon, 
                                                 'text-error-600': item.icon === WithdrawalIcon && item.today > 0,
@@ -363,22 +381,22 @@ watch(() => usePage().props, (newProps, oldProps) => {
                                             </template>
                                         </span>
                                     </div>
-                                    <span class="hidden md:block text-gray-500 text-right text-sm text-nowrap">{{ $t('public.today') }}</span>
+                                    <span class="text-gray-500 text-nowrap text-right text-sm hidden md:block">{{ $t('public.today') }}</span>
                                 </div>
                             </div>
                         </div>
-                        <div class="w-full flex justify-center items-center px-2 gap-2 self-stretch">
-                            <IconDots class="w-4 h-4 text-gray-400" />
+                        <div class="flex justify-center w-full gap-2 items-center px-2 self-stretch">
+                            <IconDots class="h-4 text-gray-400 w-4" />
                         </div>
                     </div>
                 </div>
                 <!-- account listing and forum link -->
-                <div class="w-full flex flex-col md:flex-row items-center gap-3 md:gap-5">
+                <div class="flex flex-col w-full gap-3 items-center md:flex-row md:gap-5">
                     <div 
-                        class="w-full flex items-center py-2 px-3 gap-3 rounded-lg bg-white shadow-card md:py-3 md:px-6 cursor-pointer"
+                        class="flex bg-white rounded-lg shadow-card w-full cursor-pointer gap-3 items-center md:px-6 md:py-3 px-3 py-2"
                         @click="router.visit(route('member.account_listing'))"
                     >
-                        <span class="w-full truncate text-gray-950 text-sm font-semibold md:text-base">{{ $t('public.ctrader_account_listing') }}</span>
+                        <span class="text-gray-950 text-sm w-full font-semibold md:text-base truncate">{{ $t('public.ctrader_account_listing') }}</span>
                         <Button 
                             variant="gray-text" 
                             size="sm" 
@@ -390,10 +408,10 @@ watch(() => usePage().props, (newProps, oldProps) => {
                     </div>
 
                     <div 
-                        class="w-full flex items-center py-2 px-3 gap-3 rounded-lg bg-white shadow-card md:py-3 md:px-6 cursor-pointer"
+                        class="flex bg-white rounded-lg shadow-card w-full cursor-pointer gap-3 items-center md:px-6 md:py-3 px-3 py-2"
                         @click="router.visit(route('member.forum'))"
                     >
-                        <span class="w-full truncate text-gray-950 text-sm font-semibold md:text-base">{{ $t('public.editing_forum') }}</span>
+                        <span class="text-gray-950 text-sm w-full font-semibold md:text-base truncate">{{ $t('public.editing_forum') }}</span>
                         <Button 
                             variant="gray-text" 
                             size="sm" 
@@ -405,11 +423,11 @@ watch(() => usePage().props, (newProps, oldProps) => {
                         </Button>
                     </div>
                 </div>
-                <div class="w-full h-full flex flex-col xl:flex-row 4xl:flex-col items-center gap-3 md:gap-5">
+                <div class="flex flex-col h-full w-full 4xl:flex-col gap-3 items-center md:gap-5 xl:flex-row">
                     <!-- account balance & equity, request -->
-                    <div class="w-full h-full flex flex-col items-center p-3 gap-3 rounded-lg bg-white shadow-card md:p-6 md:gap-8">
-                        <div class="w-full min-h-[46px] flex items-center md:h-9">
-                            <span class="w-full truncate text-gray-950 text-sm font-semibold md:text-base">{{ $t('public.account_balance_equity') }}</span>
+                    <div class="flex flex-col bg-white h-full p-3 rounded-lg shadow-card w-full gap-3 items-center md:gap-8 md:p-6">
+                        <div class="flex w-full items-center md:h-9 min-h-[46px]">
+                            <span class="text-gray-950 text-sm w-full font-semibold md:text-base truncate">{{ $t('public.account_balance_equity') }}</span>
                             <Button 
                                 variant="gray-text" 
                                 size="sm" 
@@ -422,31 +440,31 @@ watch(() => usePage().props, (newProps, oldProps) => {
                             </Button>
                         </div>
 
-                        <div class="w-full h-full flex justify-center items-center gap-2 md:gap-5 xl:flex-col 4xl:flex-row">
-                            <div class="w-full h-full grid grid-cols-1 justify-center items-center py-3 px-0.5 gap-1 bg-gray-50 md:px-0">
-                                <span class="w-full truncate text-gray-500 text-center text-xxs md:text-sm">{{ $t('public.total_balance') }}</span>
-                                <span v-if="(balance || balance === 0) && !accountLoading" class="w-full truncate text-gray-950 text-center font-semibold md:text-xl">
+                        <div class="flex h-full justify-center w-full 4xl:flex-row gap-2 items-center md:gap-5 xl:flex-col">
+                            <div class="grid grid-cols-1 bg-gray-50 h-full justify-center w-full gap-1 items-center md:px-0 px-0.5 py-3">
+                                <span class="text-center text-gray-500 text-xxs w-full md:text-sm truncate">{{ $t('public.total_balance') }}</span>
+                                <span v-if="(balance || balance === 0) && !accountLoading" class="text-center text-gray-950 w-full font-semibold md:text-xl truncate">
                                     $ {{ formatAmount(balance) }}
                                 </span>
-                                <span v-else class="self-stretch truncate text-gray-950 text-right font-semibold md:text-xl animate-pulse flex justify-center items-center">
-                                    <div class="h-2.5 bg-gray-200 rounded-full w-1/3"></div>
+                                <span v-else class="flex justify-center text-gray-950 text-right animate-pulse font-semibold items-center md:text-xl self-stretch truncate">
+                                    <div class="bg-gray-200 h-2.5 rounded-full w-1/3"></div>
                                 </span>
                             </div>
 
-                            <div class="w-full h-full grid grid-cols-1 justify-center items-center py-3 px-0.5 gap-1 bg-gray-50 md:px-0">
-                                <span class="w-full truncate text-gray-500 text-center text-xxs md:text-sm">{{ $t('public.total_equity') }}</span>
-                                <span v-if="(equity || equity === 0) && !accountLoading" class="w-full truncate text-gray-950 text-center font-semibold md:text-xl">
+                            <div class="grid grid-cols-1 bg-gray-50 h-full justify-center w-full gap-1 items-center md:px-0 px-0.5 py-3">
+                                <span class="text-center text-gray-500 text-xxs w-full md:text-sm truncate">{{ $t('public.total_equity') }}</span>
+                                <span v-if="(equity || equity === 0) && !accountLoading" class="text-center text-gray-950 w-full font-semibold md:text-xl truncate">
                                     $ {{ formatAmount(equity) }}
                                 </span>
-                                <span v-else class="self-stretch truncate text-gray-950 text-right font-semibold md:text-xl animate-pulse flex justify-center items-center">
-                                    <div class="h-2.5 bg-gray-200 rounded-full w-1/3"></div>
+                                <span v-else class="flex justify-center text-gray-950 text-right animate-pulse font-semibold items-center md:text-xl self-stretch truncate">
+                                    <div class="bg-gray-200 h-2.5 rounded-full w-1/3"></div>
                                 </span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="w-full h-full flex flex-col items-center p-3 gap-3 rounded-lg bg-white shadow-card md:p-6 md:gap-8">
-                        <div class="w-full flex justify-between items-center">
+                    <div class="flex flex-col bg-white h-full p-3 rounded-lg shadow-card w-full gap-3 items-center md:gap-8 md:p-6">
+                        <div class="flex justify-between w-full items-center">
                             <Select 
                                 v-model="selectedMonth" 
                                 :options="months" 
@@ -467,46 +485,64 @@ watch(() => usePage().props, (newProps, oldProps) => {
                             </Button>
                         </div>
 
-                        <div class="w-full h-full flex justify-center items-center gap-2 md:gap-5 xl:flex-col 4xl:flex-row">
-                            <div class="w-full h-full grid grid-cols-1 justify-center items-center py-3 px-0.5 gap-1 bg-gray-50 md:px-0">
-                                <span class="w-full truncate text-gray-500 text-center text-xxs md:text-sm">{{
+                        <div class="flex h-full justify-center w-full 4xl:flex-row gap-2 items-center md:gap-5 xl:flex-col">
+                            <div class="grid grid-cols-1 bg-gray-50 h-full justify-center w-full gap-1 items-center md:px-0 px-0.5 py-3">
+                                <span class="text-center text-gray-500 text-xxs w-full md:text-sm truncate">{{
                                     $t('public.total_trade_lots') }}</span>
                                 <span v-if="(trade_lot || trade_lot === 0) && !tradeLotVolumeLoading"
-                                    class="w-full truncate text-gray-950 text-center font-semibold md:text-xl">
+                                    class="text-center text-gray-950 w-full font-semibold md:text-xl truncate">
                                     {{ formatAmount(trade_lot) }} Ł
                                 </span>
-                                <span v-else class="self-stretch truncate text-gray-950 text-right font-semibold md:text-xl animate-pulse flex justify-center items-center">
-                                    <div class="h-2.5 bg-gray-200 rounded-full w-1/3"></div>
+                                <span v-else class="flex justify-center text-gray-950 text-right animate-pulse font-semibold items-center md:text-xl self-stretch truncate">
+                                    <div class="bg-gray-200 h-2.5 rounded-full w-1/3"></div>
                                 </span>
                             </div>
 
-                            <div class="w-full h-full grid grid-cols-1 justify-center items-center py-3 px-0.5 gap-1 bg-gray-50 md:px-0">
-                                <span class="w-full truncate text-gray-500 text-center text-xxs md:text-sm">{{ $t('public.total_trade_volume') }}</span>
-                                <span v-if="(volume || volume === 0) && !tradeLotVolumeLoading" class="w-full truncate text-gray-950 text-center font-semibold md:text-xl">
+                            <div class="grid grid-cols-1 bg-gray-50 h-full justify-center w-full gap-1 items-center md:px-0 px-0.5 py-3">
+                                <span class="text-center text-gray-500 text-xxs w-full md:text-sm truncate">{{ $t('public.total_trade_volume') }}</span>
+                                <span v-if="(volume || volume === 0) && !tradeLotVolumeLoading" class="text-center text-gray-950 w-full font-semibold md:text-xl truncate">
                                     {{ formatAmount(volume, 0) }}
                                 </span>
-                                <span v-else class="self-stretch truncate text-gray-950 text-right font-semibold md:text-xl animate-pulse flex justify-center items-center">
-                                    <div class="h-2.5 bg-gray-200 rounded-full w-1/3"></div>
+                                <span v-else class="flex justify-center text-gray-950 text-right animate-pulse font-semibold items-center md:text-xl self-stretch truncate">
+                                    <div class="bg-gray-200 h-2.5 rounded-full w-1/3"></div>
                                 </span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="w-full h-full flex flex-col items-center p-3 gap-3 rounded-lg bg-white shadow-card md:p-6 md:gap-8">
-                <div class="w-full flex justify-between items-center">
+            <div class="flex flex-col bg-white h-full p-3 rounded-lg shadow-card w-full gap-3 items-center md:gap-8 md:p-6">
+                <div class="flex justify-between w-full items-center">
                     <Select 
                         v-model="selectedTeamMonth" 
                         :options="teamMonths" 
                         :placeholder="$t('public.month_placeholder')"
                         class="w-60 font-normal truncate" scroll-height="236px" 
                     >
-                        <template #option="{option}">
-                            <span class="text-sm">{{ option.replace(/^\d+\s/, '') }}</span>
+                        <template #option="{ option }">
+                            <span class="text-sm">
+                                <template v-if="option === 'select_all'">
+                                    {{ $t('public.select_all') }}
+                                </template>
+                                <template v-else-if="option.startsWith('last_')">
+                                    {{ $t(`public.${option}`) }}
+                                </template>
+                                <template v-else>
+                                    {{ $t(`public.${option.split(' ')[1]}`) }} {{ option.split(' ')[2] }}
+                                </template>
+                            </span>
                         </template>
                         <template #value>
                             <span v-if="selectedTeamMonth">
-                                {{ dayjs(selectedTeamMonth).format('MMMM YYYY') }}
+                                <template v-if="selectedTeamMonth === 'select_all'">
+                                    {{ $t('public.select_all') }}
+                                </template>
+                                <template v-else-if="selectedTeamMonth.startsWith('last_')">
+                                    {{ $t(`public.${selectedTeamMonth}`) }}
+                                </template>
+                                <template v-else>
+                                    {{ $t(`public.${dayjs(selectedTeamMonth).format('MMMM')}`) }} {{ dayjs(selectedTeamMonth).format('YYYY') }}
+                                </template>
                             </span>
                             <span v-else>
                                 {{ $t('public.month_placeholder') }}
@@ -525,58 +561,58 @@ watch(() => usePage().props, (newProps, oldProps) => {
                     </Button>
                 </div>
 
-                <div class="w-full max-h-[770px] overflow-auto grid grid-cols-1 xl:grid-cols-2 4xl:grid-cols-1 gap-3 md:gap-6">
+                <div class="grid grid-cols-1 w-full 4xl:grid-cols-1 gap-3 max-h-[770px] md:gap-6 overflow-auto xl:grid-cols-2">
                     <div
                         v-if="teamLoading"
-                        class="w-full flex flex-col items-center rounded bg-white shadow-card"
+                        class="flex flex-col bg-white rounded shadow-card w-full items-center"
                     >
-                        <div class="w-full flex py-1 px-3 items-center gap-3 bg-gray-500 md:py-2 md:px-4">
-                            <span class="w-full text-white font-medium truncate animate-pulse">
-                                <div class="h-3 bg-gray-200 rounded-full w-20"></div>
+                        <div class="flex bg-gray-500 w-full gap-3 items-center md:px-4 md:py-2 px-3 py-1">
+                            <span class="text-white w-full animate-pulse font-medium truncate">
+                                <div class="bg-gray-200 h-3 rounded-full w-20"></div>
                             </span>
-                            <div class="flex items-center gap-2 text-white">
+                            <div class="flex text-white gap-2 items-center">
                                 <IconUserFilled size="20" stroke-width="1.25" />
-                                <span class="text-right font-medium animate-pulse">
-                                    <div class="h-3 bg-gray-200 rounded-full w-5"></div>
+                                <span class="text-right animate-pulse font-medium">
+                                    <div class="bg-gray-200 h-3 rounded-full w-5"></div>
                                 </span>
                             </div>
                         </div>
-                        <div class="w-full flex flex-col items-center p-3 gap-2 md:p-4 md:gap-3">
-                            <div class="w-full grid grid-cols-3 gap-2">
-                                <div class="w-full flex flex-col items-start gap-1">
-                                    <span class="w-full truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.team_deposit') }}</span>
-                                    <span class="w-full truncate text-gray-950 font-semibold text-sm md:text-base animate-pulse">
-                                        <div class="h-3 bg-gray-200 rounded-full w-30"></div>
+                        <div class="flex flex-col p-3 w-full gap-2 items-center md:gap-3 md:p-4">
+                            <div class="grid grid-cols-3 w-full gap-2">
+                                <div class="flex flex-col w-full gap-1 items-start">
+                                    <span class="text-gray-500 text-xxs w-full md:text-xs truncate">{{ $t('public.team_deposit') }}</span>
+                                    <span class="text-gray-950 text-sm w-full animate-pulse font-semibold md:text-base truncate">
+                                        <div class="bg-gray-200 h-3 rounded-full w-30"></div>
                                     </span>
                                 </div>
-                                <div class="w-full flex flex-col items-start gap-1">
-                                    <span class="w-full truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.team_withdrawal') }}</span>
-                                    <span class="w-full truncate text-gray-950 font-semibold text-sm md:text-base animate-pulse">
-                                        <div class="h-3 bg-gray-200 rounded-full w-30"></div>
+                                <div class="flex flex-col w-full gap-1 items-start">
+                                    <span class="text-gray-500 text-xxs w-full md:text-xs truncate">{{ $t('public.team_withdrawal') }}</span>
+                                    <span class="text-gray-950 text-sm w-full animate-pulse font-semibold md:text-base truncate">
+                                        <div class="bg-gray-200 h-3 rounded-full w-30"></div>
                                     </span>
                                 </div>
-                                <div class="w-full flex flex-col items-start gap-1">
-                                    <span class="w-full truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.team_net_balance') }}</span>
-                                    <span class="w-full truncate text-gray-950 font-semibold text-sm md:text-base animate-pulse">
-                                        <div class="h-3 bg-gray-200 rounded-full w-30"></div>
+                                <div class="flex flex-col w-full gap-1 items-start">
+                                    <span class="text-gray-500 text-xxs w-full md:text-xs truncate">{{ $t('public.team_net_balance') }}</span>
+                                    <span class="text-gray-950 text-sm w-full animate-pulse font-semibold md:text-base truncate">
+                                        <div class="bg-gray-200 h-3 rounded-full w-30"></div>
                                     </span>
                                 </div>
-                                <div class="w-full flex flex-col items-start gap-1">
-                                    <span class="w-full truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.dashboard_team_account_equity') }}</span>
-                                    <span class="w-full truncate text-gray-950 font-semibold text-sm md:text-base animate-pulse">
-                                        <div class="h-3 bg-gray-200 rounded-full w-30"></div>
+                                <div class="flex flex-col w-full gap-1 items-start">
+                                    <span class="text-gray-500 text-xxs w-full md:text-xs truncate">{{ $t('public.dashboard_team_account_equity') }}</span>
+                                    <span class="text-gray-950 text-sm w-full animate-pulse font-semibold md:text-base truncate">
+                                        <div class="bg-gray-200 h-3 rounded-full w-30"></div>
                                     </span>
                                 </div>
-                                <div class="w-full flex flex-col items-start gap-1">
-                                    <span class="w-full truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.dashboard_team_adjustment_in') }}</span>
-                                    <span class="w-full truncate text-gray-950 font-semibold text-sm md:text-base animate-pulse">
-                                        <div class="h-3 bg-gray-200 rounded-full w-30"></div>
+                                <div class="flex flex-col w-full gap-1 items-start">
+                                    <span class="text-gray-500 text-xxs w-full md:text-xs truncate">{{ $t('public.dashboard_team_adjustment_in') }}</span>
+                                    <span class="text-gray-950 text-sm w-full animate-pulse font-semibold md:text-base truncate">
+                                        <div class="bg-gray-200 h-3 rounded-full w-30"></div>
                                     </span>
                                 </div>
-                                <div class="w-full flex flex-col items-start gap-1">
-                                    <span class="w-full truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.dashboard_team_adjustment_out') }}</span>
-                                    <span class="w-full truncate text-gray-950 font-semibold text-sm md:text-base animate-pulse">
-                                        <div class="h-3 bg-gray-200 rounded-full w-30"></div>
+                                <div class="flex flex-col w-full gap-1 items-start">
+                                    <span class="text-gray-500 text-xxs w-full md:text-xs truncate">{{ $t('public.dashboard_team_adjustment_out') }}</span>
+                                    <span class="text-gray-950 text-sm w-full animate-pulse font-semibold md:text-base truncate">
+                                        <div class="bg-gray-200 h-3 rounded-full w-30"></div>
                                     </span>
                                 </div>
                             </div>
@@ -587,43 +623,43 @@ watch(() => usePage().props, (newProps, oldProps) => {
                         v-else
                         v-for="team in teams"
                         :key="team.id"
-                        class="w-full flex flex-col items-center rounded bg-white shadow-card"
+                        class="flex flex-col bg-white rounded shadow-card w-full items-center"
                     >
                         <div 
-                            class="w-full flex py-1 px-3 items-center gap-3 md:py-2 md:px-4"
+                            class="flex w-full gap-3 items-center md:px-4 md:py-2 px-3 py-1"
                             :style="{'backgroundColor': `#${team.color}`}"
                         >
-                            <span class="w-full text-white font-medium truncate">{{ team.name }}</span>
-                            <div class="flex items-center gap-2 text-white">
+                            <span class="text-white w-full font-medium truncate">{{ team.name }}</span>
+                            <div class="flex text-white gap-2 items-center">
                                 <IconUserFilled size="20" stroke-width="1.25" />
                                 <span class="text-right font-medium">{{ formatAmount(team.member_count, 0) }}</span>
                             </div>
                         </div>
-                        <div class="w-full flex flex-col items-center p-3 gap-2 md:p-4 md:gap-3">
-                            <div class="w-full grid grid-cols-3 gap-2 ">
-                                <div class="w-full flex flex-col items-start gap-1">
-                                    <span class="w-full truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.team_deposit') }}</span>
-                                    <span class="w-full truncate text-gray-950 font-semibold text-sm md:text-base">$&nbsp;{{ formatAmount(team?.deposit || 0) }}</span>
+                        <div class="flex flex-col p-3 w-full gap-2 items-center md:gap-3 md:p-4">
+                            <div class="grid grid-cols-3 w-full gap-2">
+                                <div class="flex flex-col w-full gap-1 items-start">
+                                    <span class="text-gray-500 text-xxs w-full md:text-xs truncate">{{ $t('public.team_deposit') }}</span>
+                                    <span class="text-gray-950 text-sm w-full font-semibold md:text-base truncate">$&nbsp;{{ formatAmount(team?.deposit || 0) }}</span>
                                 </div>
-                                <div class="w-full flex flex-col items-start gap-1">
-                                    <span class="w-full truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.team_withdrawal') }}</span>
-                                    <span class="w-full truncate text-gray-950 font-semibold text-sm md:text-base">$&nbsp;{{ formatAmount(team?.withdrawal || 0) }}</span>
+                                <div class="flex flex-col w-full gap-1 items-start">
+                                    <span class="text-gray-500 text-xxs w-full md:text-xs truncate">{{ $t('public.team_withdrawal') }}</span>
+                                    <span class="text-gray-950 text-sm w-full font-semibold md:text-base truncate">$&nbsp;{{ formatAmount(team?.withdrawal || 0) }}</span>
                                 </div>
-                                <div class="w-full flex flex-col items-start gap-1">
-                                    <span class="w-full truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.team_net_balance') }}</span>
-                                    <span class="w-full truncate text-gray-950 font-semibold text-sm md:text-base">$&nbsp;{{ formatAmount(team?.net_balance || 0) }}</span>
+                                <div class="flex flex-col w-full gap-1 items-start">
+                                    <span class="text-gray-500 text-xxs w-full md:text-xs truncate">{{ $t('public.team_net_balance') }}</span>
+                                    <span class="text-gray-950 text-sm w-full font-semibold md:text-base truncate">$&nbsp;{{ formatAmount(team?.net_balance || 0) }}</span>
                                 </div>
-                                <div class="w-full flex flex-col items-start gap-1">
-                                    <span class="w-full truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.dashboard_team_account_equity') }}</span>
-                                    <span class="w-full truncate text-gray-950 font-semibold text-sm md:text-base">$&nbsp;{{ formatAmount(team?.account_equity || 0) }}</span>
+                                <div class="flex flex-col w-full gap-1 items-start">
+                                    <span class="text-gray-500 text-xxs w-full md:text-xs truncate">{{ $t('public.dashboard_team_account_equity') }}</span>
+                                    <span class="text-gray-950 text-sm w-full font-semibold md:text-base truncate">$&nbsp;{{ formatAmount(team?.account_equity || 0) }}</span>
                                 </div>
-                                <div class="w-full flex flex-col items-start gap-1">
-                                    <span class="w-full truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.dashboard_team_adjustment_in') }}</span>
-                                    <span class="w-full truncate text-gray-950 font-semibold text-sm md:text-base">$&nbsp;{{ formatAmount(team?.adjustment_in || 0) }}</span>
+                                <div class="flex flex-col w-full gap-1 items-start">
+                                    <span class="text-gray-500 text-xxs w-full md:text-xs truncate">{{ $t('public.dashboard_team_adjustment_in') }}</span>
+                                    <span class="text-gray-950 text-sm w-full font-semibold md:text-base truncate">$&nbsp;{{ formatAmount(team?.adjustment_in || 0) }}</span>
                                 </div>
-                                <div class="w-full flex flex-col items-start gap-1">
-                                    <span class="w-full truncate text-gray-500 text-xxs md:text-xs">{{ $t('public.dashboard_team_adjustment_out') }}</span>
-                                    <span class="w-full truncate text-gray-950 font-semibold text-sm md:text-base">$&nbsp;{{ formatAmount(team?.adjustment_out || 0) }}</span>
+                                <div class="flex flex-col w-full gap-1 items-start">
+                                    <span class="text-gray-500 text-xxs w-full md:text-xs truncate">{{ $t('public.dashboard_team_adjustment_out') }}</span>
+                                    <span class="text-gray-950 text-sm w-full font-semibold md:text-base truncate">$&nbsp;{{ formatAmount(team?.adjustment_out || 0) }}</span>
                                 </div>
                             </div>
                         </div>

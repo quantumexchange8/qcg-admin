@@ -1,6 +1,6 @@
 <script setup>
 import { usePage } from "@inertiajs/vue3";
-import { IconCircleXFilled, IconSearch, IconFilterOff } from "@tabler/icons-vue";
+import { IconCircleXFilled, IconSearch, IconFilterOff, IconRefresh, IconDownload } from "@tabler/icons-vue";
 import { ref, watch, watchEffect, onMounted } from "vue";
 import Loader from "@/Components/Loader.vue";
 import Dialog from "primevue/dialog";
@@ -130,6 +130,44 @@ watch(filters, (newFilters) => {
     emit('update:filters', newFilters); // Emit the filters to the parent component
 }, { deep: true });
 
+// Refresh all accounts
+const refreshAll = () => {
+    router.post(route('member.refreshAllAccount'));
+};
+
+const exportStatus = ref(false);
+const type = ref('deleted');
+
+const exportAccount = () => {
+    exportStatus.value = true;
+    try {
+        let url = `/member/getAccountListingPaginate`;
+
+        if (exportStatus.value === true) {
+            url += `?exportStatus=${exportStatus.value}`;
+        }
+
+        if (type.value) {
+            url += `&type=${type.value}`;
+        }
+
+        if (filters.value.global) {
+            url += `&search=${filters.value.global}`;
+        }
+
+        if (filters.value.account_type_id) {
+            url += `&account_type_id=${filters.value.account_type_id}`;
+        }
+
+        window.location.href = url;
+    } catch (e) {
+        console.error('Error occurred during export:', e);
+    } finally {
+        loading.value = false;
+        exportStatus.value = false;
+    }
+};
+
 </script>
 
 <template>
@@ -182,16 +220,28 @@ watch(filters, (newFilters) => {
                         scroll-height="236px"
                     />
                 </div>
-                <Button
-                    type="button"
-                    variant="error-outlined"
-                    size="base"
-                    class='w-full md:w-auto'
-                    @click="clearFilter"
-                >
-                    <IconFilterOff size="20" stroke-width="1.25" />
-                    {{ $t('public.clear') }}
-                </Button>
+                <div class="w-full flex flex-col items-center gap-3 md:w-auto md:flex-row md:gap-2">
+                    <div class="w-full hidden md:flex md:flex-row items-center md:gap-2 md:w-auto">
+                        <Button type="button" variant="primary-flat" class="flex justify-center w-full md:w-auto" @click="refreshAll">
+                            <IconRefresh color="white" size="20" stroke-width="1.25" />
+                            <span>{{ $t('public.update_all') }}</span>
+                        </Button>
+                        <Button variant="primary-outlined" @click="exportAccount()" class="w-full md:w-auto">
+                            <IconDownload size="20" stroke-width="1.25" />
+                            {{ $t('public.export') }}
+                        </Button>
+                    </div>
+                    <Button
+                        type="button"
+                        variant="error-outlined"
+                        size="base"
+                        class='w-full md:w-auto'
+                        @click="clearFilter"
+                    >
+                        <IconFilterOff size="20" stroke-width="1.25" />
+                        {{ $t('public.clear') }}
+                    </Button>
+                </div>
             </div>
         </template>
         <template #empty>

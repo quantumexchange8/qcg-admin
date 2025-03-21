@@ -403,6 +403,12 @@ class LeaderboardController extends Controller
         if ($monthYear === 'select_all') {
             $startDate = Carbon::createFromDate(2020, 1, 1)->startOfDay();
             $endDate = Carbon::now()->endOfDay();
+        } elseif (str_starts_with($monthYear, 'last_')) {
+            preg_match('/last_(\d+)_week/', $monthYear, $matches);
+            $weeks = $matches[1] ?? 1;
+
+            $startDate = Carbon::now()->subWeeks($weeks)->startOfWeek();
+            $endDate = Carbon::now()->subWeek($weeks)->endOfWeek(); 
         } else {
             $carbonDate = Carbon::createFromFormat('F Y', $monthYear);
 

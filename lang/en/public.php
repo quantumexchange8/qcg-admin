@@ -634,4 +634,7 @@ return [
     "October" => "October",
     "November" => "November",
     "December" => "December",
+    'last_week' => 'Last Week',
+    'last_2_week' => 'Last 2 Week',
+    'last_3_week' => 'Last 3 Week',
 ];

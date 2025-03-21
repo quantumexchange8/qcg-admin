@@ -223,7 +223,7 @@ watchEffect(() => {
                             </TabList>
                         </Tabs>
                     </div>
-                    <div class="w-full flex flex-col-reverse items-center gap-3 md:w-auto md:flex-row md:gap-5">
+                    <div class="flex w-full md:hidden flex-col-reverse items-center gap-3">
                         <Button
                             variant="primary-outlined"
                             @click="exportMember()"
@@ -267,8 +267,8 @@ watchEffect(() => {
                 >
                     <template #header>
                         <div class="flex flex-col justify-between items-center pb-5 gap-5 self-stretch md:flex-row md:pb-6">
-                            <div class="flex flex-col items-center gap-3 self-stretch md:flex-row md:gap-5">
-                                <div class="relative w-full md:w-60">
+                            <div class="grid grid-cols-1 md:grid-cols-2 items-center gap-3 self-stretch md:flex-row md:gap-2">
+                                <div class="relative w-full md:max-w-60">
                                     <div class="absolute top-2/4 -mt-[9px] left-3 text-gray-500">
                                         <IconSearch size="20" stroke-width="1.25" />
                                     </div>
@@ -276,7 +276,7 @@ watchEffect(() => {
                                         v-model="filters['global']"
                                         :placeholder="$t('public.keyword_search')"
                                         size="search"
-                                        class="font-normal w-full md:w-60"
+                                        class="font-normal w-full"
                                     />
                                     <div
                                         v-if="filters['global'] !== null && filters['global'] !== ''"
@@ -293,7 +293,7 @@ watchEffect(() => {
                                     :filterFields="['name']"
                                     optionLabel="name"
                                     :placeholder="$t('public.filter_by_sales_team')"
-                                    class="w-full md:w-60 font-normal"
+                                    class="w-full md:max-w-60 font-normal"
                                     scroll-height="236px"
                                 >
                                     <template #value="slotProps">
@@ -313,16 +313,32 @@ watchEffect(() => {
                                     </template>
                                 </Select>
                             </div>
-                            <Button
-                                type="button"
-                                variant="error-outlined"
-                                size="base"
-                                class='w-full md:w-auto'
-                                @click="clearFilter"
-                            >
-                                <IconFilterOff size="20" stroke-width="1.25" />
-                                {{ $t('public.clear') }}
-                            </Button>
+                            <div class="w-full flex flex-col items-center gap-3 md:w-auto md:flex-row md:gap-2">
+                                <div class="w-full hidden md:flex md:flex-row items-center md:gap-2 md:w-auto">
+                                    <AddMember
+                                        :countries="props.countries"
+                                        :uplines="props.uplines"
+                                    />
+                                    <Button
+                                        variant="primary-outlined"
+                                        @click="exportMember()"
+                                        class="w-full md:w-auto"
+                                    >
+                                        <IconDownload size="20" stroke-width="1.25" />
+                                        {{ $t('public.export') }}
+                                    </Button>
+                                </div>
+                                <Button
+                                    type="button"
+                                    variant="error-outlined"
+                                    size="base"
+                                    class='w-full md:w-auto'
+                                    @click="clearFilter"
+                                >
+                                    <IconFilterOff size="20" stroke-width="1.25" />
+                                    {{ $t('public.clear') }}
+                                </Button>
+                            </div>
                         </div>
                     </template>
                     <template #empty>

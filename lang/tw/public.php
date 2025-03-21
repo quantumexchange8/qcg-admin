@@ -634,4 +634,7 @@ return [
     "October" => "10月",
     "November" => "11月",
     "December" => "12月",
+    'last_week' => '上週',
+    'last_2_week' => '上兩週',
+    'last_3_week' => '上三週',
 ];

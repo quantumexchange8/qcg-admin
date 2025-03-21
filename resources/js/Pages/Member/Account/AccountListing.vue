@@ -139,7 +139,7 @@ const exportAccount = () => {
                         </template>
                     </Select>
                 </div>
-                <div class="w-full md:w-auto flex flex-col-reverse items-center gap-3 md:flex-row md:gap-5">
+                <div class="w-full md:w-auto flex flex-col-reverse items-center gap-3 md:hidden">
                     <Button variant="primary-outlined" @click="exportAccount()" class="w-full md:w-auto">
                         <IconDownload size="20" stroke-width="1.25" />
                         {{ $t('public.export') }}
