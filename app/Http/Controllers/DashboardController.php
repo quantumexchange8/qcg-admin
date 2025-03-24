@@ -15,6 +15,7 @@ use App\Services\CTraderService;
 use App\Models\TradeBrokerHistory;
 use App\Models\TradeLotSizeVolume;
 use App\Models\TradeRebateSummary;
+use App\Models\TotalPnlBroker;
 use App\Jobs\CashWalletTransferJob;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
@@ -259,6 +260,87 @@ class DashboardController extends Controller
         return response()->json([
             'totalTradeLots' => $totalTradeLots,
             'totalVolume' => $totalVolume,
+        ]);
+    }
+
+    public function getTradeBrokerPnl(Request $request)
+    {
+        // Get the selected month (in format "m/Y")
+        $monthYear = $request->input('selectedMonth');
+    
+        if ($monthYear === 'select_all') {
+            $totals = TotalPnlBroker::selectRaw("
+                pnl_year, pnl_month,
+                SUM(pnl_b_swap) AS total_swap,
+                SUM(pnl_b_bookB_markup) AS total_markup,
+                SUM(pnl_b_bookB_gross) AS total_gross,
+                SUM(pnl_b_total_amt) AS total_broker
+            ")
+            ->groupBy('pnl_year', 'pnl_month')
+            ->get();
+        
+            $totalSwap = $totals->sum('total_swap');
+            $totalMarkup = $totals->sum('total_markup');
+            $totalGross = $totals->sum('total_gross');
+            $totalBroker = $totals->sum('total_broker');
+
+        } elseif (str_starts_with($monthYear, 'last_')) {
+            preg_match('/last_(\d+)?_?week?/', $monthYear, $matches);
+            $weekNumber = $matches[1] ?? 1;
+        
+            $startOfWeek = Carbon::now()->subWeeks($weekNumber)->startOfWeek();
+            $endOfWeek = Carbon::now()->subWeeks($weekNumber)->endOfWeek();
+        
+            $totalSwap = TotalPnlBroker::whereBetween(
+                    DB::raw('DATE(CONCAT(pnl_year, "-", LPAD(pnl_month, 2, "0"), "-", LPAD(pnl_day, 2, "0")))'),
+                    [$startOfWeek, $endOfWeek]
+                )->sum('pnl_b_swap');
+        
+            $totalMarkup = TotalPnlBroker::whereBetween(
+                    DB::raw('DATE(CONCAT(pnl_year, "-", LPAD(pnl_month, 2, "0"), "-", LPAD(pnl_day, 2, "0")))'),
+                    [$startOfWeek, $endOfWeek]
+                )->sum('pnl_b_bookB_markup');
+
+            $totalGross = TotalPnlBroker::whereBetween(
+                DB::raw('DATE(CONCAT(pnl_year, "-", LPAD(pnl_month, 2, "0"), "-", LPAD(pnl_day, 2, "0")))'),
+                [$startOfWeek, $endOfWeek]
+            )->sum('pnl_b_bookB_gross');
+
+            $totalBroker = TotalPnlBroker::whereBetween(
+                DB::raw('DATE(CONCAT(pnl_year, "-", LPAD(pnl_month, 2, "0"), "-", LPAD(pnl_day, 2, "0")))'),
+                [$startOfWeek, $endOfWeek]
+            )->sum('pnl_b_total_amt');
+        } else {
+            // Parse the month/year string into a Carbon date
+            $carbonDate = Carbon::createFromFormat('m/Y', $monthYear);
+
+            // Get the year and month as integers
+            $year = $carbonDate->year;
+            $month = $carbonDate->month;
+        
+            $totalSwap = TotalPnlBroker::where('pnl_year', $year)
+                                ->where('pnl_month', $month)
+                                ->sum('pnl_b_swap');
+        
+            $totalMarkup = TotalPnlBroker::where('pnl_year', $year)
+                            ->where('pnl_month', $month)
+                            ->sum('pnl_b_bookB_markup');
+
+            $totalGross = TotalPnlBroker::where('pnl_year', $year)
+                            ->where('pnl_month', $month)
+                            ->sum('pnl_b_bookB_gross');
+
+            $totalBroker = TotalPnlBroker::where('pnl_year', $year)
+                            ->where('pnl_month', $month)
+                            ->sum('pnl_b_total_amt');
+        }
+
+        // Return the total trade lots and volume as a JSON response
+        return response()->json([
+            'totalSwap' => $totalSwap,
+            'totalMarkup' => $totalMarkup,
+            'totalGross' => $totalGross,
+            'totalBroker' => $totalBroker,
         ]);
     }
         

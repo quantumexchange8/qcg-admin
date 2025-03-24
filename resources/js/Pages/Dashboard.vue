@@ -62,6 +62,7 @@ const pendingLoading = ref(false);
 
 const selectedMonth = ref('');
 const selectedTeamMonth = ref('');
+const selectedPnlMonth = ref('');
 const months = ref(props.months);
 const teamMonths = ref(props.teamMonths);
 
@@ -71,6 +72,14 @@ const counterVolume = ref(null);
 const trade_lot = ref(0)
 const volume = ref(0)
 const tradeLotVolumeLoading = ref(false);
+
+const tradeBrokerPnlDuration = ref(10);
+const counterTradeBrokerPnl = ref(null);
+const swap = ref(0);
+const markup = ref(0);
+const gross = ref(0);
+const broker = ref(0);
+const tradeBrokerPnlLoading = ref(false);
 
 const teams = ref();
 const counterTeam = ref(null);
@@ -91,6 +100,7 @@ watch([months, teamMonths], ([newMonths, newTeamMonths]) => {
     if (newMonths.length > 0) {
         // console.log(newMonths[0].value)
         selectedMonth.value = getCurrentMonth();
+        selectedPnlMonth.value = getCurrentMonth();
     }
     if (newTeamMonths.length > 0) {
         // console.log(newTeamMonths[0])
@@ -240,6 +250,37 @@ watch(selectedMonth,(newMonth, oldMonth) => {
     }
 );
 
+const getTradeBrokerPnl = async () => {
+    tradeBrokerPnlLoading.value = true;
+    try {
+        const response = await axios.get(`dashboard/getTradeBrokerPnl?selectedMonth=${selectedPnlMonth.value}`);
+        
+        // Process response data here
+        swap.value = response.data.totalSwap;
+        markup.value = response.data.totalMarkup;
+        gross.value = response.data.totalGross;
+        broker.value = response.data.totalBroker;
+
+        tradeBrokerPnlDuration.value = 1;
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        tradeBrokerPnlLoading.value = false;
+    } finally {
+        tradeBrokerPnlDuration.value = 1;
+        tradeBrokerPnlLoading.value = false;
+    }
+};
+
+getTradeBrokerPnl();
+
+// Watch for changes in selectedMonth and trigger getTradeLotVolume
+watch(selectedPnlMonth,(newMonth, oldMonth) => {
+        if (newMonth !== oldMonth) {
+            getTradeBrokerPnl();
+        }
+    }
+);
+
 const getTeamsData = async () => {
     teamLoading.value = true;
     try {
@@ -296,6 +337,15 @@ const updateTradeLotVolume = () => {
     getTradeLotVolume();
 };
 
+const updateTradeBrokerPnl = () => {
+    // Reset the trade lot and volume counters if they have a reset() method
+    if (counterTradeBrokerPnl.value && counterTradeBrokerPnl.value.reset) {
+        counterTradeBrokerPnl.value.reset();
+    }
+
+    getTradeBrokerPnl();
+};
+
 const updateTeamsData = () => {
     // Reset the team counters if it have a reset() method
     if (counterTeam.value && counterTeam.value.reset) {
@@ -311,6 +361,7 @@ watch(() => usePage().props, (newProps, oldProps) => {
         getAccountData();
         getPendingData();
         getTradeLotVolume();
+        getTradeBrokerPnl();
         getTeamsData();
     }
 }, { deep: true });
@@ -514,23 +565,23 @@ watch(() => usePage().props, (newProps, oldProps) => {
                     <div class="w-full h-full flex flex-col items-center p-3 gap-3 rounded-lg bg-white shadow-card md:p-6 md:gap-5">
                         <div class="w-full flex justify-between items-center">
                             <Select 
-                                v-model="selectedMonth" 
+                                v-model="selectedPnlMonth" 
                                 :options="months" 
                                 optionLabel="name" 
                                 optionValue="value"
                                 :placeholder="$t('public.month_placeholder')"
                                 class="w-60 font-normal truncate" scroll-height="236px" 
                             />
-                            <!-- <Button 
+                            <Button 
                                 variant="gray-text" 
                                 size="sm" 
                                 type="button" 
                                 iconOnly 
                                 v-slot="{ iconSizeClasses }"
-                                @click="updateTradeLotVolume()"
+                                @click="updateTradeBrokerPnl()"
                             >
                                 <IconRefresh size="16" stroke-width="1.25" color="#374151" />
-                            </Button> -->
+                            </Button>
 
                             <!-- <Select 
                                 v-model="selectedPnlMonth" 
@@ -556,19 +607,23 @@ watch(() => usePage().props, (newProps, oldProps) => {
                             <div class="min-w-60 w-full h-full grid grid-cols-1 justify-center items-center p-3 gap-2 bg-gray-50">
                                 <div class="flex flex-row gap-1 w-full justify-between items-center">
                                     <span class="text-xs text-gray-500 w-[140px]">Swap P&L ($)</span>
-                                    <span class="text-sm font-medium text-gray-950 self-stretch">0.00</span>
+                                    <span class="text-sm font-medium text-gray-950 self-stretch">{{ formatAmount(swap, 2) }}</span>
                                 </div>
                                 <div class="flex flex-row gap-1 w-full justify-between items-center">
                                     <span class="text-xs text-gray-500 w-[140px]">Markup P&L ($)</span>
-                                    <span class="text-sm font-medium text-gray-950 self-stretch">0.00</span>
+                                    <span class="text-sm font-medium text-gray-950 self-stretch">{{ formatAmount(markup, 2) }}</span>
                                 </div>
                                 <div class="flex flex-row gap-1 w-full justify-between items-center">
                                     <span class="text-xs text-gray-500 w-[140px]">Gross P&L ($)</span>
-                                    <span class="text-sm font-medium text-gray-950 self-stretch">0.00</span>
+                                    <span class="text-sm font-medium text-gray-950 self-stretch">{{ formatAmount(gross, 2) }}</span>
                                 </div>
                                 <div class="flex flex-row gap-1 w-full justify-between items-center">
                                     <span class="text-xs text-gray-500 w-[140px]">Broker P&L ($)</span>
-                                    <span class="text-sm font-medium text-gray-950 self-stretch">0.00</span>
+                                    <span
+                                        :class="['text-sm', 'font-medium', 'self-stretch', broker >= 0 ? 'text-green-500' : 'text-red-500']"
+                                    >
+                                        {{ formatAmount(broker, 2) }}
+                                    </span>
                                 </div>
                             </div>
 

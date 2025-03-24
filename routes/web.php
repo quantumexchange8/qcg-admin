@@ -69,6 +69,7 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
         Route::get('/getTeamsData', [DashboardController::class, 'getTeamsData'])->name('dashboard.getTeamsData');
         Route::get('/getPendingData', [DashboardController::class, 'getPendingData'])->name('dashboard.getPendingData');
         Route::get('/getPendingCounts', [DashboardController::class, 'getPendingCounts'])->name('dashboard.getPendingCounts');
+        Route::get('/getTradeBrokerPnl', [DashboardController::class, 'getTradeBrokerPnl'])->name('dashboard.getTradeBrokerPnl');
     });
 
 
