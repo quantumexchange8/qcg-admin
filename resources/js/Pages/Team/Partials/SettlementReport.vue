@@ -212,14 +212,14 @@ watchEffect(() => {
                     <div class="flex flex-col gap-3 md:gap-8 items-center self-stretch mb-6 md:mb-8">
                         <div class="flex flex-col gap-3 md:flex-row md:justify-between items-center self-stretch">
                             <div class="flex flex-col md:flex-row gap-3 items-center w-full md:justify-between">
-                                <div class="flex flex-col items-center gap-3 self-stretch md:flex-row md:gap-5">
+                                <div class="grid grid-cols-1 md:grid-cols-2 items-center gap-3 self-stretch md:flex-row md:gap-2">
                                     <MultiSelect
                                         v-model="selectedMonths"
                                         :options="months"
                                         :placeholder="$t('public.month_placeholder')"
                                         :maxSelectedLabels="1"
                                         :selectedItemsLabel="`${selectedMonths.length} ${$t('public.months_selected')}`"
-                                        class="w-full md:w-60 h-full font-normal"
+                                        class="w-full h-full font-normal"
                                     >
                                         <template #header>
                                             <div class="absolute flex left-10 top-2">
@@ -250,33 +250,34 @@ watchEffect(() => {
                                         optionLabel="name"
                                         optionValue="value"
                                         :placeholder="$t('public.filter_by_sales_team')"
-                                        class="w-full md:w-60 h-full font-normal"
+                                        class="w-full h-full font-normal"
                                         scroll-height="236px"
                                     />
                                 </div>
-                                <Button 
-                                    type="button"
-                                    size="base"
-                                    variant="error-outlined"
-                                    class="w-full md:w-auto"
-                                    @click="clearGlobal"
+                                <div class="flex flex-col-reverse md:flex-row gap-3 md:gap-2 w-full md:w-auto">
+                                    <Button
+                                        type="button"
+                                        variant="primary-outlined"
+                                        class="w-full md:w-auto"
+                                        @click="settlementReports?.length > 0 ? exportXLSX($event) : null"
                                     >
-                                        <IconFilterOff size="20" stroke-width="1.25" />
-                                        {{ $t('public.clear') }}
-                                </Button>
+                                        {{ $t('public.export') }}
+                                        <IconCloudDownload size="20" stroke-width="1.25" />
+                                    </Button>
+                                    <Button 
+                                        type="button"
+                                        size="base"
+                                        variant="error-outlined"
+                                        class="w-full md:w-auto"
+                                        @click="clearGlobal"
+                                        >
+                                            <IconFilterOff size="20" stroke-width="1.25" />
+                                            {{ $t('public.clear') }}
+                                    </Button>
+                                </div>
                             </div>
                         </div>
-                        <div class="w-full flex flex-col md:flex-row md:justify-between">
-                            <Button
-                                type="button"
-                                variant="primary-outlined"
-                                class="w-full md:w-36"
-                                @click="settlementReports?.length > 0 ? exportXLSX($event) : null"
-                            >
-                                {{ $t('public.export') }}
-                                <IconCloudDownload size="20" stroke-width="1.25" />
-                            </Button>
-
+                        <div class="w-full hidden md:flex flex-col md:flex-row md:justify-between">
                             <div class="hidden md:flex md:flex-wrap md:justify-end gap-3 w-full">
                                 <Button
                                     type="button"

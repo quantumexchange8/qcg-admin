@@ -691,4 +691,7 @@ return [
     'cash_amount' => '現金金額',
     'toast_delete_reward_failed_processing' => '由于有待处理的请求, 无法删除!',
     'total_tp_used' => '總使用積分',
+    'last_week' => '上週',
+    'last_2_week' => '上兩週',
+    'last_3_week' => '上三週',
 ];

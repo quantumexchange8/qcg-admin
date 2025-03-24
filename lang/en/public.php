@@ -693,4 +693,7 @@ return [
     'cash_amount' => 'Cash Amount',
     'toast_delete_reward_failed_processing' => 'Unable to delete due to pending requests!',
     'total_tp_used' => 'Total TP Used',
+    'last_week' => 'Last Week',
+    'last_2_week' => 'Last 2 Week',
+    'last_3_week' => 'Last 3 Week',
 ];

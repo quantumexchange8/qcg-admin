@@ -167,8 +167,18 @@ class GeneralController extends Controller
         // Add the current month at the end if it's not already in the list
         $currentMonth = '01 ' . Carbon::now()->format('F Y');
         if (!$months->contains($currentMonth)) {
-            $months->push($currentMonth);
+            $months->prepend($currentMonth);
         }
+
+        // Add custom date ranges at the top
+        $additionalRanges = collect([
+            'select_all',
+            'last_week', 
+            'last_2_week', 
+            'last_3_week', 
+        ]);
+
+        $months = $additionalRanges->merge($months);
     
         if ($returnAsArray) {
             return $months;
@@ -197,8 +207,18 @@ class GeneralController extends Controller
         // Add the current month at the end if it's not already in the list
         $currentMonth = '01 ' . Carbon::now()->format('F Y');
         if (!$months->contains($currentMonth)) {
-            $months->push($currentMonth);
+            $months->prepend($currentMonth);
         }
+
+        // Add custom date ranges at the top
+        $additionalRanges = collect([
+            'select_all',
+            'last_week', 
+            'last_2_week', 
+            'last_3_week', 
+        ]);
+
+        $months = $additionalRanges->merge($months);
 
         if ($returnAsArray) {
             return $months;
@@ -356,8 +376,18 @@ class GeneralController extends Controller
     
         $monthsArray = $months->toArray();
         if (!in_array(['value' => $currentMonth, 'name' => $currentMonthName], $monthsArray)) {
-            $monthsArray[] = ['value' => $currentMonth, 'name' => $currentMonthName];
+            array_unshift($monthsArray, ['value' => $currentMonth, 'name' => $currentMonthName]);
         }
+
+        $additionalRanges = [
+            ['value' => 'select_all', 'name' => trans('public.select_all')],
+            ['value' => 'last_week', 'name' => trans('public.last_week')],
+            ['value' => 'last_2_week', 'name' => trans('public.last_2_week')],
+            ['value' => 'last_3_week', 'name' => trans('public.last_3_week')],
+        ];
+    
+        // Merge additional ranges with months
+        $monthsArray = array_merge($additionalRanges, $monthsArray);
     
         // Return the result as either an array or a JSON response
         if ($returnAsArray) {
@@ -388,6 +418,16 @@ class GeneralController extends Controller
 
             $months = $months->reverse()->values();
         }
+
+        // Add custom date ranges at the top
+        $additionalRanges = collect([
+            'select_all',
+            'last_week', 
+            'last_2_week', 
+            'last_3_week', 
+        ]);
+
+        $months = $additionalRanges->merge($months);
 
         if ($returnAsArray) {
             return $months;

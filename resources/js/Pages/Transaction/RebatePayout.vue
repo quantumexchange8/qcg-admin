@@ -59,10 +59,10 @@ const getCurrentMonthYear = () => {
 const getRebateMonths = async () => {
     try {
         const response = await axios.get('/getRebateMonths');
-        months.value = ['select_all', ...response.data.months];
+        months.value = response.data.months;
 
         if (months.value.length) {
-            selectedMonth.value = [getCurrentMonthYear()];
+            selectedMonth.value = getCurrentMonthYear();
         }
     } catch (error) {
         console.error('Error rebate months:', error);
@@ -81,9 +81,11 @@ const getResults = async (selectedMonth = '') => {
         let url = `/transaction/getRebatePayoutData`;
 
         if (selectedMonth) {
-            const formattedMonth = selectedMonth === 'select_all' 
-                ? 'select_all' 
-                : dayjs(selectedMonth, 'DD MMMM YYYY').format('MMMM YYYY');
+            let formattedMonth = selectedMonth;
+
+            if (!formattedMonth.startsWith('select_') && !formattedMonth.startsWith('last_')) {
+                formattedMonth = dayjs(selectedMonth, 'DD MMMM YYYY').format('MMMM YYYY');
+            }
 
             url += `?selectedMonth=${formattedMonth}`;
         }
@@ -149,7 +151,7 @@ const clearFilter = () => {
         email: { value: null, matchMode: FilterMatchMode.CONTAINS },
         account_type: { value: null, matchMode: FilterMatchMode.CONTAINS },
     };
-    selectedMonth.value = [getCurrentMonthYear()];
+    selectedMonth.value = getCurrentMonthYear();
     filteredValue.value = null; 
 };
 
@@ -252,25 +254,6 @@ const copyToClipboard = (text) => {
         <div class="flex flex-col justify-center items-center px-3 py-5 self-stretch rounded-lg bg-white shadow-card md:p-6 md:gap-6">
             <div class="flex flex-col pb-3 gap-3 items-center self-stretch md:flex-row md:gap-0 md:justify-between md:pb-0">
                 <span class="text-gray-950 font-semibold self-stretch md:self-auto">{{ $t('public.all_rebate_payout') }}</span>
-                <div class="flex flex-col gap-3 items-center self-stretch md:flex-row md:gap-5">
-                    <div class="relative w-full md:w-60">
-                        <div class="absolute top-2/4 -mt-[9px] left-4 text-gray-500">
-                            <IconSearch size="20" stroke-width="1.25" />
-                        </div>
-                        <InputText v-model="filters['global'].value" :placeholder="$t('public.keyword_search')" size="search" class="font-normal w-full md:w-60" />
-                        <div
-                            v-if="filters['global'].value !== null"
-                            class="absolute top-2/4 -mt-2 right-4 text-gray-300 hover:text-gray-400 select-none cursor-pointer"
-                            @click="clearFilterGlobal"
-                        >
-                            <IconCircleXFilled size="16" />
-                        </div>
-                    </div>
-                    <Button variant="primary-outlined" @click="filteredValue?.length > 0 ? exportXLSX() : null" class="w-full md:w-auto">
-                        <IconDownload size="20" stroke-width="1.25" />
-                        {{ $t('public.export') }}
-                    </Button>
-                </div>
             </div>
             <DataTable
                 v-model:filters="filters"
@@ -290,17 +273,20 @@ const copyToClipboard = (text) => {
             >
                 <template #header>
                     <div class="flex flex-col justify-between items-center pb-5 gap-3 self-stretch md:flex-row md:pb-6">
-                        <div class="flex flex-col items-center gap-3 self-stretch md:flex-row md:gap-5">
+                        <div class="grid grid-cols-3 md:grid-cols-4 items-center gap-3 self-stretch md:flex-row md:gap-2">
                             <Select 
                                 v-model="selectedMonth" 
                                 :options="months" 
                                 :placeholder="$t('public.month_placeholder')"
-                                class="w-full font-normal truncate" scroll-height="236px" 
+                                class="w-full md:max-w-60 font-normal truncate" scroll-height="236px" 
                             >
-                                <template #option="{option}">
+                                <template #option="{ option }">
                                     <span class="text-sm">
                                         <template v-if="option === 'select_all'">
                                             {{ $t('public.select_all') }}
+                                        </template>
+                                        <template v-else-if="option.startsWith('last_')">
+                                            {{ $t(`public.${option}`) }}
                                         </template>
                                         <template v-else>
                                             {{ $t(`public.${option.split(' ')[1]}`) }} {{ option.split(' ')[2] }}
@@ -311,6 +297,9 @@ const copyToClipboard = (text) => {
                                     <span v-if="selectedMonth">
                                         <template v-if="selectedMonth === 'select_all'">
                                             {{ $t('public.select_all') }}
+                                        </template>
+                                        <template v-else-if="selectedMonth.startsWith('last_')">
+                                            {{ $t(`public.${selectedMonth}`) }}
                                         </template>
                                         <template v-else>
                                             {{ $t(`public.${dayjs(selectedMonth).format('MMMM')}`) }} {{ dayjs(selectedMonth).format('YYYY') }}
@@ -327,20 +316,39 @@ const copyToClipboard = (text) => {
                                 optionLabel="name"
                                 optionValue="slug"
                                 :placeholder="$t('public.filter_by_account_type')"
-                                class="w-full md:w-60 font-normal"
+                                class="w-full md:max-w-60 font-normal"
                                 scroll-height="236px"
                             />
+                            <div class="relative w-full md:max-w-60">
+                                <div class="absolute top-2/4 -mt-[9px] left-4 text-gray-500">
+                                    <IconSearch size="20" stroke-width="1.25" />
+                                </div>
+                                <InputText v-model="filters['global'].value" :placeholder="$t('public.keyword_search')" size="search" class="font-normal w-full" />
+                                <div
+                                    v-if="filters['global'].value !== null"
+                                    class="absolute top-2/4 -mt-2 right-4 text-gray-300 hover:text-gray-400 select-none cursor-pointer"
+                                    @click="clearFilterGlobal"
+                                >
+                                    <IconCircleXFilled size="16" />
+                                </div>
+                            </div>
                         </div>
-                        <Button
-                            type="button"
-                            variant="error-outlined"
-                            size="base"
-                            class='w-full md:w-auto'
-                            @click="clearFilter"
-                        >
-                            <IconFilterOff size="20" stroke-width="1.25" />
-                            {{ $t('public.clear') }}
-                        </Button>
+                        <div class="flex flex-col md:flex-row gap-3 md:gap-2 w-full md:w-auto">
+                            <Button variant="primary-outlined" @click="filteredValue?.length > 0 ? exportXLSX() : null" class="w-full">
+                                <IconDownload size="20" stroke-width="1.25" />
+                                {{ $t('public.export') }}
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="error-outlined"
+                                size="base"
+                                class='w-full'
+                                @click="clearFilter"
+                            >
+                                <IconFilterOff size="20" stroke-width="1.25" />
+                                {{ $t('public.clear') }}
+                            </Button>
+                        </div>
                     </div>
                 </template>
                 <template #empty>
