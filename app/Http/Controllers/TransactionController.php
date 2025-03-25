@@ -102,6 +102,7 @@ class TransactionController extends Controller
             'status',
             'remarks',
             'created_at',
+            'approved_at',
         ];
 
         $query = Transaction::with('user.teamHasUser.team', 'from_wallet', 'to_wallet', 'redemption.reward')

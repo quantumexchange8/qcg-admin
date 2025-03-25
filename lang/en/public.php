@@ -704,4 +704,5 @@ return [
     'losing_deals' => 'Losing Deals',
     'win_deals' => 'Win. Deals',
     'trader_pnl' => 'Trader P&L',
+    'approved_date' => 'Approved Date',
 ];

@@ -702,4 +702,5 @@ return [
     'losing_deals' => '虧損交易',
     'win_deals' => '盈利交易',
     'trader_pnl' => '交易員盈虧',
+    'approved_date' => '批准日期',
 ];
