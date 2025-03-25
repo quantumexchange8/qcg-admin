@@ -694,4 +694,12 @@ return [
     'last_week' => '上週',
     'last_2_week' => '上兩週',
     'last_3_week' => '上三週',
+    'swap_pnl' => '交換盈虧',
+    'markup_pnl' => '加成盈虧',
+    'gross_pnl' => '總盈虧',
+    'broker_pnl' => '經紀商盈虧',
+    'net_pnl' => '淨盈虧',
+    'losing_deals' => '虧損交易',
+    'win_deals' => '盈利交易',
+    'trader_pnl' => '交易員盈虧',
 ];

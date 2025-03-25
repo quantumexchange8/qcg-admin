@@ -696,4 +696,12 @@ return [
     'last_week' => 'Last Week',
     'last_2_week' => 'Last 2 Week',
     'last_3_week' => 'Last 3 Week',
+    'swap_pnl' => 'Swap P&L',
+    'markup_pnl' => 'Markup P&L',
+    'gross_pnl' => 'Gross P&L',
+    'broker_pnl' => 'Broker P&L',
+    'net_pnl' => 'Net P&L',
+    'losing_deals' => 'Losing Deals',
+    'win_deals' => 'Win. Deals',
+    'trader_pnl' => 'Trader P&L',
 ];

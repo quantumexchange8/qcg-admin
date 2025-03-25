@@ -606,19 +606,19 @@ watch(() => usePage().props, (newProps, oldProps) => {
                         <div class="w-full h-full flex flex-col justify-center items-center gap-2 md:gap-5 md:flex-row ">
                             <div class="min-w-60 w-full h-full grid grid-cols-1 justify-center items-center p-3 gap-2 bg-gray-50">
                                 <div class="flex flex-row gap-1 w-full justify-between items-center">
-                                    <span class="text-xs text-gray-500 w-[140px]">Swap P&L ($)</span>
+                                    <span class="text-xs text-gray-500 w-[140px]">{{ $t('public.swap_pnl') }} ($)</span>
                                     <span class="text-sm font-medium text-gray-950 self-stretch">{{ formatAmount(swap, 2) }}</span>
                                 </div>
                                 <div class="flex flex-row gap-1 w-full justify-between items-center">
-                                    <span class="text-xs text-gray-500 w-[140px]">Markup P&L ($)</span>
+                                    <span class="text-xs text-gray-500 w-[140px]">{{ $t('public.markup_pnl') }} ($)</span>
                                     <span class="text-sm font-medium text-gray-950 self-stretch">{{ formatAmount(markup, 2) }}</span>
                                 </div>
                                 <div class="flex flex-row gap-1 w-full justify-between items-center">
-                                    <span class="text-xs text-gray-500 w-[140px]">Gross P&L ($)</span>
+                                    <span class="text-xs text-gray-500 w-[140px]">{{ $t('public.gross_pnl') }} ($)</span>
                                     <span class="text-sm font-medium text-gray-950 self-stretch">{{ formatAmount(gross, 2) }}</span>
                                 </div>
                                 <div class="flex flex-row gap-1 w-full justify-between items-center">
-                                    <span class="text-xs text-gray-500 w-[140px]">Broker P&L ($)</span>
+                                    <span class="text-xs text-gray-500 w-[140px]">{{ $t('public.broker_pnl') }} ($)</span>
                                     <span
                                         :class="['text-sm', 'font-medium', 'self-stretch', broker >= 0 ? 'text-green-500' : 'text-red-500']"
                                     >
@@ -629,19 +629,19 @@ watch(() => usePage().props, (newProps, oldProps) => {
 
                             <div class="min-w-60 w-full h-full grid grid-cols-1 justify-center items-center p-3 gap-2 bg-gray-50">
                                 <div class="flex flex-row gap-1 w-full justify-between items-center">
-                                    <span class="text-xs text-gray-500 w-[140px]">Net P&L ($)</span>
+                                    <span class="text-xs text-gray-500 w-[140px]">{{ $t('public.net_pnl') }} ($)</span>
                                     <span class="text-sm font-medium text-gray-950 self-stretch">0.00</span>
                                 </div>
                                 <div class="flex flex-row gap-1 w-full justify-between items-center">
-                                    <span class="text-xs text-gray-500 w-[140px]">Losing Deals ($)</span>
+                                    <span class="text-xs text-gray-500 w-[140px]">{{ $t('public.losing_deals') }} ($)</span>
                                     <span class="text-sm font-medium text-gray-950 self-stretch">0.00</span>
                                 </div>
                                 <div class="flex flex-row gap-1 w-full justify-between items-center">
-                                    <span class="text-xs text-gray-500 w-[140px]">Win. Deals ($)</span>
+                                    <span class="text-xs text-gray-500 w-[140px]">{{ $t('public.win_deals') }} ($)</span>
                                     <span class="text-sm font-medium text-gray-950 self-stretch">0.00</span>
                                 </div>
                                 <div class="flex flex-row gap-1 w-full justify-between items-center">
-                                    <span class="text-xs text-gray-500 w-[140px]">Trader P&L ($)</span>
+                                    <span class="text-xs text-gray-500 w-[140px]">{{ $t('public.trader_pnl') }} ($)</span>
                                     <span class="text-sm font-medium text-gray-950 self-stretch">0.00</span>
                                 </div>
                             </div>
