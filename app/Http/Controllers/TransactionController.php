@@ -105,9 +105,14 @@ class TransactionController extends Controller
             'approved_at',
         ];
 
-        $query = Transaction::with('user.teamHasUser.team', 'from_wallet', 'to_wallet', 'redemption.reward')
-        ->whereBetween('created_at', [$startDate, $endDate]);
-
+        $query = Transaction::with('user.teamHasUser.team', 'from_wallet', 'to_wallet', 'redemption.reward');
+        $status = request('status');
+        if ($status === 'processing') {
+            $query->whereBetween('created_at', [$startDate, $endDate]);
+        } else {
+            $query->whereBetween('approved_at', [$startDate, $endDate]);
+        }
+        
         // Apply filtering for selected teams
         if (!empty($selectedTeamsArray)) {
             $query->whereHas('user.teamHasUser.team', function ($q) use ($selectedTeamsArray) {
