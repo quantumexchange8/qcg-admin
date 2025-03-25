@@ -287,7 +287,7 @@ watchEffect(() => {
         </SidebarCollapsible>
 
         <!-- Broker P&L -->
-        <SidebarLink
+        <!-- <SidebarLink
             :title="$t('public.broker_pnl')"
             :href="route('broker_pnl')"
             :active="route().current('broker_pnl')"
@@ -296,7 +296,7 @@ watchEffect(() => {
             <template #icon>
                 <IconChartArrowsVertical :size="20" stroke-width="1.25" />
             </template>
-        </SidebarLink>
+        </SidebarLink> -->
 
         <!-- Account Type -->
         <SidebarLink
