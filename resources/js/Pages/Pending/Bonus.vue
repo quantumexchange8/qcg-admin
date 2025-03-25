@@ -245,7 +245,7 @@ const exportXLSX = () => {
 
                             <template #body="slotProps">
                                 <div class="flex flex-col items-start max-w-full">
-                                    <div class="flex max-w-full gap-2">
+                                    <div class="flex max-w-full gap-2 items-center">
                                         <div class="font-semibold truncate max-w-full">
                                             {{ slotProps.data.user_name }}
                                         </div>
@@ -261,8 +261,11 @@ const exportXLSX = () => {
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="text-gray-500 text-xs truncate max-w-full">
+                                    <div class="text-gray-500 text-xs truncate max-w-full hidden md:flex">
                                         {{ slotProps.data.user_email }}
+                                    </div>
+                                    <div class="text-gray-500 text-xs truncate max-w-full md:hidden flex">
+                                        {{ dayjs(slotProps.data.created_at).format('YYYY/MM/DD HH:mm:ss') }}
                                     </div>
                                 </div>
                             </template>

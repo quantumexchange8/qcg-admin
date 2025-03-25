@@ -19,6 +19,7 @@ import dayjs from "dayjs";
 import { trans, wTrans } from "laravel-vue-i18n";
 import StatusBadge from '@/Components/StatusBadge.vue';
 import MultiSelect from "primevue/multiselect";
+import Tag from 'primevue/tag';
 
 const { formatAmount } = transactionFormat();
 const { formatRgbaColor } = generalFormat();
@@ -276,8 +277,9 @@ const openDialog = (rowData) => {
     data.value = rowData;
 };
 
+const activeTag = ref(null);
 const tooltipText = ref('copy');
-const copyToClipboard = (text) => {
+const copyToClipboard = (addressType, text) => {
     const textToCopy = text;
 
     const textArea = document.createElement('textarea');
@@ -290,8 +292,10 @@ const copyToClipboard = (text) => {
         const successful = document.execCommand('copy');
 
         tooltipText.value = 'copied';
+        activeTag.value = addressType;
         setTimeout(() => {
             tooltipText.value = 'copy';
+            activeTag.value = null;
         }, 1500);
     } catch (err) {
         console.error('Copy to clipboard failed:', err);
@@ -474,7 +478,7 @@ const copyToClipboard = (text) => {
                     <Column field="name" sortable :header="$t('public.name')" class="w-2/3 md:w-[20%] max-w-0 px-3">
                         <template #body="slotProps">
                             <div class="flex flex-col items-start max-w-full">
-                                <div class="flex max-w-full gap-2">
+                                <div class="flex max-w-full gap-2 items-center">
                                     <div class="font-semibold truncate max-w-full">
                                         {{ slotProps.data.name }}
                                     </div>
@@ -490,8 +494,11 @@ const copyToClipboard = (text) => {
                                         </div>
                                     </div>
                                 </div>
-                                <div class="text-gray-500 text-xs truncate max-w-full">
+                                <div class="text-gray-500 text-xs truncate max-w-full hidden md:flex">
                                     {{ slotProps.data.email }}
+                                </div>
+                                <div class="text-gray-500 text-xs truncate max-w-full md:hidden flex">
+                                    {{ dayjs(slotProps.data.approved_at).format('YYYY/MM/DD HH:mm:ss') }}
                                 </div>
                             </div>
                         </template>
@@ -560,12 +567,44 @@ const copyToClipboard = (text) => {
     <Dialog v-model:visible="visible" modal :header="$t('public.withdrawal_details')" class="dialog-xs md:dialog-md" :dismissableMask="true">
         <div class="flex flex-col justify-center items-center gap-3 self-stretch pt-4 md:pt-6">
             <div class="flex flex-col justify-between items-center p-3 gap-3 self-stretch bg-gray-50 md:flex-row">
-                <div class="flex flex-col items-start w-full truncate">
-                    <span class="w-full truncate text-gray-950 font-semibold">{{ data.name }}</span>
-                    <span class="w-full truncate text-gray-500 text-sm">{{ data.email }}</span>
+                <div class="flex items-center self-stretch">
+                    <span class="flex gap-1 items-center text-gray-950 font-semibold relative">
+                        {{ data?.name || '-' }}
+                        <IconCopy 
+                            v-if="data?.name"
+                            size="20" 
+                            stroke-width="1.25" 
+                            class="text-gray-500 inline-block cursor-pointer grow-0 shrink-0" 
+                            v-tooltip.top="$t(`public.${tooltipText}`)" 
+                            @click="copyToClipboard('name', data.name)"
+                        />
+                        <Tag
+                            v-if="activeTag === 'name' && tooltipText === 'copied'"
+                            class="absolute -top-7 -right-3"
+                            severity="contrast"
+                            :value="$t(`public.${tooltipText}`)"
+                        ></Tag>
+                    </span>
+
                 </div>
                 <div class="flex items-center self-stretch">
-                    <span class="w-full truncate text-gray-950 text-lg font-semibold">{{ `$&nbsp;${formatAmount(data?.transaction_amount || 0)}` }}</span>
+                    <span class="flex gap-1 items-center text-gray-950 text-lg font-semibold relative">
+                        {{ `$&nbsp;${formatAmount(data?.transaction_amount || 0)}` }}
+                        <IconCopy 
+                            v-if="data?.transaction_amount"
+                            size="20" 
+                            stroke-width="1.25" 
+                            class="text-gray-500 inline-block cursor-pointer grow-0 shrink-0" 
+                            v-tooltip.top="$t(`public.${tooltipText}`)" 
+                            @click="copyToClipboard('transaction_amount', data.transaction_amount)"
+                        />
+                        <Tag
+                            v-if="activeTag === 'transaction_amount' && tooltipText === 'copied'"
+                            class="absolute -top-7 -right-3"
+                            severity="contrast"
+                            :value="$t(`public.${tooltipText}`)"
+                        ></Tag>
+                    </span>
                 </div>
             </div>
 
@@ -577,6 +616,10 @@ const copyToClipboard = (text) => {
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.processing_date') }}</span>
                     <span class="w-full truncate text-gray-950 text-sm font-medium">{{ dayjs(data.approved_at).format('YYYY/MM/DD HH:mm:ss') }}</span>
+                </div>
+                <div class="w-full flex flex-col items-start gap-1 md:flex-row">
+                    <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.email') }}</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ data.email }}</span>
                 </div>
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.transaction_id') }}</span>
@@ -618,7 +661,7 @@ const copyToClipboard = (text) => {
                 </div>
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.receiving_address') }}</span>
-                    <span class="w-full break-all text-gray-950 text-sm font-medium" @click="copyToClipboard(data.wallet_address)">
+                    <span class="flex gap-1 break-all text-gray-950 text-sm font-medium relative">
                         {{ data?.wallet_address || '-' }}
                         <IconCopy 
                             v-if="data?.wallet_address"
@@ -626,8 +669,14 @@ const copyToClipboard = (text) => {
                             stroke-width="1.25" 
                             class="text-gray-500 inline-block cursor-pointer grow-0 shrink-0" 
                             v-tooltip.top="$t(`public.${tooltipText}`)" 
-                            @click="copyToClipboard(data?.wallet_address)"
+                            @click="copyToClipboard('wallet_address', data?.wallet_address)"
                         />
+                        <Tag
+                            v-if="activeTag === 'wallet_address' && tooltipText === 'copied'"
+                            class="absolute -top-7 -right-3"
+                            severity="contrast"
+                            :value="$t(`public.${tooltipText}`)"
+                        ></Tag>
                     </span>
                 </div>
             </div>

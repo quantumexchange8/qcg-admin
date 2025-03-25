@@ -8,7 +8,7 @@ export default {
             'inline-flex items-center justify-center',
 
             //Spacing
-            'px-2',
+            'px-2 py-1',
 
             //Shape
             {
