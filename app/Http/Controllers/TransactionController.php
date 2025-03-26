@@ -81,7 +81,7 @@ class TransactionController extends Controller
             $weeks = $matches[1] ?? 1;
 
             $startDate = Carbon::now()->subWeeks($weeks)->startOfWeek();
-            $endDate = Carbon::now()->subWeek($weeks)->endOfWeek(); 
+            $endDate = Carbon::now()->subWeek($weeks)->endOfWeek();
         } else {
             $carbonDate = Carbon::createFromFormat('F Y', $monthYear);
 
@@ -112,7 +112,7 @@ class TransactionController extends Controller
         } else {
             $query->whereBetween('approved_at', [$startDate, $endDate]);
         }
-        
+
         // Apply filtering for selected teams
         if (!empty($selectedTeamsArray)) {
             $query->whereHas('user.teamHasUser.team', function ($q) use ($selectedTeamsArray) {
@@ -132,15 +132,12 @@ class TransactionController extends Controller
             }
         }
 
-        // Apply ordering based on the transaction type
-        if ($type === 'withdrawal' || $type === 'credit_bonus' || $type === 'redemption') {
-            $query->orderByDesc('approved_at');
-        } else {
-            $query->latest();
-        }
-
         // Fetch data
-        $data = $query->get()->map(function ($transaction) use ($commonFields, $type) {
+        $data = $query
+            ->orderByRaw('CASE WHEN approved_at IS NULL THEN 1 ELSE 0 END')
+            ->orderByDesc('approved_at')
+            ->orderByDesc('created_at')
+            ->get()->map(function ($transaction) use ($commonFields, $type) {
             // Initialize result array with common fields
             $result = $transaction->only($commonFields);
 
@@ -268,7 +265,7 @@ class TransactionController extends Controller
             $weeks = $matches[1] ?? 1;
 
             $startDate = Carbon::now()->subWeeks($weeks)->startOfWeek();
-            $endDate = Carbon::now()->subWeek($weeks)->endOfWeek(); 
+            $endDate = Carbon::now()->subWeek($weeks)->endOfWeek();
         } else {
             $carbonDate = Carbon::createFromFormat('F Y', $monthYear);
             $startDate = (clone $carbonDate)->startOfMonth()->startOfDay();
@@ -279,7 +276,7 @@ class TransactionController extends Controller
 
         $query = TradeRebateSummary::with('upline_user', 'account_type')
                 ->whereBetween('created_at', [$startDate, $endDate]);
-                
+
         // Fetch and map summarized data from TradeRebateSummary
         $data = $query->get()->map(function ($item) {
             return [
@@ -366,14 +363,14 @@ class TransactionController extends Controller
             $weeks = $matches[1] ?? 1;
 
             $startDate = Carbon::now()->subWeeks($weeks)->startOfWeek();
-            $endDate = Carbon::now()->subWeek($weeks)->endOfWeek(); 
+            $endDate = Carbon::now()->subWeek($weeks)->endOfWeek();
         } else {
             $carbonDate = Carbon::createFromFormat('F Y', $monthYear);
 
             $startDate = (clone $carbonDate)->startOfMonth()->startOfDay();
             $endDate = (clone $carbonDate)->endOfMonth()->endOfDay();
         }
-    
+
         // Start the query for LeaderboardBonus with related models
         $query = LeaderboardBonus::with('leaderboard_profile', 'user')
                 ->whereBetween('created_at', [$startDate, $endDate]);
@@ -394,10 +391,10 @@ class TransactionController extends Controller
                 'created_at' => $transaction->created_at,
             ];
         });
-    
+
         // Calculate the total incentive amount
         $totalAmount = $data->sum('incentive_amount');
-    
+
         return response()->json([
             'transactions' => $data,
             'totalAmount' => $totalAmount,
@@ -416,7 +413,7 @@ class TransactionController extends Controller
             $weeks = $matches[1] ?? 1;
 
             $startDate = Carbon::now()->subWeeks($weeks)->startOfWeek();
-            $endDate = Carbon::now()->subWeek($weeks)->endOfWeek(); 
+            $endDate = Carbon::now()->subWeek($weeks)->endOfWeek();
         } else {
             $carbonDate = Carbon::createFromFormat('F Y', $monthYear);
 
@@ -430,30 +427,30 @@ class TransactionController extends Controller
             ])
             ->where('status', 'successful')
             ->whereBetween('created_at', [$startDate, $endDate]);
-        
+
         // Fetch transactions
         $adjustment_history = $query->latest()->get();
-        
+
         $result = [];
-        
+
         // Transform data: exclude `user` object but retain its relevant fields
         foreach ($adjustment_history as $transaction) {
             $target = null;
-    
+
             // Check if 'from_wallet_id' or 'to_wallet_id' exist and assign the value
             if ($transaction->from_wallet) {
                 $target = $transaction->from_wallet->type;
-                unset($transaction->from_wallet); 
+                unset($transaction->from_wallet);
             } elseif ($transaction->to_wallet) {
                 $target = $transaction->to_wallet->type;
-                unset($transaction->to_wallet); 
+                unset($transaction->to_wallet);
             }
-        
+
             // If 'from_meta_login' or 'to_meta_login' exist, assign directly
             if ($transaction->from_meta_login || $transaction->to_meta_login) {
                 $target = $transaction->from_meta_login ?? $transaction->to_meta_login;
             }
-    
+
             $result[] = array_merge(
                 $transaction->toArray(), // Include all transaction data
                 [
@@ -467,19 +464,19 @@ class TransactionController extends Controller
                     'team_color' => $transaction->user->teamHasUser->team->color ?? null,
                 ]
             );
-    
+
             // Remove the nested `user` object from the result
             unset($result[array_key_last($result)]['user']);
         }
-        
+
         // Calculate the total amount
         $totalAmount = $adjustment_history->sum('transaction_amount');
-        
+
         // Return response
         return response()->json([
             'transactions' => $result,
             'totalAmount' => $totalAmount,
         ]);
     }
-        
+
 }
