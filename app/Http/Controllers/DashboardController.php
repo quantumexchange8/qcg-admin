@@ -276,6 +276,7 @@ class DashboardController extends Controller
                 SUM(pnl_b_bookB_gross) AS total_gross,
                 SUM(pnl_b_total_amt) AS total_broker
             ")
+            ->whereNot('pnl_group', 'VIRTUAL')
             ->groupBy('pnl_year', 'pnl_month')
             ->get();
         
@@ -294,22 +295,22 @@ class DashboardController extends Controller
             $totalSwap = TotalPnlBroker::whereBetween(
                     DB::raw('DATE(CONCAT(pnl_year, "-", LPAD(pnl_month, 2, "0"), "-", LPAD(pnl_day, 2, "0")))'),
                     [$startOfWeek, $endOfWeek]
-                )->sum('pnl_b_swap');
+                )->whereNot('pnl_group', 'VIRTUAL')->sum('pnl_b_swap');
         
             $totalMarkup = TotalPnlBroker::whereBetween(
                     DB::raw('DATE(CONCAT(pnl_year, "-", LPAD(pnl_month, 2, "0"), "-", LPAD(pnl_day, 2, "0")))'),
                     [$startOfWeek, $endOfWeek]
-                )->sum('pnl_b_bookB_markup');
+                )->whereNot('pnl_group', 'VIRTUAL')->sum('pnl_b_bookB_markup');
 
             $totalGross = TotalPnlBroker::whereBetween(
                 DB::raw('DATE(CONCAT(pnl_year, "-", LPAD(pnl_month, 2, "0"), "-", LPAD(pnl_day, 2, "0")))'),
                 [$startOfWeek, $endOfWeek]
-            )->sum('pnl_b_bookB_gross');
+            )->whereNot('pnl_group', 'VIRTUAL')->sum('pnl_b_bookB_gross');
 
             $totalBroker = TotalPnlBroker::whereBetween(
                 DB::raw('DATE(CONCAT(pnl_year, "-", LPAD(pnl_month, 2, "0"), "-", LPAD(pnl_day, 2, "0")))'),
                 [$startOfWeek, $endOfWeek]
-            )->sum('pnl_b_total_amt');
+            )->whereNot('pnl_group', 'VIRTUAL')->sum('pnl_b_total_amt');
         } else {
             // Parse the month/year string into a Carbon date
             $carbonDate = Carbon::createFromFormat('m/Y', $monthYear);
@@ -320,18 +321,22 @@ class DashboardController extends Controller
         
             $totalSwap = TotalPnlBroker::where('pnl_year', $year)
                                 ->where('pnl_month', $month)
+                                ->whereNot('pnl_group', 'VIRTUAL')
                                 ->sum('pnl_b_swap');
         
             $totalMarkup = TotalPnlBroker::where('pnl_year', $year)
                             ->where('pnl_month', $month)
+                            ->whereNot('pnl_group', 'VIRTUAL')
                             ->sum('pnl_b_bookB_markup');
 
             $totalGross = TotalPnlBroker::where('pnl_year', $year)
                             ->where('pnl_month', $month)
+                            ->whereNot('pnl_group', 'VIRTUAL')
                             ->sum('pnl_b_bookB_gross');
 
             $totalBroker = TotalPnlBroker::where('pnl_year', $year)
                             ->where('pnl_month', $month)
+                            ->whereNot('pnl_group', 'VIRTUAL')
                             ->sum('pnl_b_total_amt');
         }
 

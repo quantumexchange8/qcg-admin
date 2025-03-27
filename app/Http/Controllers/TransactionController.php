@@ -107,7 +107,7 @@ class TransactionController extends Controller
 
         $query = Transaction::with('user.teamHasUser.team', 'from_wallet', 'to_wallet', 'redemption.reward');
         $status = request('status');
-        if ($status === 'processing') {
+        if ($status === 'processing' || $type === 'transfer') {
             $query->whereBetween('created_at', [$startDate, $endDate]);
         } else {
             $query->whereBetween('approved_at', [$startDate, $endDate]);
@@ -134,8 +134,10 @@ class TransactionController extends Controller
 
         // Fetch data
         $data = $query
-            ->orderByRaw('CASE WHEN approved_at IS NULL THEN 1 ELSE 0 END')
-            ->orderByDesc('approved_at')
+            ->when($type !== 'transfer', function ($q) {
+                $q->orderByRaw('CASE WHEN approved_at IS NULL THEN 1 ELSE 0 END')
+                ->orderByDesc('approved_at');
+            })
             ->orderByDesc('created_at')
             ->get()->map(function ($transaction) use ($commonFields, $type) {
             // Initialize result array with common fields

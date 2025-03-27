@@ -651,7 +651,7 @@ watch(() => usePage().props, (newProps, oldProps) => {
             </div>
 
             <!-- sales team -->
-            <div class="w-full h-full flex flex-col items-center p-3 gap-3 rounded-lg bg-white shadow-card md:p-6 md:gap-5">
+            <div class="w-full h-full flex flex-col items-center p-3 gap-3 rounded-lg bg-white shadow-card md:p-6 md:gap-5 overflow-y-auto">
                 <div class="w-full flex justify-between items-center">
                     <Select 
                         v-model="selectedTeamMonth" 
@@ -704,7 +704,7 @@ watch(() => usePage().props, (newProps, oldProps) => {
                 <div class="w-full max-h-[770px] grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-1 gap-3 md:gap-6">
                     <div
                         v-if="teamLoading"
-                        class="w-full flex flex-col items-center rounded bg-white overflow-hidden"
+                        class="w-full flex flex-col items-center rounded bg-white shadow-card"
                     >
                         <div class="flex bg-gray-500 w-full gap-3 items-center md:px-4 md:py-2 px-3 py-1">
                             <span class="text-white w-full animate-pulse font-medium truncate">
@@ -763,7 +763,7 @@ watch(() => usePage().props, (newProps, oldProps) => {
                         v-else
                         v-for="team in teams"
                         :key="team.id"
-                        class="w-full flex flex-col items-center rounded bg-white shadow-card overflow-hidden"
+                        class="w-full flex flex-col items-center rounded bg-white shadow-card"
                     >
                         <div 
                             class="flex w-full gap-3 items-center md:px-4 md:py-2 px-3 py-1"
