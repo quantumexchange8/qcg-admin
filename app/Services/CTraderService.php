@@ -177,9 +177,9 @@ class CTraderService
         return $trade;
     }
 
-    public function getListing($from, $to)
+    public function getListing()
     {
-        $response = Http::acceptJson()->get($this->baseURL . "/v2/webserv/closedPositions?from=$from&to=$to&token=$this->token");
+        $response = Http::acceptJson()->get($this->baseURL . "/v2/webserv/closedPositions?from=2025-03-16T00:00:00.000&to=2025-03-22T23:59:59.999&token=$this->token");
         Log::info($response);
         $response = $response->json();
         Log::info('after json');
