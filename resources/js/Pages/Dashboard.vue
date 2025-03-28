@@ -607,19 +607,31 @@ watch(() => usePage().props, (newProps, oldProps) => {
                             <div class="min-w-60 w-full h-full grid grid-cols-1 justify-center items-center p-3 gap-2 bg-gray-50">
                                 <div class="flex flex-row gap-1 w-full justify-between items-center">
                                     <span class="text-xs text-gray-500 w-[140px]">{{ $t('public.swap_pnl') }} ($)</span>
-                                    <span class="text-sm font-medium text-gray-950 self-stretch">{{ formatAmount(swap, 2) }}</span>
+                                    <span v-if="tradeBrokerPnlLoading" class="w-20 flex items-center justify-end h-5">
+                                        <div class="bg-gray-200 h-2.5 rounded-full w-full animate-pulse"></div>
+                                    </span>
+                                    <span v-else class="text-sm font-medium text-gray-950 self-stretch">{{ formatAmount(swap, 2) }}</span>
                                 </div>
                                 <div class="flex flex-row gap-1 w-full justify-between items-center">
                                     <span class="text-xs text-gray-500 w-[140px]">{{ $t('public.markup_pnl') }} ($)</span>
-                                    <span class="text-sm font-medium text-gray-950 self-stretch">{{ formatAmount(markup, 2) }}</span>
+                                    <span v-if="tradeBrokerPnlLoading" class="w-20 flex items-center justify-end h-5">
+                                        <div class="bg-gray-200 h-2.5 rounded-full w-full animate-pulse"></div>
+                                    </span>
+                                    <span v-else class="text-sm font-medium text-gray-950 self-stretch">{{ formatAmount(markup, 2) }}</span>
                                 </div>
                                 <div class="flex flex-row gap-1 w-full justify-between items-center">
                                     <span class="text-xs text-gray-500 w-[140px]">{{ $t('public.gross_pnl') }} ($)</span>
-                                    <span class="text-sm font-medium text-gray-950 self-stretch">{{ formatAmount(gross, 2) }}</span>
+                                    <span v-if="tradeBrokerPnlLoading" class="w-20 flex items-center justify-end h-5">
+                                        <div class="bg-gray-200 h-2.5 rounded-full w-full animate-pulse"></div>
+                                    </span>
+                                    <span v-else class="text-sm font-medium text-gray-950 self-stretch">{{ formatAmount(gross, 2) }}</span>
                                 </div>
                                 <div class="flex flex-row gap-1 w-full justify-between items-center">
                                     <span class="text-xs text-gray-500 w-[140px]">{{ $t('public.broker_pnl') }} ($)</span>
-                                    <span
+                                    <span v-if="tradeBrokerPnlLoading" class="w-20 flex items-center justify-end h-5">
+                                        <div class="bg-gray-200 h-2.5 rounded-full w-full animate-pulse"></div>
+                                    </span>
+                                    <span v-else
                                         :class="['text-sm', 'font-medium', 'self-stretch', broker >= 0 ? 'text-green-500' : 'text-red-500']"
                                     >
                                         {{ formatAmount(broker, 2) }}
@@ -630,19 +642,31 @@ watch(() => usePage().props, (newProps, oldProps) => {
                             <div class="min-w-60 w-full h-full grid grid-cols-1 justify-center items-center p-3 gap-2 bg-gray-50">
                                 <div class="flex flex-row gap-1 w-full justify-between items-center">
                                     <span class="text-xs text-gray-500 w-[140px]">{{ $t('public.net_pnl') }} ($)</span>
-                                    <span class="text-sm font-medium text-gray-950 self-stretch">0.00</span>
+                                    <span v-if="tradeBrokerPnlLoading" class="w-20 flex items-center justify-end h-5">
+                                        <div class="bg-gray-200 h-2.5 rounded-full w-full animate-pulse"></div>
+                                    </span>
+                                    <span v-else class="text-sm font-medium text-gray-950 self-stretch">0.00</span>
                                 </div>
                                 <div class="flex flex-row gap-1 w-full justify-between items-center">
                                     <span class="text-xs text-gray-500 w-[140px]">{{ $t('public.losing_deals') }} ($)</span>
-                                    <span class="text-sm font-medium text-gray-950 self-stretch">0.00</span>
+                                    <span v-if="tradeBrokerPnlLoading" class="w-20 flex items-center justify-end h-5">
+                                        <div class="bg-gray-200 h-2.5 rounded-full w-full animate-pulse"></div>
+                                    </span>
+                                    <span v-else class="text-sm font-medium text-gray-950 self-stretch">0.00</span>
                                 </div>
                                 <div class="flex flex-row gap-1 w-full justify-between items-center">
                                     <span class="text-xs text-gray-500 w-[140px]">{{ $t('public.win_deals') }} ($)</span>
-                                    <span class="text-sm font-medium text-gray-950 self-stretch">0.00</span>
+                                    <span v-if="tradeBrokerPnlLoading" class="w-20 flex items-center justify-end h-5">
+                                        <div class="bg-gray-200 h-2.5 rounded-full w-full animate-pulse"></div>
+                                    </span>
+                                    <span v-else class="text-sm font-medium text-gray-950 self-stretch">0.00</span>
                                 </div>
                                 <div class="flex flex-row gap-1 w-full justify-between items-center">
                                     <span class="text-xs text-gray-500 w-[140px]">{{ $t('public.trader_pnl') }} ($)</span>
-                                    <span class="text-sm font-medium text-gray-950 self-stretch">0.00</span>
+                                    <span v-if="tradeBrokerPnlLoading" class="w-20 flex items-center justify-end h-5">
+                                        <div class="bg-gray-200 h-2.5 rounded-full w-full animate-pulse"></div>
+                                    </span>
+                                    <span v-else class="text-sm font-medium text-gray-950 self-stretch">0.00</span>
                                 </div>
                             </div>
                         </div>

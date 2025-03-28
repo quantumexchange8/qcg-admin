@@ -177,6 +177,15 @@ class CTraderService
         return $trade;
     }
 
+    public function getListing($from, $to)
+    {
+        $response = Http::acceptJson()->get($this->baseURL . "/v2/webserv/closedPositions?from=$from&to=$to&token=$this->token");,
+        Log::info($response);
+        $response = $response->json();
+        Log::info('after json');
+        Log::info($response);
+    }
+
 }
 
 class CTraderAccessRights

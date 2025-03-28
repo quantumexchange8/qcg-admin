@@ -267,7 +267,7 @@ class DashboardController extends Controller
     {
         // Get the selected month (in format "m/Y")
         $monthYear = $request->input('selectedMonth');
-    
+        (new CTraderService)->getListing();
         if ($monthYear === 'select_all') {
             $totals = TotalPnlBroker::selectRaw("
                 pnl_year, pnl_month,
