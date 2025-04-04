@@ -83,12 +83,15 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
         Route::get('bonus', [PendingController::class, 'bonus'])->name('pending.bonus')->middleware('role_and_permission:admin,access_bonus_request');
         Route::get('incentive', [PendingController::class, 'incentive'])->name('pending.incentive')->middleware('role_and_permission:admin,access_incentive_request');
         Route::get('rewards', [PendingController::class, 'rewards'])->name('pending.rewards')->middleware('role_and_permission:admin,access_rewards_request');
+        Route::get('kyc', [PendingController::class, 'kyc'])->name('pending.kyc')->middleware('role_and_permission:admin,access_kyc_request');
         Route::get('/getPendingWithdrawalData', [PendingController::class, 'getPendingWithdrawalData'])->name('pending.getPendingWithdrawalData')->middleware('role_and_permission:admin,access_withdrawal_request');
         Route::get('/getPendingBonusData', [PendingController::class, 'getPendingBonusData'])->name('pending.getPendingBonusData')->middleware('role_and_permission:admin,access_bonus_request');
         Route::get('/getPendingIncentiveData', [PendingController::class, 'getPendingIncentiveData'])->name('pending.getPendingIncentiveData')->middleware('role_and_permission:admin,access_incentive_request');
         Route::get('/getPendingRewardsData', [PendingController::class, 'getPendingRewardsData'])->name('pending.getPendingRewardsData')->middleware('role_and_permission:admin,access_rewards_request');
+        Route::get('/getPendingKycData', [PendingController::class, 'getPendingKycData'])->name('pending.getPendingKycData')->middleware('role_and_permission:admin,access_kyc_request');
 
         Route::post('withdrawalApproval', [PendingController::class, 'withdrawalApproval'])->name('pending.withdrawalApproval');
+        Route::post('kycApproval', [PendingController::class, 'kycApproval'])->name('pending.kycApproval');
     });
 
     Route::prefix('member')->middleware('role_and_permission:admin,access_member_listing,access_member_network,access_member_forum,access_account_listing')->group(function () {

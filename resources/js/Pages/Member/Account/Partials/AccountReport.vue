@@ -46,10 +46,10 @@ const getCurrentMonthYear = () => {
 const getTransactionMonths = async () => {
     try {
         const response = await axios.get('/getTransactionMonths');
-        months.value = ['select_all', ...response.data.months];
+        months.value = response.data.months;
 
         if (months.value.length) {
-            selectedMonth.value = [getCurrentMonthYear()];
+            selectedMonth.value = getCurrentMonthYear();
         }
     } catch (error) {
         console.error('Error transaction months:', error);
@@ -71,9 +71,11 @@ const getAccountReport = async (selectedMonth = '', selectedOption = null) => {
         let url = `/member/getAccountReport?meta_login=${props.account.meta_login}`;
 
         if (selectedMonth) {
-            const formattedMonth = selectedMonth === 'select_all' 
-                ? 'select_all' 
-                : dayjs(selectedMonth, 'DD MMMM YYYY').format('MMMM YYYY');
+            let formattedMonth = selectedMonth;
+
+            if (!formattedMonth.startsWith('select_') && !formattedMonth.startsWith('last_')) {
+                formattedMonth = dayjs(selectedMonth, 'DD MMMM YYYY').format('MMMM YYYY');
+            }
 
             url += `&selectedMonth=${formattedMonth}`;
         }
@@ -148,10 +150,13 @@ function copyToClipboard(text) {
                         :placeholder="$t('public.month_placeholder')"
                         class="w-full font-normal truncate" scroll-height="236px" 
                     >
-                        <template #option="{option}">
+                        <template #option="{ option }">
                             <span class="text-sm">
                                 <template v-if="option === 'select_all'">
                                     {{ $t('public.select_all') }}
+                                </template>
+                                <template v-else-if="option.startsWith('last_')">
+                                    {{ $t(`public.${option}`) }}
                                 </template>
                                 <template v-else>
                                     {{ $t(`public.${option.split(' ')[1]}`) }} {{ option.split(' ')[2] }}
@@ -162,6 +167,9 @@ function copyToClipboard(text) {
                             <span v-if="selectedMonth">
                                 <template v-if="selectedMonth === 'select_all'">
                                     {{ $t('public.select_all') }}
+                                </template>
+                                <template v-else-if="selectedMonth.startsWith('last_')">
+                                    {{ $t(`public.${selectedMonth}`) }}
                                 </template>
                                 <template v-else>
                                     {{ $t(`public.${dayjs(selectedMonth).format('MMMM')}`) }} {{ dayjs(selectedMonth).format('YYYY') }}

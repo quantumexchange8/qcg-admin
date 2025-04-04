@@ -53,12 +53,14 @@ class DashboardController extends Controller
             ->where('status', 'processing')
             ->count();
 
+        $pendingKyc = User::where('kyc_approval', 'pending')->count();
 
         return response()->json([
             'pendingWithdrawals' => $pendingWithdrawals,
             'pendingBonus' => $pendingBonus,
             'pendingIncentive' => $pendingIncentive,
             'pendingRewards' => $pendingRewards,
+            'pendingKyc' => $pendingKyc,
         ]);
     }
 

@@ -28,6 +28,7 @@ const pendingWithdrawals = ref(0);
 const pendingBonus = ref(0);
 const pendingIncentive = ref(0);
 const pendingRewards = ref(0);
+const pendingKyc = ref(0);
 
 const getPendingCounts = async () => {
     try {
@@ -36,6 +37,7 @@ const getPendingCounts = async () => {
         pendingBonus.value = response.data.pendingBonus
         pendingIncentive.value = response.data.pendingIncentive
         pendingRewards.value = response.data.pendingRewards
+        pendingKyc.value = response.data.pendingKyc
     } catch (error) {
         console.error('Error pending counts:', error);
     }
@@ -116,6 +118,13 @@ watchEffect(() => {
                 v-if="hasRole('super-admin') || hasPermission('access_rewards_request')"
             />
 
+            <SidebarCollapsibleItem
+                :title="$t('public.kyc')"
+                :href="route('pending.kyc')"
+                :active="route().current('pending.kyc')"
+                :pendingCounts="pendingKyc"
+                v-if="hasRole('super-admin') || hasPermission('access_kyc_request')"
+            />
         </SidebarCollapsible>
 
         <!-- Member -->

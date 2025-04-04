@@ -8,10 +8,13 @@ use App\Models\TradingUser;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use App\Models\TradingAccount;
+use App\Models\User;
 use App\Services\CTraderService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use App\Services\ChangeTraderBalanceType;
+use Illuminate\Support\Facades\Validator;
+use Carbon\Carbon;
 
 class PendingController extends Controller
 {
@@ -33,6 +36,11 @@ class PendingController extends Controller
     public function incentive()
     {
         return Inertia::render('Pending/Incentive');
+    }
+
+    public function kyc()
+    {
+        return Inertia::render('Pending/Kyc');
     }
 
     public function getPendingWithdrawalData()
@@ -413,6 +421,69 @@ class PendingController extends Controller
         return response()->json([
             'pendingIncentives' => $pendingIncentives,
             'totalAmount' => $totalAmount,
+        ]);
+    }
+
+    public function getPendingKycData()
+    {
+        $pendingKycs = User::with(['media'])
+        ->where('kyc_approval', 'pending')
+        ->get()
+        ->map(function ($user) {
+            $media = $user->getMedia('kyc_verification');
+            $submittedAt = $media->min('created_at'); // Use min() if there are 2 files
+
+            return [
+                'id' => $user->id,
+                'name' => $user->chinese_name ?? $user->first_name,
+                'email' => $user->email,
+                'submitted_at' => $submittedAt,
+                'kyc_files' => $media,
+            ];
+        })
+        ->sortByDesc('submitted_at') // sort the final result
+        ->values(); // reset index
+    
+        return response()->json([
+            'pendingKycs' => $pendingKycs,
+        ]);
+    }
+
+    public function kycApproval(Request $request)
+    {
+        $action = $request->action;
+        $status = $action == 'approve' ? 'verified' : 'unverified';
+        $user_id = $request->user_id;
+
+        $rules = [
+            'remarks' => $request->action === 'reject' ? 'required' : 'nullable', // Only require if 'reject'
+        ];
+        
+        $validator = Validator::make($request->all(), $rules);
+        
+        $validator->setAttributeNames([
+            'remarks' => trans('public.remarks'),
+        ]);
+        
+        $validator->validate();
+    
+        $user = User::find($user_id);
+        $user->update([
+            'kyc_approval' => $status,
+            'kyc_approval_description' => $request->remarks ?? null ,
+            'kyc_approved_at' => now(),
+        ]);
+
+        $messages = [
+            'verified' => trans('public.toast_approve_kyc_verification_success'),
+            'unverified' => trans('public.toast_reject_kyc_verification_success'),
+        ];
+        $message = $messages[$status];
+    
+        // Return success message if no error occurred
+        return redirect()->back()->with('toast', [
+            'title' => $message,
+            'type' => 'success'
         ]);
     }
 }
