@@ -76,7 +76,7 @@ watchEffect(() => {
         <SidebarCollapsible
             :title="$t('public.request')"
             :active="route().current('pending.*')"
-            :pendingCounts="pendingWithdrawals + pendingBonus + pendingIncentive"
+            :pendingCounts="pendingWithdrawals + pendingBonus + pendingIncentive + pendingRewards + pendingKyc"
             v-if="hasRole('super-admin') || hasPermission([
                 'access_withdrawal_request',
                 'access_incentive_request',

@@ -2,7 +2,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { usePage } from "@inertiajs/vue3";
 import { generalFormat } from "@/Composables/index.js";
-import { IconCircleXFilled, IconSearch, IconDownload, IconFilterOff, IconCircleCheckFilled } from "@tabler/icons-vue";
+import { IconCircleXFilled, IconSearch, IconDownload, IconFilterOff, IconCircleCheckFilled, IconExclamationCircleFilled, IconClockFilled } from "@tabler/icons-vue";
 import { ref, watch, watchEffect, onMounted, h } from "vue";
 import Loader from "@/Components/Loader.vue";
 import DataTable from "primevue/datatable";
@@ -366,6 +366,9 @@ watchEffect(() => {
                                         <div class="font-semibold truncate max-w-full">
                                             {{ data.first_name }}
                                         </div>
+                                        <IconCircleCheckFilled v-if="data.kyc_approval === 'verified'" size="16" stroke-width="1.25" class="text-success-500 grow-0 shrink-0" />
+                                        <IconClockFilled v-else-if="data.kyc_approval === 'pending'" size="16" stroke-width="1.25" class="text-warning-500 grow-0 shrink-0" />
+                                        <IconExclamationCircleFilled v-else size="16" stroke-width="1.25" class="text-error-500 grow-0 shrink-0" />
                                         <div
                                             v-if="data.team_has_user"
                                             class="flex justify-center items-center gap-2 rounded-sm py-1 px-2 md:hidden"

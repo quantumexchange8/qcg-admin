@@ -77,6 +77,7 @@ class PendingController extends Controller
                     'created_at' => $transaction->created_at,
                     'user_name' => $transaction->user->first_name,
                     'user_email' => $transaction->user->email,
+                    'user_kyc_status' => $transaction->user->kyc_approval,
                     'from' => $transaction->from_meta_login ? $transaction->from_meta_login : 'rebate_wallet',
                     'balance' => $balance, // Get balance after ensuring it's updated
                     'amount' => $transaction->amount,

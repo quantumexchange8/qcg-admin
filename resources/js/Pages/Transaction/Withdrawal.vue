@@ -1,7 +1,7 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { usePage } from "@inertiajs/vue3";
-import { IconCircleXFilled, IconSearch, IconDownload, IconFilterOff, IconCopy } from "@tabler/icons-vue";
+import { IconCircleXFilled, IconSearch, IconDownload, IconFilterOff, IconCopy, IconCircleCheckFilled, IconExclamationCircleFilled, IconClockFilled } from "@tabler/icons-vue";
 import { ref, watch, watchEffect } from "vue";
 import Loader from "@/Components/Loader.vue";
 import Dialog from "primevue/dialog";
@@ -482,6 +482,9 @@ const copyToClipboard = (addressType, text) => {
                                     <div class="font-semibold truncate max-w-full">
                                         {{ slotProps.data.name }}
                                     </div>
+                                    <IconCircleCheckFilled v-if="slotProps.data.kyc_status === 'verified'" size="16" stroke-width="1.25" class="text-success-500 grow-0 shrink-0" />
+                                    <IconClockFilled v-else-if="slotProps.data.kyc_status === 'pending'" size="16" stroke-width="1.25" class="text-warning-500 grow-0 shrink-0" />
+                                    <IconExclamationCircleFilled v-else size="16" stroke-width="1.25" class="text-error-500 grow-0 shrink-0" />
                                     <div
                                         v-if="slotProps.data.team_id"
                                         class="flex justify-center items-center gap-2 rounded-sm py-1 px-2 md:hidden"

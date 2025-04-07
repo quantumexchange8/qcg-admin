@@ -138,6 +138,7 @@ class MemberController extends Controller
                 'first_name',
                 'email',
                 'id_number',
+                'kyc_approval',
                 'role',
                 'email_verified_at',
                 'status',

@@ -147,6 +147,7 @@ class TransactionController extends Controller
             $result['name'] = $transaction->user ? $transaction->user->first_name : null;
             $result['email'] = $transaction->user ? $transaction->user->email : null;
             $result['role'] = $transaction->user ? $transaction->user->role : null;
+            $result['kyc_status'] = $transaction->user ? $transaction->user->kyc_approval : null;
 
             // Add type-specific fields
             if ($type === 'deposit') {

@@ -2,7 +2,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { usePage, useForm } from "@inertiajs/vue3";
 import { transactionFormat, generalFormat } from "@/Composables/index.js";
-import { IconCircleXFilled, IconSearch, IconDownload, IconCopy } from "@tabler/icons-vue";
+import { IconCircleXFilled, IconSearch, IconDownload, IconCopy, IconCircleCheckFilled, IconExclamationCircleFilled, IconClockFilled } from "@tabler/icons-vue";
 import { ref, watch, watchEffect } from "vue";
 import Loader from "@/Components/Loader.vue";
 import DefaultProfilePhoto from "@/Components/DefaultProfilePhoto.vue";
@@ -306,6 +306,9 @@ const copyToClipboard = (addressType, text) => {
                                         <div class="font-semibold truncate max-w-full">
                                             {{ slotProps.data.user_name }}
                                         </div>
+                                        <IconCircleCheckFilled v-if="slotProps.data.user_kyc_status === 'verified'" size="16" stroke-width="1.25" class="text-success-500 grow-0 shrink-0" />
+                                        <IconClockFilled v-else-if="slotProps.data.user_kyc_status === 'pending'" size="16" stroke-width="1.25" class="text-warning-500 grow-0 shrink-0" />
+                                        <IconExclamationCircleFilled v-else size="16" stroke-width="1.25" class="text-error-500 grow-0 shrink-0" />
                                         <div
                                             v-if="slotProps.data.team_id"
                                             class="flex justify-center items-center gap-2 rounded-sm py-1 px-2 md:hidden"
