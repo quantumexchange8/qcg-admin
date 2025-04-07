@@ -38,6 +38,7 @@ const getResults = async () => {
     try {
         const response = await axios.get('/pending/getPendingWithdrawalData');
         pendingWithdrawals.value = response.data.pendingWithdrawals;
+        // console.log(pendingWithdrawals)
         totalAmount.value = response.data.totalAmount;
     } catch (error) {
         console.error('Error changing locale:', error);

@@ -46,7 +46,7 @@ class PendingController extends Controller
     public function getPendingWithdrawalData()
     {
         $pendingWithdrawals = Transaction::with([
-            'user:id,email,first_name',
+            'user:id,email,first_name,kyc_approval',
             'payment_account:id,payment_account_name,account_no',
             'user.teamHasUser:id,team_id,user_id',
             'user.teamHasUser.team:id,name,color'
