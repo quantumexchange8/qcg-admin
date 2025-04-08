@@ -125,17 +125,17 @@ const recalculateTotals = () => {
     const globalFilterValue = filters.value.global?.value?.toLowerCase();
 
     const filtered = transactions.value.filter(transaction => {
-        const matchesGlobalFilter = globalFilterValue 
+        const matchesGlobalFilter = globalFilterValue
             ? [
-                transaction.name, 
-                transaction.email, 
-                transaction.transaction_number, 
-                transaction.to_meta_login, 
+                transaction.name,
+                transaction.email,
+                transaction.transaction_number,
+                transaction.to_meta_login,
             ].some(field => {
                 // Convert field to string and check if it includes the global filter value
                 const fieldValue = field !== undefined && field !== null ? field.toString() : '';
                 return fieldValue.toLowerCase().includes(globalFilterValue);
-            }) 
+            })
             : true; // If no global filter is set, match all
 
         // Apply individual field filters (name, email, status)
@@ -169,7 +169,7 @@ const clearFilter = () => {
     };
     selectedMonth.value = getCurrentMonthYear();
     selectedTeams.value = [];
-    filteredValue.value = null; 
+    filteredValue.value = null;
 };
 
 watchEffect(() => {
@@ -219,7 +219,7 @@ const exportXLSX = () => {
 
     // Create the XLSX content
     let csvContent = "data:text/xlsx;charset=utf-8,";
-    
+
     sheetData.forEach((rowArray) => {
         const row = rowArray.join("\t"); // Use tabs for column separation
         csvContent += row + "\r\n"; // Add a new line after each row
@@ -306,11 +306,11 @@ const copyToClipboard = (addressType, text) => {
                 <template #header>
                     <div class="flex flex-col justify-between items-center pb-5 gap-3 self-stretch md:flex-row md:pb-6">
                         <div class="grid grid-cols-1 md:grid-cols-4 items-center gap-3 md:gap-2 self-stretch">
-                            <Select 
-                                v-model="selectedMonth" 
-                                :options="months" 
+                            <Select
+                                v-model="selectedMonth"
+                                :options="months"
                                 :placeholder="$t('public.month_placeholder')"
-                                class="w-full md:max-w-60 font-normal truncate" scroll-height="236px" 
+                                class="w-full md:max-w-60 font-normal truncate" scroll-height="236px"
                             >
                                 <template #option="{ option }">
                                     <span class="text-sm">
@@ -422,9 +422,9 @@ const copyToClipboard = (addressType, text) => {
                     </div>
                 </template>
                 <template #empty>
-                    <Empty 
-                        :title="$t('public.empty_deposit_record_title')" 
-                        :message="$t('public.empty_deposit_record_message')" 
+                    <Empty
+                        :title="$t('public.empty_deposit_record_title')"
+                        :message="$t('public.empty_deposit_record_message')"
                     />
                 </template>
                 <template #loading>
@@ -467,7 +467,7 @@ const copyToClipboard = (addressType, text) => {
                             </div>
                         </template>
                     </Column>
-                    <Column field="created_at" :header="$t('public.date')" sortable class="hidden md:table-cell w-full md:w-[20%] max-w-0">
+                    <Column field="approved_at" :header="$t('public.date')" sortable class="hidden md:table-cell w-full md:w-[20%] max-w-0">
                         <template #body="slotProps">
                             <div class="text-gray-950 text-sm truncate max-w-full">
                                 <span v-if="slotProps.data.status === 'processing'">{{ dayjs(slotProps.data.created_at).format('YYYY/MM/DD') }}</span>
@@ -536,12 +536,12 @@ const copyToClipboard = (addressType, text) => {
                 <div class="flex items-center self-stretch">
                     <span class="flex gap-1 items-center text-gray-950 font-semibold relative">
                         {{ data?.name || '-' }}
-                        <IconCopy 
+                        <IconCopy
                             v-if="data?.name"
-                            size="20" 
-                            stroke-width="1.25" 
-                            class="text-gray-500 inline-block cursor-pointer grow-0 shrink-0" 
-                            v-tooltip.top="$t(`public.${tooltipText}`)" 
+                            size="20"
+                            stroke-width="1.25"
+                            class="text-gray-500 inline-block cursor-pointer grow-0 shrink-0"
+                            v-tooltip.top="$t(`public.${tooltipText}`)"
                             @click="copyToClipboard('name', data.name)"
                         />
                         <Tag
@@ -556,12 +556,12 @@ const copyToClipboard = (addressType, text) => {
                 <div class="flex items-center self-stretch">
                     <span class="flex gap-1 items-center text-gray-950 text-lg font-semibold relative">
                         {{ `$&nbsp;${formatAmount(data?.transaction_amount || 0)}` }}
-                        <IconCopy 
+                        <IconCopy
                             v-if="data?.transaction_amount"
-                            size="20" 
-                            stroke-width="1.25" 
-                            class="text-gray-500 inline-block cursor-pointer grow-0 shrink-0" 
-                            v-tooltip.top="$t(`public.${tooltipText}`)" 
+                            size="20"
+                            stroke-width="1.25"
+                            class="text-gray-500 inline-block cursor-pointer grow-0 shrink-0"
+                            v-tooltip.top="$t(`public.${tooltipText}`)"
                             @click="copyToClipboard('transaction_amount', data.transaction_amount)"
                         />
                         <Tag
@@ -573,7 +573,7 @@ const copyToClipboard = (addressType, text) => {
                     </span>
                 </div>
             </div>
-            
+
             <div class="flex flex-col items-center p-3 gap-3 self-stretch bg-gray-50">
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.requested_date') }}</span>
@@ -595,12 +595,12 @@ const copyToClipboard = (addressType, text) => {
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.account') }}</span>
                     <span class="flex gap-1 break-all text-gray-950 text-sm font-medium relative">
                         {{ data?.to_meta_login || '-' }}
-                        <IconCopy 
+                        <IconCopy
                             v-if="data?.to_meta_login"
-                            size="20" 
-                            stroke-width="1.25" 
-                            class="text-gray-500 inline-block cursor-pointer grow-0 shrink-0" 
-                            v-tooltip.top="$t(`public.${tooltipText}`)" 
+                            size="20"
+                            stroke-width="1.25"
+                            class="text-gray-500 inline-block cursor-pointer grow-0 shrink-0"
+                            v-tooltip.top="$t(`public.${tooltipText}`)"
                             @click="copyToClipboard('to_meta_login', data.to_meta_login)"
                         />
                         <Tag
@@ -641,12 +641,12 @@ const copyToClipboard = (addressType, text) => {
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.sent_address') }}</span>
                     <span class="flex gap-1 break-all text-gray-950 text-sm font-medium relative">
                         {{ data?.from_wallet_address || '-' }}
-                        <IconCopy 
+                        <IconCopy
                             v-if="data?.from_wallet_address"
-                            size="20" 
-                            stroke-width="1.25" 
-                            class="text-gray-500 inline-block cursor-pointer grow-0 shrink-0" 
-                            v-tooltip.top="$t(`public.${tooltipText}`)" 
+                            size="20"
+                            stroke-width="1.25"
+                            class="text-gray-500 inline-block cursor-pointer grow-0 shrink-0"
+                            v-tooltip.top="$t(`public.${tooltipText}`)"
                             @click="copyToClipboard('from_wallet_address', data.from_wallet_address)"
                         />
                         <Tag
@@ -661,12 +661,12 @@ const copyToClipboard = (addressType, text) => {
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.receiving_address') }}</span>
                     <span class="flex gap-1 break-all text-gray-950 text-sm font-medium relative">
                         {{ data?.to_wallet_address || '-' }}
-                        <IconCopy 
+                        <IconCopy
                             v-if="data?.to_wallet_address"
-                            size="20" 
-                            stroke-width="1.25" 
-                            class="text-gray-500 inline-block cursor-pointer grow-0 shrink-0" 
-                            v-tooltip.top="$t(`public.${tooltipText}`)" 
+                            size="20"
+                            stroke-width="1.25"
+                            class="text-gray-500 inline-block cursor-pointer grow-0 shrink-0"
+                            v-tooltip.top="$t(`public.${tooltipText}`)"
                             @click="copyToClipboard('to_wallet_address', data.to_wallet_address)"
                         />
                         <Tag
