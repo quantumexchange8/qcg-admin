@@ -716,4 +716,8 @@ return [
     'view_kyc' => 'View KYC',
     'toast_approve_kyc_verification_success' => 'Successfully approved KYC verification!',
     'toast_reject_kyc_verification_success' => 'Successfully rejected KYC verification!',
+    'sidebar_kyc_listing' => 'KYC Listing',
+    'approved_at' => 'Approved At',
+    'all_kyc_approvals' => 'All KYC Approvals',
+    'approval_detail' => 'Approval Detail',
 ];

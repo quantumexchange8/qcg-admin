@@ -475,5 +475,42 @@ class GeneralController extends Controller
             'visibleToOptions' => $visibleToOptions,
         ]);
     }
+
+    public function getKycMonths($returnAsArray = false)
+    {
+        $firstVerifiedDate = User::orderBy('kyc_approved_at')->value('kyc_approved_at');
+        $start = Carbon::parse($firstVerifiedDate)->startOfMonth();
+        $end = Carbon::now()->startOfMonth();
+
+        $months = collect();
+        while ($start <= $end) {
+            $months->push('01 ' . $start->format('F Y'));
+            $start->addMonth();
+        }
+    
+        // Add the current month at the end if it's not already in the list
+        $currentMonth = '01 ' . Carbon::now()->format('F Y');
+        if (!$months->contains($currentMonth)) {
+            $months->prepend($currentMonth);
+        }
+
+        // Add custom date ranges at the top
+        $additionalRanges = collect([
+            'select_all',
+            'last_week', 
+            'last_2_week', 
+            'last_3_week', 
+        ]);
+
+        $months = $additionalRanges->merge($months);
+    
+        if ($returnAsArray) {
+            return $months;
+        }
+    
+        return response()->json([
+            'months' => $months,
+        ]);
+    }
             
 }

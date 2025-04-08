@@ -22,6 +22,7 @@ use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\TradingAccountController;
 use App\Http\Controllers\RewardController;
 use App\Http\Controllers\BrokerController;
+use App\Http\Controllers\KycController;
 
 Route::get('locale/{locale}', function ($locale) {
     App::setLocale($locale);
@@ -54,6 +55,7 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
     Route::get('/getIncentiveMonths', [GeneralController::class, 'getIncentiveMonths'])->name('getIncentiveMonths');
     Route::get('/getTradeMonths', [GeneralController::class, 'getTradeMonths'])->name('getTradeMonths');
     Route::get('/getRebateMonths', [GeneralController::class, 'getRebateMonths'])->name('getRebateMonths');
+    Route::get('/getKycMonths', [GeneralController::class, 'getKycMonths'])->name('getKycMonths');
     Route::get('/getVisibleToOptions', [GeneralController::class, 'getVisibleToOptions'])->name('getVisibleToOptions');
 
     /**
@@ -137,6 +139,12 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
         Route::middleware('role_and_permission:admin,access_member_network')->group(function () {
             Route::get('/network', [NetworkController::class, 'network'])->name('member.network');
             Route::get('/getDownlineData', [NetworkController::class, 'getDownlineData'])->name('member.getDownlineData');
+        });
+
+        // KYC Routes
+        Route::middleware('role_and_permission:admin,access_kyc_listing')->group(function () {
+            Route::get('/kyc_listing', [KycController::class, 'kyc_listing'])->name('member.kyc_listing');
+            Route::get('/getApprovedListing', [KycController::class, 'getApprovedListing'])->name('member.getApprovedListing');
         });
 
         // Forum Routes

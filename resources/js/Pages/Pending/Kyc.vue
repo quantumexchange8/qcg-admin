@@ -67,12 +67,10 @@ watchEffect(() => {
 const visible = ref(false);
 const pendingData = ref({});
 const approvalAction = ref('');
-const dialogType = ref('');
 
 const rowClicked = (data) => {
     approvalAction.value = '';
     pendingData.value = data;
-    dialogType.value = 'pending_kyc';
     visible.value = true;
     form.reset();
 }
@@ -118,7 +116,6 @@ const handleApproval = (action, data = null) => {
     }
     // console.log(pendingData)
     visible.value = true;
-    dialogType.value = 'pending_kyc';
     approvalAction.value = action;
     // console.log(approvalAction)
     if (approvalAction.value === 'approve') {
@@ -238,14 +235,11 @@ onMounted(() => {
     })
 })
 
+const visiblePhoto = ref(false);
 const selectedKycVerification = ref(null);
-const openDialog = (type, verification = null) => {
-    dialogType.value = type;
-    visible.value = true;
-
-    if (type === 'view_kyc') {
-        selectedKycVerification.value = verification;
-    }
+const openPhotoDialog = (verification) => {
+    visiblePhoto.value = true;
+    selectedKycVerification.value = verification;
 }
 
 </script>
@@ -334,7 +328,7 @@ const openDialog = (type, verification = null) => {
                         <Column field="kyc_files" :header="$t('public.uploaded')" style="width: 25%" class="hidden md:table-cell">
                             <template #body="slotProps">
                                 <div class="flex flex-row gap-3">
-                                    <div v-for="file in slotProps.data.kyc_files" :key="file.id" @click="openDialog('view_kyc', file)" 
+                                    <div v-for="file in slotProps.data.kyc_files" :key="file.id" @click="openPhotoDialog(file)" 
                                         class="flex items-center bg-white rounded border border-gray-200 cursor-pointer hover:bg-gray-100"
                                     >
                                         <img :src="file.original_url" :alt="file.file_name" class="w-16 h-12 rounded" />
@@ -374,20 +368,12 @@ const openDialog = (type, verification = null) => {
                 <Dialog
                     v-model:visible="visible"
                     modal
-                    :header="$t(`public.${dialogType}`, { action: approvalAction ? $t(`public.${approvalAction}`) : '' })"
+                    :header="$t('public.pending_kyc', { action: approvalAction ? $t(`public.${approvalAction}`) : '' })"
                     class="dialog-xs md:dialog-md"
                     :dismissableMask="true"
                 >
-                    <template v-if="dialogType === 'view_kyc'">
-                        <img
-                            :src="selectedKycVerification?.original_url || '/img/member/kyc_sample_illustration.png'"
-                            class="w-full"
-                            alt="kyc_verification"
-                        />
-                    </template>
-
                     <template
-                        v-if="!approvalAction && dialogType === 'pending_kyc'"
+                        v-if="!approvalAction"
                     >
                         <div class="flex flex-col items-center gap-3 self-stretch py-4 md:py-6">
                             <div class="flex flex-col md:flex-row items-center p-3 gap-3 self-stretch w-full bg-gray-50">
@@ -427,7 +413,7 @@ const openDialog = (type, verification = null) => {
                                         {{ $t('public.uploaded_files') }}
                                     </div>
                                     <div class="flex flex-col gap-1">
-                                        <div v-for="file in pendingData.kyc_files" :key="file.id" @click="openDialog('view_kyc', file)" 
+                                        <div v-for="file in pendingData.kyc_files" :key="file.id" @click="openPhotoDialog(file)" 
                                             class="flex items-center gap-3 w-full px-3 py-4 bg-white rounded border border-gray-200 cursor-pointer hover:bg-gray-100"
                                         >
                                             <img :src="file.original_url" :alt="file.file_name" class="w-12 h-9 rounded" />
@@ -458,7 +444,7 @@ const openDialog = (type, verification = null) => {
                     </template>
 
                     <template
-                        v-if="approvalAction === 'reject' && dialogType === 'pending_kyc'"
+                        v-if="approvalAction === 'reject'"
                     >
                         <div class="flex flex-col items-center gap-3 self-stretch py-4 md:py-6">
                             <div class="flex flex-col md:flex-row items-center p-3 gap-3 self-stretch w-full bg-gray-50">
@@ -520,6 +506,13 @@ const openDialog = (type, verification = null) => {
                     </template>
                 </Dialog>
 
+                <Dialog v-model:visible="visiblePhoto" modal headless class="dialog-xs md:dialog-md" :dismissableMask="true">
+                    <img
+                        :src="selectedKycVerification?.original_url || '/img/member/kyc_sample_illustration.png'"
+                        class="w-full"
+                        alt="kyc_verification"
+                    />
+                </Dialog>
             </div>
         </div>
     </AuthenticatedLayout>

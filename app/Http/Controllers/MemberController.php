@@ -518,6 +518,9 @@ class MemberController extends Controller
     {
         $user = User::with(['upline:id,first_name', 'teamHasUser'])->find($request->id);
 
+        $media = $user->getMedia('kyc_verification');
+        $submittedAt = $media->min('created_at'); // Use min() if there are 2 files
+
         $userData = [
             'id' => $user->id,
             'name' => $user->first_name,
@@ -536,7 +539,9 @@ class MemberController extends Controller
             'upline_name' => $user->upline->first_name ?? null,
             'total_direct_member' => $user->directChildren->where('role', 'member')->count(),
             'total_direct_agent' => $user->directChildren->where('role', 'agent')->count(),
-            'kyc_verification' => $user->getFirstMedia('kyc_verification'),
+            'kyc_status' => $user->kyc_approval,
+            'kyc_verification' => $media,
+            'kyc_submit_date' => $submittedAt,
             'kyc_approved_at' => $user->kyc_approved_at,
         ];
 

@@ -157,6 +157,13 @@ watchEffect(() => {
             />
 
             <SidebarCollapsibleItem
+                :title="$t('public.sidebar_kyc_listing')"
+                :href="route('member.kyc_listing')"
+                :active="route().current('member.kyc_listing')"
+                v-if="hasRole('super-admin') || hasPermission('access_kyc_listing')"
+            />
+
+            <SidebarCollapsibleItem
                 :title="$t('public.sidebar_forum')"
                 :href="route('member.forum')"
                 :active="route().current('member.forum')"

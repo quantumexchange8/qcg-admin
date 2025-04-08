@@ -714,4 +714,8 @@ return [
     'view_kyc' => '查看KYC',
     'toast_approve_kyc_verification_success' => '成功批准KYC驗證！',
     'toast_reject_kyc_verification_success' => '成功拒絕KYC驗證！',
+    'sidebar_kyc_listing' => 'KYC 列表',
+    'approved_at' => '批准時間',
+    'all_kyc_approvals' => '所有 KYC 批准',
+    'approval_detail' => '批准詳情',
 ];

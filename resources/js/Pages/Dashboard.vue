@@ -79,6 +79,9 @@ const swap = ref(0);
 const markup = ref(0);
 const gross = ref(0);
 const broker = ref(0);
+const avgWin = ref(0);
+const avgLoss = ref(0);
+const trader = ref(0);
 const tradeBrokerPnlLoading = ref(false);
 
 const teams = ref();
@@ -260,7 +263,9 @@ const getTradeBrokerPnl = async () => {
         markup.value = response.data.totalMarkup;
         gross.value = response.data.totalGross;
         broker.value = response.data.totalBroker;
-
+        avgWin.value = response.data.avgWin;
+        avgLoss.value = response.data.avgLoss;
+        trader.value = -broker.value;
         tradeBrokerPnlDuration.value = 1;
     } catch (error) {
         console.error('Error fetching data:', error);
@@ -645,28 +650,32 @@ watch(() => usePage().props, (newProps, oldProps) => {
                                     <span v-if="tradeBrokerPnlLoading" class="w-20 flex items-center justify-end h-5">
                                         <div class="bg-gray-200 h-2.5 rounded-full w-full animate-pulse"></div>
                                     </span>
-                                    <span v-else class="text-sm font-medium text-gray-950 self-stretch">0.00</span>
+                                    <span v-else class="text-sm font-medium text-gray-950 self-stretch">{{ formatAmount(trader, 2) }}</span>
                                 </div>
                                 <div class="flex flex-row gap-1 w-full justify-between items-center">
                                     <span class="text-xs text-gray-500 w-[140px]">{{ $t('public.losing_deals') }} ($)</span>
                                     <span v-if="tradeBrokerPnlLoading" class="w-20 flex items-center justify-end h-5">
                                         <div class="bg-gray-200 h-2.5 rounded-full w-full animate-pulse"></div>
                                     </span>
-                                    <span v-else class="text-sm font-medium text-gray-950 self-stretch">0.00</span>
+                                    <span v-else class="text-sm font-medium text-gray-950 self-stretch">Avg. {{ formatAmount(avgLoss, 0) }}</span>
                                 </div>
                                 <div class="flex flex-row gap-1 w-full justify-between items-center">
                                     <span class="text-xs text-gray-500 w-[140px]">{{ $t('public.win_deals') }} ($)</span>
                                     <span v-if="tradeBrokerPnlLoading" class="w-20 flex items-center justify-end h-5">
                                         <div class="bg-gray-200 h-2.5 rounded-full w-full animate-pulse"></div>
                                     </span>
-                                    <span v-else class="text-sm font-medium text-gray-950 self-stretch">0.00</span>
+                                    <span v-else class="text-sm font-medium text-gray-950 self-stretch">Avg. {{ formatAmount(avgWin, 0) }}</span>
                                 </div>
                                 <div class="flex flex-row gap-1 w-full justify-between items-center">
                                     <span class="text-xs text-gray-500 w-[140px]">{{ $t('public.trader_pnl') }} ($)</span>
                                     <span v-if="tradeBrokerPnlLoading" class="w-20 flex items-center justify-end h-5">
                                         <div class="bg-gray-200 h-2.5 rounded-full w-full animate-pulse"></div>
                                     </span>
-                                    <span v-else class="text-sm font-medium text-gray-950 self-stretch">0.00</span>
+                                    <span v-else
+                                        :class="['text-sm', 'font-medium', 'self-stretch', trader >= 0 ? 'text-green-500' : 'text-red-500']"
+                                    >
+                                        {{ formatAmount(trader, 2) }}
+                                    </span>
                                 </div>
                             </div>
                         </div>

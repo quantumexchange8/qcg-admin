@@ -275,7 +275,11 @@ class DashboardController extends Controller
                 SUM(pnl_b_swap) AS total_swap,
                 SUM(pnl_b_bookB_markup) AS total_markup,
                 SUM(pnl_b_bookB_gross) AS total_gross,
-                SUM(pnl_b_total_amt) AS total_broker
+                SUM(pnl_b_total_amt) AS total_broker,
+                SUM(trader_totalwin_pricelot) AS total_win_amount,
+                SUM(trader_totalwin_trades) AS total_win_deals,
+                SUM(trader_totalloss_pricelot) AS total_loss_amount,
+                SUM(trader_totalloss_trades) AS total_loss_deals,
             ")
             ->whereNot('pnl_group', 'VIRTUAL')
             ->groupBy('pnl_year', 'pnl_month')
@@ -285,6 +289,11 @@ class DashboardController extends Controller
             $totalMarkup = $totals->sum('total_markup');
             $totalGross = $totals->sum('total_gross');
             $totalBroker = $totals->sum('total_broker');
+            $totalWinDeals = $totals->sum('total_win_deals');
+            $totalLossDeals = $totals->sum('total_loss_deals');
+
+            $avgWin = $totalWinDeals > 0 ? $totals->sum('total_win_amount') / $totalWinDeals : 0;
+            $avgLoss = $totalLossDeals > 0 ? $totals->sum('total_loss_amount') / $totalLossDeals : 0;
 
         } elseif (str_starts_with($monthYear, 'last_')) {
             preg_match('/last_(\d+)?_?week?/', $monthYear, $matches);
@@ -312,6 +321,29 @@ class DashboardController extends Controller
                 DB::raw('DATE(CONCAT(pnl_year, "-", LPAD(pnl_month, 2, "0"), "-", LPAD(pnl_day, 2, "0")))'),
                 [$startOfWeek, $endOfWeek]
             )->whereNot('pnl_group', 'VIRTUAL')->sum('pnl_b_total_amt');
+
+            $winAmount = TotalPnlBroker::whereBetween(
+                DB::raw('DATE(CONCAT(pnl_year, "-", LPAD(pnl_month, 2, "0"), "-", LPAD(pnl_day, 2, "0")))'),
+                [$startOfWeek, $endOfWeek]
+            )->whereNot('pnl_group', 'VIRTUAL')->sum('trader_totalwin_pricelot');
+            
+            $winCount = TotalPnlBroker::whereBetween(
+                DB::raw('DATE(CONCAT(pnl_year, "-", LPAD(pnl_month, 2, "0"), "-", LPAD(pnl_day, 2, "0")))'),
+                [$startOfWeek, $endOfWeek]
+            )->whereNot('pnl_group', 'VIRTUAL')->sum('trader_totalwin_trades');
+
+            $lossAmount = TotalPnlBroker::whereBetween(
+                DB::raw('DATE(CONCAT(pnl_year, "-", LPAD(pnl_month, 2, "0"), "-", LPAD(pnl_day, 2, "0")))'),
+                [$startOfWeek, $endOfWeek]
+            )->whereNot('pnl_group', 'VIRTUAL')->sum('trader_totalloss_pricelot');
+
+            $lossCount = TotalPnlBroker::whereBetween(
+                DB::raw('DATE(CONCAT(pnl_year, "-", LPAD(pnl_month, 2, "0"), "-", LPAD(pnl_day, 2, "0")))'),
+                [$startOfWeek, $endOfWeek]
+            )->whereNot('pnl_group', 'VIRTUAL')->sum('trader_totalloss_trades');
+
+            $avgWin = $winCount > 0 ? $winAmount / $winCount : 0;
+            $avgLoss = $lossCount > 0 ? $lossAmount / $lossCount : 0;
         } else {
             // Parse the month/year string into a Carbon date
             $carbonDate = Carbon::createFromFormat('m/Y', $monthYear);
@@ -339,6 +371,29 @@ class DashboardController extends Controller
                             ->where('pnl_month', $month)
                             ->whereNot('pnl_group', 'VIRTUAL')
                             ->sum('pnl_b_total_amt');
+
+            $winAmount = TotalPnlBroker::where('pnl_year', $year)
+                            ->where('pnl_month', $month)
+                            ->whereNot('pnl_group', 'VIRTUAL')
+                            ->sum('trader_totalwin_pricelot');
+
+            $winCount = TotalPnlBroker::where('pnl_year', $year)
+                            ->where('pnl_month', $month)
+                            ->whereNot('pnl_group', 'VIRTUAL')
+                            ->sum('trader_totalwin_trades');
+                            
+            $lossAmount = TotalPnlBroker::where('pnl_year', $year)
+                            ->where('pnl_month', $month)
+                            ->whereNot('pnl_group', 'VIRTUAL')
+                            ->sum('trader_totalloss_pricelot');
+
+            $lossCount = TotalPnlBroker::where('pnl_year', $year)
+                            ->where('pnl_month', $month)
+                            ->whereNot('pnl_group', 'VIRTUAL')
+                            ->sum('trader_totalloss_trades');
+
+            $avgWin = $winCount > 0 ? $winAmount / $winCount : 0;
+            $avgLoss = $lossCount > 0 ? $lossAmount / $lossCount : 0;
         }
 
         // Return the total trade lots and volume as a JSON response
@@ -347,6 +402,8 @@ class DashboardController extends Controller
             'totalMarkup' => $totalMarkup,
             'totalGross' => $totalGross,
             'totalBroker' => $totalBroker,
+            'avgWin' => $avgWin,
+            'avgLoss' => $avgLoss,
         ]);
     }
         
