@@ -720,4 +720,12 @@ return [
     'approved_at' => 'Approved At',
     'all_kyc_approvals' => 'All KYC Approvals',
     'approval_detail' => 'Approval Detail',
+    'dashboard_pending_kyc' => 'Pending KYC',
+    'dashboard_rewards_request' => 'Rewards Request',
+    'sidebar_configuration' => 'Configuration',
+    'deposit_auto_approval' => 'Deposit Auto-Approval',
+    'enable_auto_approval' => 'Enable Auto Approval',
+    'auto_approval_desc' => 'When enabled, deposits meeting the rules below will be approved automatically.',
+    'max_spread_for_auto_approval' => 'Maximum Spread for Auto-Approval',
+    'max_spread_desc' => 'Deposits within this amount of the expected value will be auto-approved.',
 ];

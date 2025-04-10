@@ -178,6 +178,13 @@ class DashboardController extends Controller
             ->where('transaction_type', 'withdrawal')
             ->where('status', 'processing');
 
+        $pendingRewards = Transaction::where('category', 'trade_points')
+        ->where('transaction_type', 'redemption')
+        ->where('status', 'processing')
+        ->count();
+
+        $pendingKyc = User::where('kyc_approval', 'pending')->count();
+
         return response()->json([
             'pendingWithdrawal' => $pending_withdrawal->sum('transaction_amount'),
             'pendingBonus' => $pending_bonus->sum('transaction_amount'),
@@ -185,6 +192,8 @@ class DashboardController extends Controller
             'pendingWithdrawalCount' => $pending_withdrawal->count(),
             'pendingBonusCount' => $pending_bonus->count(),
             'pendingIncentiveCount' => $pending_incentive->count(),
+            'pendingRewards' => $pendingRewards,
+            'pendingKyc' => $pendingKyc,
         ]);
     }
 

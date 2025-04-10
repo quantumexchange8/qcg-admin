@@ -152,7 +152,7 @@ export default {
             'focus:ring-primary-500'
         ]
     },
-    inputIconContainer: 'absolute cursor-pointer top-1/2 right-3 -mt-3',
+    inputIconContainer: 'absolute cursor-pointer top-1/2 right-4 -mt-2.5',
     inputIcon: 'inline-block text-gray-400 w-5 h-5',
     panel: ({ props }) => ({
         class: [

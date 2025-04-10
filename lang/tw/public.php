@@ -718,4 +718,12 @@ return [
     'approved_at' => '批准時間',
     'all_kyc_approvals' => '所有 KYC 批准',
     'approval_detail' => '批准詳情',
+    'dashboard_pending_kyc' => '待審核KYC',
+    'dashboard_rewards_request' => '獎勵請求',
+    'sidebar_configuration' => '設定',
+    'deposit_auto_approval' => '入金自動審核',
+    'enable_auto_approval' => '啟用自動審核',
+    'auto_approval_desc' => '啟用後，符合下列規則的入金將自動通過審核。',
+    'max_spread_for_auto_approval' => '自動審核最大差距',
+    'max_spread_desc' => '在此預期金額範圍內的入金將會自動審核通過。',
 ];

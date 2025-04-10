@@ -719,4 +719,12 @@ return [
     'approved_at' => '批准时间',
     'all_kyc_approvals' => '所有 KYC 批准',
     'approval_detail' => '批准详情',
+    'dashboard_pending_kyc' => '待审核KYC',
+    'dashboard_rewards_request' => '奖励请求',
+    'sidebar_configuration' => '设置',
+    'deposit_auto_approval' => '入金自动审核',
+    'enable_auto_approval' => '启用自动审核',
+    'auto_approval_desc' => '启用后，符合以下规则的入金将自动通过审核。',
+    'max_spread_for_auto_approval' => '自动审核最大差额',
+    'max_spread_desc' => '在此预期金额范围内的入金将会自动审核通过。',
 ];

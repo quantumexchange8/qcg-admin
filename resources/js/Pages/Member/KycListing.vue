@@ -395,12 +395,12 @@ const openPhotoDialog = (verification) => {
                 </div>
                 <div class="w-full flex flex-col items-start gap-1">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.uploaded_files') }}</span>
-                    <div class="flex flex-row gap-1 w-full">
+                    <div class="flex flex-col md:flex-row gap-1 w-full">
                         <div v-for="file in data.kyc_files" :key="file.id" @click="openPhotoDialog(file)" 
-                            class="flex items-center gap-3 w-full px-3 py-4 bg-white rounded border border-gray-200 cursor-pointer hover:bg-gray-100"
+                            class="flex items-center gap-3 w-full p-2 bg-white rounded border border-gray-200 cursor-pointer hover:bg-gray-100"
                         >
-                            <img :src="file.original_url" :alt="file.file_name" class="w-12 h-9 rounded" />
-                            <span class="text-sm text-gray-700">{{ file.file_name }}</span>
+                            <img :src="file.original_url" :alt="file.file_name" class="w-16 h-12 rounded" />
+                            <span class="text-sm text-gray-700 truncate">{{ file.file_name }}</span>
                         </div>
                     </div>
                 </div>
