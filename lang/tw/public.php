@@ -726,4 +726,9 @@ return [
     'auto_approval_desc' => '啟用後，符合下列規則的入金將自動通過審核。',
     'max_spread_for_auto_approval' => '自動審核最大差距',
     'max_spread_desc' => '在此預期金額範圍內的入金將會自動審核通過。',
+    'start_time' => '開始時間',
+    'end_time' => '結束時間',
+    'toast_update_auto_approve_success' => '自動審批設定更新成功！',
+    'start_end_time' => '結束時間必須晚於開始時間。',
+    'toast_default_error' => '發生錯誤，請再試一次。',
 ];

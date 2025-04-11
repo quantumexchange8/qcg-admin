@@ -18,7 +18,8 @@ import {
     IconCategory2,
     IconComponents,
     IconGift,
-    IconChartArrowsVertical
+    IconChartArrowsVertical,
+    IconSettings
 } from '@tabler/icons-vue';
 import { usePermission } from "@/Composables/index.js";
 
@@ -338,6 +339,17 @@ watchEffect(() => {
             </template>
         </SidebarLink>
 
+         <!-- Configuration -->
+        <SidebarLink
+            :title="$t('public.sidebar_configuration')"
+            :href="route('configuration')"
+            :active="route().current('configuration')"
+            v-if="hasRole('super-admin') || hasPermission('access_configuration')"
+        >
+            <template #icon>
+                <IconSettings :size="20" stroke-width="1.25" />
+            </template>
+        </SidebarLink>
         <!-- Components -->
        <!-- <SidebarCollapsible
            title="Components"

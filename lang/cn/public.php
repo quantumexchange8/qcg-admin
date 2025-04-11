@@ -727,4 +727,9 @@ return [
     'auto_approval_desc' => '启用后，符合以下规则的入金将自动通过审核。',
     'max_spread_for_auto_approval' => '自动审核最大差额',
     'max_spread_desc' => '在此预期金额范围内的入金将会自动审核通过。',
+    'start_time' => '开始时间',
+    'end_time' => '结束时间',
+    'toast_update_auto_approve_success' => '自动审批设置更新成功！',
+    'start_end_time' => '结束时间必须晚于开始时间。',
+    'toast_default_error' => '发生错误，请重试。',
 ];

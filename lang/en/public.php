@@ -728,4 +728,9 @@ return [
     'auto_approval_desc' => 'When enabled, deposits meeting the rules below will be approved automatically.',
     'max_spread_for_auto_approval' => 'Maximum Spread for Auto-Approval',
     'max_spread_desc' => 'Deposits within this amount of the expected value will be auto-approved.',
+    'start_time' => 'Start Time',
+    'end_time' => 'End Time',
+    'toast_update_auto_approve_success' => 'Successfully updated auto approval setting!',
+    'start_end_time' => 'The End Time must be after Start Time.',
+    'toast_default_error' => 'Something went wrong. Please try again.',
 ];

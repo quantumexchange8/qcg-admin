@@ -23,6 +23,7 @@ use App\Http\Controllers\TradingAccountController;
 use App\Http\Controllers\RewardController;
 use App\Http\Controllers\BrokerController;
 use App\Http\Controllers\KycController;
+use App\Http\Controllers\ConfigController;
 
 Route::get('locale/{locale}', function ($locale) {
     App::setLocale($locale);
@@ -308,6 +309,18 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
         Route::post('/adminUpdatePermissions', [AdminRoleController::class, 'adminUpdatePermissions'])->name('adminRole.adminUpdatePermissions');
         Route::post('/editAdmin', [AdminRoleController::class, 'editAdmin'])->name('adminRole.editAdmin');
         Route::delete('/deleteAdmin', [AdminRoleController::class, 'deleteAdmin'])->name('adminRole.deleteAdmin');
+    });
+
+    /**
+     * ==============================
+     *          Configuration
+     * ==============================
+     */
+    Route::prefix('configuration')->middleware('role_and_permission:admin,access_configuration')->group(function () {
+        Route::get('/', [ConfigController::class, 'index'])->name('configuration');
+        Route::get('/getAutoApprovalSettings', [ConfigController::class, 'getAutoApprovalSettings'])->name('configuration.getAutoApprovalSettings');
+        Route::post('/updateAutoApprovalSettings', [ConfigController::class, 'updateAutoApprovalSettings'])->name('configuration.updateAutoApprovalSettings');
+
     });
 
     /**
