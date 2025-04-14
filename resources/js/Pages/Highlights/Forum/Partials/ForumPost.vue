@@ -82,7 +82,7 @@ const requireConfirmation = (action_type, postId) => {
             cancelButton: trans('public.cancel'),
             acceptButton: trans('public.delete'),
             action: () => {
-                router.delete(route('member.deletePost', { id: postId }));
+                router.delete(route('highlights.deletePost', { id: postId }));
             }
         },
     };
