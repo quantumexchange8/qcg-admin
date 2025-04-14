@@ -22,10 +22,7 @@ import debounce from "lodash/debounce.js";
 
 const { formatAmount } = transactionFormat();
 
-const props = defineProps({
-    postCounts: Number,
-})
-
+const postCounts = ref(0);
 const posts = ref([]);
 const loading = ref(false);
 
@@ -33,10 +30,11 @@ const getResults = async () => {
     loading.value = true;
 
     try {
-        let url = '/member/getPosts';
+        let url = '/highlights/getPosts';
 
         const response = await axios.get(url);
-        posts.value = response.data;
+        posts.value = response.data.posts;
+        postCounts.value = response.data.postCounts;
     } catch (error) {
         console.error('Error changing locale:', error);
     } finally {
@@ -142,7 +140,7 @@ const saveLikesDebounced = debounce((postId, type) => {
         dislikeDeltas.value[postId] = 0;
     }
 
-    axios.post(route('member.updateLikeCounts'), {
+    axios.post(route('highlights.updateLikeCounts'), {
         id: postId,
         type: type,
         count: deltaToSend,
@@ -217,17 +215,7 @@ const resetImageTransform = () => {
 
 <template>
     <div
-        v-if="postCounts === 0 && !posts.length"
-        class="flex flex-col items-center justify-center self-stretch bg-white rounded-lg shadow-card w-full overflow-y-auto"
-    >
-        <Empty
-            :title="$t('public.no_posts_yet')"
-            :message="$t('public.no_posts_yet_caption')"
-        />
-    </div>
-
-    <div
-        v-else-if="loading"
+        v-if="loading"
         class="flex flex-col self-stretch bg-white rounded-lg shadow-card w-full overflow-y-auto"
     >
         <div
@@ -250,6 +238,16 @@ const resetImageTransform = () => {
                 </div>
             </div>
         </div>
+    </div>
+
+    <div
+        v-else-if="postCounts === 0 && !posts.length"
+        class="flex flex-col items-center justify-center self-stretch bg-white rounded-lg shadow-card w-full overflow-y-auto"
+    >
+        <Empty
+            :title="$t('public.no_posts_yet')"
+            :message="$t('public.no_posts_yet_caption')"
+        />
     </div>
 
     <div v-else class="flex flex-col self-stretch bg-white rounded-lg shadow-card w-full overflow-y-auto">

@@ -732,4 +732,7 @@ return [
     'toast_update_auto_approve_success' => '自动审批设置更新成功！',
     'start_end_time' => '结束时间必须晚于开始时间。',
     'toast_default_error' => '发生错误，请重试。',
+    'announcements' => '公告',
+    'member_forum' => '会员论坛',
+    'highlights' => '亮点',
 ];

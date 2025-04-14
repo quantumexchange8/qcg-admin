@@ -733,4 +733,7 @@ return [
     'toast_update_auto_approve_success' => 'Successfully updated auto approval setting!',
     'start_end_time' => 'The End Time must be after Start Time.',
     'toast_default_error' => 'Something went wrong. Please try again.',
+    'announcements' => 'Announcements',
+    'member_forum' => 'Member Forum',
+    'highlights' => 'Highlights',
 ];

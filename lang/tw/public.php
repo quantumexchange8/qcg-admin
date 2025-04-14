@@ -731,4 +731,7 @@ return [
     'toast_update_auto_approve_success' => '自動審批設定更新成功！',
     'start_end_time' => '結束時間必須晚於開始時間。',
     'toast_default_error' => '發生錯誤，請再試一次。',
+    'announcements' => '公告',
+    'member_forum' => '會員論壇',
+    'highlights' => '亮點',
 ];
