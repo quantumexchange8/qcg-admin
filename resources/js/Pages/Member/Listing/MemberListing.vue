@@ -362,7 +362,7 @@ watchEffect(() => {
                         >
                             <template #body="{data}">
                                 <div class="flex flex-col items-start max-w-full">
-                                    <div class="flex max-w-full gap-2">
+                                    <div class="flex items-center max-w-full gap-2">
                                         <div class="font-semibold truncate max-w-full">
                                             {{ data.first_name }}
                                         </div>

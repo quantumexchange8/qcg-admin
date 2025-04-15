@@ -18,7 +18,9 @@ import {
     IconCategory2,
     IconComponents,
     IconGift,
-    IconChartArrowsVertical
+    IconChartArrowsVertical,
+    IconSettings,
+    IconWand
 } from '@tabler/icons-vue';
 import { usePermission } from "@/Composables/index.js";
 
@@ -134,7 +136,6 @@ watchEffect(() => {
             v-if="hasRole('super-admin') || hasPermission([
                 'access_member_listing',
                 'access_member_network',
-                'access_member_forum',
                 'access_account_listing',
             ])"
         >
@@ -157,10 +158,10 @@ watchEffect(() => {
             />
 
             <SidebarCollapsibleItem
-                :title="$t('public.sidebar_forum')"
-                :href="route('member.forum')"
-                :active="route().current('member.forum')"
-                v-if="hasRole('super-admin') || hasPermission('access_member_forum')"
+                :title="$t('public.sidebar_kyc_listing')"
+                :href="route('member.kyc_listing')"
+                :active="route().current('member.kyc_listing')"
+                v-if="hasRole('super-admin') || hasPermission('access_kyc_listing')"
             />
 
             <SidebarCollapsibleItem
@@ -182,6 +183,21 @@ watchEffect(() => {
         >
             <template #icon>
                 <IconSitemap :size="20" stroke-width="1.25" />
+            </template>
+        </SidebarLink>
+
+        <!-- Highlights -->
+        <SidebarLink
+            :title="$t('public.highlights')"
+            :href="route('highlights')"
+            :active="route().current('highlights')"
+            v-if="hasRole('super-admin') || hasPermission([
+                'access_highlights_announcement',
+                'access_member_forum',
+            ])"
+        >
+            <template #icon>
+                <IconWand :size="20" stroke-width="1.25" />
             </template>
         </SidebarLink>
 
@@ -331,6 +347,17 @@ watchEffect(() => {
             </template>
         </SidebarLink>
 
+         <!-- Configuration -->
+        <SidebarLink
+            :title="$t('public.sidebar_configuration')"
+            :href="route('configuration')"
+            :active="route().current('configuration')"
+            v-if="hasRole('super-admin') || hasPermission('access_configuration')"
+        >
+            <template #icon>
+                <IconSettings :size="20" stroke-width="1.25" />
+            </template>
+        </SidebarLink>
         <!-- Components -->
        <!-- <SidebarCollapsible
            title="Components"

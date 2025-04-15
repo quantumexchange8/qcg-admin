@@ -67,7 +67,7 @@ const submitForm = () => {
 </script>
 
 <template>
-    <div class="w-full flex flex-col items-center p-3 gap-3 self-stretch rounded-lg bg-white shadow-card md:px-6 md:py-5 md:justify-between">
+    <div class="w-full flex flex-col items-center p-3 gap-3 self-stretch rounded-lg bg-white shadow-card md:px-6 md:py-5 md:justify-evenly">
         <div class="flex flex-col justify-center items-center gap-4 self-stretch">
             <div class="flex justify-between items-start self-stretch">
                 <div class="w-[120px] h-[120px] grow-0 shrink-0 overflow-hidden bg-primary-600">

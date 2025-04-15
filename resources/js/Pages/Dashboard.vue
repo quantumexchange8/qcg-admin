@@ -16,6 +16,8 @@ import {
     WithdrawalIcon,
     AgentIcon,
     MemberIcon,
+    KycIcon,
+    RewardsIcon
 } from '@/Components/Icons/outline.jsx';
 import { computed, ref, watch, watchEffect, onMounted } from "vue";
 import { trans } from "laravel-vue-i18n";
@@ -56,6 +58,8 @@ const pendingWithdrawal = ref(0);
 const pendingWithdrawalCount = ref(0);
 const pendingBonus = ref(0);
 const pendingBonusCount = ref(0);
+const pendingKyc = ref(0);
+const pendingRewards = ref(0);
 // const pendingIncentive = ref(0);
 // const pendingIncentiveCount = ref(0);
 const pendingLoading = ref(false);
@@ -79,6 +83,9 @@ const swap = ref(0);
 const markup = ref(0);
 const gross = ref(0);
 const broker = ref(0);
+const avgWin = ref(0);
+const avgLoss = ref(0);
+const trader = ref(0);
 const tradeBrokerPnlLoading = ref(false);
 
 const teams = ref();
@@ -128,6 +135,20 @@ const dataOverviews = computed(() => [
         total: pendingBonus.value,
         label: trans('public.dashboard_bonus_request'),
         route: 'pending/bonus',
+    },
+    {
+        // pendingCount: pendingBonusCount.value,
+        icon: KycIcon,
+        total: pendingKyc.value,
+        label: trans('public.dashboard_pending_kyc'),
+        route: 'pending/kyc',
+    },
+    {
+        // pendingCount: pendingBonusCount.value,
+        icon: RewardsIcon,
+        total: pendingRewards.value,
+        label: trans('public.dashboard_rewards_request'),
+        route: 'pending/rewards',
     },
     {
         icon: AgentIcon,
@@ -208,6 +229,8 @@ const getPendingData = async () => {
         pendingWithdrawalCount.value = response.data.pendingWithdrawalCount;
         pendingBonus.value = response.data.pendingBonus;
         pendingBonusCount.value = response.data.pendingBonusCount;
+        pendingKyc.value = response.data.pendingKyc;
+        pendingRewards.value = response.data.pendingRewards;
         // pendingIncentive.value = response.data.pendingIncentive;
         // pendingIncentiveCount.value = response.data.pendingIncentiveCount;
     } catch (error) {
@@ -260,7 +283,9 @@ const getTradeBrokerPnl = async () => {
         markup.value = response.data.totalMarkup;
         gross.value = response.data.totalGross;
         broker.value = response.data.totalBroker;
-
+        avgWin.value = response.data.avgWin;
+        avgLoss.value = response.data.avgLoss;
+        trader.value = -broker.value;
         tradeBrokerPnlDuration.value = 1;
     } catch (error) {
         console.error('Error fetching data:', error);
@@ -393,13 +418,15 @@ watch(() => usePage().props, (newProps, oldProps) => {
                                     'text-error-600': item.icon == WithdrawalIcon,
                                     'text-orange': item.icon == AgentIcon,
                                     'text-cyan': item.icon == MemberIcon,
+                                    'text-teal': item.icon == KycIcon,
+                                    'text-purple': item.icon == RewardsIcon,
                                 }" 
                             />
 
                             <div class="grid grid-cols-1 w-full gap-1 items-end">
                                 <span class="text-gray-500 text-right text-xxs md:text-sm self-stretch truncate">{{ item.label }}</span>
                                 <span v-if="(item.total || item.total === 0) && !pendingLoading" class="text-gray-950 text-right font-semibold md:text-xl self-stretch truncate">
-                                    <template v-if="item.icon === AgentIcon || item.icon === MemberIcon">
+                                    <template v-if="item.icon === AgentIcon || item.icon === MemberIcon || item.icon === KycIcon || item.icon === RewardsIcon">
                                         {{ formatAmount(item.total, 0) }}
                                     </template>
                                     <template v-else>
@@ -645,28 +672,32 @@ watch(() => usePage().props, (newProps, oldProps) => {
                                     <span v-if="tradeBrokerPnlLoading" class="w-20 flex items-center justify-end h-5">
                                         <div class="bg-gray-200 h-2.5 rounded-full w-full animate-pulse"></div>
                                     </span>
-                                    <span v-else class="text-sm font-medium text-gray-950 self-stretch">0.00</span>
+                                    <span v-else class="text-sm font-medium text-gray-950 self-stretch">{{ formatAmount(trader, 2) }}</span>
                                 </div>
                                 <div class="flex flex-row gap-1 w-full justify-between items-center">
                                     <span class="text-xs text-gray-500 w-[140px]">{{ $t('public.losing_deals') }} ($)</span>
                                     <span v-if="tradeBrokerPnlLoading" class="w-20 flex items-center justify-end h-5">
                                         <div class="bg-gray-200 h-2.5 rounded-full w-full animate-pulse"></div>
                                     </span>
-                                    <span v-else class="text-sm font-medium text-gray-950 self-stretch">0.00</span>
+                                    <span v-else class="text-sm font-medium text-gray-950 self-stretch">Avg. {{ formatAmount(avgLoss, 0) }}</span>
                                 </div>
                                 <div class="flex flex-row gap-1 w-full justify-between items-center">
                                     <span class="text-xs text-gray-500 w-[140px]">{{ $t('public.win_deals') }} ($)</span>
                                     <span v-if="tradeBrokerPnlLoading" class="w-20 flex items-center justify-end h-5">
                                         <div class="bg-gray-200 h-2.5 rounded-full w-full animate-pulse"></div>
                                     </span>
-                                    <span v-else class="text-sm font-medium text-gray-950 self-stretch">0.00</span>
+                                    <span v-else class="text-sm font-medium text-gray-950 self-stretch">Avg. {{ formatAmount(avgWin, 0) }}</span>
                                 </div>
                                 <div class="flex flex-row gap-1 w-full justify-between items-center">
                                     <span class="text-xs text-gray-500 w-[140px]">{{ $t('public.trader_pnl') }} ($)</span>
                                     <span v-if="tradeBrokerPnlLoading" class="w-20 flex items-center justify-end h-5">
                                         <div class="bg-gray-200 h-2.5 rounded-full w-full animate-pulse"></div>
                                     </span>
-                                    <span v-else class="text-sm font-medium text-gray-950 self-stretch">0.00</span>
+                                    <span v-else
+                                        :class="['text-sm', 'font-medium', 'self-stretch', trader >= 0 ? 'text-green-500' : 'text-red-500']"
+                                    >
+                                        {{ formatAmount(trader, 2) }}
+                                    </span>
                                 </div>
                             </div>
                         </div>

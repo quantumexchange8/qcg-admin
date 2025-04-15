@@ -29,7 +29,7 @@ const requireConfirmation = (action_type) => {
             cancelButton: trans('public.cancel'),
             acceptButton: trans('public.confirm'),
             action: () => {
-                router.post(route('member.updatePostPermission', props.agent.id), {
+                router.post(route('highlights.updatePostPermission', props.agent.id), {
                     id: props.agent.id,
                 })
 
@@ -45,7 +45,7 @@ const requireConfirmation = (action_type) => {
             cancelButton: trans('public.cancel'),
             acceptButton: trans('public.remove'),
             action: () => {
-                router.post(route('member.updatePostPermission', props.agent.id), {
+                router.post(route('highlights.updatePostPermission', props.agent.id), {
                     id: props.agent.id,
                 })
 

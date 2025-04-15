@@ -4,56 +4,69 @@ import Dialog from "primevue/dialog";
 import Button from "@/Components/Button.vue";
 import dayjs from "dayjs";
 import {useForm} from "@inertiajs/vue3";
+import StatusBadge from '@/Components/StatusBadge.vue';
 
 const props = defineProps({
     userDetail: Object
 })
 
 const kycVerification = ref([]);
+const kycStatus = ref('');
+const uploadDate = ref('');
 const visible = ref(false);
 
 watch(() => props.userDetail, () => {
     kycVerification.value = props.userDetail.kyc_verification;
+    kycStatus.value = props.userDetail.kyc_status;
+    uploadDate.value = props.userDetail.kyc_submit_date;
 })
 
-const openDialog = () => {
-    visible.value = true
-}
+// const openDialog = () => {
+//     visible.value = true
+// }
 
-const form = useForm({
-    id: '',
-})
+// const form = useForm({
+//     id: '',
+// })
 
-const submitForm = () => {
-    if (props.userDetail) {
-        form.id = props.userDetail.id
+// const submitForm = () => {
+//     if (props.userDetail) {
+//         form.id = props.userDetail.id
 
-        form.post(route('member.updateKYCStatus'), {
-            onSuccess: () => {
-                visible.value = false;
-            }
-        })
-    }
+//         form.post(route('member.updateKYCStatus'), {
+//             onSuccess: () => {
+//                 visible.value = false;
+//             }
+//         })
+//     }
+// }
+
+const selectedKycVerification = ref(null);
+const openDialog = (verification) => {
+    visible.value = true;
+    selectedKycVerification.value = verification;
 }
 </script>
 
 <template>
     <div class="w-full flex flex-col items-start p-3 gap-3 self-stretch rounded-lg bg-white shadow-card md:px-6 md:py-5">
-        <div class="flex h-9 items-center gap-7 self-stretch">
+        <div class="flex flex-row h-9 items-center gap-7 self-stretch">
             <span class="w-full flex text-gray-950 text-sm font-bold">{{ $t('public.kyc_verification') }}</span>
+            <StatusBadge :variant="kycStatus" :value="$t('public.' + kycStatus)" class="text-nowrap"/>
         </div>
-        <div
-            v-if="userDetail"
-            class="flex items-center px-4 py-3 gap-3 self-stretch select-none cursor-pointer rounded border border-gray-200 hover:bg-gray-200"
-            @click="openDialog"
-        >
-            <img
-                :src="kycVerification ? kycVerification.original_url : '/img/member/kyc_example_preview.svg'"
-                class="w-16 h-12"
-                alt="kyc_verification"
-            />
-            <div class="truncate text-gray-950 font-medium w-full">
-                {{ kycVerification ? kycVerification.file_name : $t('public.image') + '.png' }}
+        <div v-if="userDetail" class="flex flex-col gap-1 max-w-full">
+            <div
+                v-for="file in kycVerification" :key="file.id" @click="openDialog(file)" 
+                class="flex items-center px-4 py-3 gap-3 self-stretch select-none cursor-pointer rounded border border-gray-200 hover:bg-gray-200"
+            >
+                <img
+                    :src="file.original_url"
+                    class="w-16 h-12"
+                    alt="kyc_verification"
+                />
+                <span class="truncate text-gray-950 font-medium w-full">
+                    {{ file.file_name }}
+                </span>
             </div>
         </div>
 
@@ -72,13 +85,26 @@ const submitForm = () => {
             </div>
         </div>
         <div v-if="userDetail && kycVerification" class="flex items-center gap-3">
-            <span class="text-gray-500 text-xs">{{ $t('public.uploaded') }} {{ dayjs(kycVerification.created_at).format('YYYY/MM/DD HH:mm:ss')  }}</span>
-            <span class="bg-gray-500 w-1 h-1 rounded-full grow-0 shrink-0"></span>
-            <span class="text-gray-500 text-xs">{{ (kycVerification.size / 1000000 ).toFixed(2) }}MB</span>
+            <span class="text-gray-500 text-xs">{{ $t('public.uploaded') }} {{ dayjs(uploadDate).format('YYYY/MM/DD HH:mm:ss')  }}</span>
+            <!-- <span class="bg-gray-500 w-1 h-1 rounded-full grow-0 shrink-0"></span>
+            <span class="text-gray-500 text-xs">{{ (kycVerification.size / 1000000 ).toFixed(2) }}MB</span> -->
         </div>
     </div>
 
-    <Dialog
+    <Dialog v-model:visible="visible"
+        modal
+        :header="$t('public.kyc_verification')"
+        class="dialog-xs md:dialog-md"
+        :dismissableMask="true"
+    >
+        <img
+            :src="selectedKycVerification?.original_url || '/img/member/kyc_sample_illustration.png'"
+            class="w-full"
+            alt="kyc_verification"
+        />
+    </Dialog>
+
+    <!-- <Dialog
         v-model:visible="visible"
         modal
         :header="$t('public.kyc_verification')"
@@ -108,5 +134,5 @@ const submitForm = () => {
                 </Button>
             </div>
         </div>
-    </Dialog>
+    </Dialog> -->
 </template>

@@ -4,7 +4,7 @@ import { ref, watch, watchEffect, onMounted, onUnmounted } from "vue";
 import Button from "@/Components/Button.vue";
 import Dialog from "primevue/dialog";
 import InputText from 'primevue/inputtext';
-import TogglePermission from '@/Pages/Member/Forum/Partials/TogglePermission.vue';
+import TogglePermission from '@/Pages/Highlights/Forum/Partials/TogglePermission.vue';
 import Loader from "@/Components/Loader.vue";
 import debounce from "lodash/debounce.js";
 

@@ -17,11 +17,8 @@ class ForumController extends Controller
 {
     public function index()
     {
-        $author = ForumPost::where('user_id', Auth::id())->first();
-
         return Inertia::render('Member/Forum/Forum', [
             'postCounts' => ForumPost::count(),
-            'authorName' => $author?->display_name
         ]);
     }
 
@@ -82,7 +79,12 @@ class ForumController extends Controller
                 return $post;
             });
 
-        return response()->json($posts);
+        $postCounts = ForumPost::count();
+
+        return response()->json([
+            'posts' => $posts,
+            'postCounts' => $postCounts,
+        ]);
     }
 
     public function deletePost(Request $request)
@@ -132,35 +134,39 @@ class ForumController extends Controller
             Permission::create(['name' => 'post_forum']);
         }
 
-        $agents = User::role('agent')
+        $selectedAgents = User::role('agent')
             ->where('status', 'active')
+            ->whereHas('permissions', fn($q) => $q->where('name', 'post_forum'))
             ->select('id', 'first_name', 'email', 'id_number')
             ->when($request->filled('search'), function ($query) use ($request) {
                 $search = $request->input('search');
                 $query->where(function ($q) use ($search) {
-                    $q->where('first_name', 'like', '%' . $search . '%')
-                        ->orWhere('email', 'like', '%' . $search . '%')
-                        ->orWhere('id_number', 'like', '%' . $search . '%');
+                    $q->where('first_name', 'like', "%$search%")
+                    ->orWhere('email', 'like', "%$search%")
+                    ->orWhere('id_number', 'like', "%$search%");
                 });
             })
             ->get()
-            ->map(function ($user) {
-                $user->isSelected = $user->hasPermissionTo('post_forum');
+            ->map(fn($user) => array_merge($user->toArray(), ['isSelected' => true]));
 
-                return $user;
-            });
-
-        $selected_agents = $agents->filter(function ($user) {
-            return $user->isSelected;
-        });
-
-        $non_selected_agents = $agents->reject(function ($user) {
-            return $user->isSelected;
-        });
+        $nonSelectedAgents = User::role('agent')
+            ->where('status', 'active')
+            ->whereDoesntHave('permissions', fn($q) => $q->where('name', 'post_forum'))
+            ->select('id', 'first_name', 'email', 'id_number')
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $search = $request->input('search');
+                $query->where(function ($q) use ($search) {
+                    $q->where('first_name', 'like', "%$search%")
+                    ->orWhere('email', 'like', "%$search%")
+                    ->orWhere('id_number', 'like', "%$search%");
+                });
+            })
+            ->get()
+            ->map(fn($user) => array_merge($user->toArray(), ['isSelected' => false]));
 
         return response()->json([
-            'selectedAgents' => $selected_agents->values(),
-            'agents' => $non_selected_agents->values(),
+            'selectedAgents' => $selectedAgents,
+            'agents' => $nonSelectedAgents,
         ]);
     }
 
