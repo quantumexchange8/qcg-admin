@@ -205,4 +205,26 @@ class ForumController extends Controller
         return back();
     }
     
+    public function editPost(Request $request)
+    {
+        try {
+            $post = ForumPost::findOrFail($request->post_id);
+    
+            $post->total_likes_count = $request->like_amount;
+            $post->total_dislikes_count = $request->dislike_amount;
+            $post->save();
+    
+            return back()->with('toast', [
+                'title' => trans('public.toast_edit_post_success'),
+                'type' => 'success',
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error updating post engagement: ' . $e->getMessage());
+    
+            return back()->with('toast', [
+                'title' => trans('public.toast_edit_post_error'), // make sure this translation key exists
+                'type' => 'error',
+            ]);
+        }
+    }
 }

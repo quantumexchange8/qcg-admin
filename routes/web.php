@@ -193,8 +193,8 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
     Route::prefix('highlights')->middleware('role_and_permission:admin,access_highlights_announcement,access_member_forum')->group(function () {
         // Announcement Routes
         Route::middleware('role_and_permission:admin,access_highlights_announcement')->group(function () {
-            Route::get('/highlights', [AnnouncementController::class, 'index'])->name('highlights');
-            // Route::get('/getAnnouncement', [AnnouncementController::class, 'getAnnouncement'])->name('highlights.getAnnouncement');
+            Route::get('/', [AnnouncementController::class, 'index'])->name('highlights');
+            Route::get('/getAnnouncement', [AnnouncementController::class, 'getAnnouncement'])->name('highlights.getAnnouncement');
 
             // Route::post('/createAnnouncement', [AnnouncementController::class, 'createAnnouncement'])->name('highlights.createAnnouncement');
             // Route::post('/editAnnouncement', [AnnouncementController::class, 'editAnnouncement'])->name('highlights.editAnnouncement');
@@ -211,6 +211,7 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
             Route::post('/updatePostPermission', [ForumController::class, 'updatePostPermission'])->name('highlights.updatePostPermission');
             Route::post('/updateLikeCounts', [ForumController::class, 'updateLikeCounts'])->name('highlights.updateLikeCounts');
             Route::delete('/deletePost', [ForumController::class, 'deletePost'])->name('highlights.deletePost');
+            Route::post('/editPost', [ForumController::class, 'editPost'])->name('highlights.editPost');
         });
     });
 

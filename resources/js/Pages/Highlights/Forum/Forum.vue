@@ -1,5 +1,4 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { IconSearch, IconCircleXFilled } from "@tabler/icons-vue";
 import { ref, watch, watchEffect } from "vue";
 import { usePage } from "@inertiajs/vue3";
@@ -11,10 +10,6 @@ import ForumPost from '@/Pages/Highlights/Forum/Partials/ForumPost.vue';
 import TogglePermission from '@/Pages/Highlights/Forum/Partials/TogglePermission.vue';
 import Loader from "@/Components/Loader.vue";
 import debounce from "lodash/debounce.js";
-
-const props = defineProps({
-    postCounts: Number,
-})
 
 const search = ref('');
 const selectedAgents = ref([]);

@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-// import Announcement from "@/Pages/Highlights/Announcement/Announcement.vue";
+import Announcement from "@/Pages/Highlights/Announcement/Announcement.vue";
 import Forum from "@/Pages/Highlights/Forum/Forum.vue";
 import { h, ref, watch } from "vue";
 import Tabs from 'primevue/tabs';
@@ -11,11 +11,11 @@ import TabPanel from 'primevue/tabpanel';
 
 // Tab data
 const tabs = ref([
-    // {
-    //     title: 'announcements',
-    //     component: h(Announcement),
-    //     type: 'announcement'
-    // },
+    {
+        title: 'announcements',
+        component: h(Announcement),
+        type: 'announcement'
+    },
     {
         title: 'member_forum',
         component: h(Forum),
@@ -24,7 +24,7 @@ const tabs = ref([
 ]);
 
 // Initial selected type
-const type = ref('forum');
+const type = ref('announcement');
 const selectedType = ref(tabs.value.find(tab => tab.type === type.value));
 
 // Watch `selectedType` and update `type` and `selectedType` in one place
@@ -42,7 +42,7 @@ watch(type, (newType) => {
 </script>
 
 <template>
-    <AuthenticatedLayout :title="$t('public.sidebar_highlights')">
+    <AuthenticatedLayout :title="$t('public.highlights')">
         <div class="flex flex-col justify-center items-center py-5 px-3 gap-5 self-stretch rounded-lg bg-white shadow-card md:p-6 md:gap-6">
             <div class="w-full flex flex-col-reverse md:flex-row justify-between items-center self-stretch gap-3 md:gap-0">
                 <div class="w-full md:w-auto flex items-center">
