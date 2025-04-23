@@ -197,6 +197,7 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
             Route::get('/getAnnouncement', [AnnouncementController::class, 'getAnnouncement'])->name('highlights.getAnnouncement');
 
             // Route::post('/createAnnouncement', [AnnouncementController::class, 'createAnnouncement'])->name('highlights.createAnnouncement');
+            Route::post('/updateAnnouncementStatus', [AnnouncementController::class, 'updateAnnouncementStatus'])->name('highlights.updateAnnouncementStatus');
             // Route::post('/editAnnouncement', [AnnouncementController::class, 'editAnnouncement'])->name('highlights.editAnnouncement');
             // Route::delete('/deleteAnnouncement', [AnnouncementController::class, 'deldeleteAnnouncementetePost'])->name('highlights.deleteAnnouncement');
         });

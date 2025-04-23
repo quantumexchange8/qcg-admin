@@ -35,4 +35,65 @@ class AnnouncementController extends Controller
             'announcements' => $announcements,
         ]);
     }
+
+    public function updateAnnouncementStatus(Request $request)
+    {
+        $announcement = Announcement::findOrFail($request->announcement_id);
+
+        if ($announcement->status === 'inactive') {
+            $announcement->status = 'active';
+            $announcement->save();
+
+            return back()->with('toast', [
+                'title' => trans('public.toast_announcement_has_activated'),
+                'type' => 'success',
+            ]);
+        } elseif ($announcement->status === 'active') {
+           
+            $announcement->status = 'inactive';
+            $announcement->save();
+
+            return back()->with('toast', [
+                'title' => trans('public.toast_announcement_has_deactivated'),
+                'type' => 'success',
+            ]);
+        }
+    }
+
+    // public function deleteReward(Request $request)
+    // {
+    //     $reward = Reward::find($request->reward_id);
+
+    //     try {
+    //         $hasProcessingTransactions = Transaction::where('transaction_type', 'redemption')
+    //             ->where('status', 'processing')
+    //             ->where('category', 'trade_points')
+    //             ->whereHas('redemption', function ($query) use ($request) {
+    //                 $query->where('reward_id', $request->reward_id);
+    //             })
+    //             ->exists();
+
+    //         if ($hasProcessingTransactions) {
+    //             return back()->with('toast', [
+    //                 'title' => trans("public.toast_delete_reward_failed_processing"),
+    //                 'type' => 'error',
+    //             ]);
+    //         }
+
+    //         $reward->delete();
+
+    //         return back()->with('toast', [
+    //             'title' => trans("public.toast_delete_reward_success"),
+    //             'type' => 'success',
+    //         ]);
+    //     } catch (\Throwable $e) {
+    //         Log::error('Failed to delete reward: ' . $e->getMessage());
+    //         return back()->with('toast', [
+    //             'title' => 'Failed to delete reward',
+    //             'type' => 'error'
+    //         ]);
+    //     }
+
+    // }
+
 }

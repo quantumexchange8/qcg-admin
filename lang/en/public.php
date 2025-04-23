@@ -765,5 +765,11 @@ return [
     'number_of_dislikes' => 'Number of Dislikes',
     'toast_edit_post_success' => 'Successfully edited post like and dislike count!',
     'toast_edit_post_error' => 'Error editing post like and dislike count!',
-    '' => '',
+    'activate_announcement' => 'Activate Announcement',
+    'activate_announcement_caption' => 'You’re about to make this announcement visible to users. Are you sure you want to activate it now?',
+    'deactivate_announcement' => 'Deactivate Announcement',
+    'deactivate_announcement_caption' => 'This will remove the announcement from user view, but you can reactivate it anytime. Are you sure you want to deactivate it?',
+    'toast_announcement_has_activated' => 'You’ve successfully activated the announcement!',
+    'toast_announcement_has_deactivated' => 'Announcement has been deactivated!',
+    'announcement' => 'Announcement',
 ];

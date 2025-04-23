@@ -20,6 +20,7 @@ import ColumnGroup from "primevue/columngroup";
 import Row from "primevue/row";
 import Tag from 'primevue/tag';
 import CreateAnnouncement from "./Partials/CreateAnnouncement.vue";
+import Action from "./Partials/Action.vue";
 
 const statusOption = [
     { name: wTrans('public.all'), value: null },
@@ -95,6 +96,19 @@ function formatColor(status) {
             return 'bg-gray-500 text-white';
     }
 }
+
+watch(() => usePage().props.toast, (newValue) => {
+    if (newValue !== null) {
+        getResults();
+    }
+});
+
+const visible = ref(false);
+const data = ref({});
+const openDialog = (rowData) => {
+    visible.value = true;
+    data.value = rowData;
+};
 </script>
 
 <template>
@@ -157,15 +171,6 @@ function formatColor(status) {
                     </div>
                     <div class="w-full flex flex-col items-center gap-3 md:w-auto md:flex-row md:gap-2">
                         <CreateAnnouncement />
-                        <!-- <Button
-                            type="button"
-                            variant="primary-flat"
-                            size="base"
-                            class='w-full md:w-auto truncate'
-                        >
-                            <IconPlus size="20" stroke-width="1.25" />
-                            {{ $t('public.new_announcement') }}
-                        </Button> -->
                     </div>
                 </div>
                 
@@ -241,97 +246,96 @@ function formatColor(status) {
             <Column field="start_date" :header="$t('public.start_date')" style="width: 20%" class="hidden md:table-cell">
                 <template #body="slotProps">
                     <div class="text-gray-950 text-sm truncate max-w-full">
-                        {{ dayjs(slotProps.data.start_date).format('YYYY/MM/DD') }}
+                        {{ slotProps.data.start_date ? dayjs(slotProps.data.start_date).format('YYYY/MM/DD') : '-' }}
                     </div>
                 </template>
             </Column>
             <Column field="end_date" :header="$t('public.expiry_date')" style="width: 20%" class="hidden md:table-cell">
                 <template #body="slotProps">
                     <div class="text-gray-950 text-sm truncate max-w-full">
-                        {{ dayjs(slotProps.data.end_date).format('YYYY/MM/DD') }}
+                        {{ slotProps.data.end_date ? dayjs(slotProps.data.end_date).format('YYYY/MM/DD') : '-' }}
                     </div>
+                </template>
+            </Column>
+            <Column field="action" headless style="width: 20%" class="hidden md:table-cell">
+                <template #body="slotProps">
+                    <Action 
+                        :announcement="slotProps.data"
+                    />
                 </template>
             </Column>
         </template>
     </DataTable>
-    <!-- <div class="flex flex-col justify-center items-center gap-5 self-stretch md:gap-6">
-        <div class="flex flex-col justify-start xl:justify-between items-start gap-5 self-stretch xl:flex-row md:gap-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 items-center gap-3 w-full md:w-auto md:gap-5">
-                <div class="relative w-full md:max-w-60">
-                    <div class="absolute top-2/4 -mt-[9px] left-3 text-gray-500">
-                        <IconSearch size="20" stroke-width="1.25" />
-                    </div>
-                    <InputText
-                        v-model="filters['global'].value"
-                        :placeholder="$t('public.keyword_search')"
-                        size="search"
-                        class="font-normal w-full"
-                    />
-                    <div
-                        v-if="filters['global'].value !== null"
-                        class="absolute top-2/4 -mt-2 right-4 text-gray-300 hover:text-gray-400 select-none cursor-pointer"
-                        @click="clearFilterGlobal"
-                    >
-                        <IconCircleXFilled size="16" />
+
+    <Dialog v-model:visible="visible" modal :header="$t('public.announcement')" class="dialog-md" :dismissableMask="true">
+        <div class="flex flex-col justify-center items-start gap-8 pb-6 self-stretch">
+            <img v-if="data.thumbnail" :src="data.thumbnail.original_url" :alt="data.thumbnail.file_name" class="w-full h-[310.5px]" />
+
+            <span class="text-lg font-bold text-gray-950">{{ data.title }}</span>
+
+            <!-- need to ask nic about this content if got html tag -->
+            <span class="text-md font-regular text-gray-950" v-html="data.content"></span>
+            <!-- <div class="flex flex-col justify-between items-center p-3 gap-3 self-stretch bg-gray-50 md:flex-row">
+                <div class="flex items-center self-stretch">
+                    <span class="flex gap-1 items-center text-gray-950 font-semibold relative">
+                        {{ data?.name || '-' }}
+                        <IconCopy 
+                            v-if="data?.name"
+                            size="20" 
+                            stroke-width="1.25" 
+                            class="text-gray-500 inline-block cursor-pointer grow-0 shrink-0" 
+                            v-tooltip.top="$t(`public.${tooltipText}`)" 
+                            @click="copyToClipboard('name', data.name)"
+                        />
+                        <Tag
+                            v-if="activeTag === 'name' && tooltipText === 'copied'"
+                            class="absolute -top-7 -right-3"
+                            severity="contrast"
+                            :value="$t(`public.${tooltipText}`)"
+                        ></Tag>
+                    </span>
+                </div>
+            </div>
+            
+            <div class="flex flex-col items-center p-3 gap-3 self-stretch bg-gray-50">
+                <div class="w-full flex flex-col items-start gap-1 md:flex-row">
+                    <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.submission_date') }}</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ dayjs(data.submitted_at).format('YYYY/MM/DD HH:mm:ss') }}</span>
+                </div>
+                <div class="w-full flex flex-col items-start gap-1 md:flex-row">
+                    <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.approved_date') }}</span>
+                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ dayjs(data.approved_at).format('YYYY/MM/DD HH:mm:ss') }}</span>
+                </div>
+                <div class="w-full flex flex-col items-start gap-1">
+                    <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.uploaded_files') }}</span>
+                    <div class="flex flex-col md:flex-row gap-1 w-full">
+                        <div v-for="file in data.kyc_files" :key="file.id" @click="openPhotoDialog(file)" 
+                            class="flex items-center gap-3 w-full p-2 bg-white rounded border border-gray-200 cursor-pointer hover:bg-gray-100"
+                        >
+                            <img :src="file.original_url" :alt="file.file_name" class="w-16 h-12 rounded" />
+                            <span class="text-sm text-gray-700 truncate">{{ file.file_name }}</span>
+                        </div>
                     </div>
                 </div>
-                <Select
-                    v-model="filters['status'].value"
-                    :options="statusOption"
-                    optionLabel="name"
-                    optionValue="value"
-                    :placeholder="$t('public.filter_by_status')"
-                    class="w-full md:max-w-60 font-normal"
-                    scroll-height="236px"
-                >
-                    <template #value="data">
-                        <span class="font-normal text-gray-950" >{{ $t('public.' + (data.value || 'all')) }}</span>
-                    </template>
-                </Select>
-            </div>
-            <div class="w-full flex flex-col items-center gap-3 md:w-auto md:flex-row md:gap-2">
-                <Button
-                    type="button"
-                    variant="primary-flat"
-                    size="base"
-                    class='w-full md:w-auto truncate'
-                >
-                    <IconPlus size="20" stroke-width="1.25" />
-                    {{ $t('public.new_announcement') }}
-                </Button>
-            </div>
+            </div> -->
         </div>
-        
-        <TransitionGroup
-            tag="div"
-            enter-from-class="-translate-y-full opacity-0"
-            enter-active-class="duration-300"
-            leave-active-class="duration-300"
-            leave-to-class="-translate-y-full opacity-0"
-            class="w-full"
-        >
-            <div
-                v-if="noticeVisible"
-                class="p-2 md:py-4 md:px-5 flex justify-center self-stretch gap-3 border-l-8 rounded border-info-500 shadow-card bg-info-100 items-start"
-                role="alert"
+        <div class="w-full flex justify-end items-center gap-4 pt-6 self-stretch">
+            <Button
+                type="button"
+                size="base"
+                class="w-full"
+                variant="error-outlined"
             >
-                <div class="text-info-500">
-                    <IconInfoCircle size="24" stroke-width="2.0"/>
-                </div>
-                <div
-                    class="flex flex-col gap-1 items-start w-full"
-                >
-                    <div class="text-info-500 font-semibold text-sm">
-                        {{ $t('public.pinned_announcements') }}
-                    </div>
-                    <div class="text-gray-700 text-xs md:text-sm">
-                        {{ $t('public.pinned_announcements_desc') }}
-                    </div>
-                </div>
-                <div class="text-info-500 hover:text-info-700 hover:cursor-pointer select-none" @click="noticeVisible = false">
-                    <IconX size="16" stroke-width="1.25" />
-                </div>
-            </div>
-        </TransitionGroup>
-    </div> -->
+                {{ $t('public.delete') }}
+            </Button>
+            <Button
+                type="button"
+                variant="gray-outlined"
+                size="base"
+                class="w-full"
+            >
+                {{ $t('public.edit') }}
+            </Button>
+        </div>
+    </Dialog>
 </template>

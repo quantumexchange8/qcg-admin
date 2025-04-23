@@ -122,7 +122,7 @@ const requireConfirmation = (action_type) => {
     });
 };
 
-const handleAccountStatus = () => {
+const handleRewardStatus = () => {
     if (props.reward.status === 'active') {
         requireConfirmation('deactivate_rewards')
     } else {
@@ -137,7 +137,7 @@ const handleAccountStatus = () => {
         <ToggleSwitch
             v-model="checked"
             readonly
-            @click="handleAccountStatus"
+            @click="handleRewardStatus"
         />
         <Button
             variant="gray-text"
