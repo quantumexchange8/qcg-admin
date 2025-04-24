@@ -2,12 +2,13 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 // import Announcement from "@/Pages/Highlights/Announcement/Announcement.vue";
 import Forum from "@/Pages/Highlights/Forum/Forum.vue";
-import { h, ref, watch } from "vue";
+import { h, ref, watch, onMounted } from "vue";
 import Tabs from 'primevue/tabs';
 import TabList from 'primevue/tablist';
 import Tab from 'primevue/tab';
 import TabPanels from 'primevue/tabpanels';
 import TabPanel from 'primevue/tabpanel';
+import { usePage } from '@inertiajs/vue3';
 
 // Tab data
 const tabs = ref([
@@ -39,6 +40,12 @@ watch(type, (newType) => {
     selectedType.value = tabs.value.find(tab => tab.type === newType);
 });
 
+onMounted(() => {
+    const routeType = usePage().props.value?.type || new URLSearchParams(window.location.search).get('type');
+    if (routeType) {
+        type.value = routeType;
+    }
+});
 </script>
 
 <template>

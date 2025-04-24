@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use App\Models\Announcement;
+use App\Models\UserAnnouncementVisibility;
+use App\Models\Team;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Collection;
@@ -64,6 +66,7 @@ class AnnouncementController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'visible_to' => ['required'],
+            'members' => ($request->visible_to === 'public' ? 'nullable' : 'min:1') . '|array',
             'popup' => ['required'],
             'end_date' => ['after:start_date'],
             'subject' => ['required'],
@@ -71,6 +74,7 @@ class AnnouncementController extends Controller
             'thumbnail' => ['required'],
         ])->setAttributeNames([
             'visible_to' => trans('public.visible_to'),
+            'members' => trans('public.visible_to_selected_members'),
             'popup' => trans('public.popup'),
             'end_date.after' => trans('public.start_end_date'),
             'subject' => trans('public.subject'),
@@ -87,21 +91,31 @@ class AnnouncementController extends Controller
 
         try {
             $announcement = Announcement::create([
-                'type' => $request->rewards_type,
-                'cash_amount' => $request->cash_amount,
-                'code' => $request->code,
-                'name' => json_encode($request->name),
-                'trade_point_required' => $request->trade_point_required,
-                // 'start_date' => $request->start_date ? Carbon::parse($request->start_date)->startOfDay() : null,
-                'expiry_date' => $request->expiry_date ? Carbon::parse($request->expiry_date)->endOfDay() : null,
-                'maximum_redemption' => $request->maximum_redemption,
-                'max_per_person' => $request->max_per_person,
-                'autohide_after_expiry' => $request->autohide_after_expiry,
+                'title' => $request->subject,
+                'content' => $request->message,
+                'start_date' => $request->start_date ? Carbon::parse($request->start_date)->startOfDay() : null,
+                'end_date' => $request->end_date ? Carbon::parse($request->end_date)->endOfDay() : null,
+                'recipient' => $request->visible_to,
                 'status' => 'inactive',
+                'popup' => $request->popup === 'none' ? false : true,
+                'popup_login' => $request->popup === 'none' ? null : $request->popup,
             ]);
 
             if ($request->thumbnail) {
                 $reward->addMedia($request->thumbnail)->toMediaCollection('thumbnail');
+            }
+
+            // If the visible_to is not 'public', handle user visibility assignment
+            if ($request->visible_to !== 'public') {
+                // Add the new users for this account type
+                if (!empty($request->members)) {
+                    foreach ($request->members as $user_id) {
+                        UserAnnouncementVisibility::create([
+                            'announcement_id' => $announcement->id,
+                            'user_id' => $user_id,
+                        ]);
+                    }
+                }
             }
 
             // Redirect with success message
@@ -208,6 +222,78 @@ class AnnouncementController extends Controller
     //         ]);
     //     }
 
+    }
+
+    public function getVisibleToOptions(Request $request)
+    {
+        $search = $request->input('search');
+    
+        // Initialize the query to fetch teams with related users
+        $teamsQuery = Team::with(['team_has_user.user:id,first_name,email,id_number']);
+    
+        // Apply search condition if search term is provided
+        if ($search) {
+            // Filter teams based on their name and users based on their details
+            $teamsQuery->where(function ($query) use ($search) {
+                $query->where('name', 'like', '%' . $search . '%')
+                      ->orWhereHas('team_has_user.user', function ($query) use ($search) {
+                          $query->where('first_name', 'like', '%' . $search . '%')
+                                ->orWhere('email', 'like', '%' . $search . '%')
+                                ->orWhere('id_number', 'like', '%' . $search . '%');
+                      });
+            });
+        }
+    
+        // Execute the query to get the teams
+        $teams = $teamsQuery->get();
+    
+        // Initialize an array to hold the transformed data
+        $visibleToOptions = [];
+    
+        // Loop through each team
+        foreach ($teams as $team) {
+            $members = [];
+    
+            // Loop through each member in the team and add them if they match the search criteria
+            foreach ($team->team_has_user as $teamHasUser) {
+                $user = $teamHasUser->user;
+    
+                // Only add the user if they match the search criteria (no PHP string functions used)
+                if ($search) {
+                    // Check if any of the user's details match the search
+                    if (
+                        stripos($user->first_name, $search) !== false ||
+                        stripos($user->email, $search) !== false ||
+                        stripos($user->id_number, $search) !== false
+                    ) {
+                        $members[] = [
+                            'label' => $user->first_name,
+                            'value' => $user->id,
+                        ];
+                    }
+                } else {
+                    // If no search term is provided, include all members
+                    $members[] = [
+                        'label' => $user->first_name,
+                        'value' => $user->id,
+                    ];
+                }
+            }
+    
+            // Only add teams with members to the options array
+            if (count($members) > 0) {
+                $visibleToOptions[] = [
+                    'value' => $team->id,
+                    'name' => $team->name,
+                    'color' => $team->color,
+                    'members' => $members,
+                ];
+            }
+        }
+    
+        return response()->json([
+            'visibleToOptions' => $visibleToOptions,
+        ]);
     }
 
 }

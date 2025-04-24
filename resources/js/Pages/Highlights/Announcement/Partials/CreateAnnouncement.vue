@@ -1,7 +1,7 @@
 <script setup>
 import Button from "@/Components/Button.vue";
 import Dialog from 'primevue/dialog';
-import {h, ref, watch, watchEffect} from "vue";
+import {h, ref, watch, computed, watchEffect} from "vue";
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import InputText from 'primevue/inputtext';
@@ -10,13 +10,19 @@ import {useForm, usePage} from '@inertiajs/vue3';
 import Select from "primevue/select";
 import FileUpload from 'primevue/fileupload';
 import Datepicker from 'primevue/datepicker';
-import { IconPlus, IconUpload, IconX, IconAlertTriangle } from "@tabler/icons-vue";
+import { IconPlus, IconUpload, IconX, IconAlertTriangle, IconSearch, IconCircleXFilled } from "@tabler/icons-vue";
 import RadioButton from 'primevue/radiobutton';
 import ToggleSwitch from 'primevue/toggleswitch';
 import { transactionFormat } from "@/Composables/index.js";
 import Textarea from "primevue/textarea";
 import { useConfirm } from "primevue/useconfirm";
 import { trans, wTrans } from "laravel-vue-i18n";
+import Checkbox from 'primevue/checkbox';
+import Accordion from 'primevue/accordion';
+import AccordionPanel from 'primevue/accordionpanel';
+import AccordionHeader from 'primevue/accordionheader';
+import AccordionContent from 'primevue/accordioncontent';
+import debounce from "lodash/debounce.js";
 
 const props = defineProps({
 
@@ -45,6 +51,7 @@ const openDialog = () => {
 
 const form = useForm({
     visible_to: 'public',
+    members: [],
     popup: 'none',
     start_date: '',
     end_date: '',
@@ -79,6 +86,28 @@ const removeAttachment = () => {
 };
 
 const today = new Date();
+
+const submitForm = () => {
+    form.members = [...selectedMembers.value];
+    if (form.promotion_period_type === 'specific_date_range' && form.promotion_period) {
+        form.promotion_period = dayjs(form.promotion_period).format('YYYY-MM-DD');
+    }
+
+    if (form.credit_withdraw_policy === 'withdraw_on_date') {
+        if (form.promotion_period) {
+            form.credit_withdraw_date_period = form.promotion_period;
+        }
+    }
+
+    form.post(route('highlights.createAnnouncement'), {
+        onSuccess: () => {
+            visible.value = false;
+            form.reset();
+            removeAttachment();
+        },
+    });
+}
+
 
 // const submitForm = () => {
 //     if (form.expiry_date) {
@@ -163,6 +192,135 @@ const publishConfirmation = (action_type) => {
         accept: action
     });
 };
+
+const search = ref('');
+
+const clearSearch = () => {
+    search.value = null;
+}
+
+const loading = ref(false);
+const visibleToOptions = ref([]);
+const getResults = async () => {
+    loading.value = true;
+
+    try {
+        let url = `/highlights/getVisibleToOptions`;
+
+        if (search.value) {
+            url += `?search=${search.value}`;
+        }
+
+        const response = await axios.get(url);
+        visibleToOptions.value = response.data.visibleToOptions;
+    } catch (error) {
+        console.error('Error changing locale:', error);
+    } finally {
+        loading.value = false;
+        // After the results are updated, we check group selection states
+        updateGroupSelection();
+    }
+};
+
+getResults();
+
+// Watch for changes in search and trigger the getResults function
+watch(search, debounce(() => {
+    getResults();
+}, 1000));
+
+// Arrays to track selected members and groups globally
+const selectedMembers = ref([]);
+const selectedGroups = ref([]);
+
+// Helper to optimize lookups in arrays
+const selectedMembersSet = computed(() => new Set(selectedMembers.value));
+
+// Track when a group name removal is due to deselection of all members
+let removingDueToDeselect = false;
+
+// Watch for changes in selectedMembers
+watch(selectedMembers, (newSelectedMembers) => {
+    const newSelectedMembersSet = new Set(newSelectedMembers);
+
+    // Track which groups should be removed from selectedGroups
+    const groupsToRemove = [];
+
+    visibleToOptions.value.forEach((group) => {
+        const allMembersSelected = group.members.every((member) => newSelectedMembersSet.has(member.value));
+
+        if (allMembersSelected && !selectedGroups.value.includes(group.name)) {
+            selectedGroups.value.push(group.name);
+        } else if (!allMembersSelected && selectedGroups.value.includes(group.name)) {
+            // This indicates the group is incomplete (not all members are selected)
+            groupsToRemove.push(group.name);
+        }
+    });
+
+    // Remove the flagged groups from selectedGroups (only the group name, not members)
+    selectedGroups.value = selectedGroups.value.filter((groupName) => !groupsToRemove.includes(groupName));
+
+    // Set the flag for group removal due to member deselection
+    removingDueToDeselect = groupsToRemove.length > 0;
+
+}, { deep: false }); // Use shallow watch
+
+// Watch for changes in selectedGroups
+watch(selectedGroups, (newSelectedGroups, oldSelectedGroups) => {
+    visibleToOptions.value.forEach((group) => {
+        // Handle Group Removal: If the group was in oldSelectedGroups but is now removed
+        if (oldSelectedGroups.includes(group.name) && !newSelectedGroups.includes(group.name)) {
+            if (!removingDueToDeselect) {
+                // Explicit group removal: Remove all members of the group from selectedMembers
+                group.members.forEach((member) => {
+                    selectedMembers.value = selectedMembers.value.filter((value) => value !== member.value);
+                });
+            }
+        }
+
+        // Handle Group Addition: If the group is now added in newSelectedGroups
+        if (newSelectedGroups.includes(group.name) && !oldSelectedGroups.includes(group.name)) {
+            group.members.forEach((member) => {
+                if (!selectedMembersSet.value.has(member.value)) {
+                    selectedMembers.value.push(member.value);
+                }
+            });
+        }
+    });
+
+    // Reset the flag after processing
+    removingDueToDeselect = false;
+}, { deep: false }); // Use shallow watch
+
+// Function to update group selection status based on the current visibleToOptions and selectedMembers
+const updateGroupSelection = () => {
+    visibleToOptions.value.forEach((group) => {
+        // Check if all members of the group are selected
+        const allMembersSelected = group.members.every((member) => selectedMembers.value.includes(member.value));
+
+        // If all members are selected and the group is not in selectedGroups, add it
+        if (allMembersSelected && !selectedGroups.value.includes(group.name)) {
+            selectedGroups.value.push(group.name);
+        }
+
+        // If not all members are selected and the group is in selectedGroups, remove it
+        if (!allMembersSelected && selectedGroups.value.includes(group.name)) {
+            // Only remove the group name, not the members
+            selectedGroups.value = selectedGroups.value.filter(groupName => groupName !== group.name);
+        }
+    });
+
+    // Update the removingDueToDeselect flag after group removal logic
+    removingDueToDeselect = selectedGroups.value.length === 0;
+};
+
+// Watch for changes in form.visible_to
+watch(() => form.visible_to, (newValue) => {
+  if (newValue) {
+    selectedMembers.value = [];
+    selectedGroups.value = [];
+  }
+});
 </script>
 
 <template>
@@ -215,6 +373,69 @@ const publishConfirmation = (action_type) => {
                                     <label for="selected_members">{{ $t('public.selected_members') }}</label>
                                 </div>
                             </div>
+                            <div 
+                                v-if="form.visible_to === 'selected_members'" 
+                                class="w-full h-[500px] flex flex-col items-center border bg-white"
+                                :class="{'rounded border-gray-200': !form.errors.members, 'border-error-500': form.errors.members}"
+                            >
+                                <div class="w-full flex flex-col justify-center items-center p-3 gap-3 bg-white">
+                                    <div class="relative w-full">
+                                        <div class="absolute top-2/4 -mt-[9px] left-3 text-gray-500">
+                                            <IconSearch size="20" stroke-width="1.25" />
+                                        </div>
+                                        <InputText
+                                            v-model="search"
+                                            :placeholder="$t('public.keyword_search')"
+                                            size="search"
+                                            class="font-normal w-full"
+                                        />
+                                        <div
+                                            v-if="search !== null && search !== ''"
+                                            class="absolute top-2/4 -mt-2 right-4 text-gray-300 hover:text-gray-400 select-none cursor-pointer"
+                                            @click="clearSearch"
+                                        >
+                                            <IconCircleXFilled size="16" />
+                                        </div>
+                                    </div>
+                                    <div class="w-full flex flex-col justify-center items-center">
+                                        <Accordion multiple class="w-full flex flex-col justify-center items-center gap-1">
+                                            <div class="w-full max-h-[415px] overflow-auto">
+                                                <AccordionPanel
+                                                    v-for="(group, index) in visibleToOptions"
+                                                    :key="index"
+                                                    :value="group.value"
+                                                    class="w-full flex flex-col justify-center gap-1"
+                                                >
+                                                    <AccordionHeader class="w-full flex flex-row-reverse justify-end items-center gap-2">
+                                                        <span class="truncate text-gray-950 text-sm">{{ group.name }}</span>
+                                                        <Checkbox
+                                                            v-model="selectedGroups"
+                                                            :value="group.name"
+                                                            class="w-4 h-4 grow-0 shrink-0"
+                                                            @click.stop
+                                                        />
+                                                    </AccordionHeader>
+
+                                                    <AccordionContent class="w-full flex flex-col justify-center gap-1 pl-[22px]">
+                                                        <div
+                                                            v-for="(member, idx) in group.members"
+                                                            :key="member.value"
+                                                            class="flex items-center gap-2"
+                                                        >
+                                                            <Checkbox
+                                                                v-model="selectedMembers"
+                                                                :value="member.value"
+                                                                class="w-4 h-4 grow-0 shrink-0"
+                                                            />
+                                                            <span class="w-full truncate text-gray-950 text-sm">{{ member.label }}</span>
+                                                        </div>
+                                                    </AccordionContent>
+                                                </AccordionPanel>
+                                            </div>
+                                        </Accordion>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <!-- <div v-if="form.rewards_type === 'cash_rewards'" class="flex flex-col gap-2">
                             <InputLabel
@@ -257,16 +478,16 @@ const publishConfirmation = (action_type) => {
                                     <RadioButton
                                         v-model="form.popup"
                                         inputId="first_login"
-                                        value="first_login"
+                                        value="first"
                                         class="w-5 h-5"
                                     />
-                                    <label for="selected_members">{{ $t('public.first_login_desc') }}</label>
+                                    <label for="first_login">{{ $t('public.first_login_desc') }}</label>
                                 </div>
                                 <div class="flex items-center gap-3 text-gray-950 text-sm">
                                     <RadioButton
                                         v-model="form.popup"
                                         inputId="every_login"
-                                        value="every_login"
+                                        value="every"
                                         class="w-5 h-5"
                                     />
                                     <label for="every_login">{{ $t('public.every_login_desc') }}</label>
