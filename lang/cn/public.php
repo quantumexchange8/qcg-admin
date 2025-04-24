@@ -735,4 +735,6 @@ return [
     'announcements' => '公告',
     'member_forum' => '会员论坛',
     'highlights' => '亮点',
+    'total_brokerage_dashboard' => '券商和交易者总盈亏比',
+    'total_trade_dashboard' => '总交易手数和交易量',
 ];

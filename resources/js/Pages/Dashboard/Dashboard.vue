@@ -440,7 +440,7 @@ watch(() => usePage().props, (newProps, oldProps) => {
 
                     <div 
                         class="flex bg-white rounded-lg shadow-card w-full cursor-pointer gap-3 items-center md:px-6 md:py-3 px-3 py-2"
-                        @click="router.visit(route('member.forum'))"
+                        @click="router.visit(route('highlights') + '?type=forum')"
                     >
                         <span class="text-gray-950 text-sm w-full font-semibold md:text-base truncate">{{ $t('public.editing_forum') }}</span>
                         <Button 
@@ -495,6 +495,7 @@ watch(() => usePage().props, (newProps, oldProps) => {
                     </div>
 
                     <div class="w-full h-full flex flex-col items-center p-3 gap-3 rounded-lg bg-white shadow-card md:p-6 md:gap-5">
+                        <span class="w-full truncate text-gray-950 text-sm font-semibold md:text-base">{{ $t('public.total_trade_dashboard') }}</span>
                         <div class="w-full flex justify-between items-center">
                             <Select 
                                 v-model="selectedMonth" 
@@ -542,7 +543,8 @@ watch(() => usePage().props, (newProps, oldProps) => {
                     </div>
 
                     <!-- P&L Section -->
-                    <div class="w-full h-full flex flex-col items-center p-3 gap-3 rounded-lg bg-white shadow-card md:p-6 md:gap-5">
+                    <div class="w-full h-full flex flex-col items-start p-3 gap-3 rounded-lg bg-white shadow-card md:p-6 md:gap-5">
+                        <span class="w-full truncate text-gray-950 text-sm font-semibold md:text-base">{{ $t('public.total_brokerage_dashboard') }}</span>
                         <div class="w-full flex justify-between items-center">
                             <Select 
                                 v-model="selectedPnlMonth" 

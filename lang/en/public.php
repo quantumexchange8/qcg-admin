@@ -772,4 +772,6 @@ return [
     'toast_announcement_has_activated' => 'You’ve successfully activated the announcement!',
     'toast_announcement_has_deactivated' => 'Announcement has been deactivated!',
     'announcement' => 'Announcement',
+    'total_brokerage_dashboard' => 'Total Brokerage P&L',
+    'total_trade_dashboard' => 'Total Trade Lots and Trade Volume',
 ];
