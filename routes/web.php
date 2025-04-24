@@ -70,7 +70,8 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
         Route::get('/getDashboardData', [DashboardController::class, 'getDashboardData'])->name('dashboard.getDashboardData');
         Route::get('/getAccountData', [DashboardController::class, 'getAccountData'])->name('dashboard.getAccountData');
         Route::get('/getTradeLotVolume', [DashboardController::class, 'getTradeLotVolume'])->name('dashboard.getTradeLotVolume');
-        Route::get('/getTeamsData', [DashboardController::class, 'getTeamsData'])->name('dashboard.getTeamsData');
+        Route::get('/getTeams', [DashboardController::class, 'getTeams'])->name('dashboard.getTeams');
+        Route::get('/getTeamData', [DashboardController::class, 'getTeamData'])->name('dashboard.getTeamData');
         Route::get('/getPendingData', [DashboardController::class, 'getPendingData'])->name('dashboard.getPendingData');
         Route::get('/getPendingCounts', [DashboardController::class, 'getPendingCounts'])->name('dashboard.getPendingCounts');
         Route::get('/getTradeBrokerPnl', [DashboardController::class, 'getTradeBrokerPnl'])->name('dashboard.getTradeBrokerPnl');
