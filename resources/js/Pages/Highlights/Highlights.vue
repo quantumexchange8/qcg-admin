@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import Announcement from "@/Pages/Highlights/Announcement/Announcement.vue";
+// import Announcement from "@/Pages/Highlights/Announcement/Announcement.vue";
 import Forum from "@/Pages/Highlights/Forum/Forum.vue";
 import { h, ref, watch } from "vue";
 import Tabs from 'primevue/tabs';
@@ -11,11 +11,11 @@ import TabPanel from 'primevue/tabpanel';
 
 // Tab data
 const tabs = ref([
-    {
-        title: 'announcements',
-        component: h(Announcement),
-        type: 'announcement'
-    },
+    // {
+    //     title: 'announcements',
+    //     component: h(Announcement),
+    //     type: 'announcement'
+    // },
     {
         title: 'member_forum',
         component: h(Forum),
@@ -24,7 +24,7 @@ const tabs = ref([
 ]);
 
 // Initial selected type
-const type = ref('announcement');
+const type = ref('forum');
 const selectedType = ref(tabs.value.find(tab => tab.type === type.value));
 
 // Watch `selectedType` and update `type` and `selectedType` in one place
