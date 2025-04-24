@@ -51,7 +51,7 @@ const removeAttachment = () => {
 };
 
 const submitForm = () => {
-    form.post(route('member.createPost'), {
+    form.post(route('highlights.createPost'), {
         onSuccess: () => {
             visible.value = false;
             form.reset();

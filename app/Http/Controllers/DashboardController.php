@@ -25,7 +25,7 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        return Inertia::render('Dashboard', [
+        return Inertia::render('Dashboard/Dashboard', [
             'months' => (new GeneralController())->getTradeMonths(true),
             'teamMonths' => (new GeneralController())->getTransactionMonths(true),
         ]);
@@ -415,9 +415,25 @@ class DashboardController extends Controller
             'avgLoss' => $avgLoss,
         ]);
     }
-        
-    public function getTeamsData(Request $request)
+
+    public function getTeams()
     {
+        $teams = Team::all()->map(function ($team) {
+                return [
+                    'id' => $team->id,
+                    'name' => $team->name,
+                    'color' => $team->color,
+                    'member_count' => $team->team_has_user->count(),
+                ];
+            });
+        
+        return response()->json([
+            'teams' => $teams,
+        ]);
+    }
+    
+    public function getTeamData(Request $request){
+        $teamId = $request->input('teamId');
         // Get the selected month (in format "m/Y")
         $monthYear = $request->input('selectedMonth');
         $startDate = null;
@@ -451,87 +467,88 @@ class DashboardController extends Controller
             }
         }
 
-        // Retrieve all teams and their related data
-        $teams = Team::all()->map(function ($team) use ($startDate, $endDate) {
-            // Get all user ids in the team
-            $teamUserIds = TeamHasUser::where('team_id', $team->id)
-                ->pluck('user_id')
-                ->toArray();
+        $team = Team::with(['team_has_user', 'leader'])->findOrFail($teamId);
 
-            // Query base for transactions
-            $transactionQuery = Transaction::whereIn('user_id', $teamUserIds)
-                ->where('status', 'successful');
+        // Get all user ids in the team
+        $teamUserIds = TeamHasUser::where('team_id', $team->id)
+            ->pluck('user_id')
+            ->toArray();
 
-            // Apply date filtering if needed
-            if ($startDate && $endDate) {
-                $transactionQuery->whereBetween('approved_at', [$startDate, $endDate]);
+        // Query base for transactions
+        $transactionQuery = Transaction::whereIn('user_id', $teamUserIds)
+            ->where('status', 'successful');
+
+        // Apply date filtering if needed
+        if ($startDate && $endDate) {
+            $transactionQuery->whereBetween('approved_at', [$startDate, $endDate]);
+        }
+
+        // Calculate total deposit for the team
+        $total_deposit = (clone $transactionQuery)
+            ->whereIn('transaction_type', ['deposit', 'balance_in', 'rebate_in'])
+            ->sum('transaction_amount');
+
+        // Calculate total withdrawal for the team
+        $total_withdrawal = (clone $transactionQuery)
+            ->whereIn('transaction_type', ['withdrawal', 'balance_out', 'rebate_out'])
+            ->sum('transaction_amount');
+
+        // Calculate total adjustment in for the team
+        $total_adjustment_in = (clone $transactionQuery)
+            ->whereIn('transaction_type', ['balance_in', 'rebate_in'])
+            ->sum('transaction_amount');
+
+        // Calculate total adjustment out for the team
+        $total_adjustment_out = (clone $transactionQuery)
+            ->whereIn('transaction_type', ['balance_out', 'rebate_out'])
+            ->sum('transaction_amount');
+
+        // Calculate the net balance for the team
+        $transaction_fee_charges = $team->fee_charges > 0 ? $total_deposit / $team->fee_charges : 0;
+        $net_balance = $total_deposit - $transaction_fee_charges - $total_withdrawal;
+
+        // Calculate account balance and equity
+        $teamIds = AccountType::whereNotNull('account_group_id')
+            ->pluck('account_group_id')
+            ->toArray();
+
+        $teamBalance = 0;
+        $teamEquity = 0;
+    
+        foreach ($teamIds as $teamId) {
+            if (!$startDate || !$endDate) {
+                $startDate = Carbon::createFromDate(2020, 1, 1)->startOfDay();
+                $endDate = Carbon::now()->endOfDay();
             }
+            
+            $startDateFormatted = $startDate->format('Y-m-d\TH:i:s.v');
+            $endDateFormatted = $endDate->format('Y-m-d\TH:i:s.v');
+                
+            $response = (new CTraderService)->getMultipleTraders($startDateFormatted, $endDateFormatted, $teamId);
 
-            // Calculate total deposit for the team
-            $total_deposit = (clone $transactionQuery)
-                ->whereIn('transaction_type', ['deposit', 'balance_in', 'rebate_in'])
-                ->sum('transaction_amount');
+            $accountType = AccountType::where('account_group_id', $teamId)->first();
 
-            // Calculate total withdrawal for the team
-            $total_withdrawal = (clone $transactionQuery)
-                ->whereIn('transaction_type', ['withdrawal', 'balance_out', 'rebate_out'])
-                ->sum('transaction_amount');
-
-            // Calculate total adjustment in for the team
-            $total_adjustment_in = (clone $transactionQuery)
-                ->whereIn('transaction_type', ['balance_in', 'rebate_in'])
-                ->sum('transaction_amount');
-
-            // Calculate total adjustment out for the team
-            $total_adjustment_out = (clone $transactionQuery)
-                ->whereIn('transaction_type', ['balance_out', 'rebate_out'])
-                ->sum('transaction_amount');
-
-            // Calculate the net balance for the team
-            $transaction_fee_charges = $team->fee_charges > 0 ? $total_deposit / $team->fee_charges : 0;
-            $net_balance = $total_deposit - $transaction_fee_charges - $total_withdrawal;
-
-            // Calculate account balance and equity
-            $teamIds = AccountType::whereNotNull('account_group_id')
-                ->pluck('account_group_id')
+            $meta_logins = TradingAccount::where('account_type_id', $accountType->id)
+                ->whereIn('user_id', $teamUserIds)
+                ->pluck('meta_login')
                 ->toArray();
 
-            $teamBalance = 0;
-            $teamEquity = 0;
-        
-            foreach ($teamIds as $teamId) {
-                if (!$startDate || !$endDate) {
-                    $startDate = Carbon::createFromDate(2020, 1, 1)->startOfDay();
-                    $endDate = Carbon::now()->endOfDay();
-                }
-                
-                $startDateFormatted = $startDate->format('Y-m-d\TH:i:s.v');
-                $endDateFormatted = $endDate->format('Y-m-d\TH:i:s.v');
-                    
-                $response = (new CTraderService)->getMultipleTraders($startDateFormatted, $endDateFormatted, $teamId);
-    
-                $accountType = AccountType::where('account_group_id', $teamId)->first();
-    
-                $meta_logins = TradingAccount::where('account_type_id', $accountType->id)
-                    ->whereIn('user_id', $teamUserIds)
-                    ->pluck('meta_login')
-                    ->toArray();
-    
-                if (isset($response['trader']) && is_array($response['trader'])) {
-                    foreach ($response['trader'] as $trader) {
-                        if (in_array($trader['login'], $meta_logins)) {
-                            $moneyDigits = isset($trader['moneyDigits']) ? (int)$trader['moneyDigits'] : 0;
-                            $divisor = $moneyDigits > 0 ? pow(10, $moneyDigits) : 1;
-    
-                            $teamBalance += $trader['balance'] / $divisor;
-                            $teamEquity += $trader['equity'] / $divisor;
-                        }
+            if (isset($response['trader']) && is_array($response['trader'])) {
+                foreach ($response['trader'] as $trader) {
+                    if (in_array($trader['login'], $meta_logins)) {
+                        $moneyDigits = isset($trader['moneyDigits']) ? (int)$trader['moneyDigits'] : 0;
+                        $divisor = $moneyDigits > 0 ? pow(10, $moneyDigits) : 1;
+
+                        $teamBalance += $trader['balance'] / $divisor;
+                        $teamEquity += $trader['equity'] / $divisor;
                     }
                 }
             }
+        }
     
-            // Return the team data
-            return [
+        // Return the team data
+        return response()->json([
+            'team' => [
                 'id' => $team->id,
                 'name' => $team->name,
                 'fee_charges' => $team->fee_charges,
@@ -548,12 +565,7 @@ class DashboardController extends Controller
                 'adjustment_out' => $total_adjustment_out,
                 'account_balance' => $teamBalance,
                 'account_equity' => $teamEquity,
-            ];
-        });
-    
-        return response()->json([
-            'teams' => $teams,
+            ]
         ]);
     }
-    
 }

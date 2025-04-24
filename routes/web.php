@@ -24,6 +24,7 @@ use App\Http\Controllers\RewardController;
 use App\Http\Controllers\BrokerController;
 use App\Http\Controllers\KycController;
 use App\Http\Controllers\ConfigController;
+use App\Http\Controllers\AnnouncementController;
 
 Route::get('locale/{locale}', function ($locale) {
     App::setLocale($locale);
@@ -69,7 +70,8 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
         Route::get('/getDashboardData', [DashboardController::class, 'getDashboardData'])->name('dashboard.getDashboardData');
         Route::get('/getAccountData', [DashboardController::class, 'getAccountData'])->name('dashboard.getAccountData');
         Route::get('/getTradeLotVolume', [DashboardController::class, 'getTradeLotVolume'])->name('dashboard.getTradeLotVolume');
-        Route::get('/getTeamsData', [DashboardController::class, 'getTeamsData'])->name('dashboard.getTeamsData');
+        Route::get('/getTeams', [DashboardController::class, 'getTeams'])->name('dashboard.getTeams');
+        Route::get('/getTeamData', [DashboardController::class, 'getTeamData'])->name('dashboard.getTeamData');
         Route::get('/getPendingData', [DashboardController::class, 'getPendingData'])->name('dashboard.getPendingData');
         Route::get('/getPendingCounts', [DashboardController::class, 'getPendingCounts'])->name('dashboard.getPendingCounts');
         Route::get('/getTradeBrokerPnl', [DashboardController::class, 'getTradeBrokerPnl'])->name('dashboard.getTradeBrokerPnl');
@@ -148,18 +150,6 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
             Route::get('/getApprovedListing', [KycController::class, 'getApprovedListing'])->name('member.getApprovedListing');
         });
 
-        // Forum Routes
-        Route::middleware('role_and_permission:admin,access_member_forum')->group(function () {
-            Route::get('/forum', [ForumController::class, 'index'])->name('member.forum');
-            Route::get('/getPosts', [ForumController::class, 'getPosts'])->name('member.getPosts');
-            Route::get('/getAgents', [ForumController::class, 'getAgents'])->name('member.getAgents');
-
-            Route::post('/createPost', [ForumController::class, 'createPost'])->name('member.createPost');
-            Route::post('/updatePostPermission', [ForumController::class, 'updatePostPermission'])->name('member.updatePostPermission');
-            Route::post('/updateLikeCounts', [ForumController::class, 'updateLikeCounts'])->name('member.updateLikeCounts');
-            Route::delete('/deletePost', [ForumController::class, 'deletePost'])->name('member.deletePost');
-        });
-
         // Account Listing Routes
         Route::middleware('role_and_permission:admin,access_account_listing')->group(function () {
             Route::get('/account_listing', [TradingAccountController::class, 'index'])->name('member.account_listing');
@@ -194,6 +184,37 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
         Route::post('/editTeam', [TeamController::class, 'editTeam'])->name('team.editTeam');
         Route::post('/markSettlementReport', [TeamController::class, 'markSettlementReport'])->name('team.markSettlementReport');
         Route::delete('/deleteTeam', [TeamController::class, 'deleteTeam'])->name('team.deleteTeam');
+    });
+
+    /**
+     * ==============================
+     *          Highlights
+     * ==============================
+     */
+    Route::prefix('highlights')->middleware('role_and_permission:admin,access_highlights_announcement,access_member_forum')->group(function () {
+        // Announcement Routes
+        Route::middleware('role_and_permission:admin,access_highlights_announcement')->group(function () {
+            Route::get('/', [AnnouncementController::class, 'index'])->name('highlights');
+            Route::get('/getAnnouncement', [AnnouncementController::class, 'getAnnouncement'])->name('highlights.getAnnouncement');
+
+            Route::post('/createAnnouncement', [AnnouncementController::class, 'createAnnouncement'])->name('highlights.createAnnouncement');
+            Route::post('/updateAnnouncementStatus', [AnnouncementController::class, 'updateAnnouncementStatus'])->name('highlights.updateAnnouncementStatus');
+            Route::post('/editAnnouncement', [AnnouncementController::class, 'editAnnouncement'])->name('highlights.editAnnouncement');
+            Route::delete('/deleteAnnouncement', [AnnouncementController::class, 'deldeleteAnnouncementetePost'])->name('highlights.deleteAnnouncement');
+        });
+
+        // Forum Routes
+        Route::middleware('role_and_permission:admin,access_member_forum')->group(function () {
+            // Route::get('/forum', [ForumController::class, 'index'])->name('highlights.forum');
+            Route::get('/getPosts', [ForumController::class, 'getPosts'])->name('highlights.getPosts');
+            Route::get('/getAgents', [ForumController::class, 'getAgents'])->name('highlights.getAgents');
+
+            Route::post('/createPost', [ForumController::class, 'createPost'])->name('highlights.createPost');
+            Route::post('/updatePostPermission', [ForumController::class, 'updatePostPermission'])->name('highlights.updatePostPermission');
+            Route::post('/updateLikeCounts', [ForumController::class, 'updateLikeCounts'])->name('highlights.updateLikeCounts');
+            Route::delete('/deletePost', [ForumController::class, 'deletePost'])->name('highlights.deletePost');
+            Route::post('/editPost', [ForumController::class, 'editPost'])->name('highlights.editPost');
+        });
     });
 
     /**

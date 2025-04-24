@@ -19,7 +19,8 @@ import {
     IconComponents,
     IconGift,
     IconChartArrowsVertical,
-    IconSettings
+    IconSettings,
+    IconWand
 } from '@tabler/icons-vue';
 import { usePermission } from "@/Composables/index.js";
 
@@ -135,7 +136,6 @@ watchEffect(() => {
             v-if="hasRole('super-admin') || hasPermission([
                 'access_member_listing',
                 'access_member_network',
-                'access_member_forum',
                 'access_account_listing',
             ])"
         >
@@ -165,13 +165,6 @@ watchEffect(() => {
             />
 
             <SidebarCollapsibleItem
-                :title="$t('public.sidebar_forum')"
-                :href="route('member.forum')"
-                :active="route().current('member.forum')"
-                v-if="hasRole('super-admin') || hasPermission('access_member_forum')"
-            />
-
-            <SidebarCollapsibleItem
                 :title="$t('public.sidebar_account_listing')"
                 :href="route('member.account_listing')"
                 :active="route().current('member.account_listing')"
@@ -190,6 +183,21 @@ watchEffect(() => {
         >
             <template #icon>
                 <IconSitemap :size="20" stroke-width="1.25" />
+            </template>
+        </SidebarLink>
+
+        <!-- Highlights -->
+        <SidebarLink
+            :title="$t('public.highlights')"
+            :href="route('highlights')"
+            :active="route().current('highlights')"
+            v-if="hasRole('super-admin') || hasPermission([
+                'access_highlights_announcement',
+                'access_member_forum',
+            ])"
+        >
+            <template #icon>
+                <IconWand :size="20" stroke-width="1.25" />
             </template>
         </SidebarLink>
 

@@ -6,6 +6,7 @@ import {
     IconTrashX,
     IconThumbUpFilled,
     IconThumbDownFilled,
+    IconPencil,
 } from "@tabler/icons-vue";
 import { h, ref, watch, watchEffect } from "vue";
 import DefaultProfilePhoto from "@/Components/DefaultProfilePhoto.vue";
@@ -13,19 +14,18 @@ import dayjs from "dayjs";
 import Image from 'primevue/image';
 import Empty from "@/Components/Empty.vue";
 import Skeleton from 'primevue/skeleton';
-import { usePage } from "@inertiajs/vue3";
+import { useForm, usePage } from "@inertiajs/vue3";
 import { useConfirm } from "primevue/useconfirm";
 import { trans, wTrans } from "laravel-vue-i18n";
 import { router } from "@inertiajs/vue3";
 import { transactionFormat } from "@/Composables/index.js";
 import debounce from "lodash/debounce.js";
+import InputNumber from "primevue/inputnumber";
+import Dialog from "primevue/dialog";
 
 const { formatAmount } = transactionFormat();
 
-const props = defineProps({
-    postCounts: Number,
-})
-
+const postCounts = ref(0);
 const posts = ref([]);
 const loading = ref(false);
 
@@ -33,10 +33,11 @@ const getResults = async () => {
     loading.value = true;
 
     try {
-        let url = '/member/getPosts';
+        let url = '/highlights/getPosts';
 
         const response = await axios.get(url);
-        posts.value = response.data;
+        posts.value = response.data.posts;
+        postCounts.value = response.data.postCounts;
     } catch (error) {
         console.error('Error changing locale:', error);
     } finally {
@@ -84,7 +85,7 @@ const requireConfirmation = (action_type, postId) => {
             cancelButton: trans('public.cancel'),
             acceptButton: trans('public.delete'),
             action: () => {
-                router.delete(route('member.deletePost', { id: postId }));
+                router.delete(route('highlights.deletePost', { id: postId }));
             }
         },
     };
@@ -142,7 +143,7 @@ const saveLikesDebounced = debounce((postId, type) => {
         dislikeDeltas.value[postId] = 0;
     }
 
-    axios.post(route('member.updateLikeCounts'), {
+    axios.post(route('highlights.updateLikeCounts'), {
         id: postId,
         type: type,
         count: deltaToSend,
@@ -213,21 +214,48 @@ const resetImageTransform = () => {
   imageStyle.value.transformOrigin = 'center center';
 };
 
+const form = useForm({
+    post_id: null,
+    like_amount: 0,
+    dislike_amount: 0,
+});
+
+const visible = ref(false);
+
+const closeDialog = () => {
+    visible.value = false;
+}
+
+const editPost = (postData) => {
+    form.post_id = postData.id;
+    form.like_amount = postData.total_likes_count + parseInt(likeCounts.value[postData.id] || 0);
+    form.dislike_amount = postData.total_dislikes_count + parseInt(dislikeCounts.value[postData.id] || 0);
+
+    visible.value = true;
+
+}
+
+const submitForm = () => {
+    form.post(route('highlights.editPost'), {
+        onSuccess: () => {
+            closeDialog();
+
+            if (form.post_id && likeCounts.value[form.post_id] !== undefined) {
+                likeCounts.value[form.post_id] = 0;
+            }
+
+            if (form.post_id && dislikeCounts.value?.[form.post_id] !== undefined) {
+                dislikeCounts.value[form.post_id] = 0;
+            }
+            form.reset();
+        },
+    });
+}
 </script>
 
 <template>
     <div
-        v-if="postCounts === 0 && !posts.length"
-        class="flex flex-col items-center justify-center self-stretch bg-white rounded-lg shadow-card w-full overflow-y-auto"
-    >
-        <Empty
-            :title="$t('public.no_posts_yet')"
-            :message="$t('public.no_posts_yet_caption')"
-        />
-    </div>
-
-    <div
-        v-else-if="loading"
+        v-if="loading"
         class="flex flex-col self-stretch bg-white rounded-lg shadow-card w-full overflow-y-auto"
     >
         <div
@@ -250,6 +278,16 @@ const resetImageTransform = () => {
                 </div>
             </div>
         </div>
+    </div>
+
+    <div
+        v-else-if="postCounts === 0 && !posts.length"
+        class="flex flex-col items-center justify-center self-stretch bg-white rounded-lg shadow-card w-full overflow-y-auto"
+    >
+        <Empty
+            :title="$t('public.no_posts_yet')"
+            :message="$t('public.no_posts_yet_caption')"
+        />
     </div>
 
     <div v-else class="flex flex-col self-stretch bg-white rounded-lg shadow-card w-full overflow-y-auto">
@@ -345,17 +383,80 @@ const resetImageTransform = () => {
                         <span class="min-w-10 text-gray-700 text-sm">{{ dislikeCounts[post.id] > 0 ? post.total_dislikes_count + dislikeCounts[post.id] : post.total_dislikes_count }}</span>
                     </div>
                 </div>
-                <Button
-                    type="button"
-                    variant="error-text"
-                    size="sm"
-                    iconOnly
-                    pill
-                    @click="requireConfirmation('delete_post', post.id);"
-                >
-                    <IconTrashX size="16" stroke-width="1.25" />
-                </Button>
+                <div class="flex justify-center items-center gap-2">
+                    <Button
+                        type="button"
+                        variant="gray-text"
+                        size="sm"
+                        iconOnly
+                        pill
+                        @click="editPost(post);"
+                    >
+                        <IconPencil size="16" stroke-width="1.25" />
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="error-text"
+                        size="sm"
+                        iconOnly
+                        pill
+                        @click="requireConfirmation('delete_post', post.id);"
+                    >
+                        <IconTrashX size="16" stroke-width="1.25" />
+                    </Button>
+                </div>
             </div>
         </div>
     </div>
+
+    <Dialog
+        v-model:visible="visible"
+        modal
+        :header="$t('public.edit')"
+        class="dialog-xs md:dialog-sm"
+        :dismissableMask="true"
+    >
+        <div class="flex flex-col md:flex-row py-4 md:py-6 gap-5 md:gap-4 items-start self-stretch">
+            <div class="flex flex-col gap-2 w-full">
+                <span class="text-sm text-gray-700">{{ $t('public.number_of_likes') }}</span>
+                <InputNumber
+                    v-model="form.like_amount"
+                    inputId="like_amount"
+                    inputClass="py-3 px-4"
+                    placeholder="0"
+                    :min="0"
+                    fluid
+                />
+            </div>
+            <div class="flex flex-col gap-2 w-full">
+                <span class="text-sm text-gray-700">{{ $t('public.number_of_dislikes') }}</span>
+                <InputNumber
+                    v-model="form.dislike_amount"
+                    inputId="dislike_amount"
+                    inputClass="py-3 px-4"
+                    placeholder="0"
+                    :min="0"
+                    fluid
+                />
+            </div>
+        </div>
+        <div class="flex flex-row gap-4 justify-center items-center pt-6">
+            <Button
+                type="button"
+                variant="gray-outlined"
+                @click="closeDialog()"
+                class="w-full"
+            >
+                {{ $t('public.cancel') }}
+            </Button>
+            <Button
+                type="button"
+                variant="primary-flat"
+                @click="submitForm()"
+                class="w-full"
+            >
+                {{ $t('public.save') }}
+            </Button>
+        </div>
+    </Dialog>
 </template>
