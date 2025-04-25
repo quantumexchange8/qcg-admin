@@ -774,4 +774,5 @@ return [
     'announcement' => 'Announcement',
     'total_brokerage_dashboard' => 'Total Brokerage P&L',
     'total_trade_dashboard' => 'Total Trade Lots and Trade Volume',
+    'toast_delete_announcement_success' => 'Successfully deleted announcement!',
 ];

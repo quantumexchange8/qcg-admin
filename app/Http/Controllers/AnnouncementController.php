@@ -68,7 +68,11 @@ class AnnouncementController extends Controller
             'visible_to' => ['required'],
             'members' => ($request->visible_to === 'public' ? 'nullable' : 'min:1') . '|array',
             'popup' => ['required'],
-            'end_date' => ['after:start_date'],
+            'start_date' => ['nullable', 'date'],
+            'end_date' => [
+                'nullable',
+                $request->start_date ? 'after:start_date' : null,
+            ],
             'subject' => ['required'],
             'message' => ['required'],
             'thumbnail' => ['required'],
@@ -93,8 +97,8 @@ class AnnouncementController extends Controller
             $announcement = Announcement::create([
                 'title' => $request->subject,
                 'content' => $request->message,
-                'start_date' => $request->start_date ? Carbon::parse($request->start_date)->startOfDay() : null,
-                'end_date' => $request->end_date ? Carbon::parse($request->end_date)->endOfDay() : null,
+                'start_date' => $request->start_date ? $request->start_date : null,
+                'end_date' => $request->end_date ? $request->end_date : null,
                 'recipient' => $request->visible_to,
                 'status' => 'inactive',
                 'popup' => $request->popup === 'none' ? false : true,
@@ -102,7 +106,7 @@ class AnnouncementController extends Controller
             ]);
 
             if ($request->thumbnail) {
-                $reward->addMedia($request->thumbnail)->toMediaCollection('thumbnail');
+                $announcement->addMedia($request->thumbnail)->toMediaCollection('thumbnail');
             }
 
             // If the visible_to is not 'public', handle user visibility assignment
@@ -190,37 +194,22 @@ class AnnouncementController extends Controller
 
     public function deleteAnnouncement(Request $request)
     {
-    //     $reward = Reward::find($request->reward_id);
+        $announcement = Announcement::find($request->announcement_id);
 
-    //     try {
-    //         $hasProcessingTransactions = Transaction::where('transaction_type', 'redemption')
-    //             ->where('status', 'processing')
-    //             ->where('category', 'trade_points')
-    //             ->whereHas('redemption', function ($query) use ($request) {
-    //                 $query->where('reward_id', $request->reward_id);
-    //             })
-    //             ->exists();
+        try {
+            $announcement->delete();
 
-    //         if ($hasProcessingTransactions) {
-    //             return back()->with('toast', [
-    //                 'title' => trans("public.toast_delete_reward_failed_processing"),
-    //                 'type' => 'error',
-    //             ]);
-    //         }
-
-    //         $reward->delete();
-
-    //         return back()->with('toast', [
-    //             'title' => trans("public.toast_delete_reward_success"),
-    //             'type' => 'success',
-    //         ]);
-    //     } catch (\Throwable $e) {
-    //         Log::error('Failed to delete reward: ' . $e->getMessage());
-    //         return back()->with('toast', [
-    //             'title' => 'Failed to delete reward',
-    //             'type' => 'error'
-    //         ]);
-    //     }
+            return back()->with('toast', [
+                'title' => trans("public.toast_delete_announcement_success"),
+                'type' => 'success',
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Failed to delete announcement: ' . $e->getMessage());
+            return back()->with('toast', [
+                'title' => 'Failed to delete announcement',
+                'type' => 'error'
+            ]);
+        }
 
     }
 

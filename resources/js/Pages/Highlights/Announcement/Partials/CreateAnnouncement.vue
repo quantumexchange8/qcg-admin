@@ -24,17 +24,11 @@ import AccordionHeader from 'primevue/accordionheader';
 import AccordionContent from 'primevue/accordioncontent';
 import debounce from "lodash/debounce.js";
 
-const props = defineProps({
+// const props = defineProps({
 
-});
+// });
 
 const { formatAmount, formatDate } = transactionFormat();
-
-// const languageLabels = {
-//   en: 'English',
-//   tw: '中文（繁體）',
-//   cn: '中文（简体）',
-// };
 
 const visible = ref(false)
 
@@ -89,16 +83,11 @@ const today = new Date();
 
 const submitForm = () => {
     form.members = [...selectedMembers.value];
-    if (form.promotion_period_type === 'specific_date_range' && form.promotion_period) {
-        form.promotion_period = dayjs(form.promotion_period).format('YYYY-MM-DD');
+    
+    if (form.start_date) {
+        form.start_date = formatDate(form.start_date);
     }
-
-    if (form.credit_withdraw_policy === 'withdraw_on_date') {
-        if (form.promotion_period) {
-            form.credit_withdraw_date_period = form.promotion_period;
-        }
-    }
-
+    console.log(form);
     form.post(route('highlights.createAnnouncement'), {
         onSuccess: () => {
             visible.value = false;
@@ -107,21 +96,6 @@ const submitForm = () => {
         },
     });
 }
-
-
-// const submitForm = () => {
-//     if (form.expiry_date) {
-//         form.expiry_date = formatDate(form.expiry_date);
-//     }
-    
-//     form.post(route('reward.createReward'), {
-//         onSuccess: () => {
-//             visible.value = false;
-//             form.reset();
-//             removeAttachment();
-//         },
-//     });
-// };
 
 // watch(() => form.rewards_type, (newValue) => {
 //     if (newValue !== 'cash_rewards') {
@@ -142,7 +116,7 @@ const publishConfirmation = (action_type) => {
             cancelButton: trans('public.cancel'),
             acceptButton: trans('public.publish_now'),
             action: () => {
-                // submitForm();
+                submitForm();
 
                 // checked.value = !checked.value;
             }
@@ -156,27 +130,11 @@ const publishConfirmation = (action_type) => {
             cancelButton: trans('public.cancel'),
             acceptButton: trans('public.schedule'),
             action: () => {
-                // submitForm();
+                submitForm();
 
                 // checked.value = !checked.value;
             }
         },
-        // delete_announcement: {
-        //     group: 'headless',
-        //     color: 'error',
-        //     icon: h(IconTrashX),
-        //     header: trans('public.delete_announcement'),
-        //     message: trans('public.delete_announcement'),
-        //     cancelButton: trans('public.cancel'),
-        //     acceptButton: trans('public.delete'),
-        //     action: () => {
-        //         // router.post(route('accountType.updateStatus'), {
-        //         //     id: props.accountType.id,
-        //         // })
-
-        //         // checked.value = !checked.value;
-        //     }
-        // },
     };
 
     const { group, color, icon, header, message, cancelButton, acceptButton, action } = messages[action_type];
@@ -321,6 +279,15 @@ watch(() => form.visible_to, (newValue) => {
     selectedGroups.value = [];
   }
 });
+
+const previewVisible = ref(false);
+const data = ref({});
+const openPreviewDialog = () => {
+    previewVisible.value = true;
+    console.log(form.data());
+    data.value = form.data();
+    console.log(data)
+};
 </script>
 
 <template>
@@ -340,7 +307,7 @@ watch(() => form.visible_to, (newValue) => {
         modal
         :header="$t('public.new_announcement')"
         class="dialog-md"
-        :dismissableMask="true"
+        :closeOnEscape="false"
     >
         <form @submit.prevent="submitForm()">
             <div class="flex flex-col py-4 gap-6 self-stretch md:py-6 md:gap-8">
@@ -375,7 +342,7 @@ watch(() => form.visible_to, (newValue) => {
                             </div>
                             <div 
                                 v-if="form.visible_to === 'selected_members'" 
-                                class="w-full h-[500px] flex flex-col items-center border bg-white"
+                                class="w-full flex flex-col items-center border bg-white"
                                 :class="{'rounded border-gray-200': !form.errors.members, 'border-error-500': form.errors.members}"
                             >
                                 <div class="w-full flex flex-col justify-center items-center p-3 gap-3 bg-white">
@@ -525,7 +492,6 @@ watch(() => form.visible_to, (newValue) => {
                             <InputLabel
                                 for="subject"
                                 :value="$t('public.subject')"
-                                :invalid="!!form.errors.subject"
                             />
                             <InputText
                                 id="subject"
@@ -541,7 +507,6 @@ watch(() => form.visible_to, (newValue) => {
                             <InputLabel
                                 for="message"
                                 :value="$t('public.message')"
-                                :invalid="!!form.errors.message"
                             />
                             <Textarea
                                 id="message"
@@ -560,7 +525,6 @@ watch(() => form.visible_to, (newValue) => {
                                 <InputLabel
                                     for="thumbnail"
                                     :value="$t('public.thumbnail')"
-                                    :invalid="!!form.errors.thumbnail"
                                     class="font-bold"
                                 />
                                 <span class="self-stretch text-gray-500 text-xs">{{ $t('public.file_size_limit') }}</span>
@@ -584,7 +548,7 @@ watch(() => form.visible_to, (newValue) => {
 
                                     {{ $t('public.choose') }}
                                 </Button>
-                                <InputError :message="form.errors.reward_thumbnail" />
+                                <InputError :message="form.errors.thumbnail" />
                             </div>
                             <div
                                 v-if="selectedAttachment"
@@ -617,7 +581,7 @@ watch(() => form.visible_to, (newValue) => {
                     size="base"
                     class="w-full"
                     variant="gray-outlined"
-                    @click="visible = false"
+                    @click="openPreviewDialog()"
                 >
                     {{ $t('public.preview') }}
                 </Button>
@@ -642,5 +606,17 @@ watch(() => form.visible_to, (newValue) => {
                 </Button>
             </div>
         </form>
+    </Dialog>
+
+    <Dialog v-model:visible="previewVisible" modal :header="$t('public.preview')"  class="dialog-md no-header-border" :dismissableMask="true">
+        <div class="flex flex-col justify-center items-start gap-8 pb-6 self-stretch">
+            <img v-if="data.thumbnail" :src="selectedAttachment" :alt="data.thumbnail.name" class="w-full h-[310.5px]" />
+
+            <span class="text-lg font-bold text-gray-950">{{ data.subject }}</span>
+
+            <!-- need to ask nic about this content if got html tag -->
+            <span class="text-md font-regular text-gray-950" v-html="data.message"></span>
+
+        </div>
     </Dialog>
 </template>

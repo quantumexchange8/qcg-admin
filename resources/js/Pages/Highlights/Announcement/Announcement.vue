@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, watchEffect } from "vue";
+import { ref, watch, watchEffect, computed } from "vue";
 import { usePage } from "@inertiajs/vue3";
 import InputText from 'primevue/inputtext';
 import ToggleSwitch from 'primevue/toggleswitch';
@@ -8,7 +8,7 @@ import debounce from "lodash/debounce.js";
 import Select from "primevue/select";
 import Button from '@/Components/Button.vue';
 import { FilterMatchMode } from '@primevue/core/api';
-import { IconSearch, IconCircleXFilled, IconPlus, IconInfoCircle, IconX } from "@tabler/icons-vue";
+import { IconSearch, IconCircleXFilled, IconPlus, IconInfoCircle, IconX, IconMenu2 } from "@tabler/icons-vue";
 import { trans, wTrans } from "laravel-vue-i18n";
 import Empty from "@/Components/Empty.vue";
 import dayjs from "dayjs";
@@ -20,6 +20,7 @@ import ColumnGroup from "primevue/columngroup";
 import Row from "primevue/row";
 import Tag from 'primevue/tag';
 import CreateAnnouncement from "./Partials/CreateAnnouncement.vue";
+import DeleteAnnouncement from "./Partials/Delete.vue";
 import Action from "./Partials/Action.vue";
 
 const statusOption = [
@@ -31,9 +32,9 @@ const statusOption = [
     { name: wTrans('public.expired'), value: 'expired' }
 ];
 
-const announcements = ref();
+const announcements = ref([]);
 const loading = ref(false);
-const filteredValue = ref();
+// const filteredValue = ref();
 
 const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -41,9 +42,9 @@ const filters = ref({
     status: { value: null, matchMode: FilterMatchMode.EQUALS },
 });
 
-const handleFilter = (e) => {
-    filteredValue.value = e.filteredValue;
-};
+// const handleFilter = (e) => {
+//     filteredValue.value = e.filteredValue;
+// };
 
 const getResults = async () => {
     loading.value = true;
@@ -99,6 +100,7 @@ function formatColor(status) {
 
 watch(() => usePage().props.toast, (newValue) => {
     if (newValue !== null) {
+        visible.value = false;
         getResults();
     }
 });
@@ -108,6 +110,52 @@ const data = ref({});
 const openDialog = (rowData) => {
     visible.value = true;
     data.value = rowData;
+};
+
+const pinnedAnnouncements = ref([]);
+const draggedAnnouncement = ref(null);
+
+// --- DRAG START ---
+const onDragStart = (announcement) => {
+  draggedAnnouncement.value = announcement;
+};
+
+// --- DROP TO PIN ---
+const onDropToPin = async () => {
+  const item = draggedAnnouncement.value;
+  if (!item || isPinned(item) || pinnedAnnouncements.value.length >= 5) return;
+
+  pinnedAnnouncements.value.push(item);
+  await savePinState(item.id, true);
+  draggedAnnouncement.value = null;
+};
+
+// --- DROP TO UNPIN ---
+const onDropToUnpin = async () => {
+  const item = draggedAnnouncement.value;
+  if (!item || !isPinned(item)) return;
+
+  pinnedAnnouncements.value = pinnedAnnouncements.value.filter((a) => a.id !== item.id);
+  await savePinState(item.id, false);
+  draggedAnnouncement.value = null;
+};
+
+// --- UTILS ---
+const isPinned = (announcement) => {
+  return pinnedAnnouncements.value.some((a) => a.id === announcement.id);
+};
+
+const filteredValue = computed(() =>
+  announcements.value.filter((a) => !isPinned(a))
+);
+
+// --- API CALL ---
+const savePinState = async (id, pinned) => {
+  try {
+    await axios.post(`/api/announcements/${id}/pin`, { pinned });
+  } catch (error) {
+    console.error('Failed to update pin state', error);
+  }
 };
 </script>
 
@@ -119,8 +167,8 @@ const openDialog = (rowData) => {
 
     <DataTable
         v-model:filters="filters"
-        :value="announcements"
-        :paginator="announcements?.length > 0 && filteredValue?.length > 0"
+        :value="filteredValue"
+        :paginator="filteredValue.length > 0"
         removableSort
         :rows="20"
         :rowsPerPageOptions="[20, 50, 100]"
@@ -130,7 +178,6 @@ const openDialog = (rowData) => {
         ref="dt"
         :loading="loading"
         selectionMode="single"
-        @filter="handleFilter"
         @row-click="(event) => openDialog(event.data)"
     >
         <template #header>
@@ -219,7 +266,19 @@ const openDialog = (rowData) => {
                 <span class="text-sm text-gray-700">{{ $t('public.loading') }}</span>
             </div>
         </template>
-        <template v-if="announcements?.length > 0 && filteredValue?.length > 0">
+        
+        <template v-if="filteredValue.length > 0">
+            <Column field="drag" headless class="hidden md:table-cell">
+                <template #body="slotProps">
+                    <div
+                        draggable="true"
+                        @dragstart="() => onDragStart(slotProps.data)"
+                        class="cursor-move"
+                        >
+                        <IconMenu2 size="16" stroke-width="1.25" />
+                    </div>
+                </template>
+            </Column>
             <Column field="title" :header="$t('public.subject')" class="w-1/3 md:w-1/4 px-3">
                 <template #body="slotProps">
                     <div class="text-gray-950 text-sm truncate max-w-full">
@@ -275,59 +334,11 @@ const openDialog = (rowData) => {
 
             <!-- need to ask nic about this content if got html tag -->
             <span class="text-md font-regular text-gray-950" v-html="data.content"></span>
-            <!-- <div class="flex flex-col justify-between items-center p-3 gap-3 self-stretch bg-gray-50 md:flex-row">
-                <div class="flex items-center self-stretch">
-                    <span class="flex gap-1 items-center text-gray-950 font-semibold relative">
-                        {{ data?.name || '-' }}
-                        <IconCopy 
-                            v-if="data?.name"
-                            size="20" 
-                            stroke-width="1.25" 
-                            class="text-gray-500 inline-block cursor-pointer grow-0 shrink-0" 
-                            v-tooltip.top="$t(`public.${tooltipText}`)" 
-                            @click="copyToClipboard('name', data.name)"
-                        />
-                        <Tag
-                            v-if="activeTag === 'name' && tooltipText === 'copied'"
-                            class="absolute -top-7 -right-3"
-                            severity="contrast"
-                            :value="$t(`public.${tooltipText}`)"
-                        ></Tag>
-                    </span>
-                </div>
-            </div>
-            
-            <div class="flex flex-col items-center p-3 gap-3 self-stretch bg-gray-50">
-                <div class="w-full flex flex-col items-start gap-1 md:flex-row">
-                    <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.submission_date') }}</span>
-                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ dayjs(data.submitted_at).format('YYYY/MM/DD HH:mm:ss') }}</span>
-                </div>
-                <div class="w-full flex flex-col items-start gap-1 md:flex-row">
-                    <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.approved_date') }}</span>
-                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ dayjs(data.approved_at).format('YYYY/MM/DD HH:mm:ss') }}</span>
-                </div>
-                <div class="w-full flex flex-col items-start gap-1">
-                    <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.uploaded_files') }}</span>
-                    <div class="flex flex-col md:flex-row gap-1 w-full">
-                        <div v-for="file in data.kyc_files" :key="file.id" @click="openPhotoDialog(file)" 
-                            class="flex items-center gap-3 w-full p-2 bg-white rounded border border-gray-200 cursor-pointer hover:bg-gray-100"
-                        >
-                            <img :src="file.original_url" :alt="file.file_name" class="w-16 h-12 rounded" />
-                            <span class="text-sm text-gray-700 truncate">{{ file.file_name }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div> -->
         </div>
         <div class="w-full flex justify-end items-center gap-4 pt-6 self-stretch">
-            <Button
-                type="button"
-                size="base"
-                class="w-full"
-                variant="error-outlined"
-            >
-                {{ $t('public.delete') }}
-            </Button>
+            <DeleteAnnouncement 
+                :announcement="data"
+            />
             <Button
                 type="button"
                 variant="gray-outlined"

@@ -20,7 +20,7 @@ class Announcement extends Model implements HasMedia
         'status',
         'popup',
         'popup_login',
-
+        'pinned',
     ];
 
 }

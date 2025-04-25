@@ -104,3 +104,7 @@
         }
     }
 }
+
+.no-header-border [data-pc-section="header"] {
+    border: none !important;
+  }
