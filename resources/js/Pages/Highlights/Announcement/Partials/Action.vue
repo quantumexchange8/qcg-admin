@@ -87,6 +87,7 @@ const handleAnnouncementStatus = () => {
             v-model="checked"
             readonly
             @click="handleAnnouncementStatus"
+            :disabled="props.announcement.status !== 'active' && props.announcement.status !== 'inactive'"
         />
 
     </div>

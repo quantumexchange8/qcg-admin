@@ -12,6 +12,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Validation\Rule;
 
 class AnnouncementController extends Controller
 {
@@ -74,8 +75,16 @@ class AnnouncementController extends Controller
                 $request->start_date ? 'after:start_date' : null,
             ],
             'subject' => ['required'],
-            'message' => ['required'],
-            'thumbnail' => ['required'],
+            'message' => [
+                Rule::requiredIf(function () use ($request) {
+                    return $request->status !== 'draft';
+                }),
+            ],
+            'thumbnail' => [
+                Rule::requiredIf(function () use ($request) {
+                    return $request->status !== 'draft';
+                }),
+            ],
         ])->setAttributeNames([
             'visible_to' => trans('public.visible_to'),
             'members' => trans('public.visible_to_selected_members'),
@@ -86,21 +95,15 @@ class AnnouncementController extends Controller
             'thumbnail' => trans('public.thumbnail'),
         ]);
         $validator->validate();
-        
-        // if (!$request->hasFile('reward_thumbnail')) {
-        //     throw ValidationException::withMessages([
-        //         'reward_thumbnail' => trans('public.at_least_one_field_required'),
-        //     ]);
-        // }
 
         try {
             $announcement = Announcement::create([
                 'title' => $request->subject,
-                'content' => $request->message,
+                'content' => $request->message ? $request->message : null,
                 'start_date' => $request->start_date ? $request->start_date : null,
                 'end_date' => $request->end_date ? $request->end_date : null,
                 'recipient' => $request->visible_to,
-                'status' => 'inactive',
+                'status' => $request->status,
                 'popup' => $request->popup === 'none' ? false : true,
                 'popup_login' => $request->popup === 'none' ? null : $request->popup,
             ]);
@@ -138,58 +141,92 @@ class AnnouncementController extends Controller
         }
 
     }
-
+    
     public function editAnnouncement(Request $request)
     {
-        // $validator = Validator::make($request->all(), [
-        //     'rewards_type' => ['required'],
-        //     'cash_amount' => [
-        //         Rule::requiredIf($request->rewards_type === 'cash_rewards'),
-        //     ],
-        //     'code' => ['required', Rule::unique(Reward::class)->ignore($request->reward_id)],
-        //     'name' => ['required', 'array'],
-        //     'name.*' => ['required', 'string'],
-        //     'trade_point_required' => ['required'],
-        //     'reward_thumbnail' => ['required'],
-        // ])->setAttributeNames([
-        //     'rewards_type' => trans('public.rewards_type'),
-        //     'cash_amount' => trans('public.cash_amount'),
-        //     'code' => trans('public.code'),
-        //     'name.*' => trans('public.name'),
-        //     'trade_point_required' => trans('public.trade_point_required'),
-        //     'reward_thumbnail' => trans('public.reward_thumbnail'),
-        // ]);
-        // $validator->validate();
+        $validator = Validator::make($request->all(), [
+            'visible_to' => ['required'],
+            'members' => ($request->visible_to === 'public' ? 'nullable' : 'min:1') . '|array',
+            'popup' => ['required'],
+            'start_date' => ['nullable', 'date'],
+            'end_date' => [
+                'nullable',
+                $request->start_date ? 'after:start_date' : null,
+            ],
+            'subject' => ['required'],
+            'message' => [
+                Rule::requiredIf(function () use ($request) {
+                    return $request->status !== 'draft';
+                }),
+            ],
+            'thumbnail' => [
+                Rule::requiredIf(function () use ($request) {
+                    return $request->status !== 'draft';
+                }),
+            ],
+        ])->setAttributeNames([
+            'visible_to' => trans('public.visible_to'),
+            'members' => trans('public.visible_to_selected_members'),
+            'popup' => trans('public.popup'),
+            'end_date.after' => trans('public.start_end_date'),
+            'subject' => trans('public.subject'),
+            'message' => trans('public.message'),
+            'thumbnail' => trans('public.thumbnail'),
+        ]);
+        $validator->validate();
 
-        // $reward = Reward::findOrFail($request->reward_id);
+        try {
+            $announcement = Announcement::findOrFail($request->announcement_id);
 
-        // $reward->update([
-        //     'type' => $request->rewards_type,
-        //     'cash_amount' => $request->cash_amount,
-        //     'code' => $request->code,
-        //     'name' => json_encode($request->name),
-        //     'trade_point_required' => $request->trade_point_required,
-        //     // 'start_date' => $request->start_date ? Carbon::parse($request->start_date)->startOfDay() : null,
-        //     'expiry_date' => $request->expiry_date ? Carbon::parse($request->expiry_date)->endOfDay() : null,
-        //     'maximum_redemption' => $request->maximum_redemption,
-        //     'max_per_person' => $request->max_per_person,
-        //     'autohide_after_expiry' => $request->autohide_after_expiry,
-        // ]);
+            $announcement->update([
+                'title' => $request->subject,
+                'content' => $request->message ? $request->message : null,
+                'start_date' => $request->start_date ? $request->start_date : null,
+                'end_date' => $request->end_date ? $request->end_date : null,
+                'recipient' => $request->visible_to,
+                'status' => $request->status,
+                'popup' => $request->popup === 'none' ? false : true,
+                'popup_login' => $request->popup === 'none' ? null : $request->popup,
+            ]);
 
-        // // Handle the profile photo
-        // if ($request->hasFile('reward_thumbnail')) {
-        //     $reward->clearMediaCollection('reward_thumbnail');
-        //     $reward->addMedia($request->reward_thumbnail)->toMediaCollection('reward_thumbnail');
-        // } elseif ($request->reward_thumbnail === '') {
-        //     // Clear the media if the profile_photo is an empty string
-        //     $reward->clearMediaCollection('reward_thumbnail');
-        // }
+            // Handle the profile photo
+            if ($request->hasFile('thumbnail')) {
+                $announcement->clearMediaCollection('thumbnail');
+                $announcement->addMedia($request->thumbnail)->toMediaCollection('thumbnail');
+            } elseif ($request->thumbnail === '') {
+                // Clear the media if the profile_photo is an empty string
+                $announcement->clearMediaCollection('thumbnail');
+            }
 
-        // // Return a success response
-        // return back()->with('toast', [
-        //     'title' => trans('public.toast_update_reward_success'),
-        //     'type' => 'success',
-        // ]);
+            if ($announcement->visible_to !== 'public') {
+                // Delete all existing UserAccountVisibility records for this account type
+                UserAnnouncementVisibility::where('announcement_id', $announcement->id)->delete();
+    
+                // Add the new users for this account type
+                if (!empty($request->members)) {
+                    foreach ($request->members as $user_id) {
+                        UserAnnouncementVisibility::create([
+                            'announcement_id' => $announcement->id,
+                            'user_id' => $user_id,
+                        ]);
+                    }
+                }
+            }
+
+            // Redirect with success message
+            return back()->with('toast', [
+                'title' => trans("public.toast_edit_announcement_success"),
+                'type' => 'success',
+            ]);
+        } catch (\Exception $e) {
+            // Log the exception and show a generic error message
+            Log::error('Error creating the announcement : '.$e->getMessage());
+
+            return back()->with('toast', [
+                'title' => 'There was an error creating the announcement.',
+                'type' => 'error'
+            ]);
+        }
     }
 
     public function deleteAnnouncement(Request $request)

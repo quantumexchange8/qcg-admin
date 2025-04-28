@@ -24,9 +24,9 @@ import AccordionHeader from 'primevue/accordionheader';
 import AccordionContent from 'primevue/accordioncontent';
 import debounce from "lodash/debounce.js";
 
-// const props = defineProps({
-
-// });
+const props = defineProps({
+    announcement: Object,
+});
 
 const { formatAmount, formatDate } = transactionFormat();
 
@@ -35,7 +35,7 @@ const visible = ref(false)
 const openDialog = () => {
     form.reset();
     form.clearErrors();
-    removeAttachment();
+    selectedAttachment.value = props.announcement.thumbnail || null;
     visible.value = true;
 }
 
@@ -43,20 +43,33 @@ const openDialog = () => {
 //     visible.value = false;
 // }
 
+// const form = useForm({
+//     visible_to: 'public',
+//     members: [],
+//     popup: 'none',
+//     start_date: '',
+//     end_date: '',
+//     subject: '',
+//     message: '',
+//     thumbnail: '',
+// });
+
 const form = useForm({
-    visible_to: 'public',
+    announcement_id: props.announcement.id,
+    visible_to: props.announcement.recipient || 'public',
     members: [],
-    popup: 'none',
-    start_date: '',
-    end_date: '',
-    subject: '',
-    message: '',
-    thumbnail: '',
-    status: '',
+    popup: props.announcement.popup_login ? props.announcement.popup_login : 'none',
+    start_date: props.announcement.start_date ? formatDate(props.announcement.start_date) : '',
+    end_date: props.announcement.end_date ? formatDate(props.announcement.end_date) : '',
+    subject: props.announcement.title ? props.announcement.title : '',
+    message: props.announcement.content ? props.announcement.content : '',
+    thumbnail: props.announcement.thumbnail ? props.announcement.thumbnail : '',
+    status: props.announcement.status ? props.announcement.status : '',
 });
 
-const selectedAttachment = ref(null);
-const selectedAttachmentName = ref(null);
+const selectedAttachment = ref(props.announcement.thumbnail || null);
+const selectedAttachmentName = ref(props.announcement.thumbnail ? props.announcement.thumbnail.split('/').pop() : null);
+
 const handleAttachment = (event) => {
     const attachmentInput = event.target;
     const file = attachmentInput.files[0];
@@ -85,7 +98,7 @@ const today = new Date();
 const submitForm = (status) => {
     form.members = [...selectedMembers.value];
     form.status = status;
-
+    
     if (form.start_date) {
         form.start_date = formatDate(form.start_date);
     }
@@ -94,8 +107,7 @@ const submitForm = (status) => {
         form.end_date = formatDate(form.end_date);
     }
 
-    console.log(form);
-    form.post(route('highlights.createAnnouncement'), {
+    form.post(route('highlights.editAnnouncement'), {
         onSuccess: () => {
             visible.value = false;
             form.reset();
@@ -285,22 +297,20 @@ const previewVisible = ref(false);
 const data = ref({});
 const openPreviewDialog = () => {
     previewVisible.value = true;
-    console.log(form.data());
     data.value = form.data();
-    console.log(data)
 };
 </script>
 
 <template>
     <Button
+        v-if="props.announcement.status === 'draft' || props.announcement.status === 'scheduled'"
         type="button"
-        variant="primary-flat"
+        variant="gray-outlined"
         size="base"
-        class='hidden md:flex w-full md:w-auto truncate'
+        class="w-full"
         @click="openDialog()"
     >
-        <IconPlus size="20" stroke-width="1.25" />
-        {{ $t('public.new_announcement') }}
+        {{ $t('public.edit') }}
     </Button>
 
     <Dialog

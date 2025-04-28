@@ -21,6 +21,7 @@ import Row from "primevue/row";
 import Tag from 'primevue/tag';
 import CreateAnnouncement from "./Partials/CreateAnnouncement.vue";
 import DeleteAnnouncement from "./Partials/Delete.vue";
+import Edit from "./Partials/Edit.vue";
 import Action from "./Partials/Action.vue";
 
 const statusOption = [
@@ -326,9 +327,9 @@ const savePinState = async (id, pinned) => {
         </template>
     </DataTable>
 
-    <Dialog v-model:visible="visible" modal :header="$t('public.announcement')" class="dialog-md" :dismissableMask="true">
+    <Dialog v-model:visible="visible" modal :header="$t('public.announcement')" class="dialog-md no-header-border" :dismissableMask="true">
         <div class="flex flex-col justify-center items-start gap-8 pb-6 self-stretch">
-            <img v-if="data.thumbnail" :src="data.thumbnail.original_url" :alt="data.thumbnail.file_name" class="w-full h-[310.5px]" />
+            <img v-if="data.thumbnail" :src="data.thumbnail" alt="announcement_image" class="w-full h-[310.5px]" />
 
             <span class="text-lg font-bold text-gray-950">{{ data.title }}</span>
 
@@ -339,14 +340,9 @@ const savePinState = async (id, pinned) => {
             <DeleteAnnouncement 
                 :announcement="data"
             />
-            <Button
-                type="button"
-                variant="gray-outlined"
-                size="base"
-                class="w-full"
-            >
-                {{ $t('public.edit') }}
-            </Button>
+            <Edit 
+                :announcement="data"
+            />
         </div>
     </Dialog>
 </template>
