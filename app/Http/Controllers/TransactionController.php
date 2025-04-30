@@ -473,7 +473,9 @@ class TransactionController extends Controller
         }
 
         // Calculate the total amount
-        $totalAmount = $adjustment_history->sum('transaction_amount');
+        $totalAmount = (clone $adjustment_history)
+            ->whereNotIn('transaction_type', ['credit_out', 'balance_out'])
+            ->sum('transaction_amount');
 
         // Return response
         return response()->json([
