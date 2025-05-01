@@ -11,6 +11,7 @@ import {
     IconLockCog,
     IconTrashX,
     IconChevronRight,
+    IconUserQuestion
 } from "@tabler/icons-vue";
 import Button from "@/Components/Button.vue";
 import { computed, h, ref, watch } from "vue";
@@ -122,6 +123,25 @@ const items = ref([
         },
     },
     {
+        label: 'verification',
+        icon: h(IconUserQuestion),
+        items: [
+            {
+                label: 'verify',
+                command: () => {
+                    requireConfirmation('verify_member')
+                },
+            },
+            {
+                label: 'unverify',
+                command: () => {
+                    requireConfirmation('unverify_member')
+                },
+            },
+        ]
+
+    },
+    {
         label: 'delete_member',
         icon: h(IconTrashX),
         command: () => {
@@ -193,6 +213,36 @@ const requireConfirmation = (action_type) => {
                         id: props.member.id,
                     },
                 })
+            }
+        },
+        verify_member: {
+            group: 'headless',
+            color: 'primary',
+            icon: h(IconUserCheck),
+            header: trans('public.verify_member'),
+            message: trans('public.verify_member_desc'),
+            cancelButton: trans('public.cancel'),
+            acceptButton: trans('public.verify'),
+            action: () => {
+                router.post(route('member.updateKyc'), {
+                    id: props.member.id,
+                    action: 'verify',
+                });
+            }
+        },
+        unverify_member: {
+            group: 'headless',
+            color: 'error',
+            icon: h(IconUserCancel),
+            header: trans('public.unverify_member'),
+            message: trans('public.unverify_member_desc'),
+            cancelButton: trans('public.cancel'),
+            acceptButton: trans('public.unverify'),
+            action: () => {
+                router.post(route('member.updateKyc'), {
+                    id: props.member.id,
+                    action: 'unverify',
+                });
             }
         },
     };

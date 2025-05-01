@@ -1099,4 +1099,61 @@ class MemberController extends Controller
         $redirectUrl = $url . "?" . http_build_query($params);
         return Inertia::location($redirectUrl);
     }
+
+    public function updateKyc(Request $request)
+    {
+        $action = $request->action;
+        $status = $action == 'verify' ? 'verified' : 'unverified';
+        $user_id = $request->id;
+    
+        try {
+            $user = User::find($user_id);
+
+            if (!$user) {
+                return back()->with('toast', [
+                    'title' => 'User Not Found',
+                    'type' => 'error'
+                ]);
+            }
+            
+            if ($user->kyc_approval == $status) {
+                $messages = [
+                    'verified' => trans('public.toast_verify_member_error'),
+                    'unverified' => trans('public.toast_unverify_member_error'),
+                ];
+                $message = $messages[$status];
+            
+                // Return success message if no error occurred
+                return redirect()->back()->with('toast', [
+                    'title' => $message,
+                    'type' => 'error'
+                ]);
+            } else  {
+                $user->update([
+                    'kyc_approval' => $status,
+                    'kyc_approval_description' => null,
+                    'kyc_approved_at' => now(),
+                ]);
+    
+                $messages = [
+                    'verified' => trans('public.toast_verify_member_success'),
+                    'unverified' => trans('public.toast_unverify_member_success'),
+                ];
+                $message = $messages[$status];
+            
+                // Return success message if no error occurred
+                return redirect()->back()->with('toast', [
+                    'title' => $message,
+                    'type' => 'success'
+                ]);
+            }
+        } catch (\Throwable $e) {
+            Log::error($e->getMessage());
+            return back()->with('toast', [
+                'title' => 'Error updating member KYC',
+                'type' => 'error'
+            ]);
+        }
+    }
+
 }
