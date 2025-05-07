@@ -203,11 +203,7 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
             Route::post('/editAnnouncement', [AnnouncementController::class, 'editAnnouncement'])->name('highlights.editAnnouncement');
             Route::delete('/deleteAnnouncement', [AnnouncementController::class, 'deleteAnnouncement'])->name('highlights.deleteAnnouncement');
             Route::get('/getVisibleToOptions', [AnnouncementController::class, 'getVisibleToOptions'])->name('highlights.getVisibleToOptions');
-            Route::post('/announcements/{announcement}/pin', function (Announcement $announcement, Request $request) {
-                $announcement->pinned = $request->boolean('pinned');
-                $announcement->save();
-                return response()->noContent();
-            });
+            Route::post('/announcements/{announcement}/pin', [AnnouncementController::class, 'togglePinStatus']);
         });
 
         // Forum Routes

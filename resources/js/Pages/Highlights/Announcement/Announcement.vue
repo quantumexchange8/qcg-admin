@@ -113,220 +113,337 @@ const openDialog = (rowData) => {
     data.value = rowData;
 };
 
-const pinnedAnnouncements = ref([]);
 const draggedAnnouncement = ref(null);
 
-// --- DRAG START ---
-const onDragStart = (announcement) => {
-  draggedAnnouncement.value = announcement;
+const onDragStart = (item) => {
+  draggedAnnouncement.value = item;
 };
 
-// --- DROP TO PIN ---
+const MAX_PINNED_COUNT = 5;
+
 const onDropToPin = async () => {
-  const item = draggedAnnouncement.value;
-  if (!item || isPinned(item) || pinnedAnnouncements.value.length >= 5) return;
+  if (draggedAnnouncement.value) {
+    if (pinnedAnnouncements.value.length >= MAX_PINNED_COUNT) {
+    //   pinnedAnnouncements.value.shift(); // Removes the first item (oldest)
 
-  pinnedAnnouncements.value.push(item);
-  await savePinState(item.id, true);
-  draggedAnnouncement.value = null;
-};
+      alert('You can only pin up to 5 announcements!');
+      return;
+    }
 
-// --- DROP TO UNPIN ---
-const onDropToUnpin = async () => {
-  const item = draggedAnnouncement.value;
-  if (!item || !isPinned(item)) return;
+    draggedAnnouncement.value.pinned = true;
 
-  pinnedAnnouncements.value = pinnedAnnouncements.value.filter((a) => a.id !== item.id);
-  await savePinState(item.id, false);
-  draggedAnnouncement.value = null;
-};
+    try {
+        // console.log('Sending pin/unpin request for ID:', draggedAnnouncement.value.id);
+        const response = await axios.post(`/highlights/announcements/${draggedAnnouncement.value.id}/pin`, {
+            pinned: true
+        });
+        // console.log(response.data);
+    } catch (error) {
+      console.error('Error pinning announcement:', error);
+    }
 
-// --- UTILS ---
-const isPinned = (announcement) => {
-  return pinnedAnnouncements.value.some((a) => a.id === announcement.id);
-};
-
-const filteredValue = computed(() =>
-  announcements.value.filter((a) => !isPinned(a))
-);
-
-// --- API CALL ---
-const savePinState = async (id, pinned) => {
-  try {
-    await axios.post(`/api/announcements/${id}/pin`, { pinned });
-  } catch (error) {
-    console.error('Failed to update pin state', error);
+    draggedAnnouncement.value = null;
   }
 };
+
+const onDropToUnpin = async () => {
+  if (draggedAnnouncement.value) {
+    draggedAnnouncement.value.pinned = false;
+
+    try {
+        // console.log('Sending pin/unpin request for ID:', draggedAnnouncement.value.id);
+      await axios.post(`/highlights/announcements/${draggedAnnouncement.value.id}/pin`, {
+        pinned: false
+      });
+    } catch (error) {
+      console.error('Error unpinning announcement:', error);
+    }
+    draggedAnnouncement.value = null;
+  }
+};
+
+const pinnedAnnouncements = computed(() =>
+  announcements.value.filter((a) => a.pinned)
+);
+const regularAnnouncements = computed(() =>
+  announcements.value.filter((a) => !a.pinned)
+);
 </script>
 
 <template>
-    <!-- <div v-if="loading" class="flex flex-col gap-2 items-center justify-center">
-        <Loader />
-        <span class="text-sm text-gray-700">{{ $t('public.loading') }}</span>
-    </div> -->
-
-    <DataTable
-        v-model:filters="filters"
-        :value="filteredValue"
-        :paginator="filteredValue.length > 0"
-        removableSort
-        :rows="20"
-        :rowsPerPageOptions="[20, 50, 100]"
-        paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
-        :currentPageReportTemplate="$t('public.paginator_caption')"
-        :globalFilterFields="['title']"
-        ref="dt"
-        :loading="loading"
-        selectionMode="single"
-        @row-click="(event) => openDialog(event.data)"
-    >
-        <template #header>
-            <div class="flex flex-col justify-center items-center gap-5 self-stretch md:gap-6 pb-6">
-                <div class="flex flex-col justify-start xl:justify-between items-start gap-5 self-stretch xl:flex-row md:gap-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 items-center gap-3 w-full md:w-auto md:gap-5">
-                        <div class="relative w-full md:max-w-60">
-                            <div class="absolute top-2/4 -mt-[9px] left-3 text-gray-500">
-                                <IconSearch size="20" stroke-width="1.25" />
+    <div class="flex flex-col gap-2 self-stretch">
+        <DataTable
+            :value="[]" showGridlines
+        >
+            <template #header>
+                <div class="flex flex-col justify-center items-center gap-5 self-stretch md:gap-6 pb-6">
+                    <div class="flex flex-col justify-start xl:justify-between items-start gap-5 self-stretch xl:flex-row md:gap-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 items-center gap-3 w-full md:w-auto md:gap-5">
+                            <div class="relative w-full md:max-w-60">
+                                <div class="absolute top-2/4 -mt-[9px] left-3 text-gray-500">
+                                    <IconSearch size="20" stroke-width="1.25" />
+                                </div>
+                                <InputText
+                                    v-model="filters['global'].value"
+                                    :placeholder="$t('public.keyword_search')"
+                                    size="search"
+                                    class="font-normal w-full"
+                                />
+                                <div
+                                    v-if="filters['global'].value !== null"
+                                    class="absolute top-2/4 -mt-2 right-4 text-gray-300 hover:text-gray-400 select-none cursor-pointer"
+                                    @click="clearFilterGlobal"
+                                >
+                                    <IconCircleXFilled size="16" />
+                                </div>
                             </div>
-                            <InputText
-                                v-model="filters['global'].value"
-                                :placeholder="$t('public.keyword_search')"
-                                size="search"
-                                class="font-normal w-full"
-                            />
-                            <div
-                                v-if="filters['global'].value !== null"
-                                class="absolute top-2/4 -mt-2 right-4 text-gray-300 hover:text-gray-400 select-none cursor-pointer"
-                                @click="clearFilterGlobal"
+                            <Select
+                                v-model="filters['status'].value"
+                                :options="statusOption"
+                                optionLabel="name"
+                                optionValue="value"
+                                :placeholder="$t('public.filter_by_status')"
+                                class="w-full md:max-w-60 font-normal"
+                                scroll-height="236px"
                             >
-                                <IconCircleXFilled size="16" />
-                            </div>
+                                <template #value="data">
+                                    <span class="font-normal text-gray-950" >{{ $t('public.' + (data.value || 'all')) }}</span>
+                                </template>
+                            </Select>
                         </div>
-                        <Select
-                            v-model="filters['status'].value"
-                            :options="statusOption"
-                            optionLabel="name"
-                            optionValue="value"
-                            :placeholder="$t('public.filter_by_status')"
-                            class="w-full md:max-w-60 font-normal"
-                            scroll-height="236px"
-                        >
-                            <template #value="data">
-                                <span class="font-normal text-gray-950" >{{ $t('public.' + (data.value || 'all')) }}</span>
-                            </template>
-                        </Select>
+                        <div class="w-full flex flex-col items-center gap-3 md:w-auto md:flex-row md:gap-2">
+                            <CreateAnnouncement />
+                        </div>
                     </div>
-                    <div class="w-full flex flex-col items-center gap-3 md:w-auto md:flex-row md:gap-2">
-                        <CreateAnnouncement />
-                    </div>
-                </div>
-                
-                <TransitionGroup
-                    tag="div"
-                    enter-from-class="-translate-y-full opacity-0"
-                    enter-active-class="duration-300"
-                    leave-active-class="duration-300"
-                    leave-to-class="-translate-y-full opacity-0"
-                    class="w-full"
-                >
-                    <div
-                        v-if="noticeVisible"
-                        class="p-2 md:py-4 md:px-5 flex justify-center self-stretch gap-3 border-l-8 rounded border-info-500 shadow-card bg-info-100 items-start"
-                        role="alert"
+                    
+                    <TransitionGroup
+                        tag="div"
+                        enter-from-class="-translate-y-full opacity-0"
+                        enter-active-class="duration-300"
+                        leave-active-class="duration-300"
+                        leave-to-class="-translate-y-full opacity-0"
+                        class="w-full"
                     >
-                        <div class="text-info-500">
-                            <IconInfoCircle size="24" stroke-width="2.0"/>
-                        </div>
                         <div
-                            class="flex flex-col gap-1 items-start w-full"
+                            v-if="noticeVisible"
+                            class="p-2 md:py-4 md:px-5 flex justify-center self-stretch gap-3 border-l-8 rounded border-info-500 shadow-card bg-info-100 items-start"
+                            role="alert"
                         >
-                            <div class="text-info-500 font-semibold text-sm">
-                                {{ $t('public.pinned_announcements') }}
+                            <div class="text-info-500">
+                                <IconInfoCircle size="24" stroke-width="2.0"/>
                             </div>
-                            <div class="text-gray-700 text-xs md:text-sm font-normal">
-                                {{ $t('public.pinned_announcements_desc') }}
-                            </div>
-                        </div>
-                        <div class="text-info-500 hover:text-info-700 hover:cursor-pointer select-none" @click="noticeVisible = false">
-                            <IconX size="16" stroke-width="1.25" />
-                        </div>
-                    </div>
-                </TransitionGroup>
-            </div>
-        </template>
-        <template #empty>
-            <Empty 
-                :title="$t('public.empty_bonus_record_title')" 
-                :message="$t('public.empty_bonus_record_message')" 
-            />
-        </template>
-        <template #loading>
-            <div class="flex flex-col gap-2 items-center justify-center">
-                <Loader />
-                <span class="text-sm text-gray-700">{{ $t('public.loading') }}</span>
-            </div>
-        </template>
-        
-        <template v-if="filteredValue.length > 0">
-            <Column field="drag" headless class="hidden md:table-cell">
-                <template #body="slotProps">
-                    <div
-                        draggable="true"
-                        @dragstart="() => onDragStart(slotProps.data)"
-                        class="cursor-move"
-                        >
-                        <IconMenu2 size="16" stroke-width="1.25" />
-                    </div>
-                </template>
-            </Column>
-            <Column field="title" :header="$t('public.subject')" class="w-1/3 md:w-1/4 px-3">
-                <template #body="slotProps">
-                    <div class="text-gray-950 text-sm truncate max-w-full">
-                        {{ slotProps.data?.title || '-' }}
-                    </div>
-                </template>
-            </Column>
-            <Column field="status" :header="$t('public.status')" class="w-1/3 md:w-1/4">
-                <template #body="slotProps">
-                    <div class="flex items-center">
-                        <div
-                            class="flex justify-center items-center gap-2 rounded-sm py-1 px-2"
-                            :class="formatColor(slotProps.data.status)"
-                        >
                             <div
-                                class="text-white text-xs text-center"
+                                class="flex flex-col gap-1 items-start w-full"
                             >
-                                {{ $t(`public.${slotProps.data.status}`) }}
+                                <div class="text-info-500 font-semibold text-sm">
+                                    {{ $t('public.pinned_announcements') }}
+                                </div>
+                                <div class="text-gray-700 text-xs md:text-sm font-normal">
+                                    {{ $t('public.pinned_announcements_desc') }}
+                                </div>
+                            </div>
+                            <div class="text-info-500 hover:text-info-700 hover:cursor-pointer select-none" @click="noticeVisible = false">
+                                <IconX size="16" stroke-width="1.25" />
                             </div>
                         </div>
-                    </div>
-                </template>
-            </Column>
-            <Column field="start_date" :header="$t('public.start_date')" style="width: 20%" class="hidden md:table-cell">
-                <template #body="slotProps">
-                    <div class="text-gray-950 text-sm truncate max-w-full">
-                        {{ slotProps.data.start_date ? dayjs(slotProps.data.start_date).format('YYYY/MM/DD') : '-' }}
-                    </div>
-                </template>
-            </Column>
-            <Column field="end_date" :header="$t('public.expiry_date')" style="width: 20%" class="hidden md:table-cell">
-                <template #body="slotProps">
-                    <div class="text-gray-950 text-sm truncate max-w-full">
-                        {{ slotProps.data.end_date ? dayjs(slotProps.data.end_date).format('YYYY/MM/DD') : '-' }}
-                    </div>
-                </template>
-            </Column>
-            <Column field="action" headless style="width: 20%" class="hidden md:table-cell">
-                <template #body="slotProps">
-                    <Action 
-                        :announcement="slotProps.data"
-                    />
-                </template>
-            </Column>
-        </template>
-    </DataTable>
+                    </TransitionGroup>
+                </div>
+            </template>
 
+            <!-- Shared Column Headers  -->
+            <Column field="drag" headless style="width: 5%" class="hidden md:table-cell"/>
+            <Column field="title" :header="$t('public.subject')" class="w-1/3 md:w-1/4 px-3"/>
+            <Column field="status" :header="$t('public.status')" class="w-1/3 md:w-1/5"/>
+            <Column field="start_date" style="width: 20%" :header="$t('public.start_date')" />
+            <Column field="end_date" style="width: 20%" :header="$t('public.expiry_date')" />
+            <Column field="action" style="width: 20%" headless class="hidden md:table-cell" />
+        </DataTable>
+
+        <span class="text-sm font-semibold text-gray-950 px-2">{{ $t('public.pinned_announcements') }}</span>
+
+        <DataTable
+            v-model:filters="filters"
+            :value="pinnedAnnouncements"
+            removableSort
+            :globalFilterFields="['title']"
+            ref="dt"
+            :loading="loading"
+            selectionMode="single"
+            @row-click="(event) => openDialog(event.data)"
+            @dragover.prevent
+            @drop="onDropToPin"
+            class="no-column-headers"
+        >
+            <template #header>
+
+            </template>
+            <template #empty>
+                <Empty 
+                    :title="$t('public.empty_bonus_record_title')" 
+                    :message="$t('public.empty_bonus_record_message')" 
+                />
+            </template>
+            <template #loading>
+                <div class="flex flex-col gap-2 items-center justify-center">
+                    <Loader />
+                    <span class="text-sm text-gray-700">{{ $t('public.loading') }}</span>
+                </div>
+            </template>
+            
+            <template v-if="pinnedAnnouncements.length > 0">
+                <Column field="drag" headless style="width: 5%" class="hidden md:table-cell">
+                    <template #body="slotProps">
+                        <div
+                            draggable="true"
+                            @dragstart="() => onDragStart(slotProps.data)"
+                            class="cursor-move"
+                            >
+                            <IconMenu2 size="16" stroke-width="1.25" />
+                        </div>
+                    </template>
+                </Column>
+                <Column field="title" headless class="w-1/3 md:w-1/4 px-3">
+                    <template #body="slotProps">
+                        <div class="text-gray-950 text-sm truncate max-w-full">
+                            {{ slotProps.data?.title || '-' }}
+                        </div>
+                    </template>
+                </Column>
+                <Column field="status" headless class="w-1/3 md:w-1/5">
+                    <template #body="slotProps">
+                        <div class="flex items-center">
+                            <div
+                                class="flex justify-center items-center gap-2 rounded-sm py-1 px-2"
+                                :class="formatColor(slotProps.data.status)"
+                            >
+                                <div
+                                    class="text-white text-xs text-center"
+                                >
+                                    {{ $t(`public.${slotProps.data.status}`) }}
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </Column>
+                <Column field="start_date" headless style="width: 20%" class="hidden md:table-cell">
+                    <template #body="slotProps">
+                        <div class="text-gray-950 text-sm truncate max-w-full">
+                            {{ slotProps.data.start_date ? dayjs(slotProps.data.start_date).format('YYYY/MM/DD') : '-' }}
+                        </div>
+                    </template>
+                </Column>
+                <Column field="end_date" headless style="width: 20%" class="hidden md:table-cell">
+                    <template #body="slotProps">
+                        <div class="text-gray-950 text-sm truncate max-w-full">
+                            {{ slotProps.data.end_date ? dayjs(slotProps.data.end_date).format('YYYY/MM/DD') : '-' }}
+                        </div>
+                    </template>
+                </Column>
+                <Column field="action" headless style="width: 20%" class="hidden md:table-cell">
+                    <template #body="slotProps">
+                        <Action 
+                            :announcement="slotProps.data"
+                        />
+                    </template>
+                </Column>
+            </template>
+        </DataTable>
+
+        <span class="text-sm font-semibold text-gray-950 px-2">{{ $t('public.announcements') }}</span>
+
+        <DataTable
+            v-model:filters="filters"
+            :value="regularAnnouncements"
+            :paginator="regularAnnouncements.length > 0"
+            removableSort
+            :rows="20"
+            :rowsPerPageOptions="[20, 50, 100]"
+            paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
+            :currentPageReportTemplate="$t('public.paginator_caption')"
+            :globalFilterFields="['title']"
+            ref="dt"
+            :loading="loading"
+            selectionMode="single"
+            @row-click="(event) => openDialog(event.data)"
+            @dragover.prevent
+            @drop="onDropToUnpin"
+            class="no-column-headers"
+        >
+            <template #header>
+            </template>
+            <template #empty>
+                <Empty 
+                    :title="$t('public.empty_bonus_record_title')" 
+                    :message="$t('public.empty_bonus_record_message')" 
+                />
+            </template>
+            <template #loading>
+                <div class="flex flex-col gap-2 items-center justify-center">
+                    <Loader />
+                    <span class="text-sm text-gray-700">{{ $t('public.loading') }}</span>
+                </div>
+            </template>
+            
+            <template v-if="regularAnnouncements.length > 0">
+                <Column field="drag" headless style="width: 5%" class="hidden md:table-cell">
+                    <template #body="slotProps">
+                        <div
+                            draggable="true"
+                            @dragstart="() => onDragStart(slotProps.data)"
+                            class="cursor-move"
+                            >
+                            <IconMenu2 size="16" stroke-width="1.25" />
+                        </div>
+                    </template>
+                </Column>
+                <Column field="title" headless class="w-1/3 md:w-1/4 px-3">
+                    <template #body="slotProps">
+                        <div class="text-gray-950 text-sm truncate max-w-full">
+                            {{ slotProps.data?.title || '-' }}
+                        </div>
+                    </template>
+                </Column>
+                <Column field="status" headless class="w-1/3 md:w-1/5">
+                    <template #body="slotProps">
+                        <div class="flex items-center">
+                            <div
+                                class="flex justify-center items-center gap-2 rounded-sm py-1 px-2"
+                                :class="formatColor(slotProps.data.status)"
+                            >
+                                <div
+                                    class="text-white text-xs text-center"
+                                >
+                                    {{ $t(`public.${slotProps.data.status}`) }}
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </Column>
+                <Column field="start_date" headless style="width: 20%" class="hidden md:table-cell">
+                    <template #body="slotProps">
+                        <div class="text-gray-950 text-sm truncate max-w-full">
+                            {{ slotProps.data.start_date ? dayjs(slotProps.data.start_date).format('YYYY/MM/DD') : '-' }}
+                        </div>
+                    </template>
+                </Column>
+                <Column field="end_date" headless style="width: 20%" class="hidden md:table-cell">
+                    <template #body="slotProps">
+                        <div class="text-gray-950 text-sm truncate max-w-full">
+                            {{ slotProps.data.end_date ? dayjs(slotProps.data.end_date).format('YYYY/MM/DD') : '-' }}
+                        </div>
+                    </template>
+                </Column>
+                <Column field="action" headless style="width: 20%" class="hidden md:table-cell">
+                    <template #body="slotProps">
+                        <Action 
+                            :announcement="slotProps.data"
+                        />
+                    </template>
+                </Column>
+            </template>
+        </DataTable>
+    </div>
+    
     <Dialog v-model:visible="visible" modal :header="$t('public.announcement')" class="dialog-md no-header-border" :dismissableMask="true">
         <div class="flex flex-col justify-center items-start gap-8 pb-6 self-stretch">
             <img v-if="data.thumbnail" :src="data.thumbnail" alt="announcement_image" class="w-full h-[310.5px]" />
@@ -346,3 +463,9 @@ const savePinState = async (id, pinned) => {
         </div>
     </Dialog>
 </template>
+
+<style scoped>
+.no-column-headers ::v-deep thead {
+  display: none;
+}
+</style>

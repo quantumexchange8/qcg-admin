@@ -39,28 +39,21 @@ class AnnouncementController extends Controller
         ]);
     }
 
-    public function updateAnnouncementStatus(Request $request)
+    public function togglePinStatus(Request $request, Announcement $announcement)
     {
-        $announcement = Announcement::findOrFail($request->announcement_id);
+        // Validate the request if needed
+        $request->validate([
+            'pinned' => 'required|boolean',
+        ]);
 
-        if ($announcement->status === 'inactive') {
-            $announcement->status = 'active';
-            $announcement->save();
+        // Update the pinned status in the database
+        $announcement->pinned = $request->input('pinned');
+        $announcement->save();
 
-            return back()->with('toast', [
-                'title' => trans('public.toast_announcement_has_activated'),
-                'type' => 'success',
-            ]);
-        } elseif ($announcement->status === 'active') {
-           
-            $announcement->status = 'inactive';
-            $announcement->save();
-
-            return back()->with('toast', [
-                'title' => trans('public.toast_announcement_has_deactivated'),
-                'type' => 'success',
-            ]);
-        }
+        return response()->json([
+            'message' => $announcement->pinned ? 'Pinned successfully' : 'Unpinned successfully',
+            'announcement' => $announcement
+        ]);
     }
 
     public function createAnnouncement(Request $request)
