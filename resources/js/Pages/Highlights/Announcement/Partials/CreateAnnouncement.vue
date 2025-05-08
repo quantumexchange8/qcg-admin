@@ -91,6 +91,9 @@ const submitForm = (status) => {
     }
 
     if (form.start_date) {
+        if (dayjs(form.start_date).isSame(dayjs(), 'day')) {
+            form.status = 'active';
+        }
         form.start_date = formatDate(form.start_date);
     }
 
