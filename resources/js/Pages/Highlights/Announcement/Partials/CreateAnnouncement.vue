@@ -86,6 +86,10 @@ const submitForm = (status) => {
     form.members = [...selectedMembers.value];
     form.status = status;
 
+    if (form.status === 'inactive') {
+        form.start_date = dayjs().format('YYYY-MM-DD');
+    }
+
     if (form.start_date) {
         form.start_date = formatDate(form.start_date);
     }
