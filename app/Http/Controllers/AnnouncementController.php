@@ -243,6 +243,31 @@ class AnnouncementController extends Controller
 
     }
 
+    public function updateAnnouncementStatus(Request $request)
+    {
+        $announcement = Announcement::findOrFail($request->announcement_id);
+
+        // If the account is inactive, immediately activate it and return
+        if ($announcement->status === 'inactive') {
+            $announcement->status = 'active';
+            $announcement->save();
+
+            return back()->with('toast', [
+                'title' => trans('public.toast_announcement_has_activated'),
+                'type' => 'success',
+            ]);
+        } elseif ($announcement->status === 'active') {
+            // No recent activity -> deactivate account
+            $announcement->status = 'inactive';
+            $announcement->save();
+
+            return back()->with('toast', [
+                'title' => trans('public.toast_announcement_has_deactivated'),
+                'type' => 'success',
+            ]);
+        }
+    }
+
     public function getVisibleToOptions(Request $request)
     {
         $search = $request->input('search');
