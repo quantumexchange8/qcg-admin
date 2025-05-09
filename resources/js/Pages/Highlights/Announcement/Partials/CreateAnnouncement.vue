@@ -23,6 +23,7 @@ import AccordionPanel from 'primevue/accordionpanel';
 import AccordionHeader from 'primevue/accordionheader';
 import AccordionContent from 'primevue/accordioncontent';
 import debounce from "lodash/debounce.js";
+import dayjs from "dayjs";
 
 // const props = defineProps({
 
@@ -92,7 +93,9 @@ const submitForm = (status) => {
 
     if (form.start_date) {
         if (dayjs(form.start_date).isSame(dayjs(), 'day')) {
-            form.status = 'active';
+            if (form.status === 'scheduled') { 
+                form.status = 'active';
+            }
         }
         form.start_date = formatDate(form.start_date);
     }
@@ -476,6 +479,7 @@ const openPreviewDialog = () => {
                                     v-model="form.start_date"
                                     selectionMode="single"
                                     dateFormat="yy/mm/dd"
+                                    :minDate="today"
                                     showIcon
                                     iconDisplay="input"
                                     :placeholder="$t('public.select_date')"
