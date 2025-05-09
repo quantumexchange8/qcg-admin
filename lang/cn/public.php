@@ -787,4 +787,6 @@ return [
     'toast_unverify_member_error' => '会员已未被验证。',
     'toast_verify_member_success' => '会员已成功验证。',
     'toast_unverify_member_success' => '会员已成功取消验证。',
+    'unverified' => '未验证',
+    'pending' => '待处理',
 ];

@@ -786,4 +786,6 @@ return [
     'toast_unverify_member_error' => '會員已經未被驗證。',
     'toast_verify_member_success' => '會員已成功驗證。',
     'toast_unverify_member_success' => '會員已成功取消驗證。',
+    'unverified' => '未驗證',
+    'pending' => '待處理',
 ];

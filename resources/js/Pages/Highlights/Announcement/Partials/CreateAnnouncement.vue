@@ -104,7 +104,7 @@ const submitForm = (status) => {
         form.end_date = formatDate(form.end_date);
     }
 
-    console.log(form);
+    // console.log(form);
     form.post(route('highlights.createAnnouncement'), {
         onSuccess: () => {
             visible.value = false;

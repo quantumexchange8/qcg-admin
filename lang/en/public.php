@@ -788,4 +788,6 @@ return [
     'toast_unverify_member_error' => 'Member is already unverified.',
     'toast_verify_member_success' => 'Member has been successfully verified.',
     'toast_unverify_member_success' => 'Member has been successfully unverified.',
+    'unverified' => 'Unverified',
+    'pending' => 'Pending',
 ];
