@@ -451,7 +451,7 @@ const regularAnnouncements = computed(() =>
             <span class="text-lg font-bold text-gray-950">{{ data.title }}</span>
 
             <!-- need to ask nic about this content if got html tag -->
-            <span class="text-md font-regular text-gray-950" v-html="data.content"></span>
+            <span class="text-md font-regular text-gray-950 whitespace-pre-line" v-html="data.content"></span>
         </div>
         <div class="w-full flex justify-end items-center gap-4 pt-6 self-stretch">
             <DeleteAnnouncement 

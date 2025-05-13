@@ -628,7 +628,7 @@ const openPreviewDialog = () => {
             <span class="text-lg font-bold text-gray-950">{{ data.subject }}</span>
 
             <!-- need to ask nic about this content if got html tag -->
-            <span class="text-md font-regular text-gray-950" v-html="data.message"></span>
+            <span class="text-md font-regular text-gray-950 whitespace-pre-line" v-html="data.message"></span>
 
         </div>
     </Dialog>
