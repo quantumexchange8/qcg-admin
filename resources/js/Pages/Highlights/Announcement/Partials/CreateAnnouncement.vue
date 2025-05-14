@@ -295,9 +295,7 @@ const previewVisible = ref(false);
 const data = ref({});
 const openPreviewDialog = () => {
     previewVisible.value = true;
-    console.log(form.data());
     data.value = form.data();
-    console.log(data)
 };
 </script>
 
@@ -306,7 +304,7 @@ const openPreviewDialog = () => {
         type="button"
         variant="primary-flat"
         size="base"
-        class='hidden md:flex w-full md:w-auto truncate'
+        class='flex w-full md:w-auto truncate'
         @click="openDialog()"
     >
         <IconPlus size="20" stroke-width="1.25" />
@@ -317,7 +315,7 @@ const openPreviewDialog = () => {
         v-model:visible="visible"
         modal
         :header="$t('public.new_announcement')"
-        class="dialog-md"
+        class="dialog-xs md:dialog-md"
         :closeOnEscape="false"
     >
         <form @submit.prevent="submitForm()">
@@ -331,8 +329,8 @@ const openPreviewDialog = () => {
                                 :value="$t('public.visible_to')"
                                 :invalid="!!form.errors.visible_to"
                             />
-                            <div class="w-full flex flex-row items-center gap-5 self-stretch">
-                                <div class="flex items-center gap-3 text-gray-950 text-sm">
+                            <div class="w-full flex flex-row items-center gap-3 md:gap-5 self-stretch">
+                                <div class="flex items-center gap-2 md:gap-3 text-gray-950 text-sm">
                                     <RadioButton
                                         v-model="form.visible_to"
                                         inputId="public"
@@ -341,7 +339,7 @@ const openPreviewDialog = () => {
                                     />
                                     <label for="public">{{ $t('public.public') }}</label>
                                 </div>
-                                <div class="flex items-center gap-3 text-gray-950 text-sm">
+                                <div class="flex items-center gap-2 md:gap-3 text-gray-950 text-sm">
                                     <RadioButton
                                         v-model="form.visible_to"
                                         inputId="selected_members"
@@ -415,35 +413,14 @@ const openPreviewDialog = () => {
                                 </div>
                             </div>
                         </div>
-                        <!-- <div v-if="form.rewards_type === 'cash_rewards'" class="flex flex-col gap-2">
-                            <InputLabel
-                                for="cash_amount"
-                                :value="`${$t('public.cash_amount')} ($)`"
-                                :invalid="!!form.errors.cash_amount"
-                            />
-                            <InputNumber
-                                v-model="form.cash_amount"
-                                :minFractionDigits="2"
-                                id="cash_amount"
-                                fluid
-                                size="sm"
-                                :min="0"
-                                :step="1"
-                                class="w-full"
-                                inputClass="py-3 px-4"
-                                placeholder="0.00"
-                                :invalid="!!form.errors.cash_amount"
-                            />
-                            <InputError :message="form.errors.cash_amount" />
-                        </div> -->
                         <div class="flex flex-col gap-2">
                             <InputLabel
                                 for="popup"
                                 :value="$t('public.popup_label')"
                                 :invalid="!!form.errors.popup"
                             />
-                            <div class="w-full flex flex-row items-center gap-5 self-stretch">
-                                <div class="flex items-center gap-3 text-gray-950 text-sm">
+                            <div class="w-full flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-5 self-stretch">
+                                <div class="flex items-center gap-2 md:gap-3 text-gray-950 text-sm">
                                     <RadioButton
                                         v-model="form.popup"
                                         inputId="none"
@@ -452,7 +429,7 @@ const openPreviewDialog = () => {
                                     />
                                     <label for="none">{{ $t('public.no') }}</label>
                                 </div>
-                                <div class="flex items-center gap-3 text-gray-950 text-sm">
+                                <div class="flex items-center gap-2 md:gap-3 text-gray-950 text-sm">
                                     <RadioButton
                                         v-model="form.popup"
                                         inputId="first_login"
@@ -461,7 +438,7 @@ const openPreviewDialog = () => {
                                     />
                                     <label for="first_login">{{ $t('public.first_login_desc') }}</label>
                                 </div>
-                                <div class="flex items-center gap-3 text-gray-950 text-sm">
+                                <div class="flex items-center gap-2 md:gap-3 text-gray-950 text-sm">
                                     <RadioButton
                                         v-model="form.popup"
                                         inputId="every_login"
@@ -587,7 +564,7 @@ const openPreviewDialog = () => {
                 </div>
             </div>
 
-            <div class="w-full flex justify-end items-center gap-4 pt-6 self-stretch">
+            <div class="w-full md:flex md:flex-row grid grid-cols-2 justify-center items-stretch gap-4 pt-6 self-stretch">
                 <Button
                     type="button"
                     size="base"
@@ -611,7 +588,7 @@ const openPreviewDialog = () => {
                     type="button"
                     variant="primary-flat"
                     size="base"
-                    class="w-full"
+                    class="w-full col-span-2"
                     @click="form.start_date ? publishConfirmation('with_date_publish') : publishConfirmation('no_date_publish')"
                     :disabled="form.processing"
                 >
@@ -621,9 +598,9 @@ const openPreviewDialog = () => {
         </form>
     </Dialog>
 
-    <Dialog v-model:visible="previewVisible" modal :header="$t('public.preview')"  class="dialog-md no-header-border" :dismissableMask="true">
+    <Dialog v-model:visible="previewVisible" modal :header="$t('public.preview')"  class="dialog-xs md:dialog-md no-header-border" :dismissableMask="true">
         <div class="flex flex-col justify-center items-start gap-8 pb-6 self-stretch">
-            <img v-if="data.thumbnail" :src="selectedAttachment" :alt="data.thumbnail.name" class="w-full h-[310.5px]" />
+            <img v-if="data.thumbnail" :src="selectedAttachment" :alt="data.thumbnail.name" class="w-full h-[144px] md:h-[310.5px]" />
 
             <span class="text-lg font-bold text-gray-950">{{ data.subject }}</span>
 

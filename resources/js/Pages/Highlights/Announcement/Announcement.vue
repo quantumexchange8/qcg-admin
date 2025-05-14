@@ -171,7 +171,7 @@ const regularAnnouncements = computed(() =>
 </script>
 
 <template>
-    <div class="flex flex-col gap-2 self-stretch">
+    <div class="flex flex-col gap-1 md:gap-2 self-stretch">
         <DataTable
             :value="[]" showGridlines
         >
@@ -251,12 +251,12 @@ const regularAnnouncements = computed(() =>
             </template>
 
             <!-- Shared Column Headers  -->
-            <Column field="drag" headless style="width: 5%" class="hidden md:table-cell"/>
-            <Column field="title" :header="$t('public.subject')" class="w-1/3 md:w-1/4 px-3"/>
-            <Column field="status" :header="$t('public.status')" class="w-1/3 md:w-1/5"/>
-            <Column field="start_date" style="width: 20%" :header="$t('public.start_date')" />
-            <Column field="end_date" style="width: 20%" :header="$t('public.expiry_date')" />
-            <Column field="action" style="width: 20%" headless class="hidden md:table-cell" />
+            <Column field="drag" headless class="w-[12.5%] md:w-[5%]"/>
+            <Column field="title" :header="$t('public.subject')" class="w-1/2 md:w-[30%]"/>
+            <Column field="status" :header="$t('public.status')" class="w-1/4 md:w-[15%]"/>
+            <Column field="start_date" style="width: 20%" :header="$t('public.start_date')" class="hidden md:table-cell"/>
+            <Column field="end_date" style="width: 20%" :header="$t('public.expiry_date')" class="hidden md:table-cell"/>
+            <Column field="action" headless class="w-[12.5%] md:w-[10%]" />
         </DataTable>
 
         <span class="text-sm font-semibold text-gray-950 px-2">{{ $t('public.pinned_announcements') }}</span>
@@ -273,6 +273,7 @@ const regularAnnouncements = computed(() =>
             @dragover.prevent
             @drop="onDropToPin"
             class="no-column-headers"
+            tableStyle="table-layout: fixed; width: 100%;"
         >
             <template #header>
 
@@ -291,7 +292,7 @@ const regularAnnouncements = computed(() =>
             </template>
             
             <template v-if="pinnedAnnouncements.length > 0">
-                <Column field="drag" headless style="width: 5%" class="hidden md:table-cell">
+                <Column field="drag" headless class="w-[12.5%] md:w-[5%] px-[10px]">
                     <template #body="slotProps">
                         <div
                             draggable="true"
@@ -302,14 +303,29 @@ const regularAnnouncements = computed(() =>
                         </div>
                     </template>
                 </Column>
-                <Column field="title" headless class="w-1/3 md:w-1/4 px-3">
+                <Column field="title" headless class="w-1/2 md:w-[30%]">
                     <template #body="slotProps">
-                        <div class="text-gray-950 text-sm truncate max-w-full">
+                        <!-- <div class="text-gray-950 text-sm truncate">
                             {{ slotProps.data?.title || '-' }}
+                        </div> -->
+                        <div class="flex flex-col items-start gap-1 flex-grow overflow-hidden">
+                            <span class="text-gray-950 text-sm w-full truncate">
+                                {{ slotProps.data?.title || '-' }}
+                            </span>
+                            <div class="flex flex-row overflow-hidden md:hidden">
+                                <span class="text-gray-500 text-xs w-full truncate">
+                                    {{ 
+                                        slotProps.data.start_date 
+                                            ? dayjs(slotProps.data.start_date).format('YYYY/MM/DD') + ' - ' + 
+                                            (slotProps.data.end_date ? dayjs(slotProps.data.end_date).format('YYYY/MM/DD') : 'N/A') 
+                                            : (slotProps.data.end_date ? ' - ' + dayjs(slotProps.data.end_date).format('YYYY/MM/DD') : '-') 
+                                        }}
+                                </span>
+                            </div>
                         </div>
                     </template>
                 </Column>
-                <Column field="status" headless class="w-1/3 md:w-1/5">
+                <Column field="status" headless class="w-1/4 md:w-[15%]">
                     <template #body="slotProps">
                         <div class="flex items-center">
                             <div
@@ -339,7 +355,7 @@ const regularAnnouncements = computed(() =>
                         </div>
                     </template>
                 </Column>
-                <Column field="action" headless style="width: 20%" class="hidden md:table-cell">
+                <Column field="action" headless class="w-[12.5%] md:w-[10%]">
                     <template #body="slotProps">
                         <Action 
                             :announcement="slotProps.data"
@@ -368,6 +384,7 @@ const regularAnnouncements = computed(() =>
             @dragover.prevent
             @drop="onDropToUnpin"
             class="no-column-headers"
+            tableStyle="table-layout: fixed; width: 100%;"
         >
             <template #header>
             </template>
@@ -385,7 +402,7 @@ const regularAnnouncements = computed(() =>
             </template>
             
             <template v-if="regularAnnouncements.length > 0">
-                <Column field="drag" headless style="width: 5%" class="hidden md:table-cell">
+                <Column field="drag" headless class="w-[12.5%] md:w-[5%] px-[10px]">
                     <template #body="slotProps">
                         <div
                             draggable="true"
@@ -396,14 +413,14 @@ const regularAnnouncements = computed(() =>
                         </div>
                     </template>
                 </Column>
-                <Column field="title" headless class="w-1/3 md:w-1/4 px-3">
+                <Column field="title" headless class="w-1/2 md:w-[30%]">
                     <template #body="slotProps">
                         <div class="text-gray-950 text-sm truncate max-w-full">
                             {{ slotProps.data?.title || '-' }}
                         </div>
                     </template>
                 </Column>
-                <Column field="status" headless class="w-1/3 md:w-1/5">
+                <Column field="status" headless class="w-1/4 md:w-[15%]">
                     <template #body="slotProps">
                         <div class="flex items-center">
                             <div
@@ -433,7 +450,7 @@ const regularAnnouncements = computed(() =>
                         </div>
                     </template>
                 </Column>
-                <Column field="action" headless style="width: 20%" class="hidden md:table-cell">
+                <Column field="action" headless class="w-[12.5%] md:w-[10%]">
                     <template #body="slotProps">
                         <Action 
                             :announcement="slotProps.data"
@@ -444,9 +461,9 @@ const regularAnnouncements = computed(() =>
         </DataTable>
     </div>
     
-    <Dialog v-model:visible="visible" modal :header="$t('public.announcement')" class="dialog-md no-header-border" :dismissableMask="true">
+    <Dialog v-model:visible="visible" modal :header="$t('public.announcement')" class="dialog-xs md:dialog-md no-header-border" :dismissableMask="true">
         <div class="flex flex-col justify-center items-start gap-8 pb-6 self-stretch">
-            <img v-if="data.thumbnail" :src="data.thumbnail" alt="announcement_image" class="w-full h-[310.5px]" />
+            <img v-if="data.thumbnail" :src="data.thumbnail" alt="announcement_image" class="w-full h-[144px] md:h-[310.5px]" />
 
             <span class="text-lg font-bold text-gray-950">{{ data.title }}</span>
 
