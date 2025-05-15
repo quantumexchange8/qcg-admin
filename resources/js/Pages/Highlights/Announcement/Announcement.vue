@@ -146,6 +146,16 @@ const onDropToPin = async () => {
   }
 };
 
+const onDragEnter = (e) => {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+};
+
+const onDragOver = (e) => {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+};
+
 const onDropToUnpin = async () => {
   if (draggedAnnouncement.value) {
     draggedAnnouncement.value.pinned = false;
@@ -259,215 +269,218 @@ const regularAnnouncements = computed(() =>
             <Column field="action" headless class="w-[12.5%] md:w-[10%]" />
         </DataTable>
 
-        <span class="text-sm font-semibold text-gray-950 px-2">{{ $t('public.pinned_announcements') }}</span>
+        <Empty v-if="announcements.length === 0 && loading === false"
+            :title="$t('public.empty_announcement_title')" 
+            :message="$t('public.empty_announcement_message')" 
+        />
 
-        <DataTable
-            v-model:filters="filters"
-            :value="pinnedAnnouncements"
-            removableSort
-            :globalFilterFields="['title']"
-            ref="dt"
-            :loading="loading"
-            selectionMode="single"
-            @row-click="(event) => openDialog(event.data)"
-            @dragover.prevent
-            @drop="onDropToPin"
-            class="no-column-headers"
-            tableStyle="table-layout: fixed; width: 100%;"
-        >
-            <template #header>
+        <div v-else class="flex flex-col gap-1 md:gap-2 self-stretch">
+            <span class="text-sm font-semibold text-gray-950 px-2">{{ $t('public.pinned_announcements') }}</span>
 
-            </template>
-            <template #empty>
-                <Empty 
-                    :title="$t('public.empty_bonus_record_title')" 
-                    :message="$t('public.empty_bonus_record_message')" 
-                />
-            </template>
-            <template #loading>
-                <div class="flex flex-col gap-2 items-center justify-center">
-                    <Loader />
-                    <span class="text-sm text-gray-700">{{ $t('public.loading') }}</span>
-                </div>
-            </template>
-            
-            <template v-if="pinnedAnnouncements.length > 0">
-                <Column field="drag" headless class="w-[12.5%] md:w-[5%] px-[10px]">
-                    <template #body="slotProps">
-                        <div
-                            draggable="true"
-                            @dragstart="() => onDragStart(slotProps.data)"
-                            class="cursor-move"
-                            >
-                            <IconMenu2 size="16" stroke-width="1.25" />
-                        </div>
-                    </template>
-                </Column>
-                <Column field="title" headless class="w-1/2 md:w-[30%]">
-                    <template #body="slotProps">
-                        <div class="flex flex-col items-start gap-1 flex-grow overflow-hidden">
-                            <span class="text-gray-950 text-sm w-full truncate">
-                                {{ slotProps.data?.title || '-' }}
-                            </span>
-                            <div class="flex flex-row overflow-hidden md:hidden">
-                                <span class="text-gray-500 text-xs w-full truncate">
-                                    {{ 
-                                        slotProps.data.start_date 
-                                            ? dayjs(slotProps.data.start_date).format('YYYY/MM/DD') + ' - ' + 
-                                            (slotProps.data.end_date ? dayjs(slotProps.data.end_date).format('YYYY/MM/DD') : 'N/A') 
-                                            : (slotProps.data.end_date ? ' - ' + dayjs(slotProps.data.end_date).format('YYYY/MM/DD') : '-') 
-                                        }}
-                                </span>
-                            </div>
-                        </div>
-                    </template>
-                </Column>
-                <Column field="status" headless class="w-1/4 md:w-[15%]">
-                    <template #body="slotProps">
-                        <div class="flex items-center">
+            <DataTable
+                v-model:filters="filters"
+                :value="pinnedAnnouncements"
+                removableSort
+                :globalFilterFields="['title']"
+                ref="dt"
+                :loading="loading"
+                selectionMode="single"
+                @row-click="(event) => openDialog(event.data)"
+                @dragenter="onDragEnter"
+                @dragover="onDragOver"
+                @drop="onDropToPin"
+                class="no-column-headers drop-zone"
+                tableStyle="table-layout: fixed; width: 100%;"
+            >
+                <template #header>
+
+                </template>
+                <template #empty>
+
+                </template>
+                <template #loading>
+                    <div class="flex flex-col gap-2 items-center justify-center">
+                        <Loader />
+                        <span class="text-sm text-gray-700">{{ $t('public.loading') }}</span>
+                    </div>
+                </template>
+                
+                <template v-if="pinnedAnnouncements.length > 0">
+                    <Column field="drag" headless class="w-[12.5%] md:w-[5%] px-[10px]">
+                        <template #body="slotProps">
                             <div
-                                class="flex justify-center items-center gap-2 rounded-sm py-1 px-2"
-                                :class="formatColor(slotProps.data.status)"
-                            >
-                                <div
-                                    class="text-white text-xs text-center"
+                                draggable="true"
+                                @dragstart="() => onDragStart(slotProps.data)"
+                                class="cursor-move"
                                 >
-                                    {{ $t(`public.${slotProps.data.status}`) }}
+                                <IconMenu2 size="16" stroke-width="1.25" />
+                            </div>
+                        </template>
+                    </Column>
+                    <Column field="title" headless class="w-1/2 md:w-[30%]">
+                        <template #body="slotProps">
+                            <div class="flex flex-col items-start gap-1 flex-grow overflow-hidden">
+                                <span class="text-gray-950 text-sm w-full truncate">
+                                    {{ slotProps.data?.title || '-' }}
+                                </span>
+                                <div class="flex flex-row overflow-hidden md:hidden">
+                                    <span class="text-gray-500 text-xs w-full truncate">
+                                        {{ 
+                                            slotProps.data.start_date 
+                                                ? dayjs(slotProps.data.start_date).format('YYYY/MM/DD') + ' - ' + 
+                                                (slotProps.data.end_date ? dayjs(slotProps.data.end_date).format('YYYY/MM/DD') : 'N/A') 
+                                                : (slotProps.data.end_date ? ' - ' + dayjs(slotProps.data.end_date).format('YYYY/MM/DD') : '-') 
+                                            }}
+                                    </span>
                                 </div>
                             </div>
-                        </div>
-                    </template>
-                </Column>
-                <Column field="start_date" headless style="width: 20%" class="hidden md:table-cell">
-                    <template #body="slotProps">
-                        <div class="text-gray-950 text-sm truncate max-w-full">
-                            {{ slotProps.data.start_date ? dayjs(slotProps.data.start_date).format('YYYY/MM/DD') : '-' }}
-                        </div>
-                    </template>
-                </Column>
-                <Column field="end_date" headless style="width: 20%" class="hidden md:table-cell">
-                    <template #body="slotProps">
-                        <div class="text-gray-950 text-sm truncate max-w-full">
-                            {{ slotProps.data.end_date ? dayjs(slotProps.data.end_date).format('YYYY/MM/DD') : '-' }}
-                        </div>
-                    </template>
-                </Column>
-                <Column field="action" headless class="w-[12.5%] md:w-[10%]">
-                    <template #body="slotProps">
-                        <Action 
-                            :announcement="slotProps.data"
-                        />
-                    </template>
-                </Column>
-            </template>
-        </DataTable>
-
-        <span class="text-sm font-semibold text-gray-950 px-2">{{ $t('public.announcements') }}</span>
-
-        <DataTable
-            v-model:filters="filters"
-            :value="regularAnnouncements"
-            :paginator="regularAnnouncements.length > 0"
-            removableSort
-            :rows="20"
-            :rowsPerPageOptions="[20, 50, 100]"
-            paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
-            :currentPageReportTemplate="$t('public.paginator_caption')"
-            :globalFilterFields="['title']"
-            ref="dt"
-            :loading="loading"
-            selectionMode="single"
-            @row-click="(event) => openDialog(event.data)"
-            @dragover.prevent
-            @drop="onDropToUnpin"
-            class="no-column-headers"
-            tableStyle="table-layout: fixed; width: 100%;"
-        >
-            <template #header>
-            </template>
-            <template #empty>
-                <Empty 
-                    :title="$t('public.empty_bonus_record_title')" 
-                    :message="$t('public.empty_bonus_record_message')" 
-                />
-            </template>
-            <template #loading>
-                <div class="flex flex-col gap-2 items-center justify-center">
-                    <Loader />
-                    <span class="text-sm text-gray-700">{{ $t('public.loading') }}</span>
-                </div>
-            </template>
-            
-            <template v-if="regularAnnouncements.length > 0">
-                <Column field="drag" headless class="w-[12.5%] md:w-[5%] px-[10px]">
-                    <template #body="slotProps">
-                        <div
-                            draggable="true"
-                            @dragstart="() => onDragStart(slotProps.data)"
-                            class="cursor-move"
-                            >
-                            <IconMenu2 size="16" stroke-width="1.25" />
-                        </div>
-                    </template>
-                </Column>
-                <Column field="title" headless class="w-1/2 md:w-[30%]">
-                    <template #body="slotProps">
-                        <div class="flex flex-col items-start gap-1 flex-grow overflow-hidden">
-                            <span class="text-gray-950 text-sm w-full truncate">
-                                {{ slotProps.data?.title || '-' }}
-                            </span>
-                            <div class="flex flex-row overflow-hidden md:hidden">
-                                <span class="text-gray-500 text-xs w-full truncate">
-                                    {{ 
-                                        slotProps.data.start_date 
-                                            ? dayjs(slotProps.data.start_date).format('YYYY/MM/DD') + ' - ' + 
-                                            (slotProps.data.end_date ? dayjs(slotProps.data.end_date).format('YYYY/MM/DD') : 'N/A') 
-                                            : (slotProps.data.end_date ? ' - ' + dayjs(slotProps.data.end_date).format('YYYY/MM/DD') : '-') 
-                                        }}
-                                </span>
-                            </div>
-                        </div>
-                    </template>
-                </Column>
-                <Column field="status" headless class="w-1/4 md:w-[15%]">
-                    <template #body="slotProps">
-                        <div class="flex items-center">
-                            <div
-                                class="flex justify-center items-center gap-2 rounded-sm py-1 px-2"
-                                :class="formatColor(slotProps.data.status)"
-                            >
+                        </template>
+                    </Column>
+                    <Column field="status" headless class="w-1/4 md:w-[15%]">
+                        <template #body="slotProps">
+                            <div class="flex items-center">
                                 <div
-                                    class="text-white text-xs text-center"
+                                    class="flex justify-center items-center gap-2 rounded-sm py-1 px-2"
+                                    :class="formatColor(slotProps.data.status)"
                                 >
-                                    {{ $t(`public.${slotProps.data.status}`) }}
+                                    <div
+                                        class="text-white text-xs text-center"
+                                    >
+                                        {{ $t(`public.${slotProps.data.status}`) }}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </template>
-                </Column>
-                <Column field="start_date" headless style="width: 20%" class="hidden md:table-cell">
-                    <template #body="slotProps">
-                        <div class="text-gray-950 text-sm truncate max-w-full">
-                            {{ slotProps.data.start_date ? dayjs(slotProps.data.start_date).format('YYYY/MM/DD') : '-' }}
-                        </div>
-                    </template>
-                </Column>
-                <Column field="end_date" headless style="width: 20%" class="hidden md:table-cell">
-                    <template #body="slotProps">
-                        <div class="text-gray-950 text-sm truncate max-w-full">
-                            {{ slotProps.data.end_date ? dayjs(slotProps.data.end_date).format('YYYY/MM/DD') : '-' }}
-                        </div>
-                    </template>
-                </Column>
-                <Column field="action" headless class="w-[12.5%] md:w-[10%]">
-                    <template #body="slotProps">
-                        <Action 
-                            :announcement="slotProps.data"
-                        />
-                    </template>
-                </Column>
-            </template>
-        </DataTable>
+                        </template>
+                    </Column>
+                    <Column field="start_date" headless style="width: 20%" class="hidden md:table-cell">
+                        <template #body="slotProps">
+                            <div class="text-gray-950 text-sm truncate max-w-full">
+                                {{ slotProps.data.start_date ? dayjs(slotProps.data.start_date).format('YYYY/MM/DD') : '-' }}
+                            </div>
+                        </template>
+                    </Column>
+                    <Column field="end_date" headless style="width: 20%" class="hidden md:table-cell">
+                        <template #body="slotProps">
+                            <div class="text-gray-950 text-sm truncate max-w-full">
+                                {{ slotProps.data.end_date ? dayjs(slotProps.data.end_date).format('YYYY/MM/DD') : '-' }}
+                            </div>
+                        </template>
+                    </Column>
+                    <Column field="action" headless class="w-[12.5%] md:w-[10%]">
+                        <template #body="slotProps">
+                            <Action 
+                                :announcement="slotProps.data"
+                            />
+                        </template>
+                    </Column>
+                </template>
+            </DataTable>
+
+            <span class="text-sm font-semibold text-gray-950 px-2">{{ $t('public.announcements') }}</span>
+
+            <DataTable
+                v-model:filters="filters"
+                :value="regularAnnouncements"
+                :paginator="regularAnnouncements.length > 0"
+                removableSort
+                :rows="20"
+                :rowsPerPageOptions="[20, 50, 100]"
+                paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
+                :currentPageReportTemplate="$t('public.paginator_caption')"
+                :globalFilterFields="['title']"
+                ref="dt"
+                :loading="loading"
+                selectionMode="single"
+                @row-click="(event) => openDialog(event.data)"
+                @dragenter="onDragEnter"
+                @dragover="onDragOver"
+                @drop="onDropToUnpin"
+                class="no-column-headers drop-zone"
+                tableStyle="table-layout: fixed; width: 100%;"
+            >
+                <template #header>
+                </template>
+                <template #empty>
+                </template>
+                <template #loading>
+                    <div class="flex flex-col gap-2 items-center justify-center">
+                        <Loader />
+                        <span class="text-sm text-gray-700">{{ $t('public.loading') }}</span>
+                    </div>
+                </template>
+                
+                <template v-if="regularAnnouncements.length > 0">
+                    <Column field="drag" headless class="w-[12.5%] md:w-[5%] px-[10px]">
+                        <template #body="slotProps">
+                            <div
+                                draggable="true"
+                                @dragstart="() => onDragStart(slotProps.data)"
+                                class="cursor-move"
+                                >
+                                <IconMenu2 size="16" stroke-width="1.25" />
+                            </div>
+                        </template>
+                    </Column>
+                    <Column field="title" headless class="w-1/2 md:w-[30%]">
+                        <template #body="slotProps">
+                            <div class="flex flex-col items-start gap-1 flex-grow overflow-hidden">
+                                <span class="text-gray-950 text-sm w-full truncate">
+                                    {{ slotProps.data?.title || '-' }}
+                                </span>
+                                <div class="flex flex-row overflow-hidden md:hidden">
+                                    <span class="text-gray-500 text-xs w-full truncate">
+                                        {{ 
+                                            slotProps.data.start_date 
+                                                ? dayjs(slotProps.data.start_date).format('YYYY/MM/DD') + ' - ' + 
+                                                (slotProps.data.end_date ? dayjs(slotProps.data.end_date).format('YYYY/MM/DD') : 'N/A') 
+                                                : (slotProps.data.end_date ? ' - ' + dayjs(slotProps.data.end_date).format('YYYY/MM/DD') : '-') 
+                                            }}
+                                    </span>
+                                </div>
+                            </div>
+                        </template>
+                    </Column>
+                    <Column field="status" headless class="w-1/4 md:w-[15%]">
+                        <template #body="slotProps">
+                            <div class="flex items-center">
+                                <div
+                                    class="flex justify-center items-center gap-2 rounded-sm py-1 px-2"
+                                    :class="formatColor(slotProps.data.status)"
+                                >
+                                    <div
+                                        class="text-white text-xs text-center"
+                                    >
+                                        {{ $t(`public.${slotProps.data.status}`) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </Column>
+                    <Column field="start_date" headless style="width: 20%" class="hidden md:table-cell">
+                        <template #body="slotProps">
+                            <div class="text-gray-950 text-sm truncate max-w-full">
+                                {{ slotProps.data.start_date ? dayjs(slotProps.data.start_date).format('YYYY/MM/DD') : '-' }}
+                            </div>
+                        </template>
+                    </Column>
+                    <Column field="end_date" headless style="width: 20%" class="hidden md:table-cell">
+                        <template #body="slotProps">
+                            <div class="text-gray-950 text-sm truncate max-w-full">
+                                {{ slotProps.data.end_date ? dayjs(slotProps.data.end_date).format('YYYY/MM/DD') : '-' }}
+                            </div>
+                        </template>
+                    </Column>
+                    <Column field="action" headless class="w-[12.5%] md:w-[10%]">
+                        <template #body="slotProps">
+                            <Action 
+                                :announcement="slotProps.data"
+                            />
+                        </template>
+                    </Column>
+                </template>
+            </DataTable>
+        </div>
+
     </div>
     
     <Dialog v-model:visible="visible" modal :header="$t('public.announcement')" class="dialog-xs md:dialog-md no-header-border" :dismissableMask="true">
@@ -493,5 +506,11 @@ const regularAnnouncements = computed(() =>
 <style scoped>
 .no-column-headers ::v-deep thead {
   display: none;
+}
+
+.drop-zone {
+  touch-action: auto;
+  pointer-events: auto;
+  min-height: 100px;
 }
 </style>

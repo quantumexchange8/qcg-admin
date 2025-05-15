@@ -11,6 +11,12 @@ import PrimeVue from "primevue/config";
 import ConfirmationService from 'primevue/confirmationservice';
 import Tooltip from 'primevue/tooltip';
 import iosZoomFix from '../js/Composables/ios-zoom-fix.js';
+import 'mobile-drag-drop/default.css';
+import { polyfill } from 'mobile-drag-drop';
+
+polyfill({
+  dragImageTranslateOverride: () => ({ x: 0, y: 0 }),
+});
 
 const appName = import.meta.env.VITE_APP_NAME || 'QCG Admin';
 

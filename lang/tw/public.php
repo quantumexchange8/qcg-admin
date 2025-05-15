@@ -788,4 +788,6 @@ return [
     'toast_unverify_member_success' => '會員已成功取消驗證。',
     'unverified' => '未驗證',
     'pending' => '待處理',
+    'empty_announcement_title' => "未找到公告",
+    'empty_announcement_message' => "目前沒有可顯示的公告。",
 ];

@@ -790,4 +790,6 @@ return [
     'toast_unverify_member_success' => 'Member has been successfully unverified.',
     'unverified' => 'Unverified',
     'pending' => 'Pending',
+    'empty_announcement_title' => "No Announcements Found",
+    'empty_announcement_message' => "There are no announcements to display at this time.",
 ];

@@ -789,4 +789,6 @@ return [
     'toast_unverify_member_success' => '会员已成功取消验证。',
     'unverified' => '未验证',
     'pending' => '待处理',
+    'empty_announcement_title' => "未找到公告",
+    'empty_announcement_message' => "当前暂无可显示的公告。",
 ];
