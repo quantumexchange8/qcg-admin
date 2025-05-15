@@ -305,9 +305,6 @@ const regularAnnouncements = computed(() =>
                 </Column>
                 <Column field="title" headless class="w-1/2 md:w-[30%]">
                     <template #body="slotProps">
-                        <!-- <div class="text-gray-950 text-sm truncate">
-                            {{ slotProps.data?.title || '-' }}
-                        </div> -->
                         <div class="flex flex-col items-start gap-1 flex-grow overflow-hidden">
                             <span class="text-gray-950 text-sm w-full truncate">
                                 {{ slotProps.data?.title || '-' }}
@@ -415,8 +412,20 @@ const regularAnnouncements = computed(() =>
                 </Column>
                 <Column field="title" headless class="w-1/2 md:w-[30%]">
                     <template #body="slotProps">
-                        <div class="text-gray-950 text-sm truncate max-w-full">
-                            {{ slotProps.data?.title || '-' }}
+                        <div class="flex flex-col items-start gap-1 flex-grow overflow-hidden">
+                            <span class="text-gray-950 text-sm w-full truncate">
+                                {{ slotProps.data?.title || '-' }}
+                            </span>
+                            <div class="flex flex-row overflow-hidden md:hidden">
+                                <span class="text-gray-500 text-xs w-full truncate">
+                                    {{ 
+                                        slotProps.data.start_date 
+                                            ? dayjs(slotProps.data.start_date).format('YYYY/MM/DD') + ' - ' + 
+                                            (slotProps.data.end_date ? dayjs(slotProps.data.end_date).format('YYYY/MM/DD') : 'N/A') 
+                                            : (slotProps.data.end_date ? ' - ' + dayjs(slotProps.data.end_date).format('YYYY/MM/DD') : '-') 
+                                        }}
+                                </span>
+                            </div>
                         </div>
                     </template>
                 </Column>
