@@ -340,11 +340,14 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
      *          Configuration
      * ==============================
      */
-    Route::prefix('configuration')->middleware('role_and_permission:admin,access_configuration')->group(function () {
-        Route::get('/', [ConfigController::class, 'index'])->name('configuration');
+    Route::prefix('configuration')->middleware('role_and_permission:admin,access_auto_deposit,access_trade_point_setting')->group(function () {
+        Route::get('auto_deposit', [ConfigController::class, 'auto_deposit'])->name('configuration.auto_deposit')->middleware('role_and_permission:admin,access_auto_deposit');
+        Route::get('trade_point_setting', [ConfigController::class, 'trade_point_setting'])->name('configuration.trade_point_setting')->middleware('role_and_permission:admin,access_trade_point_setting');
+
         Route::get('/getAutoApprovalSettings', [ConfigController::class, 'getAutoApprovalSettings'])->name('configuration.getAutoApprovalSettings');
         Route::post('/updateAutoApprovalSettings', [ConfigController::class, 'updateAutoApprovalSettings'])->name('configuration.updateAutoApprovalSettings');
 
+        Route::get('/getVisibleToOptions', [ConfigController::class, 'getVisibleToOptions'])->name('configuration.getVisibleToOptions');
     });
 
     /**

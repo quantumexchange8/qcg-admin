@@ -348,16 +348,32 @@ watchEffect(() => {
         </SidebarLink>
 
          <!-- Configuration -->
-        <SidebarLink
+        <SidebarCollapsible
             :title="$t('public.sidebar_configuration')"
-            :href="route('configuration')"
-            :active="route().current('configuration')"
-            v-if="hasRole('super-admin') || hasPermission('access_configuration')"
+            :active="route().current('configuration.*')"
+            v-if="hasRole('super-admin') || hasPermission([
+                'access_auto_deposit',
+                'access_trade_point_setting',
+            ])"
         >
             <template #icon>
                 <IconSettings :size="20" stroke-width="1.25" />
             </template>
-        </SidebarLink>
+
+            <SidebarCollapsibleItem
+                :title="$t('public.sidebar_auto_deposit')"
+                :href="route('configuration.auto_deposit')"
+                :active="route().current('transaction.auto_deposit')"
+                v-if="hasRole('super-admin') || hasPermission('access_auto_deposit')"
+            />
+
+            <SidebarCollapsibleItem
+                :title="$t('public.sidebar_trade_point_setting')"
+                :href="route('configuration.trade_point_setting')"
+                :active="route().current('transaction.trade_point_setting')"
+                v-if="hasRole('super-admin') || hasPermission('access_wtrade_point_setting')"
+            />
+        </SidebarCollapsible>
         <!-- Components -->
        <!-- <SidebarCollapsible
            title="Components"
