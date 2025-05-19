@@ -816,5 +816,13 @@ return [
     'toast_create_trade_point_calculation_error' => 'Error creating a new trade point calculation period.',
     'toast_changes_error' => 'Error saving changes.',
     'toast_clear_trade_point_error' => 'Error clearing trade points of selected members.',
+    'toast_delete_trade_period_success' => 'Successfully delete calculation period.',
     'trade_point' => 'Trade Point',
+    'clear_now' => 'Clear Now',
+    'activate_calculation_period' => 'Activate Calculation Period',
+    'activate_calculation_period_caption' => 'You’re about to make this calculation period active. Are you sure you want to activate it now?',
+    'deactivate_calculation_period' => 'Deactivate Calculation Period',
+    'deactivate_calculation_period_caption' => 'This will deactivate the calculation period, but you can reactivate it anytime. Are you sure you want to deactivate it?',
+    'toast_calculation_period_has_activated' => 'You’ve successfully activated the calculation period!',
+    'toast_calculation_period_has_deactivated' => 'Calculation period has been deactivated!',
 ];

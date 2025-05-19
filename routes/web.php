@@ -348,6 +348,13 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
         Route::post('/updateAutoApprovalSettings', [ConfigController::class, 'updateAutoApprovalSettings'])->name('configuration.updateAutoApprovalSettings');
 
         Route::get('/getVisibleToOptions', [ConfigController::class, 'getVisibleToOptions'])->name('configuration.getVisibleToOptions');
+        Route::post('/clearPoints', [ConfigController::class, 'clearPoints'])->name('configuration.clearPoints');
+        Route::get('/getTradePointData', [ConfigController::class, 'getTradePointData'])->name('configuration.getTradePointData');
+        Route::post('/updateTradePointRate', [ConfigController::class, 'updateTradePointRate'])->name('configuration.updateTradePointRate');
+        Route::post('/createTradePeriod', [ConfigController::class, 'createTradePeriod'])->name('configuration.createTradePeriod');
+        Route::post('/updatePeriodStatus', [ConfigController::class, 'updatePeriodStatus'])->name('configuration.updatePeriodStatus');
+        Route::post('/editTradePeriod', [ConfigController::class, 'editTradePeriod'])->name('configuration.editTradePeriod');
+        Route::delete('/deleteTradePeriod', [ConfigController::class, 'deleteTradePeriod'])->name('configuration.deleteTradePeriod');
     });
 
     /**
