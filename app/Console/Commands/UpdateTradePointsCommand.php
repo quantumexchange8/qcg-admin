@@ -4,6 +4,8 @@ namespace App\Console\Commands;
 
 use App\Models\TradeBrokerHistory;
 use App\Models\TradePointHistory;
+use App\Models\TradePointDetail;
+use App\Models\TradePointPeriod;
 use App\Models\Wallet;
 use App\Models\User;
 use Illuminate\Console\Command;
@@ -29,23 +31,45 @@ class UpdateTradePointsCommand extends Command
 
         // Get previous day's date
         // $yesterday = Carbon::yesterday();
-        $lastMonth = Carbon::now()->subMonth();
+        $today = Carbon::today();
+        // $lastMonth = Carbon::now()->subMonth();
 
-        // Retrieve trade lots grouped by user_id and symbol_group_id for the previous day
-        $tradeLots = TradeBrokerHistory::selectRaw('db_user_id, db_symgroup_id, SUM(trade_lots) as total_trade_lots')
-            ->whereMonth('trade_close_time', $lastMonth->month)
-            ->whereYear('trade_close_time', $lastMonth->year)
-            ->groupBy('db_user_id', 'db_symgroup_id')
-            ->get();
+        $activePeriod = TradePointPeriod::where('is_active', true)
+            ->whereDate('start_date', '<=', $today)
+            ->whereDate('end_date', '>=', $today)
+            ->first();
 
-        if ($tradeLots->isEmpty()) {
-            $this->info('No trade lots found for the previous day.');
+        if ($activePeriod) {
+            $tradeLots = TradeBrokerHistory::selectRaw('db_user_id, db_symgroup_id, SUM(trade_lots) as total_trade_lots')
+                ->whereBetween('trade_close_time', [$activePeriod->start_date, $activePeriod->end_date])
+                ->groupBy('db_user_id', 'db_symgroup_id')
+                ->get();
+
+            if ($tradeLots->isEmpty()) {
+                $this->info('No trade lots found for the previous day.');
+                return;
+            }
+        } else {
+            $this->info('No trade periods found.');
             return;
         }
 
+        // Retrieve trade lots grouped by user_id and symbol_group_id for the previous day
+        // $tradeLots = TradeBrokerHistory::selectRaw('db_user_id, db_symgroup_id, SUM(trade_lots) as total_trade_lots')
+        //     ->whereMonth('trade_close_time', $lastMonth->month)
+        //     ->whereYear('trade_close_time', $lastMonth->year)
+        //     ->groupBy('db_user_id', 'db_symgroup_id')
+        //     ->get();
+
+        // if ($tradeLots->isEmpty()) {
+        //     $this->info('No trade lots found for the previous day.');
+        //     return;
+        // }
+
         foreach ($tradeLots as $tradeLot) {
+            $trade_point_rate = TradePointDetail::where('symbol_group_id', $tradeLot->db_symgroup_id)->value('trade_point_rate');
             $userId = $tradeLot->db_user_id;
-            $points = $tradeLot->total_trade_lots; // Convert trade lots to points if needed
+            $points = $tradeLot->total_trade_lots * $trade_point_rate; // Convert trade lots to points if needed
         
             // Accumulate trade points for the user
             $walletUpdates[$userId] = ($walletUpdates[$userId] ?? 0) + $points;
@@ -55,7 +79,7 @@ class UpdateTradePointsCommand extends Command
                 'user_id' => $userId,
                 'category' => 'trade_lots',
                 'symbol_group_id' => $tradeLot->db_symgroup_id,
-                'trade_points' => $tradeLot->total_trade_lots,
+                'trade_points' => $points,
             ]);
         }
 
