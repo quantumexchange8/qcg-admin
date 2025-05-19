@@ -34,7 +34,7 @@ class UpdateTradePointsCommand extends Command
         $today = Carbon::today();
         // $lastMonth = Carbon::now()->subMonth();
 
-        $activePeriod = TradePointPeriod::where('is_active', true)
+        $activePeriod = TradePointPeriod::where('status', 'active')
             ->whereDate('start_date', '<=', $today)
             ->whereDate('end_date', '>=', $today)
             ->first();
