@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class ConfigController extends Controller
 {
@@ -234,9 +235,12 @@ class ConfigController extends Controller
             ->whereHas('symbolGroup')
             ->get();
 
-        $trade_point_periods = TradePointPeriod::get();
+        $overall_period = TradePointPeriod::where('period_name', 'overall')->first();
+
+        $trade_point_periods = TradePointPeriod::whereNot('period_name', 'overall')->get();
 
         return response()->json([
+            'overallPeriod' => $overall_period,
             'tradeDetails' => $trade_point_details,
             'tradePeriods' => $trade_point_periods,
         ]);
@@ -262,7 +266,7 @@ class ConfigController extends Controller
     public function createTradePeriod(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'period_name' => ['required'],
+            'period_name' => ['required','unique:' . TradePointPeriod::class],
             'start_date' => ['required','date'],
             'end_date' => [
                 'required','after:start_date'
@@ -291,7 +295,7 @@ class ConfigController extends Controller
     public function editTradePeriod(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'period_name' => ['required'],
+            'period_name' => ['required', Rule::unique(TradePointPeriod::class)->ignore($request->trade_period_id)],
             'start_date' => ['required','date'],
             'end_date' => [
                 'required','after:start_date'
@@ -363,5 +367,30 @@ class ConfigController extends Controller
             ]);
         }
 
+    }
+
+    public function updateCalculationStatus(Request $request)
+    {
+        $trade_period = TradePointPeriod::findOrFail($request->trade_period_id);
+
+        // If the account is inactive, immediately activate it and return
+        if ($trade_period->status === 'inactive') {
+            $trade_period->status = 'active';
+            $trade_period->save();
+
+            return back()->with('toast', [
+                'title' => trans('public.toast_point_calculation_has_enabled'),
+                'type' => 'success',
+            ]);
+        } elseif ($trade_period->status === 'active') {
+            // No recent activity -> deactivate account
+            $trade_period->status = 'inactive';
+            $trade_period->save();
+
+            return back()->with('toast', [
+                'title' => trans('public.toast_point_calculation_has_disabled'),
+                'type' => 'success',
+            ]);
+        }
     }
 }

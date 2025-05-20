@@ -5,6 +5,8 @@ import Button from "@/Components/Button.vue";
 import { computed, h, ref, watch, watchEffect } from "vue";
 import { usePage, useForm } from "@inertiajs/vue3";
 import {
+    IconUserCheck,
+    IconUserCancel,
     IconPlus,
 } from "@tabler/icons-vue";
 import { FilterMatchMode } from '@primevue/core/api';
@@ -19,43 +21,60 @@ import NewCalcPeriod from "./Partials/NewCalcPeriod.vue";
 import Action from "./Partials/Action.vue";
 import { transactionFormat } from "@/Composables/index.js";
 import dayjs from "dayjs";
+import { router } from "@inertiajs/vue3";
 
-const checked = ref(false);
+const checked = ref(true);
 const confirm = useConfirm();
 
-// const requireConfirmation = (action_type) => {
-//     const messages = {
-//         delete_admin_role: {
-//             group: 'headless',
-//             color: 'error',
-//             icon: h(IconTrashX),
-//             header: trans('public.delete_admin_role'),
-//             message: trans('public.delete_admin_role_desc'),
-//             cancelButton: trans('public.cancel'),
-//             acceptButton: trans('public.delete'),
-//             action: () => {
-//                 router.delete(route('adminRole.deleteAdmin'), {
-//                     data: {
-//                         id: props.admin.id,
-//                     },
-//                 })
-//             }
-//         },
-//     };
+const requireConfirmation = (action_type) => {
+    const messages = {
+        enable_point_calculation: {
+            group: 'headless',
+            color: 'primary',
+            icon: h(IconUserCheck),
+            header: trans('public.enable_trade_point_calculation'),
+            message: trans('public.enable_trade_point_calculation_caption'),
+            cancelButton: trans('public.cancel'),
+            acceptButton: trans('public.enable'),
+            action: () => {
+                router.post(route('configuration.updateCalculationStatus'), {
+                    trade_period_id: overallPeriod.value?.id,
+                })
 
-//     const { group, color, icon, header, message, cancelButton, acceptButton, action } = messages[action_type];
+                checked.value = !checked.value;
+            }
+        },
+        disable_point_calculation: {
+            group: 'headless',
+            color: 'error',
+            icon: h(IconUserCancel),
+            header: trans('public.disable_trade_point_calculation'),
+            message: trans('public.disable_trade_point_calculation_caption'),
+            cancelButton: trans('public.cancel'),
+            acceptButton: trans('public.disable'),
+            action: () => {
+                router.post(route('configuration.updateCalculationStatus'), {
+                    trade_period_id: overallPeriod.value?.id,
+                })
 
-//     confirm.require({
-//         group,
-//         color,
-//         icon,
-//         header,
-//         message,
-//         cancelButton,
-//         acceptButton,
-//         accept: action
-//     });
-// };
+                checked.value = !checked.value;
+            }
+        },
+    };
+
+    const { group, color, icon, header, message, cancelButton, acceptButton, action } = messages[action_type];
+
+    confirm.require({
+        group,
+        color,
+        icon,
+        header,
+        message,
+        cancelButton,
+        acceptButton,
+        accept: action
+    });
+};
 
 // Define the status options
 const statusOption = [
@@ -74,6 +93,7 @@ const handleFilter = (e) => {
     filteredValue.value = e.filteredValue;
 };
 
+const overallPeriod = ref({});
 const tradeDetails = ref();
 const tradePeriods = ref();
 const loading = ref(false);
@@ -85,6 +105,7 @@ const getResults = async () => {
 
     try {
         const response = await axios.get('/configuration/getTradePointData');
+        overallPeriod.value = response.data.overallPeriod;
         tradeDetails.value = response.data.tradeDetails;
         tradePeriods.value = response.data.tradePeriods;
     } catch (error) {
@@ -102,6 +123,22 @@ watchEffect(() => {
     }
 });
 
+watch(
+    () => overallPeriod.value?.status,
+    (newStatus) => {
+        checked.value = newStatus === 'active';
+    },
+    { immediate: true }
+);
+
+const handleCalculationStatus = () => {
+    if (overallPeriod.value?.status === 'active') {
+        requireConfirmation('disable_point_calculation')
+    } else {
+        requireConfirmation('enable_point_calculation')
+    }
+}
+
 </script>
 
 <template>
@@ -111,6 +148,9 @@ watchEffect(() => {
                 <div class="flex flex-row gap-3 items-center self-stretch">
                     <ToggleSwitch 
                         v-model="checked"
+                        readonly
+                        @click="handleCalculationStatus"
+                        :disabled="loading === true"
                     />
                     <span class="flex-1 text-sm text-gray-950 font-semibold">
                         {{ $t('public.enable_trade_point_calculation') }}

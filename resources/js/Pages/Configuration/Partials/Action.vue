@@ -89,8 +89,8 @@ const requireConfirmation = (action_type) => {
             group: 'headless',
             color: 'error',
             icon: h(IconUserCancel),
-            header: trans('public.activate_calculation_period'),
-            message: trans('public.activate_calculation_period_caption'),
+            header: trans('public.deactivate_calculation_period'),
+            message: trans('public.deactivate_calculation_period_caption'),
             cancelButton: trans('public.cancel'),
             acceptButton: trans('public.deactivate'),
             action: () => {
@@ -144,7 +144,7 @@ const handlePeriodStatus = () => {
 </script>
 
 <template>
-    <div class="flex gap-3 items-center justify-center">
+    <div class="flex gap-3 py-3 items-center justify-center">
         <ToggleSwitch
             v-model="checked"
             readonly
@@ -159,7 +159,7 @@ const handlePeriodStatus = () => {
             pill
             @click="openEditDialog()"
         >
-            <IconPencil size="20" stroke-width="1.25" />
+            <IconPencil size="16" stroke-width="1.5" />
         </Button>
         <Button
             variant="error-text"
@@ -169,7 +169,7 @@ const handlePeriodStatus = () => {
             pill
             @click="requireConfirmation('delete_trade_period')"
         >
-            <IconTrashX size="20" stroke-width="1.25" />
+            <IconTrashX size="16" stroke-width="1.5" />
         </Button>
     </div>
 

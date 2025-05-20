@@ -824,4 +824,11 @@ return [
     'deactivate_calculation_period_caption' => '这将停用计算周期，但您可以随时重新激活。确定要停用吗？',
     'toast_calculation_period_has_activated' => '您已成功激活计算周期！',
     'toast_calculation_period_has_deactivated' => '计算周期已停用！',
+    'toast_point_calculation_has_enabled' => '您已成功启用交易积分计算！',
+    'toast_point_calculation_has_disabled' => '交易积分计算已被禁用！',
+    'enable_trade_point_calculation_caption' => '您即将启用交易积分计算。确定要现在启用吗？',
+    'disable_trade_point_calculation' => '禁用交易积分计算',
+    'disable_trade_point_calculation_caption' => '这将禁用交易积分计算，但您可以随时重新启用。确定要禁用吗？',
+    'enable' => '启用',
+    'disable' => '禁用',
 ];

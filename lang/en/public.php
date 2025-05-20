@@ -825,4 +825,11 @@ return [
     'deactivate_calculation_period_caption' => 'This will deactivate the calculation period, but you can reactivate it anytime. Are you sure you want to deactivate it?',
     'toast_calculation_period_has_activated' => 'You’ve successfully activated the calculation period!',
     'toast_calculation_period_has_deactivated' => 'Calculation period has been deactivated!',
+    'toast_point_calculation_has_enabled' => 'You’ve successfully enabled trade point calculation!',
+    'toast_point_calculation_has_disabled' => 'Trade point calculation has been disabled!',
+    'enable_trade_point_calculation_caption' => 'You’re about to enable trade point calculation. Are you sure you want to enable it now?',
+    'disable_trade_point_calculation' => 'Disable Trade Point Calculation',
+    'disable_trade_point_calculation_caption' => 'This will disable trade point calculation, but you can reenable it anytime. Are you sure you want to disable it?',
+    'enable' => 'Enable',
+    'disable' => 'Disable',
 ];

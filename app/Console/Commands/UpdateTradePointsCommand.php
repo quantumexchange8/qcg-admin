@@ -29,28 +29,46 @@ class UpdateTradePointsCommand extends Command
         $this->info('Starting trade points update...');
         $walletUpdates = [];
 
+        Log::info('Current Time : ' . Carbon::now());
+        $pointCalculation = TradePointPeriod::where('period_name', 'overall')->first();
+
+        // if default is false
+        // if (!$pointCalculation || $pointCalculation->status !== 'active') {
+        //     $this->info('Trade point calculation is not enabled.');
+        //     return;
+        // }
+
+        // if default is true
+        if ($pointCalculation && $pointCalculation->status !== 'active') {
+            $this->info('Trade point calculation is not active.');
+            return;
+        }
+
         // Get previous day's date
-        // $yesterday = Carbon::yesterday();
-        $today = Carbon::today();
+        $yesterday = Carbon::yesterday();
+        // $today = Carbon::today();
         // $lastMonth = Carbon::now()->subMonth();
 
         $activePeriod = TradePointPeriod::where('status', 'active')
-            ->whereDate('start_date', '<=', $today)
-            ->whereDate('end_date', '>=', $today)
+            ->whereDate('start_date', '<=', $yesterday)
+            ->whereDate('end_date', '>=', $yesterday)
             ->first();
 
-        if ($activePeriod) {
-            $tradeLots = TradeBrokerHistory::selectRaw('db_user_id, db_symgroup_id, SUM(trade_lots) as total_trade_lots')
-                ->whereBetween('trade_close_time', [$activePeriod->start_date, $activePeriod->end_date])
-                ->groupBy('db_user_id', 'db_symgroup_id')
-                ->get();
+        if (!$activePeriod) {
+            $this->info('No active trade period found.');
+            return;
+        }
 
-            if ($tradeLots->isEmpty()) {
-                $this->info('No trade lots found for the previous day.');
-                return;
-            }
-        } else {
-            $this->info('No trade periods found.');
+        $startDateTime = Carbon::parse($activePeriod->start_date)->startOfDay(); 
+        $endDateTime = Carbon::parse($activePeriod->end_date)->endOfDay();    
+
+        $tradeLots = TradeBrokerHistory::selectRaw('db_user_id, db_symgroup_id, SUM(trade_lots) as total_trade_lots')
+            ->whereBetween('trade_close_time', [$startDateTime, $endDateTime])
+            ->groupBy('db_user_id', 'db_symgroup_id')
+            ->get();
+
+        if ($tradeLots->isEmpty()) {
+            $this->info('No trade lots found for the previous day.');
             return;
         }
 

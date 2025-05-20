@@ -355,6 +355,7 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
         Route::post('/updatePeriodStatus', [ConfigController::class, 'updatePeriodStatus'])->name('configuration.updatePeriodStatus');
         Route::post('/editTradePeriod', [ConfigController::class, 'editTradePeriod'])->name('configuration.editTradePeriod');
         Route::delete('/deleteTradePeriod', [ConfigController::class, 'deleteTradePeriod'])->name('configuration.deleteTradePeriod');
+        Route::post('/updateCalculationStatus', [ConfigController::class, 'updateCalculationStatus'])->name('configuration.updateCalculationStatus');
     });
 
     /**

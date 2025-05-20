@@ -823,4 +823,11 @@ return [
     'deactivate_calculation_period_caption' => '這將停用計算週期，但您可以隨時重新啟動。確定要停用嗎？',
     'toast_calculation_period_has_activated' => '您已成功啟動計算週期！',
     'toast_calculation_period_has_deactivated' => '計算週期已停用！',
+    'toast_point_calculation_has_enabled' => '您已成功啟用交易積分計算！',
+    'toast_point_calculation_has_disabled' => '交易積分計算已被停用！',
+    'enable_trade_point_calculation_caption' => '您即將啟用交易積分計算。確定要現在啟用嗎？',
+    'disable_trade_point_calculation' => '停用交易積分計算',
+    'disable_trade_point_calculation_caption' => '這將停用交易積分計算，但您可以隨時重新啟用。確定要停用嗎？',
+    'enable' => '啟用',
+    'disable' => '停用',
 ];
