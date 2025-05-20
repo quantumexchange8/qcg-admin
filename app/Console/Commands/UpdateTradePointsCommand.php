@@ -45,7 +45,7 @@ class UpdateTradePointsCommand extends Command
         }
 
         // Get previous day's date
-        $yesterday = Carbon::yesterday();
+        $yesterday = Carbon::yesterday('UTC');
         // $today = Carbon::today();
         // $lastMonth = Carbon::now()->subMonth();
 
