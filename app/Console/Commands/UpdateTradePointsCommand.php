@@ -59,11 +59,11 @@ class UpdateTradePointsCommand extends Command
             return;
         }
 
-        $startDateTime = Carbon::parse($activePeriod->start_date)->startOfDay(); 
-        $endDateTime = Carbon::parse($activePeriod->end_date)->endOfDay();    
+        $startOfYesterday = $yesterday->copy()->startOfDay();
+        $endOfYesterday = $yesterday->copy()->endOfDay();    
 
         $tradeLots = TradeBrokerHistory::selectRaw('db_user_id, db_symgroup_id, SUM(trade_lots) as total_trade_lots')
-            ->whereBetween('trade_close_time', [$startDateTime, $endDateTime])
+            ->whereBetween('trade_close_time', [$startOfYesterday, $endOfYesterday])
             ->groupBy('db_user_id', 'db_symgroup_id')
             ->get();
 
