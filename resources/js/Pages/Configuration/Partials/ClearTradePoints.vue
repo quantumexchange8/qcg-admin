@@ -215,11 +215,12 @@ watch(() => form.select_member, (newValue) => {
         variant="error-outlined"
         size="base"
         @click="openClearDialog()"
+        class="w-full md:w-auto"
     >
         {{ $t('public.clear_trade_points') }}
     </Button>
 
-    <Dialog v-model:visible="clearVisible" modal :header="$t('public.clear_trade_points')" class="dialog-sm" :closeOnEscape="false">
+    <Dialog v-model:visible="clearVisible" modal :header="$t('public.clear_trade_points')" class="dialog-xs md:dialog-sm" :closeOnEscape="false">
         <form @submit.prevent>
             <div class="flex flex-col gap-5 py-6">
                 <div class="flex flex-col gap-2">

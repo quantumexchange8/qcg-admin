@@ -144,12 +144,13 @@ const handlePeriodStatus = () => {
 </script>
 
 <template>
-    <div class="flex gap-3 py-3 items-center justify-center">
+    <div class="flex gap-1 py-3 items-center justify-center">
         <ToggleSwitch
             v-model="checked"
             readonly
             @click="handlePeriodStatus"
             :disabled="props.tradePeriod.status !== 'active' && props.tradePeriod.status !== 'inactive'"
+            class="mx-1"
         />
         <Button
             variant="gray-text"

@@ -56,13 +56,14 @@ const submitForm = () => {
         type="button"
         variant="primary-flat"
         size="base"
+        class="w-full md:w-auto"
         @click="openNewDialog()"
     >
         <IconPlus size="20" stroke-width="1.25" />
         {{ $t('public.new_calculation_period') }}
     </Button>
 
-    <Dialog v-model:visible="newVisible" modal :header="$t('public.new_calculation_period')" class="dialog-sm" :closeOnEscape="false">
+    <Dialog v-model:visible="newVisible" modal :header="$t('public.new_calculation_period')" class="dialog-xs md:dialog-sm" :closeOnEscape="false">
         <form>
             <div class="flex flex-col gap-5 py-6 self-stretch">
                 <div class="flex flex-col gap-2 self-stretch">

@@ -145,16 +145,18 @@ const handleCalculationStatus = () => {
     <AuthenticatedLayout :title="`${$t('public.sidebar_configuration')}&nbsp;-&nbsp;${$t('public.sidebar_trade_point_setting')}`">
         <div class="flex flex-col justify-center items-center gap-5 self-stretch">
             <div class="flex flex-col justify-center items-center px-6 py-5 self-stretch rounded-lg bg-white shadow-card gap-3">
-                <div class="flex flex-row gap-3 items-center self-stretch">
-                    <ToggleSwitch 
-                        v-model="checked"
-                        readonly
-                        @click="handleCalculationStatus"
-                        :disabled="loading === true"
-                    />
-                    <span class="flex-1 text-sm text-gray-950 font-semibold">
-                        {{ $t('public.enable_trade_point_calculation') }}
-                    </span>
+                <div class="flex flex-col md:flex-row gap-3 items-center justify-between self-stretch">
+                    <div class="flex flex-row gap-3 items-center self-stretch">
+                        <ToggleSwitch 
+                            v-model="checked"
+                            readonly
+                            @click="handleCalculationStatus"
+                            :disabled="loading === true"
+                        />
+                        <span class="flex-1 text-sm text-gray-950 font-semibold">
+                            {{ $t('public.enable_trade_point_calculation') }}
+                        </span>
+                    </div>
                     <ClearTradePoints/>
                 </div>
                 <span class="self-stretch text-sm text-gray-700">
@@ -201,7 +203,7 @@ const handleCalculationStatus = () => {
                 </div>
             </div>
             <div class="flex flex-col justify-center items-center px-6 py-5 self-stretch rounded-lg bg-white shadow-card gap-6">
-                <div class="flex flex-row justify-between items-center self-stretch">
+                <div class="flex flex-col md:flex-row gap-3 justify-between items-center self-stretch">
                     <Select
                         v-model="filters['status'].value"
                         :options="statusOption"
@@ -227,21 +229,28 @@ const handleCalculationStatus = () => {
                     @filter="handleFilter"
                 >
                     <template>
-                        <Column field="period_name" :header="$t('public.period_name')">
+                        <Column field="period_name" :header="$t('public.period_name')" >
                             <template #body="slotProps">
-                                <div class="text-gray-950 text-sm truncate max-w-full">
-                                    {{ slotProps.data.period_name }}
+                                <div class="flex flex-col items-start gap-1 flex-grow overflow-hidden pl-2 md:pl-0">
+                                    <span class="text-gray-950 text-sm w-full truncate">
+                                        {{ slotProps.data.period_name }}
+                                    </span>
+                                    <div class="flex flex-row overflow-hidden md:hidden">
+                                        <span class="text-gray-500 text-xs w-full truncate">
+                                            {{ dayjs(slotProps.data.start_date).format('YYYY/MM/DD') + ' - ' + dayjs(slotProps.data.end_date).format('YYYY/MM/DD') }}
+                                        </span>
+                                    </div>
                                 </div>
                             </template>
                         </Column>
-                        <Column field="start_date" :header="$t('public.start_date')" sortable>
+                        <Column field="start_date" :header="$t('public.start_date')" sortable class="hidden md:table-cell">
                             <template #body="slotProps">
                                 <div class="text-gray-950 text-sm truncate max-w-full">
                                     {{ dayjs(slotProps.data.start_date).format('YYYY/MM/DD') }}
                                 </div>
                             </template>
                         </Column>
-                        <Column field="end_date" :header="$t('public.end_date')" sortable>
+                        <Column field="end_date" :header="$t('public.end_date')" sortable class="hidden md:table-cell">
                             <template #body="slotProps">
                                 <div class="text-gray-950 text-sm truncate max-w-full">
                                     {{ dayjs(slotProps.data.end_date).format('YYYY/MM/DD') }}
@@ -250,11 +259,9 @@ const handleCalculationStatus = () => {
                         </Column>
                         <Column field="action" headless>
                             <template #body="slotProps">
-                                <div class="text-gray-950 text-sm truncate max-w-full">
-                                    <Action
-                                        :tradePeriod="slotProps.data"
-                                    />
-                                </div>
+                                <Action
+                                    :tradePeriod="slotProps.data"
+                                />
                             </template>
                         </Column>
                     </template>

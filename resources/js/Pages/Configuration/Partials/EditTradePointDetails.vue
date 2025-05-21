@@ -59,7 +59,7 @@ const submitForm = () => {
         <IconPencilMinus size="20" stroke-width="1.5" />
     </Button>
 
-    <Dialog v-model:visible="editVisible" modal :header="$t('public.edit_trade_point_details')" class="dialog-sm" :closeOnEscape="false">
+    <Dialog v-model:visible="editVisible" modal :header="$t('public.edit_trade_point_details')" class="dialog-xs md:dialog-sm" :closeOnEscape="false">
         <form>
             <div class="flex flex-col items-center py-4 self-stretch md:py-6">
                 <div class="flex items-center w-full self-stretch py-3 text-gray-700 bg-gray-50 border-b border-gray-100">
