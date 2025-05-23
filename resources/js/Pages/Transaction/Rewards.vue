@@ -405,8 +405,8 @@ const copyToClipboard = (addressType, text) => {
                                 </div>
                             </div>
                         </div>
-                        <div class="flex flex-col md:flex-row gap-3 md:gap-2 w-full md:w-auto">
-                            <Button variant="primary-outlined" @click="filteredValue?.length > 0 ? exportXLSX() : null" class="w-full">
+                        <div class="flex flex-col md:flex-row gap-3 md:gap-2 w-full md:w-auto shrink-0">
+                            <Button variant="primary-outlined" @click="filteredValue?.length > 0 ? exportXLSX() : null" class="w-full md:w-auto">
                                 <IconDownload size="20" stroke-width="1.25" />
                                 {{ $t('public.export') }}
                             </Button>
@@ -414,7 +414,7 @@ const copyToClipboard = (addressType, text) => {
                                 type="button"
                                 variant="error-outlined"
                                 size="base"
-                                class='w-full'
+                                class='w-full md:w-auto'
                                 @click="clearFilter"
                             >
                                 <IconFilterOff size="20" stroke-width="1.25" />
