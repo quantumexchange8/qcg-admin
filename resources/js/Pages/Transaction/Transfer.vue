@@ -499,11 +499,49 @@ const copyToClipboard = (addressType, text) => {
                 </div>
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.from') }}</span>
-                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ data?.from_meta_login ? data?.from_meta_login : (data?.from_wallet_name ? $t('public.' + data?.from_wallet_name) : '-') }}</span>
+                    <span class="flex gap-1 break-all text-gray-950 text-sm font-medium relative">
+                        {{ data?.from_meta_login ? data?.from_meta_login : (data?.from_wallet_name ? $t('public.' + data?.from_wallet_name) : '-') }}
+                        <IconCopy
+                            v-if="data?.from_meta_login || data?.from_wallet_name"
+                            size="20"
+                            stroke-width="1.25"
+                            class="text-gray-500 inline-block cursor-pointer grow-0 shrink-0"
+                            v-tooltip.top="$t(`public.${tooltipText}`)"
+                            @click="copyToClipboard(
+                                data?.from_meta_login ? 'from_meta_login' : 'from_wallet_name',
+                                data?.from_meta_login || $t('public.' + data?.from_wallet_name)
+                            )"
+                        />
+                        <Tag
+                            v-if="activeTag === (data?.from_meta_login ? 'from_meta_login' : 'from_wallet_name') && tooltipText === 'copied'"
+                            class="absolute -top-7 -right-3"
+                            severity="contrast"
+                            :value="$t(`public.${tooltipText}`)"
+                        ></Tag>
+                    </span>
                 </div>
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.to') }}</span>
-                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ data?.to_meta_login ? data?.to_meta_login : (data?.to_wallet_name ? $t('public.' + data?.to_wallet_name) : '-') }}</span>
+                    <span class="flex gap-1 break-all text-gray-950 text-sm font-medium relative">
+                        {{ data?.to_meta_login ? data?.to_meta_login : (data?.to_wallet_name ? $t('public.' + data?.to_wallet_name) : '-') }}
+                        <IconCopy
+                            v-if="data?.to_meta_login || data?.to_wallet_name"
+                            size="20"
+                            stroke-width="1.25"
+                            class="text-gray-500 inline-block cursor-pointer grow-0 shrink-0"
+                            v-tooltip.top="$t(`public.${tooltipText}`)"
+                            @click="copyToClipboard(
+                                data?.to_meta_login ? 'from_meta_login' : 'to_wallet_name',
+                                data?.to_meta_login || $t('public.' + data?.to_wallet_name)
+                            )"
+                        />
+                        <Tag
+                            v-if="activeTag === (data?.to_meta_login ? 'to_meta_login' : 'to_wallet_name') && tooltipText === 'copied'"
+                            class="absolute -top-7 -right-3"
+                            severity="contrast"
+                            :value="$t(`public.${tooltipText}`)"
+                        ></Tag>
+                    </span>
                 </div>
             </div>
         </div>

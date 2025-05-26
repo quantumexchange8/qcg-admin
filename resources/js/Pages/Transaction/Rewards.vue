@@ -618,7 +618,23 @@ const copyToClipboard = (addressType, text) => {
                 </div>
                 <div v-if="data?.reward_type === 'cash_rewards'" class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.receiving_account') }}</span>
-                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ data?.receiving_account || '-' }}</span>
+                    <span class="flex gap-1 break-all text-gray-950 text-sm font-medium relative">
+                        {{ data?.receiving_account || '-' }}
+                        <IconCopy
+                            v-if="data?.receiving_account"
+                            size="20"
+                            stroke-width="1.25"
+                            class="text-gray-500 inline-block cursor-pointer grow-0 shrink-0"
+                            v-tooltip.top="$t(`public.${tooltipText}`)"
+                            @click="copyToClipboard('receiving_account', data.receiving_account)"
+                        />
+                        <Tag
+                            v-if="activeTag === 'receiving_account' && tooltipText === 'copied'"
+                            class="absolute -top-7 -right-3"
+                            severity="contrast"
+                            :value="$t(`public.${tooltipText}`)"
+                        ></Tag>
+                    </span>
                 </div>
                 <div v-else class="w-full flex flex-col gap-3">
                     <div class="w-full flex flex-col items-start gap-1 md:flex-row">
