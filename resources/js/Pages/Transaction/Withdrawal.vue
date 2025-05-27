@@ -2,7 +2,7 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { usePage } from "@inertiajs/vue3";
 import { IconCircleXFilled, IconSearch, IconDownload, IconFilterOff, IconCopy, IconCircleCheckFilled, IconExclamationCircleFilled, IconClockFilled } from "@tabler/icons-vue";
-import { ref, watch, watchEffect } from "vue";
+import { ref, watch, watchEffect, computed } from "vue";
 import Loader from "@/Components/Loader.vue";
 import Dialog from "primevue/dialog";
 import DataTable from "primevue/datatable";
@@ -34,8 +34,17 @@ const dt = ref(null);
 const transactions = ref();
 const totalAmount = ref();
 const type = ref('withdrawal');
-const selectedTeams = ref([]);
-const teams = ref(props.teams);
+// const selectedTeams = ref([]);
+// const teams = ref(props.teams);
+const teams = ref([
+    {
+        value: null,
+        name: wTrans('public.all'),
+        color: '000000'
+    },
+    ...props.teams
+]);
+const selectedTeam = ref(teams.value[0]);
 const filteredValue = ref();
 const withdrawalFrom = ref();
 
@@ -77,13 +86,8 @@ const getTransactionMonths = async () => {
 
 getTransactionMonths()
 
-// Watch for changes in selectedMonths
-watch(selectedMonth, (newMonth) => {
-    getResults(newMonth, withdrawalFrom.value, selectedTeams.value);
-    // console.log('Selected Months:', newMonths);
-});
-
-const getResults = async (selectedMonth = '', from = null, selectedTeams = []) => {
+const getResults = async (selectedMonth = '', from = null, selectedTeam = null) => {
+    console.log('test')
     loading.value = true;
 
     try {
@@ -106,9 +110,12 @@ const getResults = async (selectedMonth = '', from = null, selectedTeams = []) =
             url += `&from=${from}`;
         }
 
-        if (selectedTeams && selectedTeams.length > 0) {
-            const selectedTeamValues = selectedTeams.map((team) => team.value);
-            url += `&selectedTeams=${selectedTeamValues.join(',')}`;
+        // if (selectedTeams && selectedTeams.length > 0) {
+        //     const selectedTeamValues = selectedTeams.map((team) => team.value);
+        //     url += `&selectedTeams=${selectedTeamValues.join(',')}`;
+        // }
+        if (selectedTeam.value) {
+            url += `&selectedTeam=${selectedTeam.value}`;
         }
 
         // Make the API call with the constructed URL
@@ -123,16 +130,14 @@ const getResults = async (selectedMonth = '', from = null, selectedTeams = []) =
     }
 };
 
-// Watch for changes in withdrawalFrom
-watch(withdrawalFrom, (newWithdrawalFrom) => {
-    getResults(selectedMonth.value, newWithdrawalFrom, selectedTeams.value);
-    // console.log('Withdrawal From:', newWithdrawalFrom);
-});
+const searchParams = computed(() => ({
+    month: selectedMonth.value,
+    withdrawalFrom: withdrawalFrom.value,
+    team: selectedTeam.value
+}));
 
-// Watch for changes in selectedTeams
-watch(selectedTeams, (newTeams) => {
-    getResults(selectedMonth.value, withdrawalFrom.value, newTeams);
-    // console.log(newTeams)
+watch(searchParams, ({ month, withdrawalFrom, team }) => {
+    getResults(month, withdrawalFrom, team);
 });
 
 const filters = ref({
@@ -141,13 +146,6 @@ const filters = ref({
     email: { value: null, matchMode: FilterMatchMode.CONTAINS },
     status: { value: 'successful', matchMode: FilterMatchMode.EQUALS },
     team_id: { value: null, matchMode: FilterMatchMode.CONTAINS },
-});
-
-const selectedTeam = ref();
-watch(selectedTeam, (newTeam) => {
-  if (newTeam) {
-    filters.value['team_id'].value = newTeam.value;
-  }
 });
 
 const recalculateTotals = () => {
@@ -199,7 +197,7 @@ const clearFilter = () => {
     };
     selectedMonth.value = getCurrentMonthYear();
     withdrawalFrom.value = null;
-    selectedTeams.value = [];
+    selectedTeam.value = teams.value[0];
     filteredValue.value = null;
 };
 
@@ -396,7 +394,33 @@ const copyToClipboard = (addressType, text) => {
                                 class="w-full md:max-w-60 font-normal"
                                 scroll-height="236px"
                             />
-                            <MultiSelect
+                            <Select
+                                v-model="selectedTeam"
+                                :options="teams"
+                                filter
+                                :filterFields="['name']"
+                                optionLabel="name"
+                                :placeholder="$t('public.filter_by_sales_team')"
+                                class="w-full md:max-w-60 font-normal"
+                                scroll-height="236px"
+                            >
+                                <template #value="slotProps">
+                                    <div v-if="slotProps.value" class="flex items-center gap-3">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-4 h-4 rounded-full overflow-hidden grow-0 shrink-0" :style="{ backgroundColor: `#${slotProps.value.color}` }"></div>
+                                            <div>{{ slotProps.value.name }}</div>
+                                        </div>
+                                    </div>
+                                    <span v-else class="text-gray-400">{{ slotProps.placeholder }}</span>
+                                </template>
+                                <template #option="slotProps">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-4 h-4 rounded-full overflow-hidden grow-0 shrink-0" :style="{ backgroundColor: `#${slotProps.option.color}` }"></div>
+                                        <div>{{ slotProps.option.name }}</div>
+                                    </div>
+                                </template>
+                            </Select>
+                            <!-- <MultiSelect
                                 v-model="selectedTeams"
                                 :options="teams"
                                 :placeholder="$t('public.filter_by_sales_team')"
@@ -429,7 +453,7 @@ const copyToClipboard = (addressType, text) => {
                                         {{ $t('public.filter_by_sales_team') }}
                                     </span>
                                 </template>
-                            </MultiSelect>
+                            </MultiSelect> -->
                             <div class="relative w-full md:max-w-60">
                                 <div class="absolute top-2/4 -mt-[9px] left-4 text-gray-500">
                                     <IconSearch size="20" stroke-width="1.25" />

@@ -34,8 +34,17 @@ const dt = ref(null);
 const transactions = ref();
 const totalAmount = ref();
 const type = ref('credit_bonus');
-const selectedTeams = ref([]);
-const teams = ref(props.teams);
+// const selectedTeams = ref([]);
+// const teams = ref(props.teams);
+const teams = ref([
+    {
+        value: null,
+        name: wTrans('public.all'),
+        color: '000000'
+    },
+    ...props.teams
+]);
+const selectedTeam = ref(teams.value[0]);
 const filteredValue = ref();
 
 // Define the status options
@@ -69,7 +78,7 @@ const getTransactionMonths = async () => {
 
 getTransactionMonths()
 
-const getResults = async (selectedMonth = '', selectedTeams = []) => {
+const getResults = async (selectedMonth = '', selectedTeam = null) => {
     loading.value = true;
 
     try {
@@ -86,9 +95,12 @@ const getResults = async (selectedMonth = '', selectedTeams = []) => {
             url += `&selectedMonth=${formattedMonth}`;
         }
 
-        if (selectedTeams && selectedTeams.length > 0) {
-            const selectedTeamValues = selectedTeams.map((team) => team.value);
-            url += `&selectedTeams=${selectedTeamValues.join(',')}`;
+        // if (selectedTeams && selectedTeams.length > 0) {
+        //     const selectedTeamValues = selectedTeams.map((team) => team.value);
+        //     url += `&selectedTeams=${selectedTeamValues.join(',')}`;
+        // }
+        if (selectedTeam.value) {
+            url += `&selectedTeam=${selectedTeam.value}`;
         }
 
         // Make the API call with the constructed URL
@@ -104,14 +116,8 @@ const getResults = async (selectedMonth = '', selectedTeams = []) => {
 };
 
 // Watchers for selectedMonths and selectedTeams
-watch(selectedMonth, (newMonth) => {
-    getResults(newMonth, selectedTeams.value);
-    // console.log(newMonths)
-});
-
-watch(selectedTeams, (newTeams) => {
-    getResults(selectedMonth.value, newTeams);
-    // console.log(newTeams)
+watch([selectedMonth, selectedTeam], ([newMonth, newTeam]) => {
+    getResults(newMonth, newTeam);
 });
 
 const filters = ref({
@@ -168,7 +174,7 @@ const clearFilter = () => {
         team_id: { value: null, matchMode: FilterMatchMode.CONTAINS },
     };
     selectedMonth.value = getCurrentMonthYear();
-    selectedTeams.value = [];
+    selectedTeam.value = teams.value[0];
     filteredValue.value = null; 
 };
 
@@ -356,7 +362,33 @@ const copyToClipboard = (addressType, text) => {
                                     <span class="font-normal text-gray-950" >{{ $t('public.' + (data.value || 'all')) }}</span>
                                 </template>
                             </Select>
-                            <MultiSelect
+                            <Select
+                                v-model="selectedTeam"
+                                :options="teams"
+                                filter
+                                :filterFields="['name']"
+                                optionLabel="name"
+                                :placeholder="$t('public.filter_by_sales_team')"
+                                class="w-full md:max-w-60 font-normal"
+                                scroll-height="236px"
+                            >
+                                <template #value="slotProps">
+                                    <div v-if="slotProps.value" class="flex items-center gap-3">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-4 h-4 rounded-full overflow-hidden grow-0 shrink-0" :style="{ backgroundColor: `#${slotProps.value.color}` }"></div>
+                                            <div>{{ slotProps.value.name }}</div>
+                                        </div>
+                                    </div>
+                                    <span v-else class="text-gray-400">{{ slotProps.placeholder }}</span>
+                                </template>
+                                <template #option="slotProps">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-4 h-4 rounded-full overflow-hidden grow-0 shrink-0" :style="{ backgroundColor: `#${slotProps.option.color}` }"></div>
+                                        <div>{{ slotProps.option.name }}</div>
+                                    </div>
+                                </template>
+                            </Select>
+                            <!-- <MultiSelect
                                 v-model="selectedTeams"
                                 :options="teams"
                                 :placeholder="$t('public.filter_by_sales_team')"
@@ -389,7 +421,7 @@ const copyToClipboard = (addressType, text) => {
                                         {{ $t('public.filter_by_sales_team') }}
                                     </span>
                                 </template>
-                            </MultiSelect>
+                            </MultiSelect> -->
                             <div class="relative w-full md:max-w-60">
                                 <div class="absolute top-2/4 -mt-[9px] left-4 text-gray-500">
                                     <IconSearch size="20" stroke-width="1.25" />

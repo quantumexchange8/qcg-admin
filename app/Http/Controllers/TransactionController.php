@@ -66,10 +66,11 @@ class TransactionController extends Controller
     public function getTransactionData(Request $request)
     {
         $type = $request->query('type');
-        $selectedTeams = $request->query('selectedTeams'); // Get selectedTeams as a comma-separated string
+        // $selectedTeams = $request->query('selectedTeams'); // Get selectedTeams as a comma-separated string
+        $selectedTeam = $request->query('selectedTeam');
 
         // Convert the comma-separated string to an array
-        $selectedTeamsArray = !empty($selectedTeams) ? explode(',', $selectedTeams) : [];
+        // $selectedTeamsArray = !empty($selectedTeams) ? explode(',', $selectedTeams) : [];
 
         $monthYear = $request->input('selectedMonth');
 
@@ -113,12 +114,17 @@ class TransactionController extends Controller
             $query->whereBetween('approved_at', [$startDate, $endDate]);
         }
 
-        // Apply filtering for selected teams
-        if (!empty($selectedTeamsArray)) {
-            $query->whereHas('user.teamHasUser.team', function ($q) use ($selectedTeamsArray) {
-                $q->whereIn('id', $selectedTeamsArray);
+        if ($selectedTeam) {
+            $query->whereHas('user.teamHasUser.team', function ($query) use ($selectedTeam) {
+                $query->where('id', $selectedTeam);
             });
         }
+        // Apply filtering for selected teams
+        // if (!empty($selectedTeamsArray)) {
+        //     $query->whereHas('user.teamHasUser.team', function ($q) use ($selectedTeamsArray) {
+        //         $q->whereIn('id', $selectedTeamsArray);
+        //     });
+        // }
 
         // Filter by transaction type
         if ($type) {
