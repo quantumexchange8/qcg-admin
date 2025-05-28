@@ -11,7 +11,8 @@ import {
     IconLockCog,
     IconTrashX,
     IconChevronRight,
-    IconUserQuestion
+    IconUserQuestion,
+    IconMailCheck
 } from "@tabler/icons-vue";
 import Button from "@/Components/Button.vue";
 import { computed, h, ref, watch } from "vue";
@@ -126,14 +127,20 @@ const items = ref([
         label: 'verification',
         icon: h(IconUserQuestion),
         items: [
+        {
+                label: 'verify_email',
+                command: () => {
+                    requireConfirmation('verify_email')
+                },
+            },
             {
-                label: 'verify',
+                label: 'verify_kyc',
                 command: () => {
                     requireConfirmation('verify_member')
                 },
             },
             {
-                label: 'unverify',
+                label: 'unverify_kyc',
                 command: () => {
                     requireConfirmation('unverify_member')
                 },
@@ -242,6 +249,20 @@ const requireConfirmation = (action_type) => {
                 router.post(route('member.updateKyc'), {
                     id: props.member.id,
                     action: 'unverify',
+                });
+            }
+        },
+        verify_email: {
+            group: 'headless',
+            color: 'primary',
+            icon: h(IconMailCheck),
+            header: trans('public.verify_email'),
+            message: trans('public.verify_email_desc'),
+            cancelButton: trans('public.cancel'),
+            acceptButton: trans('public.verify'),
+            action: () => {
+                router.post(route('member.verifyEmail'), {
+                    id: props.member.id,
                 });
             }
         },

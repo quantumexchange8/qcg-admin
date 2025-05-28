@@ -125,6 +125,7 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
             Route::post('/walletAdjustment', [MemberController::class, 'walletAdjustment'])->name('member.walletAdjustment');
             Route::post('/pointAdjustment', [MemberController::class, 'pointAdjustment'])->name('member.pointAdjustment');
             Route::post('/updateKyc', [MemberController::class, 'updateKyc'])->name('member.updateKyc');
+            Route::post('/verifyEmail', [MemberController::class, 'verifyEmail'])->name('member.verifyEmail');
             Route::delete('/deleteMember', [MemberController::class, 'deleteMember'])->name('member.deleteMember');
 
             // Details Routes

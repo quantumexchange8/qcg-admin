@@ -831,4 +831,10 @@ return [
     'disable_trade_point_calculation_caption' => '这将禁用交易积分计算，但您可以随时重新启用。确定要禁用吗？',
     'enable' => '启用',
     'disable' => '禁用',
+    'verify_kyc' => '验证 KYC',
+    'unverify_kyc' => '验证 KYC',
+    'verify_email' => '验证电子邮件',
+    'verify_email_desc' => '您确定要验证此电子邮件吗？',
+    'toast_verify_email_error' => '电子邮件已验证。',
+    'toast_verify_email_success' => '电子邮件已成功验证。',
 ];

@@ -1156,4 +1156,47 @@ class MemberController extends Controller
         }
     }
 
+    public function verifyEmail(Request $request)
+    {
+        $user_id = $request->id;
+    
+        try {
+            $user = User::find($user_id);
+
+            if (!$user) {
+                return back()->with('toast', [
+                    'title' => 'User Not Found',
+                    'type' => 'error'
+                ]);
+            }
+            
+            if ($user->email_verified_at !== null) {            
+                $message = trans('public.toast_verify_email_error');
+
+                // Return success message if no error occurred
+                return redirect()->back()->with('toast', [
+                    'title' => $message,
+                    'type' => 'error'
+                ]);
+            } else  {
+                $user->update([
+                    'email_verified_at' => now(),
+                ]);
+    
+                $message = trans('public.toast_verify_email_success');
+            
+                // Return success message if no error occurred
+                return redirect()->back()->with('toast', [
+                    'title' => $message,
+                    'type' => 'success'
+                ]);
+            }
+        } catch (\Throwable $e) {
+            Log::error($e->getMessage());
+            return back()->with('toast', [
+                'title' => 'Error verifying email',
+                'type' => 'error'
+            ]);
+        }
+    }
 }

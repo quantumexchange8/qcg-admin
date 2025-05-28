@@ -832,4 +832,10 @@ return [
     'disable_trade_point_calculation_caption' => 'This will disable trade point calculation, but you can reenable it anytime. Are you sure you want to disable it?',
     'enable' => 'Enable',
     'disable' => 'Disable',
+    'verify_kyc' => 'Verify KYC',
+    'unverify_kyc' => 'Unverify KYC',
+    'verify_email' => 'Verify Email',
+    'verify_email_desc' => 'Are you sure you want to verify this email?',
+    'toast_verify_email_error' => 'Email is already verified.',
+    'toast_verify_email_success' => 'Email has been successfully verified.'
 ];

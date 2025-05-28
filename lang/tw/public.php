@@ -830,4 +830,10 @@ return [
     'disable_trade_point_calculation_caption' => '這將停用交易積分計算，但您可以隨時重新啟用。確定要停用嗎？',
     'enable' => '啟用',
     'disable' => '停用',
+    'verify_kyc' => '驗證 KYC',
+    'unverify_kyc' => '驗證 KYC',
+    'verify_email' => '驗證電子郵件',
+    'verify_email_desc' => '您確定要驗證此電子郵件嗎？',
+    'toast_verify_email_error' => '電子郵件已驗證。',
+    'toast_verify_email_success' => '電子郵件已成功驗證。',
 ];
