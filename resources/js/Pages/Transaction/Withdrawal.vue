@@ -87,7 +87,6 @@ const getTransactionMonths = async () => {
 getTransactionMonths()
 
 const getResults = async (selectedMonth = '', from = null, selectedTeam = null) => {
-    console.log('test')
     loading.value = true;
 
     try {

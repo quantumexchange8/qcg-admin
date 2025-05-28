@@ -330,7 +330,7 @@ class PendingController extends Controller
                                 $tradeCash = (new CTraderService)->createTrade($tradingAccount->meta_login, $transaction->amount, "Cash Reward", ChangeTraderBalanceType::DEPOSIT);
                                 $ticketCash = $tradeCash->getTicket();
 
-                                $transaction->update(['ticket' => $ticketCredit]);
+                                $transaction->update(['ticket' => $ticketCash]);
                                 // Transaction::create([
                                 //     'user_id' => $tradingAccount->user_id,
                                 //     'category' => 'trading_account',
