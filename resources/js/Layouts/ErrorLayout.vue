@@ -51,6 +51,7 @@ const changeLanguage = async (langVal) => {
                 @click="toggle"
                 aria-haspopup="true"
                 aria-controls="overlay_tmenu"
+                class="border border-gray-200"
             >
                 <IconLanguage size="20" stroke-width="1.25" color="#374151" />
             </Button>
