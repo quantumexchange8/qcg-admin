@@ -41,15 +41,15 @@ const changeLanguage = async (langVal) => {
 <template>
     <nav
         aria-label="secondary"
-        class="sticky top-0 z-10 py-2 px-2 md:px-5 bg-white flex items-center gap-2 md:gap-3"
+        class="sticky top-0 z-10 py-3.5 md:py-2 px-2 md:px-5 bg-white flex items-center gap-2 md:gap-3 justify-between"
     >
         <div
-            class="inline-flex justify-center items-center rounded-full hover:bg-gray-100 w-12 h-12 shrink-0 grow-0 hover:select-none hover:cursor-pointer"
+            class="inline-flex justify-center items-center rounded-full border border-gray-200 hover:bg-gray-100 w-9 h-9 md:w-12 md:h-12 shrink-0 grow-0 hover:select-none hover:cursor-pointer"
             @click="sidebarState.isOpen = !sidebarState.isOpen"
         >
-            <IconMenu2 size="20" color="#182230" stroke-width="1.25" />
+            <IconMenu2 size="20" color="#374151" stroke-width="1.25" />
         </div>
-        <div class="w-full h-full flex items-center">
+        <!-- <div class="w-full h-full flex items-center">
             <Link class="h-full flex items-center gap-2"
                 :href="route('dashboard')"
             >
@@ -59,21 +59,21 @@ const changeLanguage = async (langVal) => {
                     <span class="text-gray-700 text-xxxs font-medium tracking-[1.04px]">Capital Group</span>
                 </div>
             </Link>
-        </div>
+        </div> -->
         <!-- <div
             class="text-base md:text-lg font-semibold text-gray-950 w-full"
         >
             {{ title }}
         </div> -->
-        <div class="flex items-center">
+        <div class="flex gap-2 items-center">
             <div
-                class="w-12 h-12 p-3.5 flex items-center justify-center rounded-full hover:cursor-pointer hover:bg-gray-100 text-gray-700 focus:bg-gray-100"
+                class="w-9 h-9 md:w-12 md:h-12 p-2 md:p-3.5 flex items-center justify-center rounded-full border border-gray-200 hover:cursor-pointer hover:bg-gray-100 text-gray-700 focus:bg-gray-100"
                 @click="toggle"
             >
                 <IconLanguage size="20" stroke-width="1.25" />
             </div>
             <Link
-                class="w-12 h-12 p-3.5 hidden md:flex items-center justify-center rounded-full outline-none hover:cursor-pointer hover:bg-gray-100 text-gray-700 focus:bg-gray-100"
+                class="w-9 h-9 md:w-12 md:h-12 p-2 md:p-3.5 hidden md:flex items-center justify-center rounded-full border border-gray-200 outline-none hover:cursor-pointer hover:bg-gray-100 text-gray-700 focus:bg-gray-100"
                 :href="route('logout')"
                 method="post"
                 as="button"
@@ -81,7 +81,7 @@ const changeLanguage = async (langVal) => {
                 <IconTransferOut size="20" stroke-width="1.25" />
             </Link>
             <Link
-                class="w-12 h-12 p-2 items-center justify-center rounded-full outline-none hover:cursor-pointer hover:bg-gray-100 focus:bg-gray-100"
+                class="w-9 h-9 md:w-12 md:h-12 p-1.5 md:p-2 items-center justify-center rounded-full outline-none border border-gray-200 hover:cursor-pointer hover:bg-gray-100 focus:bg-gray-100"
                 :href="route('profile')"
             >
                 <ProfilePhoto class="w-8 h-8" />

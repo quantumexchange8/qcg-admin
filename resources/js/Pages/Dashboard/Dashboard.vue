@@ -495,16 +495,8 @@ watch(() => usePage().props, (newProps, oldProps) => {
                     </div>
 
                     <div class="w-full h-full flex flex-col items-center p-3 gap-3 rounded-lg bg-white shadow-card md:p-6 md:gap-5">
-                        <span class="w-full truncate text-gray-950 text-sm font-semibold md:text-base">{{ $t('public.total_trade_dashboard') }}</span>
                         <div class="w-full flex justify-between items-center">
-                            <Select 
-                                v-model="selectedMonth" 
-                                :options="months" 
-                                optionLabel="name" 
-                                optionValue="value"
-                                :placeholder="$t('public.month_placeholder')"
-                                class="w-60 font-normal truncate" scroll-height="236px" 
-                            />
+                            <span class="w-full truncate text-gray-950 text-sm font-semibold md:text-base">{{ $t('public.total_trade_dashboard') }}</span>
                             <Button 
                                 variant="gray-text" 
                                 size="sm" 
@@ -516,6 +508,15 @@ watch(() => usePage().props, (newProps, oldProps) => {
                                 <IconRefresh size="16" stroke-width="1.25" color="#374151" />
                             </Button>
                         </div>
+
+                        <Select 
+                            v-model="selectedMonth" 
+                            :options="months" 
+                            optionLabel="name" 
+                            optionValue="value"
+                            :placeholder="$t('public.month_placeholder')"
+                            class="w-full sm:w-60 font-normal truncate self-start" scroll-height="236px" 
+                        />
 
                         <div class="w-full h-full flex flex-row justify-center items-center gap-2 md:gap-5 ">
                             <div class="w-full h-full grid grid-cols-1 justify-center items-center py-3 px-0.5 gap-1 bg-gray-50 md:px-0">
@@ -544,16 +545,8 @@ watch(() => usePage().props, (newProps, oldProps) => {
 
                     <!-- P&L Section -->
                     <div class="w-full h-full flex flex-col items-start p-3 gap-3 rounded-lg bg-white shadow-card md:p-6 md:gap-5">
-                        <span class="w-full truncate text-gray-950 text-sm font-semibold md:text-base">{{ $t('public.total_brokerage_dashboard') }}</span>
                         <div class="w-full flex justify-between items-center">
-                            <Select 
-                                v-model="selectedPnlMonth" 
-                                :options="months" 
-                                optionLabel="name" 
-                                optionValue="value"
-                                :placeholder="$t('public.month_placeholder')"
-                                class="w-60 font-normal truncate" scroll-height="236px" 
-                            />
+                            <span class="w-full truncate text-gray-950 text-sm font-semibold md:text-base">{{ $t('public.total_brokerage_dashboard') }}</span>
                             <Button 
                                 variant="gray-text" 
                                 size="sm" 
@@ -564,26 +557,16 @@ watch(() => usePage().props, (newProps, oldProps) => {
                             >
                                 <IconRefresh size="16" stroke-width="1.25" color="#374151" />
                             </Button>
-
-                            <!-- <Select 
-                                v-model="selectedPnlMonth" 
-                                :options="pnlMonths" 
-                                optionLabel="name" 
-                                optionValue="value"
-                                :placeholder="$t('public.month_placeholder')"
-                                class="w-60 font-normal truncate" scroll-height="236px" 
-                            />
-                            <Button 
-                                variant="gray-text" 
-                                size="sm" 
-                                type="button" 
-                                iconOnly 
-                                v-slot="{ iconSizeClasses }"
-                                @click="updatePnL()"
-                            >
-                                <IconRefresh size="16" stroke-width="1.25" color="#374151" />
-                            </Button> -->
                         </div>
+
+                        <Select 
+                            v-model="selectedPnlMonth" 
+                            :options="months" 
+                            optionLabel="name" 
+                            optionValue="value"
+                            :placeholder="$t('public.month_placeholder')"
+                            class="w-full sm:w-60 font-normal truncate" scroll-height="236px" 
+                        />
 
                         <div class="w-full h-full flex flex-col justify-center items-center gap-2 md:gap-5 md:flex-row ">
                             <div class="min-w-60 w-full h-full grid grid-cols-1 justify-center items-center p-3 gap-2 bg-gray-50">
