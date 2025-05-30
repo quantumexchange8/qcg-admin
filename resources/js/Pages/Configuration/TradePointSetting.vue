@@ -176,7 +176,7 @@ const handleCalculationStatus = () => {
                 <div class="flex flex-col items-center self-stretch">
                     <div class="flex items-center w-full self-stretch py-3 text-gray-700 bg-gray-50 border-b border-gray-100">
                         <span class="uppercase text-xs font-bold px-3 w-full">{{ $t('public.product') }}</span>
-                        <span class="uppercase text-xs font-bold px-3 w-full">{{ $t('public.trade_point') }} / Ł (TP)</span>
+                        <span class="uppercase text-xs font-bold px-3 w-full md:text-left text-right">{{ $t('public.trade_point') }} / Ł (TP)</span>
                     </div>
 
                     <!-- symbol groups -->
@@ -186,7 +186,7 @@ const handleCalculationStatus = () => {
                         class="flex items-center w-full self-stretch py-2 text-gray-950"
                     >
                         <div class="text-sm px-3 w-full">{{ $t(`public.${tradeDetail.symbol_group.display}`) }}</div>
-                        <div class="text-sm px-3 w-full">{{ formatAmount(tradeDetail.trade_point_rate, 2) }}</div>
+                        <div class="text-sm px-3 w-full md:text-left text-right">{{ formatAmount(tradeDetail.trade_point_rate, 2) }}</div>
                     </div>
                     <div
                         v-else
@@ -227,6 +227,7 @@ const handleCalculationStatus = () => {
                     ref="dt"
                     :loading="loading"
                     @filter="handleFilter"
+                    tableStyle="table-layout: fixed"
                 >
                     <template>
                         <Column field="period_name" :header="$t('public.period_name')" >
@@ -235,8 +236,8 @@ const handleCalculationStatus = () => {
                                     <span class="text-gray-950 text-sm w-full truncate">
                                         {{ slotProps.data.period_name }}
                                     </span>
-                                    <div class="flex flex-row overflow-hidden md:hidden">
-                                        <span class="text-gray-500 text-xs w-full truncate">
+                                    <div class="w-full overflow-hidden md:hidden">
+                                        <span class="text-gray-500 text-xs block w-full truncate">
                                             {{ dayjs(slotProps.data.start_date).format('YYYY/MM/DD') + ' - ' + dayjs(slotProps.data.end_date).format('YYYY/MM/DD') }}
                                         </span>
                                     </div>

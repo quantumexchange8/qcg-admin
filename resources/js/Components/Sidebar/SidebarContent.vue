@@ -355,7 +355,6 @@ watchEffect(() => {
                 'access_auto_deposit',
                 'access_trade_point_setting',
             ])"
-            class="hidden md:block"
         >
             <template #icon>
                 <IconSettings :size="20" stroke-width="1.25" />

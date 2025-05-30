@@ -334,12 +334,12 @@ const copyToClipboard = (addressType, text) => {
             >
                 <template #header>
                     <div class="flex flex-col justify-between items-center pb-5 gap-3 self-stretch md:flex-row md:pb-6">
-                        <div class="grid grid-cols-1 md:grid-cols-5 items-center gap-3 md:gap-2 self-stretch">
+                        <div class="grid grid-cols-2 md:grid-cols-5 items-center gap-3 md:gap-2 self-stretch">
                             <Select 
                                 v-model="selectedMonth" 
                                 :options="months" 
                                 :placeholder="$t('public.month_placeholder')"
-                                class="w-full md:max-w-60 font-normal truncate" scroll-height="236px" 
+                                class="col-span-2 md:col-span-1 font-normal truncate" scroll-height="236px" 
                             >
                                 <template #option="{ option }">
                                     <span class="text-sm">
@@ -371,13 +371,35 @@ const copyToClipboard = (addressType, text) => {
                                     </span>
                                 </template>
                             </Select>
+                            <div class="relative col-span-2 block md:hidden">
+                                <div class="absolute top-2/4 -mt-[9px] left-4 text-gray-500">
+                                    <IconSearch size="20" stroke-width="1.25" />
+                                </div>
+                                <InputText v-model="filters['global'].value" :placeholder="$t('public.keyword_search')" size="search" class="font-normal w-full" />
+                                <div
+                                    v-if="filters['global'].value !== null"
+                                    class="absolute top-2/4 -mt-2 right-4 text-gray-300 hover:text-gray-400 select-none cursor-pointer"
+                                    @click="clearFilterGlobal"
+                                >
+                                    <IconCircleXFilled size="16" />
+                                </div>
+                            </div>
+                            <Select
+                                v-model="withdrawalFrom"
+                                :options="withdrawalFromOption"
+                                optionLabel="name"
+                                optionValue="value"
+                                :placeholder="$t('public.filter_by_withdrawal_from')"
+                                class="col-span-2 md:col-span-1 font-normal"
+                                scroll-height="236px"
+                            />
                             <Select
                                 v-model="filters['status'].value"
                                 :options="statusOption"
                                 optionLabel="name"
                                 optionValue="value"
                                 :placeholder="$t('public.filter_by_status')"
-                                class="w-full md:max-w-60 font-normal"
+                                class="col-span-1 font-normal"
                                 scroll-height="236px"
                             >
                                 <template #value="data">
@@ -385,22 +407,13 @@ const copyToClipboard = (addressType, text) => {
                                 </template>
                             </Select>
                             <Select
-                                v-model="withdrawalFrom"
-                                :options="withdrawalFromOption"
-                                optionLabel="name"
-                                optionValue="value"
-                                :placeholder="$t('public.filter_by_withdrawal_from')"
-                                class="w-full md:max-w-60 font-normal"
-                                scroll-height="236px"
-                            />
-                            <Select
                                 v-model="selectedTeam"
                                 :options="teams"
                                 filter
                                 :filterFields="['name']"
                                 optionLabel="name"
                                 :placeholder="$t('public.filter_by_sales_team')"
-                                class="w-full md:max-w-60 font-normal"
+                                class="col-span-1 font-normal"
                                 scroll-height="236px"
                             >
                                 <template #value="slotProps">
@@ -453,7 +466,7 @@ const copyToClipboard = (addressType, text) => {
                                     </span>
                                 </template>
                             </MultiSelect> -->
-                            <div class="relative w-full md:max-w-60">
+                            <div class="relative hidden md:block md:col-span-1">
                                 <div class="absolute top-2/4 -mt-[9px] left-4 text-gray-500">
                                     <IconSearch size="20" stroke-width="1.25" />
                                 </div>
@@ -467,8 +480,8 @@ const copyToClipboard = (addressType, text) => {
                                 </div>
                             </div>
                         </div>
-                        <div class="flex flex-col md:flex-row gap-3 md:gap-2 w-full md:w-auto shrink-0">
-                            <Button variant="primary-outlined" @click="filteredValue?.length > 0 ? exportXLSX() : null" class="w-full md:w-auto">
+                        <div class="grid grid-cols-2 md:flex md:flex-row gap-3 md:gap-2 w-full md:w-auto shrink-0">
+                            <Button variant="primary-outlined" @click="filteredValue?.length > 0 ? exportXLSX() : null" class="col-span-1 md:w-auto">
                                 <IconDownload size="20" stroke-width="1.25" />
                                 {{ $t('public.export') }}
                             </Button>
@@ -476,7 +489,7 @@ const copyToClipboard = (addressType, text) => {
                                 type="button"
                                 variant="error-outlined"
                                 size="base"
-                                class='w-full md:w-auto'
+                                class='col-span-1 md:w-auto'
                                 @click="clearFilter"
                             >
                                 <IconFilterOff size="20" stroke-width="1.25" />
