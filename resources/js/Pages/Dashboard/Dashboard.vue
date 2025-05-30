@@ -351,7 +351,7 @@ watch(() => usePage().props, (newProps, oldProps) => {
         <div v-if="hasRole('super-admin') || hasPermission('access_dashboard')" class="w-full grid grid-cols-1 2xl:grid-cols-2 items-center gap-3 md:gap-5">
             <div class="w-full flex flex-col items-start gap-3 md:gap-5">
                 <!-- overview data -->
-                <div class="grid grid-cols-2 w-full gap-3 md:gap-5">
+                <div class="grid grid-cols-2 w-full gap-2 md:gap-5">
                     <div class="flex flex-col bg-white justify-center rounded-lg shadow-card w-full cursor-pointer items-center"
                         v-for="(item, index) in dataOverviews" :key="index"
                         @click="navigateWithQueryParams(item.route, item.type)"
@@ -422,12 +422,12 @@ watch(() => usePage().props, (newProps, oldProps) => {
                     </div>
                 </div>
                 <!-- account listing and forum link -->
-                <div class="flex flex-col w-full gap-3 items-center md:flex-row md:gap-5">
+                <div class="flex w-full gap-2 items-center flex-row md:gap-5">
                     <div 
-                        class="flex bg-white rounded-lg shadow-card w-full cursor-pointer gap-3 items-center md:px-6 md:py-3 px-3 py-2"
+                        class="flex bg-white rounded-lg shadow-card w-full cursor-pointer gap-1 md:gap-3 items-center md:px-6 md:py-3 px-3 py-2 truncate"
                         @click="router.visit(route('member.account_listing'))"
                     >
-                        <span class="text-gray-950 text-sm w-full font-semibold md:text-base truncate">{{ $t('public.ctrader_account_listing') }}</span>
+                        <span class="text-gray-950 text-sm w-full font-semibold md:text-base truncate">{{ $t('public.ctrader_listing') }}</span>
                         <Button 
                             variant="gray-text" 
                             size="sm" 
@@ -439,14 +439,14 @@ watch(() => usePage().props, (newProps, oldProps) => {
                     </div>
 
                     <div 
-                        class="flex bg-white rounded-lg shadow-card w-full cursor-pointer gap-3 items-center md:px-6 md:py-3 px-3 py-2"
+                        class="flex bg-white rounded-lg shadow-card w-full cursor-pointer gap-1 md:gap-3 items-center md:px-6 md:py-3 px-3 py-2 truncate"
                         @click="router.visit(route('highlights') + '?type=forum')"
                     >
                         <span class="text-gray-950 text-sm w-full font-semibold md:text-base truncate">{{ $t('public.editing_forum') }}</span>
                         <Button 
                             variant="gray-text" 
                             size="sm" 
-                            type="button" 
+                            type="button"
                             iconOnly 
                             v-slot="{ iconSizeClasses }"
                         >
@@ -457,7 +457,7 @@ watch(() => usePage().props, (newProps, oldProps) => {
                 <div class="w-full h-full flex flex-col items-center gap-3 md:gap-5">
                     <!-- account balance & equity, request -->
                     <div class="w-full h-full flex flex-col items-center pt-2 pb-3 px-3 gap-3 rounded-lg bg-white shadow-card md:p-6 md:gap-5">
-                        <div class="w-full flex items-center md:h-9">
+                        <div class="w-full flex items-center md:h-9 gap-1">
                             <span class="w-full truncate text-gray-950 text-sm font-semibold md:text-base">{{ $t('public.account_balance_equity') }}</span>
                             <Button 
                                 variant="gray-text" 
@@ -466,6 +466,8 @@ watch(() => usePage().props, (newProps, oldProps) => {
                                 iconOnly 
                                 v-slot="{ iconSizeClasses }"
                                 @click="updateBalEquity()"
+                                pill
+                                class="border border-gray-200"
                             >
                                 <IconRefresh size="16" stroke-width="1.25" color="#374151" />
                             </Button>
@@ -495,8 +497,15 @@ watch(() => usePage().props, (newProps, oldProps) => {
                     </div>
 
                     <div class="w-full h-full flex flex-col items-center p-3 gap-3 rounded-lg bg-white shadow-card md:p-6 md:gap-5">
-                        <div class="w-full flex justify-between items-center">
-                            <span class="w-full truncate text-gray-950 text-sm font-semibold md:text-base">{{ $t('public.total_trade_dashboard') }}</span>
+                        <div class="w-full flex justify-between items-center gap-1">
+                            <Select 
+                                v-model="selectedMonth" 
+                                :options="months" 
+                                optionLabel="name" 
+                                optionValue="value"
+                                :placeholder="$t('public.month_placeholder')"
+                                class="w-full sm:w-60 font-normal truncate self-start" scroll-height="236px" 
+                            />
                             <Button 
                                 variant="gray-text" 
                                 size="sm" 
@@ -504,19 +513,14 @@ watch(() => usePage().props, (newProps, oldProps) => {
                                 iconOnly 
                                 v-slot="{ iconSizeClasses }"
                                 @click="updateTradeLotVolume()"
+                                pill
+                                class="border border-gray-200"
                             >
                                 <IconRefresh size="16" stroke-width="1.25" color="#374151" />
                             </Button>
                         </div>
 
-                        <Select 
-                            v-model="selectedMonth" 
-                            :options="months" 
-                            optionLabel="name" 
-                            optionValue="value"
-                            :placeholder="$t('public.month_placeholder')"
-                            class="w-full sm:w-60 font-normal truncate self-start" scroll-height="236px" 
-                        />
+                        <span class="w-full truncate text-gray-950 text-sm font-semibold md:text-base">{{ $t('public.total_trade_dashboard') }}</span>
 
                         <div class="w-full h-full flex flex-row justify-center items-center gap-2 md:gap-5 ">
                             <div class="w-full h-full grid grid-cols-1 justify-center items-center py-3 px-0.5 gap-1 bg-gray-50 md:px-0">
@@ -545,8 +549,15 @@ watch(() => usePage().props, (newProps, oldProps) => {
 
                     <!-- P&L Section -->
                     <div class="w-full h-full flex flex-col items-start p-3 gap-3 rounded-lg bg-white shadow-card md:p-6 md:gap-5">
-                        <div class="w-full flex justify-between items-center">
-                            <span class="w-full truncate text-gray-950 text-sm font-semibold md:text-base">{{ $t('public.total_brokerage_dashboard') }}</span>
+                        <div class="w-full flex justify-between items-center gap-1">
+                            <Select 
+                                v-model="selectedPnlMonth" 
+                                :options="months" 
+                                optionLabel="name" 
+                                optionValue="value"
+                                :placeholder="$t('public.month_placeholder')"
+                                class="w-full sm:w-60 font-normal truncate" scroll-height="236px" 
+                            />
                             <Button 
                                 variant="gray-text" 
                                 size="sm" 
@@ -554,19 +565,14 @@ watch(() => usePage().props, (newProps, oldProps) => {
                                 iconOnly 
                                 v-slot="{ iconSizeClasses }"
                                 @click="updateTradeBrokerPnl()"
+                                pill
+                                class="border border-gray-200"
                             >
                                 <IconRefresh size="16" stroke-width="1.25" color="#374151" />
                             </Button>
                         </div>
 
-                        <Select 
-                            v-model="selectedPnlMonth" 
-                            :options="months" 
-                            optionLabel="name" 
-                            optionValue="value"
-                            :placeholder="$t('public.month_placeholder')"
-                            class="w-full sm:w-60 font-normal truncate" scroll-height="236px" 
-                        />
+                        <span class="w-full truncate text-gray-950 text-sm font-semibold md:text-base">{{ $t('public.total_brokerage_dashboard') }}</span>
 
                         <div class="w-full h-full flex flex-col justify-center items-center gap-2 md:gap-5 md:flex-row ">
                             <div class="min-w-60 w-full h-full grid grid-cols-1 justify-center items-center p-3 gap-2 bg-gray-50">

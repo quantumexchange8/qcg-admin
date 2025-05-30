@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, watchEffect, computed } from "vue";
+import { ref, watch, watchEffect, computed, onMounted, onUnmounted } from "vue";
 import { usePage } from "@inertiajs/vue3";
 import InputText from 'primevue/inputtext';
 import ToggleSwitch from 'primevue/toggleswitch';
@@ -178,6 +178,20 @@ const pinnedAnnouncements = computed(() =>
 const regularAnnouncements = computed(() =>
   announcements.value.filter((a) => !a.pinned)
 );
+
+const pageLinkSize = ref(window.innerWidth < 768 ? 3 : 5)
+
+const updatePageLinkSize = () => {
+  pageLinkSize.value = window.innerWidth < 768 ? 3 : 5
+}
+
+onMounted(() => {
+  window.addEventListener('resize', updatePageLinkSize)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updatePageLinkSize)
+})
 </script>
 
 <template>
@@ -383,9 +397,9 @@ const regularAnnouncements = computed(() =>
                 :value="regularAnnouncements"
                 :paginator="regularAnnouncements.length > 0"
                 removableSort
-                :rows="20"
-                :rowsPerPageOptions="[20, 50, 100]"
-                paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
+                :rows="100"
+                :pageLinkSize="pageLinkSize"
+                paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
                 :currentPageReportTemplate="$t('public.paginator_caption')"
                 :globalFilterFields="['title']"
                 ref="dt"

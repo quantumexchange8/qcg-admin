@@ -3,7 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { usePage, useForm } from "@inertiajs/vue3";
 import { transactionFormat, generalFormat } from "@/Composables/index.js";
 import { IconCircleXFilled, IconSearch, IconDownload, IconCopy } from "@tabler/icons-vue";
-import { ref, watch, watchEffect } from "vue";
+import { ref, watch, watchEffect, onMounted, onUnmounted } from "vue";
 import Loader from "@/Components/Loader.vue";
 import DataTable from "primevue/datatable";
 import InputText from "primevue/inputtext";
@@ -237,6 +237,19 @@ const copyToClipboard = (addressType, text) => {
     document.body.removeChild(textArea);
 }
 
+const pageLinkSize = ref(window.innerWidth < 768 ? 3 : 5)
+
+const updatePageLinkSize = () => {
+  pageLinkSize.value = window.innerWidth < 768 ? 3 : 5
+}
+
+onMounted(() => {
+  window.addEventListener('resize', updatePageLinkSize)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updatePageLinkSize)
+})
 </script>
 
 <template>
@@ -249,9 +262,9 @@ const copyToClipboard = (addressType, text) => {
                     :value="pendingRewards"
                     :paginator="pendingRewards?.length > 0 && filteredValue?.length > 0"
                     removableSort
-                    :rows="20"
-                    :rowsPerPageOptions="[20, 50, 100]"
-                    paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
+                    :rows="100"
+                    :pageLinkSize="pageLinkSize"
+                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
                     :currentPageReportTemplate="$t('public.paginator_caption')"
                     :globalFilterFields="['user_name', 'user_email', 'from']"
                     ref="dt"

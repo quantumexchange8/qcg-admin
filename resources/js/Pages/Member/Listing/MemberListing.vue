@@ -3,7 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { usePage } from "@inertiajs/vue3";
 import { generalFormat } from "@/Composables/index.js";
 import { IconCircleXFilled, IconSearch, IconDownload, IconFilterOff, IconCircleCheckFilled, IconExclamationCircleFilled, IconClockFilled } from "@tabler/icons-vue";
-import { ref, watch, watchEffect, onMounted, h } from "vue";
+import { ref, watch, watchEffect, onMounted, h, onUnmounted } from "vue";
 import Loader from "@/Components/Loader.vue";
 import DataTable from "primevue/datatable";
 import InputText from "primevue/inputtext";
@@ -153,10 +153,6 @@ const onSort = (event) => {
     getResults();
 };
 
-onMounted(() => {
-    getResults();
-});
-
 // Optimized exportMember function without using constructUrl
 const exportMember = async () => {
     exportStatus.value = true;
@@ -202,6 +198,20 @@ watchEffect(() => {
     }
 });
 
+const pageLinkSize = ref(window.innerWidth < 768 ? 3 : 5)
+
+const updatePageLinkSize = () => {
+  pageLinkSize.value = window.innerWidth < 768 ? 3 : 5
+}
+
+onMounted(() => {
+  window.addEventListener('resize', updatePageLinkSize);
+  getResults();
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updatePageLinkSize)
+})
 </script>
 
 <template>
@@ -248,14 +258,14 @@ watchEffect(() => {
                 <DataTable
                     v-else
                     :value="users"
-                    :rowsPerPageOptions="[20, 50, 100]"
+                    :rows="100"
+                    :pageLinkSize="pageLinkSize"
                     lazy
                     paginator
                     removableSort
-                    paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport JumpToPageInput"
+                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
                     :currentPageReportTemplate="$t('public.paginator_caption')"
                     :first="first"
-                    :rows="rows"
                     :page="page"
                     ref="dt"
                     dataKey="id"

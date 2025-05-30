@@ -50,7 +50,7 @@ return [
     'incentive_request' => ":action Incentive Request",
     'account_withdrawal_request' => "accounts request to withdraw",
     'account_incentive_request' => "accounts request for incentive",
-    'ctrader_account_listing' => "cTrader Account Listing",
+    'ctrader_listing' => "cTrader Listing",
     'editing_forum' => "Editing Forum",
     'total_trade_lots' => "Total Trade Lots",
     'total_trade_volume' => "Total Trade Volume",

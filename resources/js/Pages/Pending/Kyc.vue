@@ -3,7 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { usePage, useForm } from "@inertiajs/vue3";
 import { transactionFormat, generalFormat } from "@/Composables/index.js";
 import { IconCircleXFilled, IconSearch, IconDownload, IconCopy, IconUserCheck, IconCheck, IconX } from "@tabler/icons-vue";
-import { h, ref, watch, watchEffect, onMounted } from "vue";
+import { h, ref, watch, watchEffect, onMounted, onUnmounted } from "vue";
 import Loader from "@/Components/Loader.vue";
 import DefaultProfilePhoto from "@/Components/DefaultProfilePhoto.vue";
 import DataTable from "primevue/datatable";
@@ -227,14 +227,6 @@ const copyToClipboard = (addressType, text) => {
 
 const isMobile = ref(false)
 
-onMounted(() => {
-    isMobile.value = window.innerWidth <= 768
-    // Optional: listen to resize
-    window.addEventListener('resize', () => {
-        isMobile.value = window.innerWidth <= 768
-    })
-})
-
 const visiblePhoto = ref(false);
 const selectedKycVerification = ref(null);
 const openPhotoDialog = (verification) => {
@@ -242,6 +234,28 @@ const openPhotoDialog = (verification) => {
     selectedKycVerification.value = verification;
 }
 
+const pageLinkSize = ref(window.innerWidth < 768 ? 3 : 5)
+
+const updatePageLinkSize = () => {
+  pageLinkSize.value = window.innerWidth < 768 ? 3 : 5
+}
+
+onMounted(() => {
+    const handleResize = () => {
+        isMobile.value = window.innerWidth <= 768
+        updatePageLinkSize()
+    }
+
+    // Run once on mount
+    handleResize()
+
+    // Add resize listener
+    window.addEventListener('resize', handleResize)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updatePageLinkSize)
+})
 </script>
 
 <template>
@@ -255,9 +269,9 @@ const openPhotoDialog = (verification) => {
                     :value="pendingKycs"
                     :paginator="pendingKycs?.length > 0 && filteredValue?.length > 0"
                     removableSort
-                    :rows="20"
-                    :rowsPerPageOptions="[20, 50, 100]"
-                    paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
+                    :rows="100"
+                    :pageLinkSize="pageLinkSize"
+                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
                     :currentPageReportTemplate="$t('public.paginator_caption')"
                     :globalFilterFields="['user_name', 'user_email', 'from']"
                     ref="dt"

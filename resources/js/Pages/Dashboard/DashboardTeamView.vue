@@ -94,7 +94,7 @@ watch(selectedTeamMonth,(newTeamMonth, oldTeamMonth) => {
 
 <template>
     <div class="w-full h-full flex flex-col items-center p-3 gap-3 rounded-lg bg-white shadow-card md:p-6 md:gap-5 overflow-y-auto">
-        <div class="w-full flex justify-between items-center">
+        <div class="w-full flex justify-between items-center gap-1">
             <Select 
                 v-model="selectedTeamMonth" 
                 :options="teamMonths" 
@@ -138,6 +138,8 @@ watch(selectedTeamMonth,(newTeamMonth, oldTeamMonth) => {
                 iconOnly 
                 v-slot="{ iconSizeClasses }"
                 @click="updateTeamsData()"
+                pill
+                class="border border-gray-200"
             >
                 <IconRefresh size="16" stroke-width="1.25" color="#374151" />
             </Button>

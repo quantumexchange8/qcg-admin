@@ -23,11 +23,13 @@ export default {
             'relative flex items-center justify-center flex-wrap',
 
             // Flex & Alignment
-            'inline-flex items-center justify-center gap-x-1 gap-y-3',
+            'inline-flex items-center justify-center gap-x-0.5 md:gap-x-1 gap-y-3',
 
             '[&>[data-pc-section=current]]:text-gray-500',
             '[&>[data-pc-section=current]]:text-center',
             '[&>[data-pc-section=current]]:text-sm',
+            '[&>[data-pc-section=current]]:min-w-full',
+            'md:[&>[data-pc-section=current]]:min-w-fit',
         ],
     }),
     first: ({ context }) => ({
@@ -35,13 +37,13 @@ export default {
             'relative',
 
             // Flex & Alignment
-            'inline-flex items-center justify-center p-3 flex-wrap',
+            'inline-flex items-center justify-center p-0 md:p-3 flex-wrap',
 
             // Shape
             'border-0 rounded-full',
 
             // Size
-            'w-11 h-11',
+            'w-9 h-9 md:w-11 md:h-11',
 
             // Color
             'text-gray-700',
@@ -65,13 +67,13 @@ export default {
             'relative',
 
             // Flex & Alignment
-            'inline-flex items-center justify-center p-3 flex-wrap',
+            'inline-flex items-center justify-center p-0 md:p-3 flex-wrap',
 
             // Shape
             'border-0 rounded-full',
 
             // Size
-            'w-11 h-11',
+            'w-9 h-9 md:w-11 md:h-11',
 
             // Color
             'text-gray-700',
@@ -95,13 +97,13 @@ export default {
             'relative',
 
             // Flex & Alignment
-            'inline-flex items-center justify-center p-3 flex-wrap',
+            'inline-flex items-center justify-center p-0 md:p-3 flex-wrap',
 
             // Shape
             'border-0 rounded-full',
 
             // Size
-            'w-11 h-11',
+            'w-9 h-9 md:w-11 md:h-11',
 
             // Color
             'text-gray-700',
@@ -125,13 +127,13 @@ export default {
             'relative',
 
             // Flex & Alignment
-            'inline-flex items-center justify-center p-3 flex-wrap',
+            'inline-flex items-center justify-center p-0 md:p-3 flex-wrap',
 
             // Shape
             'border-0 rounded-full',
 
             // Size
-            'w-11 h-11',
+            'w-9 h-9 md:w-11 md:h-11',
 
             // Color
             'text-gray-700',
@@ -155,7 +157,7 @@ export default {
             'relative',
 
             // Flex & Alignment
-            'inline-flex items-center justify-center gap-1 flex-wrap',
+            'inline-flex items-center justify-center gap-0.5 md:gap-1 flex-wrap',
         ]
     }),
     page: ({ context }) => ({
@@ -167,10 +169,10 @@ export default {
 
             // Shape
             'border-0 rounded-full',
-            'py-3',
+            'py-0 md:py-3',
 
             // Size
-            'w-11 h-11',
+            'w-9 h-9 md:w-11 md:h-11',
 
             // Color
             'text-gray-700',

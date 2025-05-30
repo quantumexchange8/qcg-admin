@@ -2,7 +2,7 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { usePage } from "@inertiajs/vue3";
 import { IconCircleXFilled, IconSearch, IconDownload, IconFilterOff, IconCopy } from "@tabler/icons-vue";
-import { ref, watch, watchEffect } from "vue";
+import { ref, watch, watchEffect, onMounted, onUnmounted } from "vue";
 import Loader from "@/Components/Loader.vue";
 import Dialog from "primevue/dialog";
 import DataTable from "primevue/datatable";
@@ -165,6 +165,21 @@ const openPhotoDialog = (verification) => {
     visiblePhoto.value = true;
     selectedKycVerification.value = verification;
 }
+
+
+const pageLinkSize = ref(window.innerWidth < 768 ? 3 : 5)
+
+const updatePageLinkSize = () => {
+  pageLinkSize.value = window.innerWidth < 768 ? 3 : 5
+}
+
+onMounted(() => {
+  window.addEventListener('resize', updatePageLinkSize)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updatePageLinkSize)
+})
 </script>
 
 <template>
@@ -185,9 +200,9 @@ const openPhotoDialog = (verification) => {
                 :value="verifiedMembers"
                 :paginator="verifiedMembers?.length > 0 && filteredValue?.length > 0"
                 removableSort
-                :rows="20"
-                :rowsPerPageOptions="[20, 50, 100]"
-                paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
+                :rows="100"
+                :pageLinkSize="pageLinkSize"
+                paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
                 :currentPageReportTemplate="$t('public.paginator_caption')"
                 :globalFilterFields="['name', 'email', 'transaction_number', 'transaction_type']"
                 ref="dt"
