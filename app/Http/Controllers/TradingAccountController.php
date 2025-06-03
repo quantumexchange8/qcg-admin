@@ -248,7 +248,11 @@ class TradingAccountController extends Controller
         } else {
             // Handle inactive accounts or other types
             $query = TradingUser::onlyTrashed()
-                ->withTrashed(['userData:id,first_name,email', 'trading_account:id,meta_login,equity,status', 'accountType']); // Eager load related models
+                ->with([
+                    'userData' => fn ($q) => $q->withTrashed()->select('id', 'first_name', 'email'),
+                    'trading_account' => fn ($q) => $q->withTrashed()->select('id', 'meta_login', 'equity', 'status'),
+                    'accountType' => fn ($q) => $q->withTrashed()->select('id', 'name'),
+                ]);
 
                 // Filters
                 $search = $request->input('search');
