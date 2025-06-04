@@ -240,6 +240,7 @@ class GeneralController extends Controller
                     'value' => $accountType->id,
                     'name' => $accountType->name,
                     'slug' => $accountType->slug,
+                    'account_group' => $accountType->account_group,
                     'category' => $accountType->category,
                 ];
             });

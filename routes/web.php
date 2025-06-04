@@ -164,6 +164,7 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
             Route::post('/accountAdjustment', [TradingAccountController::class, 'accountAdjustment'])->name('member.accountAdjustment');
             Route::post('/updateAccountStatus', [TradingAccountController::class, 'updateAccountStatus'])->name('member.updateAccountStatus');
             Route::post('/refreshAllAccount', [TradingAccountController::class, 'refreshAllAccount'])->name('member.refreshAllAccount');
+            Route::post('/changeAccountGroup', [TradingAccountController::class, 'changeAccountGroup'])->name('member.changeAccountGroup');
             Route::delete('/accountDelete', [TradingAccountController::class, 'accountDelete'])->name('member.accountDelete');
         });
     });

@@ -837,5 +837,9 @@ return [
     'verify_email' => 'Verify Email',
     'verify_email_desc' => 'Are you sure you want to verify this email?',
     'toast_verify_email_error' => 'Email is already verified.',
-    'toast_verify_email_success' => 'Email has been successfully verified.'
+    'toast_verify_email_success' => 'Email has been successfully verified.',
+    'change_account_type' => 'Change Account Type',
+    'change_account_type_desc' => 'Are you sure you want to the account type for #:account?',
+    'toast_change_trading_account_success' => "Trading account type has been changed!",
+    'account_type_placeholder' => 'Select Account Type',
 ];

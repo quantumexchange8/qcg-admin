@@ -8,6 +8,7 @@ import {
     IconChevronRight,
     IconUserCheck,
     IconUserCancel,
+    IconEdit
 } from "@tabler/icons-vue";
 import Button from "@/Components/Button.vue";
 import { h, ref, watch } from "vue";
@@ -19,6 +20,7 @@ import { trans, wTrans } from "laravel-vue-i18n";
 import Dialog from "primevue/dialog";
 import Adjustment from "@/Components/Adjustment.vue";
 import AccountReport from "@/Pages/Member/Account/Partials/AccountReport.vue";
+import AccountGroup from "@/Pages/Member/Account/Partials/AccountGroup.vue";
 
 const props = defineProps({
     account: Object,
@@ -64,6 +66,14 @@ const items = ref([
                 },
             },
         ],
+    },
+    {
+        label: 'change_account_type',
+        icon: h(IconEdit),
+        command: () => {
+            visible.value = true;
+            dialogType.value = 'account_type';
+        },
     },
     {
         label: 'delete_trading_account',
@@ -121,6 +131,22 @@ const requireConfirmation = (action_type, meta_login) => {
                 checked.value = !checked.value;
             }
         },
+        // change_account_type: {
+        //     group: 'headless',
+        //     color: 'primary',
+        //     icon: h(IconEdit),
+        //     header: trans('public.change_account_type'),
+        //     message: trans('public.change_account_type_desc' , {account: `${meta_login}`}),
+        //     cancelButton: trans('public.cancel'),
+        //     acceptButton: trans('public.confirm'),
+        //     action: () => {
+        //         router.post(route('member.changeAccountType'), {
+        //             data: {
+        //                 meta_login: props.account.meta_login,
+        //             },
+        //         })
+        //     }
+        // },
         delete_trading_account: {
             group: 'headless',
             color: 'error',
@@ -229,5 +255,11 @@ const handleAccountStatus = () => {
             />
         </template>
 
+        <template v-if="dialogType === 'account_type'">
+            <AccountGroup
+                :account="props.account"
+                @update:visible="visible = $event"
+            />
+        </template>
     </Dialog>
 </template>

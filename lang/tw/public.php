@@ -836,4 +836,9 @@ return [
     'verify_email_desc' => '您確定要驗證此電子郵件嗎？',
     'toast_verify_email_error' => '電子郵件已驗證。',
     'toast_verify_email_success' => '電子郵件已成功驗證。',
+    'toast_verify_email_success' => 'Email has been successfully verified.',
+    'change_account_type' => 'Change Account Type',
+    'change_account_type_desc' => 'Are you sure you want to the account type for #:account?',
+    'toast_change_trading_account_success' => "Trading account type has been changed!",
+    'account_type_placeholder' => 'Select Account Type',
 ];

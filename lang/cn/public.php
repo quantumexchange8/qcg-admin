@@ -837,4 +837,9 @@ return [
     'verify_email_desc' => '您确定要验证此电子邮件吗？',
     'toast_verify_email_error' => '电子邮件已验证。',
     'toast_verify_email_success' => '电子邮件已成功验证。',
+    'toast_verify_email_success' => '邮箱已成功验证。',
+    'change_account_type' => '更改账户类型',
+    'change_account_type_desc' => '您确定要更改账户 #:account 的类型吗？',
+    'toast_change_trading_account_success' => '交易账户类型已更改！',
+    'account_type_placeholder' => '请选择账户类型',
 ];

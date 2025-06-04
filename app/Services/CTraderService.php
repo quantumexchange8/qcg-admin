@@ -177,6 +177,15 @@ class CTraderService
         return $trade;
     }
 
+    public function changeType($meta_login): void
+    {
+        Http::acceptJson()->patch($this->baseURL . "/v2/webserv/traders/$meta_login?token=$this->token", [
+            'groupName' => $group,
+        ]);
+
+        $this->getUserInfo($meta_login);
+    }
+
 }
 
 class CTraderAccessRights
