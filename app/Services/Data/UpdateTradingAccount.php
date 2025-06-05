@@ -30,6 +30,7 @@ class UpdateTradingAccount
         $tradingAccount->equity = $data['equity'] / 100;
         $tradingAccount->cash_equity = $data['cashEquity'] / 100;
         $tradingAccount->account_type_id = $accountType->id;
+        $tradingAccount->account_type = $accountType->id;
         DB::transaction(function () use ($tradingAccount) {
             $tradingAccount->save();
         });

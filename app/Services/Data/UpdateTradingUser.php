@@ -27,6 +27,7 @@ class UpdateTradingUser
 
         $tradingUser->meta_group = $data['groupName'];
         $tradingUser->account_type_id = $accountType->id;
+        $tradingUser->account_type = $accountType->id;
         $tradingUser->leverage = $data['leverageInCents'] / 100;
         $tradingUser->registration = $data['registrationTimestamp'];
         
