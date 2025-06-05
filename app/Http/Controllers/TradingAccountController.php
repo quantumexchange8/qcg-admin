@@ -697,25 +697,25 @@ class TradingAccountController extends Controller
         }
 
         $trading_account = TradingAccount::where('meta_login', $request->meta_login)->first();
-        Log::info($request->account_group);
-        // try {
-        //     $cTraderService->changeType($trading_account->meta_login, $request->account_group);
 
-        //     // Return success response with a flag for toast
-        //     return redirect()->back()->with('toast', [
-        //         'title' => trans('public.toast_change_trading_account_success'),
-        //         'type' => 'success',
-        //     ]);
-        // } catch (\Throwable $e) {
-        //     // Log the error and return failure response
-        //     Log::error('Failed to change trading account: ' . $e->getMessage());
+        try {
+            $cTraderService->changeType($trading_account->meta_login, $request->account_group);
 
-        //     return back()
-        //         ->with('toast', [
-        //             'title' => 'No Account Found',
-        //             'type' => 'error'
-        //         ]);
-        // }
+            // Return success response with a flag for toast
+            return redirect()->back()->with('toast', [
+                'title' => trans('public.toast_change_trading_account_success'),
+                'type' => 'success',
+            ]);
+        } catch (\Throwable $e) {
+            // Log the error and return failure response
+            Log::error('Failed to change trading account: ' . $e->getMessage());
+
+            return back()
+                ->with('toast', [
+                    'title' => 'No Account Found',
+                    'type' => 'error'
+                ]);
+        }
     }
 
     public function refreshAllAccount(): void

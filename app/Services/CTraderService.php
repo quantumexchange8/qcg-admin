@@ -153,7 +153,6 @@ class CTraderService
     {
         $data = $this->getTraderGroups();
         if ($data) {
-            Log::debug($data);
             (new UpdateAccountTypeGroupIds)->execute($data);
         }
     }
