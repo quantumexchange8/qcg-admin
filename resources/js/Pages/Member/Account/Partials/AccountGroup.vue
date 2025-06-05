@@ -26,7 +26,7 @@ getOptions();
 
 const form = useForm({
     meta_login: props.account.meta_login,
-    account_group: props.account.account_type,
+    account_group: props.account.account_group,
 })
 
 const submitForm = () => {

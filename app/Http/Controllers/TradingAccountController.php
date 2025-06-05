@@ -64,7 +64,7 @@ class TradingAccountController extends Controller
             $accounts = TradingUser::with([
                     'userData:id,first_name,email',
                     'trading_account:id,meta_login,equity,status',
-                    'accountType:id,name',
+                    'accountType:id,name,account_group',
                 ])
                 ->leftJoinSub(
                     $subQuery, // Join the subquery
@@ -93,6 +93,7 @@ class TradingAccountController extends Controller
                         'last_login' => $account->last_access,
                         'account_type_id' => $account->accountType->id,
                         'account_type' => $account->accountType->name,
+                        'account_group' => $account->accountType->account_group,
                         'is_active' => $isActive,
                         'status' => $account->trading_account->status,
                     ];
@@ -103,8 +104,8 @@ class TradingAccountController extends Controller
                 ->with([
                     'userData:id,first_name,email',
                     'trading_account:id,user_id,meta_login',
-                    'accountType:id,name'
-                ])->withTrashed(['user:id,first_name,email', 'trading_account:id,user_id,meta_login', 'accountType:id,name']);
+                    'accountType:id,name,account_group'
+                ])->withTrashed(['user:id,first_name,email', 'trading_account:id,user_id,meta_login', 'accountType:id,name,account_group']);
 
             $accounts = $accountQuery
                 ->orderByDesc('deleted_at')
@@ -123,6 +124,7 @@ class TradingAccountController extends Controller
                         'last_login' => $account->last_access,
                         'account_type_id' => $account->accountType->id,
                         'account_type' => $account->accountType->name,
+                        'account_group' => $account->accountType->account_group,
                     ];
                 });
         }
@@ -220,6 +222,7 @@ class TradingAccountController extends Controller
                 $account->equity = $account->trading_account->equity ?? 0;
                 $account->account_type_id = $account->accountType->id;
                 $account->account_type = $account->accountType->name;
+                $account->account_group = $account->accountType->account_group;
                 // Calculate `is_active` dynamically
                 $account->is_active = (
                     ($account->last_access && $account->last_access >= $inactiveThreshold) ||  // Check if last_login is not null
@@ -309,6 +312,7 @@ class TradingAccountController extends Controller
                 $account->email = $account->userData->email;
                 $account->account_type_id = $account->accountType->id;
                 $account->account_type = $account->accountType->name;
+                $account->account_group = $account->accountType->account_group;
 
                 // Remove unnecessary nested data (users and trading_account)
                 unset($account->userData);
@@ -693,25 +697,25 @@ class TradingAccountController extends Controller
         }
 
         $trading_account = TradingAccount::where('meta_login', $request->meta_login)->first();
+        Log::info($request->account_group);
+        // try {
+        //     $cTraderService->changeType($trading_account->meta_login, $request->account_group);
 
-        try {
-            $cTraderService->changeType($trading_account->meta_login, $request->account_group);
+        //     // Return success response with a flag for toast
+        //     return redirect()->back()->with('toast', [
+        //         'title' => trans('public.toast_change_trading_account_success'),
+        //         'type' => 'success',
+        //     ]);
+        // } catch (\Throwable $e) {
+        //     // Log the error and return failure response
+        //     Log::error('Failed to change trading account: ' . $e->getMessage());
 
-            // Return success response with a flag for toast
-            return redirect()->back()->with('toast', [
-                'title' => trans('public.toast_change_trading_account_success'),
-                'type' => 'success',
-            ]);
-        } catch (\Throwable $e) {
-            // Log the error and return failure response
-            Log::error('Failed to change trading account: ' . $e->getMessage());
-
-            return back()
-                ->with('toast', [
-                    'title' => 'No Account Found',
-                    'type' => 'error'
-                ]);
-        }
+        //     return back()
+        //         ->with('toast', [
+        //             'title' => 'No Account Found',
+        //             'type' => 'error'
+        //         ]);
+        // }
     }
 
     public function refreshAllAccount(): void

@@ -109,6 +109,7 @@ class DashboardController extends Controller
         $from = '2020-01-01T00:00:00.000';
         $to = now()->format('Y-m-d\TH:i:s.v');
 
+        (new CTraderService)->getAccountTypeGroupIds(); 
         if (App::environment('production')) {
             // Ensure account type group IDs are updated before fetching the trader data
             (new CTraderService)->getAccountTypeGroupIds();  // Update account type group IDs
