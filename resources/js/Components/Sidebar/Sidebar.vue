@@ -52,7 +52,7 @@ onMounted(() => {
         @mouseenter="sidebarState.handleHover(true)"
         @mouseleave="sidebarState.handleHover(false)"
     >
-        <div class="w-full flex flex-col h-full px-5 py-8 gap-8 bg-white items-center overflow-y-auto no-scrollbar">
+        <div class="w-full flex flex-col h-full px-5 py-8 gap-6 bg-white items-center overflow-y-auto no-scrollbar">
         <!-- <SidebarHeader /> -->
 
             <div class="w-full h-full flex flex-col justify-center items-center overflow-y-auto no-scrollbar">

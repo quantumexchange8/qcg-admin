@@ -841,4 +841,13 @@ return [
     'change_account_type_desc' => 'Are you sure you want to the account type for #:account?',
     'toast_change_trading_account_success' => "Trading account type has been changed!",
     'account_type_placeholder' => 'Select Account Type',
+    'sidebar_ticket_setting' => '工單設定',
+    'enable_ticket_center_scheduler' => '啟用工單中心排程',
+    'ticket_center_scheduler_desc' => '為每天設定特定時間，控制使用者可見工單中心圖示的時間。適用於限制支援僅在工作時間提供。',
+    'add_another' => '新增一個',
+    'ticket_category' => '工單分類',
+    'agent_ticket_access' => '代理工單存取權限',
+    'access_level' => '存取層級',
+    'simplified_chinese' => '簡體中文',
+    'traditional_chinese' => '繁體中文',
 ];

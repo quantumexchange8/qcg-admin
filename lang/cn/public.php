@@ -842,4 +842,13 @@ return [
     'change_account_type_desc' => '您确定要更改账户 #:account 的类型吗？',
     'toast_change_trading_account_success' => '交易账户类型已更改！',
     'account_type_placeholder' => '请选择账户类型',
+    'sidebar_ticket_setting' => '工单设置',
+    'enable_ticket_center_scheduler' => '启用工单中心排程',
+    'ticket_center_scheduler_desc' => '为每天设置特定时间，控制用户可见工单中心图标的时间。适用于限制在工作时间内提供支持。',
+    'add_another' => '添加另一个',
+    'ticket_category' => '工单类别',
+    'agent_ticket_access' => '代理工单访问权限',
+    'access_level' => '访问级别',
+    'simplified_chinese' => '简体中文',
+    'traditional_chinese' => '繁體中文',
 ];

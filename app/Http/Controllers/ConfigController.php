@@ -31,6 +31,11 @@ class ConfigController extends Controller
         return Inertia::render('Configuration/TradePointSetting');
     }
 
+    public function ticket_setting()
+    {
+        return Inertia::render('Configuration/TicketSetting');
+    }
+
     public function getAutoApprovalSettings()
     {
         $approvalSchedule = SettingAutoApproval::orderBy('day')->get();

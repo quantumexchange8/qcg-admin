@@ -842,4 +842,13 @@ return [
     'change_account_type_desc' => 'Are you sure you want to the account type for #:account?',
     'toast_change_trading_account_success' => "Trading account type has been changed!",
     'account_type_placeholder' => 'Select Account Type',
+    'sidebar_ticket_setting' => 'Ticket Setting',
+    'enable_ticket_center_scheduler' => 'Enable Ticket Center Scheduler',
+    'ticket_center_scheduler_desc' => 'Set specific times for each day when the ticket center icon will be visible to users. Useful for limiting support access to working hours.',
+    'add_another' => 'Add Another',
+    'ticket_category' => 'Ticket Category',
+    'agent_ticket_access' => 'Agent Ticket Access',
+    'access_level' => 'Access Level',
+    'simplified_chinese' => 'Simplified Chinese',
+    'traditional_chinese' => 'Traditional Chinese',
 ];

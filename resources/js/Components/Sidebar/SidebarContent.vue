@@ -363,15 +363,22 @@ watchEffect(() => {
             <SidebarCollapsibleItem
                 :title="$t('public.sidebar_auto_deposit')"
                 :href="route('configuration.auto_deposit')"
-                :active="route().current('transaction.auto_deposit')"
+                :active="route().current('configuration.auto_deposit')"
                 v-if="hasRole('super-admin') || hasPermission('access_auto_deposit')"
             />
 
             <SidebarCollapsibleItem
                 :title="$t('public.sidebar_trade_point_setting')"
                 :href="route('configuration.trade_point_setting')"
-                :active="route().current('transaction.trade_point_setting')"
-                v-if="hasRole('super-admin') || hasPermission('access_wtrade_point_setting')"
+                :active="route().current('configuration.trade_point_setting')"
+                v-if="hasRole('super-admin') || hasPermission('access_trade_point_setting')"
+            />
+
+            <SidebarCollapsibleItem
+                :title="$t('public.sidebar_ticket_setting')"
+                :href="route('configuration.ticket_setting')"
+                :active="route().current('configuration.ticket_setting')"
+                v-if="hasRole('super-admin') || hasPermission('access_ticket_setting')"
             />
         </SidebarCollapsible>
         <!-- Components -->
