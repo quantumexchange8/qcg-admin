@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use App\Models\SettingAutoApproval;
+use App\Models\SettingTicketSchedule;
 use App\Models\Team;
 use App\Models\TradePointHistory;
 use App\Models\TradePointDetail;
@@ -94,6 +95,69 @@ class ConfigController extends Controller
             throw $e; // Let Laravel handle validation errors for Inertia forms
         } catch (\Throwable $e) {
             Log::error('Auto approval update failed', ['error' => $e->getMessage()]);
+        
+            return redirect()->back()->with('toast', [
+                'title' => trans('public.toast_default_error'),
+                'type' => 'error'
+            ]);
+        }
+    }
+
+    public function getTicketScheduleSettings()
+    {
+        $ticketSchedule = SettingTicketSchedule::orderBy('day')->get();
+
+        return response()->json([
+            'ticketSchedule' => $ticketSchedule,
+        ]);
+    }
+
+    public function updateTicketScheduleSettings(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'settings.*.start_time' => ['nullable'],
+                'settings.*.end_time' => ['nullable'],
+            ], [
+                'settings.*.end_time.after' => trans('public.start_end_time'),
+            ])->setAttributeNames([
+                'settings.*.start_time' => trans('public.start_time'),
+                'settings.*.end_time' => trans('public.end_time'),
+            ]);
+        
+            foreach ($request->settings as $index => $setting) {
+                if ($setting['status']) {
+                    $validator->sometimes("settings.$index.start_time", ['required'], fn () => true);
+                    $validator->sometimes("settings.$index.end_time", ['required', "after:settings.$index.start_time"], fn () => true);
+                }
+            }
+        
+            $validator->validate();
+        
+            foreach ($request->settings as $setting) {
+                $data = [
+                    'status' => $setting['status'] ? 'active' : 'inactive',
+                ];
+        
+                if ($setting['status']) {
+                    $data['start_time'] = Carbon::parse($setting['start_time'])->setTimezone('Asia/Kuala_Lumpur')->format('H:i');
+                    $data['end_time'] = Carbon::parse($setting['end_time'])->setTimezone('Asia/Kuala_Lumpur')->format('H:i');
+                }
+        
+                SettingTicketSchedule::updateOrCreate(
+                    ['day' => $setting['day']],
+                    $data
+                );
+            }
+        
+            return redirect()->back()->with('toast', [
+                'title' => trans('public.toast_update_ticket_schedule_success'),
+                'type' => 'success'
+            ]);
+        } catch (ValidationException $e) {
+            throw $e; // Let Laravel handle validation errors for Inertia forms
+        } catch (\Throwable $e) {
+            Log::error('Ticket schedule update failed', ['error' => $e->getMessage()]);
         
             return redirect()->back()->with('toast', [
                 'title' => trans('public.toast_default_error'),

@@ -349,6 +349,8 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
 
         Route::get('/getAutoApprovalSettings', [ConfigController::class, 'getAutoApprovalSettings'])->name('configuration.getAutoApprovalSettings');
         Route::post('/updateAutoApprovalSettings', [ConfigController::class, 'updateAutoApprovalSettings'])->name('configuration.updateAutoApprovalSettings');
+        Route::get('/getTicketScheduleSettings', [ConfigController::class, 'getTicketScheduleSettings'])->name('configuration.getTicketScheduleSettings');
+        Route::post('/updateTicketScheduleSettings', [ConfigController::class, 'updateTicketScheduleSettings'])->name('configuration.updateTicketScheduleSettings');
 
         Route::get('/getVisibleToOptions', [ConfigController::class, 'getVisibleToOptions'])->name('configuration.getVisibleToOptions');
         Route::post('/clearPoints', [ConfigController::class, 'clearPoints'])->name('configuration.clearPoints');

@@ -12,12 +12,11 @@ import {
 import {usePage} from "@inertiajs/vue3";
 import InputError from "@/Components/InputError.vue";
 
-const approvalSchedule = ref();
+const ticketSchedule = ref();
 const loading = ref(false);
 
 const form = useForm({
     settings: [],
-    amount: null,
 });
 
 const checked = ref(false);
@@ -33,20 +32,18 @@ const getSettings = async () => {
     loading.value = true;
 
     try {
-        const response = await axios.get('/configuration/getAutoApprovalSettings');
-        approvalSchedule.value = response.data.approvalSchedule;
+        const response = await axios.get('/configuration/getTicketScheduleSettings');
+        ticketSchedule.value = response.data.ticketSchedule;
         
-        form.settings = approvalSchedule.value.map(setting => ({
+        form.settings = ticketSchedule.value.map(setting => ({
             day: setting.day,
             status: setting.status === 'active',
             start_time: setting.start_time,
             end_time: setting.end_time,
         }));
-        checked.value = approvalSchedule.value.some(setting => setting.status === 'active');
-        const foundAmount = approvalSchedule.value.find(setting => setting.spread_amount !== null);
-        if (foundAmount) {
-            form.amount = foundAmount.spread_amount;
-        }
+        checked.value = ticketSchedule.value.some(setting => setting.status === 'active');
+        //  console.log('test')
+        //  console.log(form.settings)
     } catch (error) {
         console.error('Error changing locale:', error);
     } finally {
@@ -60,13 +57,13 @@ const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
 const dayName = (dayNumber) => days[dayNumber - 1] ?? 'Unknown';
 
 const submitForm = () => {
-    // console.log(form)
-    // form.post(route('configuration.updateAutoApprovalSettings'), {
-    //     preserveScroll: true,
-    //     // onError: () => {
-    //     //     console.log(form.errors)
-    //     // },
-    // });
+    //  console.log(form.settings)
+    form.post(route('configuration.updateTicketScheduleSettings'), {
+        preserveScroll: true,
+        // onError: () => {
+        //     console.log(form.errors)
+        // },
+    });
 };
 
 watchEffect(() => {

@@ -851,4 +851,5 @@ return [
     'access_level' => 'Access Level',
     'simplified_chinese' => 'Simplified Chinese',
     'traditional_chinese' => 'Traditional Chinese',
+    'toast_update_ticket_schedule_success' => 'Successfully updated ticket schedule setting!',
 ];
