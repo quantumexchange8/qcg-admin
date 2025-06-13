@@ -852,4 +852,9 @@ return [
     'simplified_chinese' => 'Simplified Chinese',
     'traditional_chinese' => 'Traditional Chinese',
     'toast_update_ticket_schedule_success' => 'Successfully updated ticket schedule setting!',
+    'view_only' => 'View Only',
+    'full_access' => 'Full Access',
+    'select_access_level' => 'Select Access Level',
+    'changes_saved_successfully' => 'Changes saved successfully!',
+    'failed_to_save_changes' => 'Error saving changes!',
 ];

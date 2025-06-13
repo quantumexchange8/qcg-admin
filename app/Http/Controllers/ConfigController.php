@@ -11,6 +11,8 @@ use App\Models\TradePointDetail;
 use App\Models\TradePointPeriod;
 use App\Models\User;
 use App\Models\Wallet;
+use App\Models\TicketCategory;
+use App\Models\TicketAgentAccessibility;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Collection;
@@ -165,6 +167,52 @@ class ConfigController extends Controller
             ]);
         }
     }
+
+    public function getTicketCategories()
+    {
+        $ticketCategories = TicketCategory::orderBy('order')->get()->map(function ($ticketCategory) {
+            $category = json_decode($ticketCategory->category, true);
+
+            return [
+                'category_id' => $ticketCategory->id,
+                'category' => $category,
+                'order' => $ticketCategory->order,
+            ];
+         })->values();
+
+        return response()->json([
+            'ticketCategories' => $ticketCategories,
+        ]);
+    }
+
+    public function updateTicketCategories(Request $request)
+    {
+        foreach ($request->categories as $item) {
+            TicketCategory::where('id', $item['category_id'])->update([
+                'category' => json_encode($item['category']),
+                'order' => $item['order'],
+            ]);
+        }
+    }
+
+    public function getAgentAccesses()
+    {
+        $agentAccesses = TicketAgentAccessibility::with('user:id,first_name,chinese_name')->get();
+
+        return response()->json([
+            'agentAccesses' => $agentAccesses,
+        ]);
+    }
+
+    // public function updateAgentAccesses(Request $request)
+    // {
+    //     $agentAccesses = TicketAgentAccessibility::get();
+
+    //     return response()->json([
+    //         'agentAccesses' => $agentAccesses,
+    //     ]);
+    // }
+
 
     public function getVisibleToOptions(Request $request)
     {

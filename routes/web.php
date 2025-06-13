@@ -351,6 +351,10 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
         Route::post('/updateAutoApprovalSettings', [ConfigController::class, 'updateAutoApprovalSettings'])->name('configuration.updateAutoApprovalSettings');
         Route::get('/getTicketScheduleSettings', [ConfigController::class, 'getTicketScheduleSettings'])->name('configuration.getTicketScheduleSettings');
         Route::post('/updateTicketScheduleSettings', [ConfigController::class, 'updateTicketScheduleSettings'])->name('configuration.updateTicketScheduleSettings');
+        Route::get('/getTicketCategories', [ConfigController::class, 'getTicketCategories'])->name('configuration.getTicketCategories');
+        Route::post('/updateTicketCategories', [ConfigController::class, 'updateTicketCategories'])->name('configuration.updateTicketCategories');
+        Route::get('/getAgentAccesses', [ConfigController::class, 'getAgentAccesses'])->name('configuration.getAgentAccesses');
+        Route::post('/updateAgentAccesses', [ConfigController::class, 'updateAgentAccesses'])->name('configuration.updateAgentAccesses');
 
         Route::get('/getVisibleToOptions', [ConfigController::class, 'getVisibleToOptions'])->name('configuration.getVisibleToOptions');
         Route::post('/clearPoints', [ConfigController::class, 'clearPoints'])->name('configuration.clearPoints');
