@@ -222,6 +222,7 @@ class TradingAccountController extends Controller
                 $account->equity = $account->trading_account->equity ?? 0;
                 $account->account_type_id = $account->accountType->id;
                 $account->account_type = $account->accountType->name;
+                $account->account_type_color = $account->accountType->color;
                 $account->account_group = $account->accountType->account_group;
                 // Calculate `is_active` dynamically
                 $account->is_active = (
@@ -312,6 +313,7 @@ class TradingAccountController extends Controller
                 $account->email = $account->userData->email;
                 $account->account_type_id = $account->accountType->id;
                 $account->account_type = $account->accountType->name;
+                $account->account_type_color = $account->accountType->color;
                 $account->account_group = $account->accountType->account_group;
 
                 // Remove unnecessary nested data (users and trading_account)

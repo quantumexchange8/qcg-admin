@@ -382,9 +382,16 @@ onUnmounted(() => {
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.leverage') }}</span>
                     <span class="w-full truncate text-gray-950 text-sm font-medium">1:{{ data?.leverage }}</span>
                 </div>
-                <div class="w-full flex flex-col items-start gap-1 md:flex-row">
+                <div class="w-full flex flex-col items-start md:items-center gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.account_type') }}</span>
-                    <span class="w-full truncate text-gray-950 text-sm font-medium">{{ data?.account_type }}</span>
+                    <div
+                        class="flex px-2 py-1 justify-center items-center text-xs rounded-sm text-white"
+                        :style="{
+                            backgroundColor: `#${data?.account_type_color}`,
+                        }"
+                    >
+                        {{ data?.account_type }}
+                    </div>
                 </div>
             </div>
 

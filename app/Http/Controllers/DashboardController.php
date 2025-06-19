@@ -68,12 +68,34 @@ class DashboardController extends Controller
     {
         $total_deposit = Transaction::whereIn('transaction_type', ['deposit', 'rebate_in', 'balance_in', 'credit_in'])
             ->where('status', 'successful')
+            ->where(function ($query) {
+                $query->whereHas('toMetaLogin', function ($q) {
+                    $q->whereHas('accountType', function ($q2) {
+                        $q2->where('account_group', 'STANDARD.t');
+                    });
+                })
+                ->orWhere(function ($q) {
+                    $q->whereNull('to_meta_login')
+                    ->orWhereDoesntHave('toMetaLogin');
+                });
+            })
             ->sum('transaction_amount');
-    
+            
         $total_withdrawal = Transaction::whereIn('transaction_type', ['withdrawal', 'rebate_out', 'balance_out', 'credit_out'])
             ->where('status', 'successful')
+            ->where(function ($query) {
+                $query->whereHas('fromMetaLogin', function ($q) {
+                    $q->whereHas('accountType', function ($q2) {
+                        $q2->where('account_group', 'STANDARD.t');
+                    });
+                })
+                ->orWhere(function ($q) {
+                    $q->whereNull('from_meta_login')
+                    ->orWhereDoesntHave('fromMetaLogin');
+                });
+            })
             ->sum('amount');
-        
+
         $total_agent = User::where('role', 'agent')->count();
 
         $total_member = User::where('role', 'member')->count();
@@ -81,11 +103,33 @@ class DashboardController extends Controller
         $today_deposit = Transaction::whereIn('transaction_type', ['deposit', 'rebate_in', 'balance_in', 'credit_in'])
             ->where('status', 'successful')
             ->whereDate('created_at', today())
+            ->where(function ($query) {
+                $query->whereHas('toMetaLogin', function ($q) {
+                    $q->whereHas('accountType', function ($q2) {
+                        $q2->where('account_group', 'STANDARD.t');
+                    });
+                })
+                ->orWhere(function ($q) {
+                    $q->whereNull('to_meta_login')
+                    ->orWhereDoesntHave('toMetaLogin');
+                });
+            })
             ->sum('transaction_amount');
 
         $today_withdrawal = Transaction::whereIn('transaction_type', ['withdrawal', 'rebate_out', 'balance_out', 'credit_out'])
             ->where('status', 'successful')
             ->whereDate('created_at', today())
+            ->where(function ($query) {
+                $query->whereHas('fromMetaLogin', function ($q) {
+                    $q->whereHas('accountType', function ($q2) {
+                        $q2->where('account_group', 'STANDARD.t');
+                    });
+                })
+                ->orWhere(function ($q) {
+                    $q->whereNull('from_meta_login')
+                    ->orWhereDoesntHave('fromMetaLogin');
+                });
+            })
             ->sum('amount');
 
         $today_agent = User::where('role', 'agent')->whereDate('created_at', today())->count();

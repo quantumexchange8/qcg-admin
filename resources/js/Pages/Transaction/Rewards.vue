@@ -675,25 +675,38 @@ onUnmounted(() => {
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.rewards_name') }}</span>
                     <span class="w-full truncate text-gray-950 text-sm font-medium">{{ data?.reward_type === 'cash_rewards' ? '💰 ' : '🎁 '  }}{{ data?.reward_name[locale] || '-' }}</span>
                 </div>
-                <div v-if="data?.reward_type === 'cash_rewards'" class="w-full flex flex-col items-start gap-1 md:flex-row">
-                    <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.receiving_account') }}</span>
-                    <span class="flex gap-1 break-all text-gray-950 text-sm font-medium relative">
-                        {{ data?.receiving_account || '-' }}
-                        <IconCopy
-                            v-if="data?.receiving_account"
-                            size="20"
-                            stroke-width="1.25"
-                            class="text-gray-500 inline-block cursor-pointer grow-0 shrink-0"
-                            v-tooltip.top="$t(`public.${tooltipText}`)"
-                            @click="copyToClipboard('receiving_account', data.receiving_account)"
-                        />
-                        <Tag
-                            v-if="activeTag === 'receiving_account' && tooltipText === 'copied'"
-                            class="absolute -top-7 -right-3"
-                            severity="contrast"
-                            :value="$t(`public.${tooltipText}`)"
-                        ></Tag>
-                    </span>
+                <div v-if="data?.reward_type === 'cash_rewards'" class="flex flex-col items-center gap-3 self-stretch">
+                    <div class="w-full flex flex-col items-start gap-1 md:flex-row">
+                        <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.receiving_account') }}</span>
+                        <span class="flex gap-1 break-all text-gray-950 text-sm font-medium relative">
+                            {{ data?.receiving_account || '-' }}
+                            <IconCopy
+                                v-if="data?.receiving_account"
+                                size="20"
+                                stroke-width="1.25"
+                                class="text-gray-500 inline-block cursor-pointer grow-0 shrink-0"
+                                v-tooltip.top="$t(`public.${tooltipText}`)"
+                                @click="copyToClipboard('receiving_account', data.receiving_account)"
+                            />
+                            <Tag
+                                v-if="activeTag === 'receiving_account' && tooltipText === 'copied'"
+                                class="absolute -top-7 -right-3"
+                                severity="contrast"
+                                :value="$t(`public.${tooltipText}`)"
+                            ></Tag>
+                        </span>
+                    </div>
+                    <div v-if="data.account_type" class="flex flex-col items-start md:items-center gap-1 md:flex-row self-stretch">
+                        <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.account_type') }}</span>
+                        <div
+                            class="flex px-2 py-1 justify-center items-center text-xs rounded-sm text-white"
+                            :style="{
+                                backgroundColor: `#${data.account_type_color}`,
+                            }"
+                        >
+                            {{ data.account_type }}
+                        </div>
+                    </div>
                 </div>
                 <div v-else class="w-full flex flex-col gap-3">
                     <div class="w-full flex flex-col items-start gap-1 md:flex-row">
