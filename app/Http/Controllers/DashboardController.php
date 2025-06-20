@@ -168,7 +168,9 @@ class DashboardController extends Controller
             $response = (new CTraderService)->getMultipleTraders($from, $to, $groupId);
 
             // Find the corresponding AccountType model
-            $accountType = AccountType::where('account_group_id', $groupId)->first();
+            // $accountType = AccountType::where('account_group_id', $groupId)->first();
+
+            $accountType = AccountType::where('account_group', 'STANDARD.t')->first();
 
             // Initialize or reset group balance and equity
             $groupBalance = 0;
@@ -198,8 +200,8 @@ class DashboardController extends Controller
         }
 
         // Recalculate total balance and equity from the updated account types
-        $totalBalance = AccountType::sum('account_group_balance');
-        $totalEquity = AccountType::sum('account_group_equity');
+        $totalBalance = AccountType::where('account_group', 'STANDARD.t')->sum('account_group_balance');
+        $totalEquity = AccountType::where('account_group', 'STANDARD.t')->sum('account_group_equity');
 
         // Return the total balance and total equity as a JSON response
         return response()->json([
