@@ -24,6 +24,7 @@ const getResults = async () => {
         const response = await axios.get('/configuration/getTicketCategories');
         
         ticketCategories.value = response.data.ticketCategories;
+        // console.log(ticketCategories.value)
     } catch (error) {
         console.error('Error getting categories:', error);
     } finally {
@@ -46,7 +47,7 @@ const addNewCategory = () => {
 };
 
 const onCellEditComplete = (event) => { 
-    // console.log(ticketCategories);
+    // console.log(event);
 }
 
 const saveChanges = async () => {
@@ -110,7 +111,7 @@ const saveChanges = async () => {
                             </Column>
                             <Column
                                 field="en"
-                                :header="`${$t('public.english')}`"
+                                :header="$t('public.english')"
                                 style="width:31%;"
                             >
                                 <template #body="slotProps">
@@ -128,7 +129,7 @@ const saveChanges = async () => {
                             </Column>
                             <Column
                                 field="cn"
-                                :header="`${$t('public.simplified_chinese')}`"
+                                :header="$t('public.simplified_chinese')"
                                 style="width:31%;"
                             >
                                 <template #body="slotProps">
@@ -146,7 +147,7 @@ const saveChanges = async () => {
                             </Column>
                             <Column
                                 field="tw"
-                                :header="`${$t('public.traditional_chinese')}`"
+                                :header="$t('public.traditional_chinese')"
                                 style="width:31%;"
                             >
                                 <template #body="slotProps">

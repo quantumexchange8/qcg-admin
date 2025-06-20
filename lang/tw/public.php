@@ -850,4 +850,11 @@ return [
     'access_level' => '存取層級',
     'simplified_chinese' => '簡體中文',
     'traditional_chinese' => '繁體中文',
+    'toast_update_ticket_schedule_success' => '成功更新工單時間表設定！',
+    'view_only' => '僅檢視',
+    'full_access' => '完全存取',
+    'select_access_level' => '選擇存取層級',
+    'changes_saved_successfully' => '變更已成功儲存！',
+    'failed_to_save_changes' => '儲存變更時發生錯誤！',
+    'select_agent' => '選擇代理',
 ];

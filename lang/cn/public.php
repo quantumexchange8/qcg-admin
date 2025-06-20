@@ -851,4 +851,11 @@ return [
     'access_level' => '访问级别',
     'simplified_chinese' => '简体中文',
     'traditional_chinese' => '繁體中文',
+    'toast_update_ticket_schedule_success' => '成功更新工单时间表设置！',
+    'view_only' => '仅查看',
+    'full_access' => '完全访问',
+    'select_access_level' => '选择访问级别',
+    'changes_saved_successfully' => '更改已成功保存！',
+    'failed_to_save_changes' => '保存更改时出错！',
+    'select_agent' => '选择代理',
 ];

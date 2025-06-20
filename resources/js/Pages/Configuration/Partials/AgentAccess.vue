@@ -11,6 +11,8 @@ import DataTable from "primevue/datatable";
 import Column from "primevue/column";
 import { trans, wTrans } from "laravel-vue-i18n";
 import Select from "primevue/select";
+import InputText from "primevue/inputtext";
+import toast from '@/Composables/toast';
 
 const accessLevels = [
     { name: wTrans('public.view_only'), value: 'view' },
@@ -18,6 +20,7 @@ const accessLevels = [
 ];
 
 const agentAccesses = ref();
+const agents = ref();
 const dt = ref();
 const loading = ref(false);
 
@@ -27,7 +30,10 @@ const getResults = async () => {
     try {
         const response = await axios.get('/configuration/getAgentAccesses');
         
+        agents.value = response.data.agents;
+        // console.log(agents.value)
         agentAccesses.value = response.data.agentAccesses;
+        // console.log(agentAccesses.value)
         console.log(agentAccesses)
     } catch (error) {
         console.error('Error getting accessbilities:', error);
@@ -48,6 +54,41 @@ const getAccessLevelDisplay = computed(() => (accessLevel) => {
       return wTrans('public.unknown');
   }
 });
+
+const onCellEditComplete = (event) => {
+    let { data, newValue, field } = event;
+
+    if (field === 'user') {
+        data[field] = newValue;
+        console.log(event)
+    } else if (field === 'access_level') {
+        data[field] = newValue;
+    }
+};
+
+const saveChanges = async () => {
+    try {
+        loading.value = true;
+
+        await axios.post('/configuration/updateAgentAccesses', {
+            agentAccesses: agentAccesses.value
+        })
+
+        // const response = await axios.post('/configuration/updateTicketCategories', ticketCategories.value);
+        // const result = await response.json();
+
+        // console.log('Changes saved:', ticketCategories.value);
+
+        toast.add({ type: 'success', title: wTrans('public.changes_saved_successfully') });
+
+    } catch (error) {
+        console.error('Error saving changes:', error);
+        toast.add({ type: 'error', title: wTrans('public.failed_to_save_changes') });
+    } finally {
+        loading.value = false;
+    }
+};
+
 </script>
 
 <template>
@@ -74,34 +115,59 @@ const getAccessLevelDisplay = computed(() => (accessLevel) => {
                         editMode="cell" 
                         @cell-edit-complete="onCellEditComplete"
                     >
-                        <template>
-                            <Column
-                                field="agent"
-                                :header="`${$t('public.agent')}`"
-                            >
-                                <template #body="slotProps">
-                                    {{ slotProps.data.user.chinese_name ?? slotProps.data.user.first_name }}
-                                </template>
-                            </Column>
-                            <Column
-                                field="access_level"
-                                :header="`${$t('public.access_level')}`"
-                            >
-                                <template #body="slotProps">
-                                    {{ getAccessLevelDisplay(slotProps.data.access_level) }}
-                                </template>
-                            </Column>
-                        </template>
+                        <Column
+                            field="user"
+                            :header="$t('public.agent')"
+                            class="w-1/2"
+                        >
+                            <template #body="slotProps">
+                                {{ slotProps.data.user.name }}
+                            </template>
+                            <template #editor="{ data, field }">
+                                <div class="w-full flex flex-col">
+                                    <Select
+                                        v-model="data[field]"
+                                        :options="agents"
+                                        filter
+                                        :filterFields="['name']"
+                                        optionLabel="name"
+                                        :placeholder="$t('public.select_agent')"
+                                        class="w-full font-normal md:w-60"
+                                    />
+                                </div>
+                            </template>
+                        </Column>
+                        <Column
+                            field="access_level"
+                            :header="$t('public.access_level')"
+                            class="w-1/2"
+                        >
+                            <template #body="slotProps">
+                                {{ getAccessLevelDisplay(slotProps.data.access_level) }}
+                            </template>
+                            <template #editor="{ data, field }">
+                                <div class="w-full flex flex-col">
+                                    <Select
+                                        v-model="data[field]"
+                                        :options="accessLevels"
+                                        optionLabel="name"
+                                        optionValue="value"
+                                        :placeholder="$t('public.select_access_level')"
+                                        class="w-full font-normal md:w-60"
+                                    />
+                                </div>
+                            </template>
+                        </Column>
                     </DataTable>
 
-                    <Select
+                    <!-- <Select
                         
                         :options="accessLevels"
                         optionLabel="name"
                         optionValue="value"
                         :placeholder="$t('public.select_access_level')"
                         class="w-full font-normal md:w-60"
-                    />
+                    /> -->
 
                     <!-- <div class="flex items-center w-full self-stretch py-3 text-gray-700 bg-gray-50 border-b border-gray-100">
                         <span class="uppercase text-xs font-bold px-3 w-full">{{ $t('public.agent') }}</span>
@@ -131,8 +197,10 @@ const getAccessLevelDisplay = computed(() => (accessLevel) => {
                     </div> -->
                 </div>
                 <Button
+                    type="button"
                     variant="primary-flat"
                     class="self-end"
+                    @click="saveChanges"
                 >
                     {{ $t('public.save_changes') }}
                 </Button>

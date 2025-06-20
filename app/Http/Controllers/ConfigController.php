@@ -193,25 +193,52 @@ class ConfigController extends Controller
                 'order' => $item['order'],
             ]);
         }
+
+        return redirect()->back()->with('toast', [
+            'title' => trans('public.toast_update_ticket_schedule_success'),
+            'type' => 'success'
+        ]);
     }
 
     public function getAgentAccesses()
     {
+        $has_access = TicketAgentAccessibility::pluck('user_id')->toArray();
+        $agents = User::where('role', 'agent')
+            ->select('id', 'first_name', 'chinese_name')
+            ->get()->map(function ($agent) {   
+                return [
+                    'id' => $agent->id,
+                    'name' => !empty($agent->chinese_name) ? $agent->chinese_name : $agent->first_name,
+                ];
+             })->values();
+
         $agentAccesses = TicketAgentAccessibility::with('user:id,first_name,chinese_name')->get();
 
+        $agentAccesses = $agentAccesses->map(function ($access) {
+            if ($access->user) {
+                $access->user->name = $access->user->chinese_name ?? $access->user->first_name;
+
+                unset($access->user->first_name);
+                unset($access->user->chinese_name);
+            }
+            return $access;
+        });
+
         return response()->json([
+            'agents' => $agents,
             'agentAccesses' => $agentAccesses,
         ]);
     }
 
-    // public function updateAgentAccesses(Request $request)
-    // {
-    //     $agentAccesses = TicketAgentAccessibility::get();
-
-    //     return response()->json([
-    //         'agentAccesses' => $agentAccesses,
-    //     ]);
-    // }
+    public function updateAgentAccesses(Request $request)
+    {
+        foreach ($request->agentAccesses as $access) {
+            TicketAgentAccessibility::where('id', $access['id'])->update([
+                'user_id' => $access['user']['id'],
+                'access_level' => $access['access_level'],
+            ]);
+        }
+    }
 
 
     public function getVisibleToOptions(Request $request)

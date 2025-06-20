@@ -857,4 +857,5 @@ return [
     'select_access_level' => 'Select Access Level',
     'changes_saved_successfully' => 'Changes saved successfully!',
     'failed_to_save_changes' => 'Error saving changes!',
+    'select_agent' => 'Select Agent',
 ];
