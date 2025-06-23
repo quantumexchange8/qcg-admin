@@ -254,6 +254,7 @@ class DashboardController extends Controller
                 COALESCE(SUM(CASE WHEN tlv_day = 0 THEN tlv_lotsize END), SUM(tlv_lotsize)) AS total_trade_lots,
                 COALESCE(SUM(CASE WHEN tlv_day = 0 THEN tlv_volume_usd END), SUM(tlv_volume_usd)) AS total_volume
             ")
+            ->where('tlv_group', 'STANDARD.t')
             ->groupBy('tlv_year', 'tlv_month')
             ->get();
 
@@ -269,13 +270,13 @@ class DashboardController extends Controller
             $totalTradeLots = TradeLotSizeVolume::whereBetween(
                     DB::raw('DATE(CONCAT(tlv_year, "-", LPAD(tlv_month, 2, "0"), "-", LPAD(tlv_day, 2, "0")))'),
                     [$startOfWeek, $endOfWeek]
-                )
+                )->where('tlv_group', 'STANDARD.t')
                 ->sum('tlv_lotsize');
 
             $totalVolume = TradeLotSizeVolume::whereBetween(
                     DB::raw('DATE(CONCAT(tlv_year, "-", LPAD(tlv_month, 2, "0"), "-", LPAD(tlv_day, 2, "0")))'),
                     [$startOfWeek, $endOfWeek]
-                )
+                )->where('tlv_group', 'STANDARD.t')
                 ->sum('tlv_volume_usd');
         } else {
             // Parse the month/year string into a Carbon date
@@ -289,6 +290,7 @@ class DashboardController extends Controller
             $hasSummaryRecord = TradeLotSizeVolume::where('tlv_year', $year)
                                                 ->where('tlv_month', $month)
                                                 ->where('tlv_day', 0)
+                                                ->where('tlv_group', 'STANDARD.t')
                                                 ->exists();
         
             if ($hasSummaryRecord) {
@@ -296,20 +298,24 @@ class DashboardController extends Controller
                 $totalTradeLots = TradeLotSizeVolume::where('tlv_year', $year)
                                                     ->where('tlv_month', $month)
                                                     ->where('tlv_day', 0)
+                                                    ->where('tlv_group', 'STANDARD.t')
                                                     ->sum('tlv_lotsize');
         
                 $totalVolume = TradeLotSizeVolume::where('tlv_year', $year)
                                                 ->where('tlv_month', $month)
                                                 ->where('tlv_day', 0)
+                                                ->where('tlv_group', 'STANDARD.t')
                                                 ->sum('tlv_volume_usd');
             } else {
                 // No summary record for this month, sum all available days
                 $totalTradeLots = TradeLotSizeVolume::where('tlv_year', $year)
                                                     ->where('tlv_month', $month)
+                                                    ->where('tlv_group', 'STANDARD.t')
                                                     ->sum('tlv_lotsize');
         
                 $totalVolume = TradeLotSizeVolume::where('tlv_year', $year)
                                                 ->where('tlv_month', $month)
+                                                ->where('tlv_group', 'STANDARD.t')
                                                 ->sum('tlv_volume_usd');
             }
         }
