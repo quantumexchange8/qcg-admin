@@ -23,9 +23,9 @@ const variantClasses = computed(() => {
         return 'bg-success-500 text-white'
     } else if (props.variant === 'error' || props.variant === 'failed' || props.variant === 'rejected' || props.variant === 'unverified') {
         return 'bg-error-600 text-white'
-    } else if (props.variant === 'warning' || props.variant === 'agent' || props.variant === 'ongoing' || props.variant === 'pending') {
+    } else if (props.variant === 'warning' || props.variant === 'agent' || props.variant === 'ongoing' || props.variant === 'pending' || props.variant === 'in_progress') {
         return 'bg-warning-500 text-white'
-    } else if (props.variant === 'info' || props.variant === 'demo' || props.variant === 'processing') {
+    } else if (props.variant === 'info' || props.variant === 'demo' || props.variant === 'processing' || props.variant === 'new') {
         return 'bg-info-500 text-white'
     } else if (props.variant === 'gray' || props.variant === 'inactive' ) {
         return 'bg-gray-500 text-white'

@@ -20,7 +20,8 @@ import {
     IconGift,
     IconChartArrowsVertical,
     IconSettings,
-    IconWand
+    IconWand,
+    IconTicket
 } from '@tabler/icons-vue';
 import { usePermission } from "@/Composables/index.js";
 
@@ -31,6 +32,7 @@ const pendingBonus = ref(0);
 const pendingIncentive = ref(0);
 const pendingRewards = ref(0);
 const pendingKyc = ref(0);
+const pendingTickets = ref(0);
 
 const getPendingCounts = async () => {
     try {
@@ -40,6 +42,7 @@ const getPendingCounts = async () => {
         pendingIncentive.value = response.data.pendingIncentive
         pendingRewards.value = response.data.pendingRewards
         pendingKyc.value = response.data.pendingKyc
+        pendingTickets.value = response.data.pendingTickets
     } catch (error) {
         console.error('Error pending counts:', error);
     }
@@ -126,6 +129,36 @@ watchEffect(() => {
                 :active="route().current('pending.kyc')"
                 :pendingCounts="pendingKyc"
                 v-if="hasRole('super-admin') || hasPermission('access_kyc_request')"
+            />
+        </SidebarCollapsible>
+
+        <!-- Pending -->
+        <SidebarCollapsible
+            :title="$t('public.tickets')"
+            :active="route().current('tickets.*')"
+            :pendingCounts="pendingTickets"
+            v-if="hasRole('super-admin') || hasPermission([
+                'access_pending_tickets',
+                'access_ticket_history',
+            ])"
+        >
+            <template #icon>
+                <IconTicket :size="20" stroke-width="1.25" />
+            </template>
+
+            <SidebarCollapsibleItem
+                :title="$t('public.pending')"
+                :href="route('tickets.pending')"
+                :active="route().current('tickets.pending')"
+                :pendingCounts="pendingTickets"
+                v-if="hasRole('super-admin') || hasPermission('access_pending_tickets')"
+            />
+
+            <SidebarCollapsibleItem
+                :title="$t('public.ticket_history')"
+                :href="route('tickets.history')"
+                :active="route().current('tickets.history')"
+                v-if="hasRole('super-admin') || hasPermission('access_ticket_history')"
             />
         </SidebarCollapsible>
 

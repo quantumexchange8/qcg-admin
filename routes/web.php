@@ -25,6 +25,7 @@ use App\Http\Controllers\BrokerController;
 use App\Http\Controllers\KycController;
 use App\Http\Controllers\ConfigController;
 use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\TicketController;
 
 Route::get('locale/{locale}', function ($locale) {
     App::setLocale($locale);
@@ -97,6 +98,25 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
 
         Route::post('withdrawalApproval', [PendingController::class, 'withdrawalApproval'])->name('pending.withdrawalApproval');
         Route::post('kycApproval', [PendingController::class, 'kycApproval'])->name('pending.kycApproval');
+    });
+
+    /**
+     * ==============================
+     *            Tickets
+     * ==============================
+     */
+    Route::prefix('tickets')->middleware('role_and_permission:admin,access_pending_tickets,access_ticket_history')->group(callback: function () {
+
+        Route::get('pending', [TicketController::class, 'pending'])->name('tickets.pending')->middleware('role_and_permission:admin,access_pending_tickets');
+        Route::get('history', [TicketController::class, 'history'])->name('tickets.history')->middleware('role_and_permission:admin,access_ticket_history');
+        Route::get('/getPendingTickets', [TicketController::class, 'getPendingTickets'])->name('tickets.getPendingTickets');
+        Route::get('/getTicketHistory', [TicketController::class, 'getTicketHistory'])->name('tickets.getTicketHistory');
+        // Route::get('/getPendingIncentiveData', [PendingController::class, 'getPendingIncentiveData'])->name('pending.getPendingIncentiveData')->middleware('role_and_permission:admin,access_incentive_request');
+        // Route::get('/getPendingRewardsData', [PendingController::class, 'getPendingRewardsData'])->name('pending.getPendingRewardsData')->middleware('role_and_permission:admin,access_rewards_request');
+        // Route::get('/getPendingKycData', [PendingController::class, 'getPendingKycData'])->name('pending.getPendingKycData')->middleware('role_and_permission:admin,access_kyc_request');
+
+        // Route::post('withdrawalApproval', [PendingController::class, 'withdrawalApproval'])->name('pending.withdrawalApproval');
+        // Route::post('kycApproval', [PendingController::class, 'kycApproval'])->name('pending.kycApproval');
     });
 
     Route::prefix('member')->middleware('role_and_permission:admin,access_member_listing,access_member_network,access_member_forum,access_account_listing')->group(function () {

@@ -8,6 +8,7 @@ use Inertia\Inertia;
 use App\Models\AccountType;
 use App\Models\TeamHasUser;
 use App\Models\Transaction;
+use App\Models\Ticket;
 use Illuminate\Http\Request;
 use App\Models\TradingAccount;
 use Illuminate\Support\Carbon;
@@ -55,6 +56,8 @@ class DashboardController extends Controller
 
         $pendingKyc = User::where('kyc_approval', 'pending')->count();
 
+        $pendingTickets = Ticket::where('status', 'pending')->count();
+
         return response()->json([
             'pendingWithdrawals' => $pendingWithdrawals,
             'pendingBonus' => $pendingBonus,
@@ -63,7 +66,7 @@ class DashboardController extends Controller
             'pendingKyc' => $pendingKyc,
         ]);
     }
-
+    
     public function getDashboardData()
     {
         $total_deposit = Transaction::whereIn('transaction_type', ['deposit', 'rebate_in', 'balance_in', 'credit_in'])
