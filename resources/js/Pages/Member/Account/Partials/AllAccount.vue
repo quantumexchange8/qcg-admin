@@ -30,7 +30,7 @@ const dt = ref(null);
 const accounts = ref();
 const accountTypes = ref(props.accountTypes);
 const selectedBrand = ref(null);
-const rows = ref(20);
+const rows = ref(100);
 const page = ref(0);
 const first = ref(0);
 const sortField = ref(null);  
@@ -346,6 +346,7 @@ onUnmounted(() => {
                 <template #body="slotProps">
                     <Action 
                         :account="slotProps.data"
+                        type="individual"
                     />
                 </template>
             </Column>

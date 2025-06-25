@@ -71,7 +71,7 @@ class ManualUpdateCommand extends Command
 
         $tradeLots = TradeBrokerHistory::selectRaw('db_user_id, db_symgroup_id, SUM(trade_lots) as total_trade_lots')
             ->whereBetween('trade_close_time', [$startOfStartDate, $endOfYesterday])
-            ->whereIn('meta_login', [8004604, 8004705])
+            ->whereIn('meta_login', [8003091, 8003093, 8003754, 8004565, 8004617])
             ->groupBy('db_user_id', 'db_symgroup_id')
             ->get();
 

@@ -842,4 +842,13 @@ return [
     'change_account_type_desc' => 'Are you sure you want to the account type for #:account?',
     'toast_change_trading_account_success' => "Trading account type has been changed!",
     'account_type_placeholder' => 'Select Account Type',
+    'restore_trading_account' => "Restore Trading Account",
+    'restore_trading_account_desc' => "Are you sure you want to restore this trading account #:account?",
+    'delete_ctrader_account' => "Delete cTrader Account",
+    'delete_ctrader_account_desc' => "Are you sure you want to delete this cTrader account #:account? This action cannot be undone.",
+    'restore' => 'Restore',
+    'toast_restore_trading_account_success' => "Trading Account has been restored!",
+    'toast_delete_ctrader_account_success' => "cTrader Account has been deleted!",
+    'available' => 'Available',
+    'cbroker_status' => 'cBroker Status',
 ];

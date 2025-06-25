@@ -1,7 +1,7 @@
 <script setup>
 import { usePage } from "@inertiajs/vue3";
 import { IconCircleXFilled, IconSearch, IconFilterOff, IconRefresh, IconDownload } from "@tabler/icons-vue";
-import { ref, watch, watchEffect, onMounted } from "vue";
+import { ref, watch, watchEffect, onMounted, onUnmounted } from "vue";
 import Loader from "@/Components/Loader.vue";
 import Dialog from "primevue/dialog";
 import DataTable from "primevue/datatable";
@@ -14,6 +14,8 @@ import Empty from "@/Components/Empty.vue";
 import { transactionFormat } from "@/Composables/index.js";
 import dayjs from "dayjs";
 import debounce from "lodash/debounce.js";
+import Action from "@/Pages/Member/Account/Partials/Action.vue"
+import StatusBadge from '@/Components/StatusBadge.vue';
 
 const { formatAmount } = transactionFormat();
 
@@ -168,19 +170,33 @@ const exportAccount = () => {
     }
 };
 
+const pageLinkSize = ref(window.innerWidth < 768 ? 3 : 5)
+
+const updatePageLinkSize = () => {
+  pageLinkSize.value = window.innerWidth < 768 ? 3 : 5
+}
+
+onMounted(() => {
+    window.addEventListener('resize', updatePageLinkSize);
+    getResults();
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updatePageLinkSize)
+})
 </script>
 
 <template>
     <DataTable
         :value="accounts"
-        :rowsPerPageOptions="[20, 50, 100]"
+        :rows="20"
+        :pageLinkSize="pageLinkSize"
         lazy
         paginator
         removableSort
-        paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport JumpToPageInput"
+        paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
         :currentPageReportTemplate="$t('public.paginator_caption')"
         :first="first"
-        :rows="rows"
         :page="page"
         ref="dt"
         dataKey="id"
@@ -257,7 +273,7 @@ const exportAccount = () => {
             </div>
         </template>
         <template v-if="accounts?.length > 0">
-            <Column field="name" sortable :header="$t('public.name')" class="hidden md:table-cell w-[20%] max-w-0">
+            <Column field="name" sortable :header="$t('public.name')" class="hidden md:table-cell w-[19%] max-w-0">
                 <template #body="slotProps">
                     <div class="flex flex-col items-start max-w-full">
                         <div class="font-semibold truncate max-w-full">
@@ -269,7 +285,7 @@ const exportAccount = () => {
                     </div>
                 </template>
             </Column>
-            <Column field="deleted_at" :header="$t('public.deleted_time')" sortable class="w-[20%] max-w-0" headerClass="hidden md:table-cell">
+            <Column field="deleted_at" :header="$t('public.deleted_time')" sortable class="w-[19%] max-w-0" headerClass="hidden md:table-cell">
                 <template #body="slotProps">
                     <div class="flex flex-col items-start max-w-full">
                         <div class="text-gray-950 text-sm font-semibold truncate max-w-full md:hidden">
@@ -284,25 +300,33 @@ const exportAccount = () => {
                     </div>
                 </template>
             </Column>
-            <Column field="meta_login" :header="$t('public.account')" sortable class="hidden md:table-cell w-[20%]">
+            <Column field="meta_login" :header="$t('public.account')" sortable class="hidden md:table-cell w-[19%]">
                 <template #body="slotProps">
                     <div class="text-gray-950 text-sm">
                         {{ slotProps.data?.meta_login || '-' }}
                     </div>
                 </template>
             </Column>
-            <Column field="balance" :header="`${$t('public.balance')}&nbsp;($)`" sortable class="hidden md:table-cell w-[20%]">
+            <Column field="balance" :header="`${$t('public.balance')}&nbsp;($)`" sortable class="hidden md:table-cell w-[19%]">
                 <template #body="slotProps">
                     <div class="text-gray-950 text-sm">
                         {{ formatAmount((slotProps.data?.balance || 0) - (slotProps.data?.credit || 0)) }}
                     </div>
                 </template>
             </Column>
-            <Column field="equity" :header="`${$t('public.equity')}&nbsp;($)`" sortable class="hidden md:table-cell w-[20%]">
+            <Column field="equity" :header="`${$t('public.equity')}&nbsp;($)`" sortable class="hidden md:table-cell w-[19%]">
                 <template #body="slotProps">
                     <div class="text-gray-950 text-sm">
                         {{ formatAmount(slotProps.data?.equity || 0) }}
                     </div>
+                </template>
+            </Column>
+            <Column field="action" class="w-full md:w-[5%]" headerClass="hidden md:table-cell">
+                <template #body="slotProps">
+                    <Action 
+                        :account="slotProps.data"
+                        type="deleted"
+                    />
                 </template>
             </Column>
         </template>
@@ -336,6 +360,11 @@ const exportAccount = () => {
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.leverage') }}</span>
                     <span class="w-full truncate text-gray-950 text-sm font-medium">1:{{ data?.leverage }}</span>
+                </div>
+                <div class="w-full flex flex-col items-start gap-1 md:flex-row">
+                    <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.cbroker_status') }}</span>
+                    <StatusBadge :variant="data?.cbroker_status" :value="$t('public.' + data?.cbroker_status)" class="text-nowrap"/>
+                    <!-- <span class="w-full truncate text-gray-950 text-sm font-medium">{{ $t(`public.${data?.cbroker_status}`) }}</span> -->
                 </div>
             </div>
 

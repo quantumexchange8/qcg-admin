@@ -8,7 +8,8 @@ import {
     IconChevronRight,
     IconUserCheck,
     IconUserCancel,
-    IconEdit
+    IconEdit,
+    IconTrashOff
 } from "@tabler/icons-vue";
 import Button from "@/Components/Button.vue";
 import { h, ref, watch } from "vue";
@@ -22,8 +23,9 @@ import Adjustment from "@/Components/Adjustment.vue";
 import AccountReport from "@/Pages/Member/Account/Partials/AccountReport.vue";
 import AccountGroup from "@/Pages/Member/Account/Partials/AccountGroup.vue";
 
-const props = defineProps({
+const passedProps = defineProps({
     account: Object,
+    type: String,
 })
 
 const menu = ref();
@@ -40,6 +42,7 @@ const items = ref([
             visible.value = true;
             dialogType.value = 'account_report';
         },
+        type: 'individual',
     },
     {
         label: 'adjustment', // Main item for adjustments
@@ -54,6 +57,7 @@ const items = ref([
                     adjustmentType.value = 'account_balance';
                     title.value = 'balance';
                 },
+                type: 'individual',
             },
             {
                 label: 'account_credit',
@@ -64,8 +68,10 @@ const items = ref([
                     adjustmentType.value = 'account_credit';
                     title.value = 'credit';
                 },
+                type: 'individual',
             },
         ],
+        type: 'individual',
     },
     {
         label: 'change_account_type',
@@ -74,13 +80,31 @@ const items = ref([
             visible.value = true;
             dialogType.value = 'account_type';
         },
+        type: 'individual',
     },
     {
         label: 'delete_trading_account',
         icon: h(IconTrashX),
         command: () => {
-            requireConfirmation('delete_trading_account', props.account.meta_login)
+            requireConfirmation('delete_trading_account', passedProps.account.meta_login)
         },
+        type: 'individual',
+    },
+    {
+        label: 'restore_trading_account',
+        icon: h(IconTrashOff),
+        command: () => {
+            requireConfirmation('restore_trading_account', passedProps.account.meta_login)
+        },
+        type: 'deleted',
+    },
+    {
+        label: 'delete_ctrader_account',
+        icon: h(IconTrashX),
+        command: () => {
+            requireConfirmation('delete_ctrader_account', passedProps.account.meta_login)
+        },
+        type: 'deleted',
     },
 
 ]);
@@ -89,9 +113,9 @@ const toggle = (event) => {
     menu.value.toggle(event);
 };
 
-const checked = ref(props.account.status === 'active')
+const checked = ref(passedProps.account.status === 'active')
 
-watch(() => props.account.status, (newStatus) => {
+watch(() => passedProps.account.status, (newStatus) => {
     checked.value = newStatus === 'active';
 });
 
@@ -109,7 +133,7 @@ const requireConfirmation = (action_type, meta_login) => {
             acceptButton: trans('public.confirm'),
             action: () => {
                 router.post(route('member.updateAccountStatus'), {
-                    meta_login: props.account.meta_login,
+                    meta_login: passedProps.account.meta_login,
                 })
 
                 checked.value = !checked.value;
@@ -125,7 +149,7 @@ const requireConfirmation = (action_type, meta_login) => {
             acceptButton: trans('public.confirm'),
             action: () => {
                 router.post(route('member.updateAccountStatus'), {
-                    meta_login: props.account.meta_login,
+                    meta_login: passedProps.account.meta_login,
                 })
 
                 checked.value = !checked.value;
@@ -142,7 +166,7 @@ const requireConfirmation = (action_type, meta_login) => {
         //     action: () => {
         //         router.post(route('member.changeAccountType'), {
         //             data: {
-        //                 meta_login: props.account.meta_login,
+        //                 meta_login: passedProps.account.meta_login,
         //             },
         //         })
         //     }
@@ -158,7 +182,39 @@ const requireConfirmation = (action_type, meta_login) => {
             action: () => {
                 router.delete(route('member.accountDelete'), {
                     data: {
-                        meta_login: props.account.meta_login,
+                        meta_login: passedProps.account.meta_login,
+                    },
+                })
+            }
+        },
+        restore_trading_account: {
+            group: 'headless',
+            color: 'primary',
+            icon: h(IconTrashOff),
+            header: trans('public.restore_trading_account'),
+            message: trans('public.restore_trading_account_desc' , {account: `${meta_login}`}),
+            cancelButton: trans('public.cancel'),
+            acceptButton: trans('public.restore'),
+            action: () => {
+                router.post(route('member.accountRestore'), {
+                    data: {
+                        meta_login: passedProps.account.meta_login,
+                    },
+                })
+            }
+        },
+        delete_ctrader_account: {
+            group: 'headless',
+            color: 'error',
+            icon: h(IconTrashX),
+            header: trans('public.delete_ctrader_account'),
+            message: trans('public.delete_ctrader_account_desc' , {account: `${meta_login}`}),
+            cancelButton: trans('public.cancel'),
+            acceptButton: trans('public.delete'),
+            action: () => {
+                router.delete(route('member.ctraderAccountDelete'), {
+                    data: {
+                        meta_login: passedProps.account.meta_login,
                     },
                 })
             }
@@ -180,10 +236,10 @@ const requireConfirmation = (action_type, meta_login) => {
 };
 
 const handleAccountStatus = () => {
-    if (props.account.status === 'active') {
-        requireConfirmation('deactivate_trading_account', props.account.meta_login)
+    if (passedProps.account.status === 'active') {
+        requireConfirmation('deactivate_trading_account', passedProps.account.meta_login)
     } else {
-        requireConfirmation('activate_trading_account', props.account.meta_login)
+        requireConfirmation('activate_trading_account', passedProps.account.meta_login)
     }
 }
 
@@ -192,6 +248,7 @@ const handleAccountStatus = () => {
 <template>
     <div class="flex gap-3 items-center justify-center">
         <ToggleSwitch
+            v-if="passedProps.type === 'individual'"
             v-model="checked"
             readonly
             @click="handleAccountStatus"
@@ -214,13 +271,14 @@ const handleAccountStatus = () => {
                 <div
                     class="flex items-center gap-3 self-stretch"
                     v-bind="props.action"
+                    v-if="passedProps.type===item.type"
                 >
                 <component
                     :is="item.icon"
                     size="20"
                     stroke-width="1.25"
                     class="grow-0 shrink-0"
-                    :class="{'text-error-500': item.label === 'delete_trading_account'}"
+                    :class="{'text-error-500': item.label === 'delete_trading_account' || item.label === 'delete_ctrader_account'}"
                 />
                     <span class="text-gray-700 text-sm">{{ $t(`public.${item.label}`) }}</span>
                     <!-- Conditionally render submenu indicator if the item has a submenu -->
@@ -243,21 +301,21 @@ const handleAccountStatus = () => {
         <template v-if="dialogType === 'adjustment'">
             <Adjustment
                 :type="adjustmentType"
-                :account="props.account"
+                :account="passedProps.account"
                 @update:visible="visible = false"
             />
         </template>
 
         <template v-if="dialogType === 'account_report'">
             <AccountReport
-                :account="props.account"
+                :account="passedProps.account"
                 @update:visible="visible = $event"
             />
         </template>
 
         <template v-if="dialogType === 'account_type'">
             <AccountGroup
-                :account="props.account"
+                :account="passedProps.account"
                 @update:visible="visible = $event"
             />
         </template>
