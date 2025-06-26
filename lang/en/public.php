@@ -870,4 +870,13 @@ return [
     'by' => 'By',
     'submitted' => 'Submitted',
     'category' => 'Category',
+    'ticket' => 'Ticket',
+    'mark_as_resolved' => 'Mark as Resolved',
+    'reply' => 'Reply',    
+    '' => '',
+    '' => '',
+    '' => '',
+    '' => '',
+    '' => '',
+    '' => '',
 ];

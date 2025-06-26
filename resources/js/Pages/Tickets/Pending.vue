@@ -18,6 +18,8 @@ import { trans, wTrans } from "laravel-vue-i18n";
 import StatusBadge from '@/Components/StatusBadge.vue';
 import Tag from 'primevue/tag';
 import {useLangObserver} from "@/Composables/localeObserver.js";
+import Checkbox from 'primevue/checkbox';
+import TextArea from "primevue/textarea";
 
 const {locale} = useLangObserver();
 
@@ -131,6 +133,29 @@ const openDialog = (rowData) => {
     data.value = rowData;
 };
 
+const visiblePhoto = ref(false);
+const selectedAttachment = ref(null);
+const openPhotoDialog = (attachment) => {
+    visiblePhoto.value = true;
+    selectedAttachment.value = attachment;
+}
+
+const form = useForm({
+    ticket_id: '',
+    user_id: '',
+    message: '',
+})
+
+const submitForm = () => {
+    // console.log(form)
+    // form.post(route('pending.kycApproval'), {
+    //     onSuccess: () => {
+    //         closeDialog();
+    //         approvalAction.value = '';
+    //         form.reset();
+    //     },
+    // });
+};
 </script>
 
 <template>
@@ -284,9 +309,63 @@ const openDialog = (rowData) => {
     </AuthenticatedLayout>
 
     <Dialog v-model:visible="visible" modal :header="$t('public.ticket')" class="dialog-xs md:dialog-lg">
-        <div class="flex flex-col justify-center items-center gap-3 self-stretch pt-4 md:pt-6">
+        <div class="flex flex-col justify-center items-center gap-5 self-stretch pt-4 md:pt-6">
+            <div class="flex flex-col items-center gap-2 self-stretch">
+                <div class="flex flex-row justify-between items-center self-stretch">
+                    <span class="text-xs font-semibold text-gray-950">{{ data.name }}</span>
+                    <span class="text-xs text-gray-500">{{ dayjs(data.created_at).format('YYYY/MM/DD HH:mm') }}</span>
+                </div>
+                <div class="flex flex-col p-2 justify-center items-center gap-2 self-stretch rounded bg-primary-100">
+                    <span class="text-sm font-semibold text-gray-950 self-stretch">{{ data.subject }}</span>
+                    <span class="text-sm text-gray-950 self-stretch">{{ data.description }}</span>
+                    <div v-if="data.ticket_attachments" class="grid grid-cols-2 md:grid-cols-3 gap-2 self-stretch">
+                        <div v-for="file in data.ticket_attachments" :key="file.id" @click="openPhotoDialog(file)" 
+                            class="flex items-center gap-3 w-full p-2 bg-white rounded border border-gray-200 cursor-pointer hover:bg-gray-100"
+                        >
+                            <img :src="file.original_url" :alt="file.file_name" class="w-16 h-12 rounded" />
+                            <span class="text-sm text-gray-700 truncate">{{ file.file_name }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
 
         </div>
+
+        <template #footer>
+            <div class="flex flex-col gap-2 md:gap-4 justify-center w-full">
+
+                <TextArea
+                    id="message"
+                    type="text"
+                    class="w-full h-24"
+                    v-model="form.message"
+                    :placeholder="$t('public.message_placeholder')"
+                    rows="5"
+                    cols="30"
+                />
+                <div class="flex flex-row justify-between items-center w-full">
+                    <label class="flex items-center gap-2">
+                        <Checkbox binary class="w-5 h-5" />
+                        <span class="text-sm text-gray-700 font-medium">{{ $t('public.mark_as_resolved') }}</span>
+                    </label>
+                    <Button
+                        type="button"
+                        variant="primary-flat"
+                        @click="submitForm"
+                    >
+                        {{ $t('public.reply') }}
+                    </Button>
+                </div>
+            </div>
+        </template>
     </Dialog>
 
+    <Dialog v-model:visible="visiblePhoto" modal headless class="dialog-xs md:dialog-md" :dismissableMask="true">
+        <img
+            :src="selectedKycVerification?.original_url || '/img/member/kyc_sample_illustration.png'"
+            class="w-full"
+            alt="document"
+        />
+    </Dialog>
 </template>

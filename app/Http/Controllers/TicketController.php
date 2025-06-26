@@ -59,10 +59,12 @@ class TicketController extends Controller
         $tickets = $query->get()
             ->map(function($ticket) {
                 $category = json_decode($ticket->category->category, true);
+                $ticket_attachments = $ticket->getMedia('ticket_attachments');
 
                 return [
                     'ticket_id' => $ticket->id,
                     'subject' => $ticket->subject,
+                    'description' => $ticket->description,
                     'name' => $ticket->user->chinese_name ?? $ticket->user->first_name,
                     'email' => $ticket->user->email,
                     'created_at' => $ticket->created_at,
@@ -85,5 +87,76 @@ class TicketController extends Controller
         return response()->json([
             'tickets' => $tickets,
         ]);
+    }
+
+    public function getTicketDetails(Request $request)
+    {
+        // $ticket_id = $request->query('ticket_id');
+        $ticket = Ticket::with(['replies.user', 'user'])->where('id', $request->ticket_id)->get()
+                    ->map(function($ticket_details) {
+                        $ticket_attachments = $ticket_details->getMedia('ticket_attachments');
+
+                        $replies = [
+                            'reply_id' => $ticket_details->replies->id,
+                            'name' => $ticket_details->replies->user->chinese_name ?? $ticket_details->replies->user->first_name,
+                            'subject' => $ticket_details->replies->message,
+                            'sent_at' => $ticket_details->replies->created_at,
+                            'reply_attachments' => $ticket_details->replies->getMedia('reply_attachments'),
+                        ];
+
+                        return [
+                            'ticket_id' => $ticket_details->id,
+                            'subject' => $ticket_details->subject,
+                            'description' => $ticket_details->description,
+                            'ticket_attachments' => $ticket_attachments,
+                            'replies' => $replies,
+                            'created_at' => $ticket_details->created_at,
+                            'ticket_details' => $ticket->status,
+                        ];
+
+                    })
+                    ->values();
+
+        return response()->json([
+            'ticket' => $ticket,
+        ]);
+    }
+
+    public function submitReply(Request $request)
+    {
+        TicketReply::create([
+            'ticket_id' => $request->ticket_id,
+            'user_id' => $request->user_id,
+            'message' => $request->message,
+        ]);
+        // $ticket_id = $request->query('ticket_id');
+        // $ticket = Ticket::with(['replies.user', 'user'])->where('id', $request->ticket_id)->get()
+        //             ->map(function($ticket_details) {
+        //                 $ticket_attachments = $ticket_details->getMedia('ticket_attachments');
+
+        //                 $replies = [
+        //                     'reply_id' => $ticket_details->replies->id,
+        //                     'name' => $ticket_details->replies->user->chinese_name ?? $ticket_details->replies->user->first_name,
+        //                     'subject' => $ticket_details->replies->message,
+        //                     'sent_at' => $ticket_details->replies->created_at,
+        //                     'reply_attachments' => $ticket_details->replies->getMedia('reply_attachments'),
+        //                 ];
+
+        //                 return [
+        //                     'ticket_id' => $ticket_details->id,
+        //                     'subject' => $ticket_details->subject,
+        //                     'description' => $ticket_details->description,
+        //                     'ticket_attachments' => $ticket_attachments,
+        //                     'replies' => $replies,
+        //                     'created_at' => $ticket_details->created_at,
+        //                     'ticket_details' => $ticket->status,
+        //                 ];
+
+        //             })
+        //             ->values();
+
+        // return response()->json([
+        //     'ticket' => $ticket,
+        // ]);
     }
 }
