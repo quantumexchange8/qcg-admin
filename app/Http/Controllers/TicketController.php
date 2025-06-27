@@ -9,6 +9,7 @@ use App\Models\TicketReply;
 use Inertia\Inertia;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class TicketController extends Controller
 {
@@ -89,45 +90,55 @@ class TicketController extends Controller
         ]);
     }
 
-    public function getTicketDetails(Request $request)
+    public function getTicketReplies(Request $request)
     {
         // $ticket_id = $request->query('ticket_id');
-        $ticket = Ticket::with(['replies.user', 'user'])->where('id', $request->ticket_id)->get()
+        $ticket = Ticket::with(['replies.user:id,first_name,chinese_name,email', 'user:id,first_name,chinese_name,email'])->where('id', $request->ticket_id)->get()
                     ->map(function($ticket_details) {
+                        Log::info($ticket_details);
                         $ticket_attachments = $ticket_details->getMedia('ticket_attachments');
 
-                        $replies = [
-                            'reply_id' => $ticket_details->replies->id,
-                            'name' => $ticket_details->replies->user->chinese_name ?? $ticket_details->replies->user->first_name,
-                            'subject' => $ticket_details->replies->message,
-                            'sent_at' => $ticket_details->replies->created_at,
-                            'reply_attachments' => $ticket_details->replies->getMedia('reply_attachments'),
-                        ];
+                        $replies = $ticket_details->replies->map(function ($reply) {
+                            return [
+                                'reply_id' => $reply->id,
+                                'user_id' => $reply->user_id,
+                                'name' => $reply->user->chinese_name ?? $reply->user->first_name,
+                                'message' => $reply->message,
+                                'sent_at' => $reply->created_at,
+                                'reply_attachments' => $reply->getMedia('reply_attachments'),
+                            ];
+                        });
 
                         return [
                             'ticket_id' => $ticket_details->id,
+                            'user_id' => $ticket_details->user_id,
                             'subject' => $ticket_details->subject,
                             'description' => $ticket_details->description,
                             'ticket_attachments' => $ticket_attachments,
                             'replies' => $replies,
                             'created_at' => $ticket_details->created_at,
-                            'ticket_details' => $ticket->status,
+                            'ticket_details' => $ticket_details->status,
                         ];
 
                     })
-                    ->values();
+                    ->first();
 
         return response()->json([
             'ticket' => $ticket,
         ]);
     }
 
-    public function submitReply(Request $request)
+    public function sendReply(Request $request)
     {
         TicketReply::create([
             'ticket_id' => $request->ticket_id,
-            'user_id' => $request->user_id,
+            'user_id' => Auth::id(),
             'message' => $request->message,
+        ]);
+
+        Ticket::where('id', $request->ticket_id)->update([
+            'status' => 'in_progress',
+            'last_replied_at' => now(),
         ]);
         // $ticket_id = $request->query('ticket_id');
         // $ticket = Ticket::with(['replies.user', 'user'])->where('id', $request->ticket_id)->get()
@@ -154,9 +165,14 @@ class TicketController extends Controller
 
         //             })
         //             ->values();
+        return redirect()->back()->with('toast', [
+            'title' => trans('public.toast_send_reply_success'),
+            'type' => 'success'
+        ]);
 
-        // return response()->json([
-        //     'ticket' => $ticket,
+        // return redirect()->back()->with('toast', [
+        //     'title' => trans('public.toast_send_reply_error'),
+        //     'type' => 'error'
         // ]);
     }
 }

@@ -873,7 +873,7 @@ return [
     'ticket' => 'Ticket',
     'mark_as_resolved' => 'Mark as Resolved',
     'reply' => 'Reply',    
-    '' => '',
+    'mark_resolved_message' => 'Are you sure you want to resolve without any message?',
     '' => '',
     '' => '',
     '' => '',

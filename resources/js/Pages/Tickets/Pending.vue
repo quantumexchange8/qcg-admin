@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { usePage } from "@inertiajs/vue3";
+import { usePage, useForm } from "@inertiajs/vue3";
 import { IconCircleXFilled, IconSearch, IconDownload, IconFilterOff, IconCopy } from "@tabler/icons-vue";
 import { ref, watch, watchEffect, onMounted, onUnmounted } from "vue";
 import Loader from "@/Components/Loader.vue";
@@ -16,10 +16,11 @@ import { transactionFormat, generalFormat } from "@/Composables/index.js";
 import dayjs from "dayjs";
 import { trans, wTrans } from "laravel-vue-i18n";
 import StatusBadge from '@/Components/StatusBadge.vue';
-import Tag from 'primevue/tag';
 import {useLangObserver} from "@/Composables/localeObserver.js";
 import Checkbox from 'primevue/checkbox';
 import TextArea from "primevue/textarea";
+import TicketReplies from "@/Pages/Tickets/Partials/TicketReplies.vue";
+import { useConfirm } from "primevue/useconfirm";
 
 const {locale} = useLangObserver();
 
@@ -126,11 +127,29 @@ onUnmounted(() => {
   window.removeEventListener('resize', updatePageLinkSize)
 })
 
+const form = useForm({
+    ticket_id: '',
+    message: '',
+})
+
+const submitForm = () => {
+    // console.log(form)
+    form.post(route('tickets.sendReply'), {
+        onSuccess: () => {
+            // closeDialog();
+            // form.reset();
+            form.message = '';
+        },
+    });
+};
+
 // dialog
 const data = ref({});
 const openDialog = (rowData) => {
     visible.value = true;
     data.value = rowData;
+
+    form.ticket_id = data.value.ticket_id;
 };
 
 const visiblePhoto = ref(false);
@@ -140,21 +159,37 @@ const openPhotoDialog = (attachment) => {
     selectedAttachment.value = attachment;
 }
 
-const form = useForm({
-    ticket_id: '',
-    user_id: '',
-    message: '',
-})
+const confirm = useConfirm();
 
-const submitForm = () => {
-    // console.log(form)
-    // form.post(route('pending.kycApproval'), {
-    //     onSuccess: () => {
-    //         closeDialog();
-    //         approvalAction.value = '';
-    //         form.reset();
-    //     },
-    // });
+// Function to trigger the custom confirmation dialog
+const confirmResolve = (action_type) => {
+    const messages = {
+        mark_resolved: {
+            group: 'message_only',
+            color: 'primary',
+            message: trans('public.mark_resolved_message'),
+            cancelButton: trans('public.cancel'),
+            acceptButton: trans('public.confirm'),
+            action: () => {
+                // router.post(route('reward.updateRewardStatus'), {
+                //     reward_id: props.reward.reward_id,
+                // })
+
+            }
+        }
+    };
+
+    const { group, color, message, cancelButton, acceptButton, action } = messages[action_type];
+
+    // Show the custom confirmation dialog
+    confirm.require({
+        group,
+        color,
+        message,
+        cancelButton,
+        acceptButton,
+        accept: action
+    });
 };
 </script>
 
@@ -329,7 +364,9 @@ const submitForm = () => {
                 </div>
             </div>
 
-
+            <TicketReplies 
+                :ticket_id="data.ticket_id"
+            />
         </div>
 
         <template #footer>
@@ -346,7 +383,7 @@ const submitForm = () => {
                 />
                 <div class="flex flex-row justify-between items-center w-full">
                     <label class="flex items-center gap-2">
-                        <Checkbox binary class="w-5 h-5" />
+                        <Checkbox binary class="w-5 h-5" @click="confirmResolve('mark_resolved')"/>
                         <span class="text-sm text-gray-700 font-medium">{{ $t('public.mark_as_resolved') }}</span>
                     </label>
                     <Button
@@ -363,7 +400,7 @@ const submitForm = () => {
 
     <Dialog v-model:visible="visiblePhoto" modal headless class="dialog-xs md:dialog-md" :dismissableMask="true">
         <img
-            :src="selectedKycVerification?.original_url || '/img/member/kyc_sample_illustration.png'"
+            :src="selectedAttachment?.original_url"
             class="w-full"
             alt="document"
         />
