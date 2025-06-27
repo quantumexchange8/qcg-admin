@@ -851,4 +851,5 @@ return [
     'toast_delete_ctrader_account_success' => "cTrader Account has been deleted!",
     'available' => 'Available',
     'cbroker_status' => 'cBroker Status',
+    'virtual' => 'Virtual Account',
 ];

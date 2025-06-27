@@ -849,4 +849,5 @@ return [
     'toast_delete_ctrader_account_success' => "cTrader 賬戶已被刪除!",
     'available' => '可用',
     'cbroker_status' => 'cBroker 狀態',
+    'virtual' => '虛擬帳戶',
 ];

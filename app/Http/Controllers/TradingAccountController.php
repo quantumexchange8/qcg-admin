@@ -459,7 +459,7 @@ class TradingAccountController extends Controller
                 ]);
         }
 
-        $trading_account = TradingAccount::where('meta_login', $request->meta_login)->first();
+        $trading_account = TradingAccount::with('accountType')->where('meta_login', $request->meta_login)->first();
         $action = $request->action;
         $type = $request->type;
         $amount = $request->amount;
@@ -554,6 +554,10 @@ class TradingAccountController extends Controller
                 }
             }
 
+            if ($trading_account->accountType->account_group == 'VIRTUAL') {
+                $transaction->delete();
+            }
+
             return redirect()->back()->with('toast', [
                 'title' => $type == 'account_balance' ? trans('public.toast_balance_adjustment_success') : trans('public.toast_credit_adjustment_success'),
                 'type' => 'success'
@@ -570,6 +574,10 @@ class TradingAccountController extends Controller
                 TradingUser::firstWhere('meta_login', $trading_account->meta_login)->update(['acc_status' => 'inactive']);
             } else {
                 Log::error($e->getMessage());
+            }
+
+            if ($trading_account->accountType->account_group == 'VIRTUAL') {
+                $transaction->delete();
             }
 
             return back()
