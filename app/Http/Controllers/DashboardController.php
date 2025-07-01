@@ -56,7 +56,7 @@ class DashboardController extends Controller
 
         $pendingKyc = User::where('kyc_approval', 'pending')->count();
 
-        $pendingTickets = Ticket::where('status', 'pending')->count();
+        $pendingTickets = Ticket::whereIn('status', ['new','in_progress'])->count();
 
         return response()->json([
             'pendingWithdrawals' => $pendingWithdrawals,
@@ -64,6 +64,7 @@ class DashboardController extends Controller
             'pendingIncentive' => $pendingIncentive,
             'pendingRewards' => $pendingRewards,
             'pendingKyc' => $pendingKyc,
+            'pendingTickets' => $pendingTickets,
         ]);
     }
     

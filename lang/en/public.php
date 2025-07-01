@@ -874,9 +874,8 @@ return [
     'mark_as_resolved' => 'Mark as Resolved',
     'reply' => 'Reply',    
     'mark_resolved_message' => 'Are you sure you want to resolve without any message?',
-    '' => '',
-    '' => '',
-    '' => '',
-    '' => '',
-    '' => '',
+    'toast_resolve_ticket_success' => 'Successfully marked ticket as resolved!',
+    'toast_send_reply_success' => 'Successfully sent reply!',
+    'resolved' => 'Resolved',
+    'ticket_id' => 'Ticket ID',
 ];

@@ -10,6 +10,7 @@ import Skeleton from 'primevue/skeleton';
 
 const props = defineProps({
     ticket_id: Number,
+    refreshKey: Number,
 });
 
 const loading = ref(false);
@@ -17,7 +18,6 @@ const ticket = ref();
 
 const getReplies = async () => {
     loading.value = true;
-
     try {
         let url = `/tickets/getTicketReplies?ticket_id=${props.ticket_id}`;
 
@@ -34,11 +34,16 @@ const getReplies = async () => {
 
 getReplies();
 
-watchEffect(() => {
-    if (usePage().props.toast !== null) {
-        getReplies();
-    }
-});
+watch(() => props.refreshKey, () => {
+    getReplies();
+})
+
+const visiblePhoto = ref(false);
+const selectedAttachment = ref(null);
+const openPhotoDialog = (attachment) => {
+    visiblePhoto.value = true;
+    selectedAttachment.value = attachment;
+}
 </script>
 
 <template>
@@ -63,8 +68,8 @@ watchEffect(() => {
             :class="{'bg-primary-100': reply.user_id === ticket.user_id, 'bg-gray-100': reply.user_id !== ticket.user_id}"
         >
             <span class="text-sm text-gray-950 self-stretch whitespace-pre-line">{{ reply.message }}</span>
-            <div v-if="reply.ticket_attachments" class="grid grid-cols-2 md:grid-cols-3 gap-2 self-stretch">
-                <div v-for="file in reply.ticket_attachments" :key="file.id" @click="openPhotoDialog(file)" 
+            <div v-if="reply.reply_attachments" class="grid grid-cols-2 md:grid-cols-3 gap-2 self-stretch">
+                <div v-for="file in reply.reply_attachments" :key="file.id" @click="openPhotoDialog(file)" 
                     class="flex items-center gap-3 w-full p-2 bg-white rounded border border-gray-200 cursor-pointer hover:bg-gray-100"
                 >
                     <img :src="file.original_url" :alt="file.file_name" class="w-16 h-12 rounded" />
@@ -74,4 +79,11 @@ watchEffect(() => {
         </div>
     </div>
 
+    <Dialog v-model:visible="visiblePhoto" modal headless class="dialog-xs md:dialog-md" :dismissableMask="true">
+        <img
+            :src="selectedAttachment?.original_url"
+            class="w-full"
+            alt="attachment"
+        />
+    </Dialog>
 </template>

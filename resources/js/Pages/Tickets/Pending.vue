@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { usePage, useForm } from "@inertiajs/vue3";
+import { usePage, useForm, router } from "@inertiajs/vue3";
 import { IconCircleXFilled, IconSearch, IconDownload, IconFilterOff, IconCopy } from "@tabler/icons-vue";
 import { ref, watch, watchEffect, onMounted, onUnmounted } from "vue";
 import Loader from "@/Components/Loader.vue";
@@ -139,6 +139,7 @@ const submitForm = () => {
             // closeDialog();
             // form.reset();
             form.message = '';
+            refreshChild();
         },
     });
 };
@@ -162,7 +163,7 @@ const openPhotoDialog = (attachment) => {
 const confirm = useConfirm();
 
 // Function to trigger the custom confirmation dialog
-const confirmResolve = (action_type) => {
+const confirmResolve = (action_type, ticket_id) => {
     const messages = {
         mark_resolved: {
             group: 'message_only',
@@ -171,10 +172,11 @@ const confirmResolve = (action_type) => {
             cancelButton: trans('public.cancel'),
             acceptButton: trans('public.confirm'),
             action: () => {
-                // router.post(route('reward.updateRewardStatus'), {
-                //     reward_id: props.reward.reward_id,
-                // })
+                router.post(route('tickets.resolveTicket'), {
+                    ticket_id: ticket_id,
+                });
 
+                visible.value = false;
             }
         }
     };
@@ -191,6 +193,19 @@ const confirmResolve = (action_type) => {
         accept: action
     });
 };
+
+watchEffect(() => {
+    if (usePage().props.toast !== null) {
+        getResults();
+    }
+});
+
+const refreshKey = ref(0)
+
+const refreshChild = () => {
+  refreshKey.value++
+//   console.log(refreshKey.value)
+}
 </script>
 
 <template>
@@ -366,6 +381,7 @@ const confirmResolve = (action_type) => {
 
             <TicketReplies 
                 :ticket_id="data.ticket_id"
+                :refresh-key="refreshKey"
             />
         </div>
 
@@ -383,7 +399,7 @@ const confirmResolve = (action_type) => {
                 />
                 <div class="flex flex-row justify-between items-center w-full">
                     <label class="flex items-center gap-2">
-                        <Checkbox binary class="w-5 h-5" @click="confirmResolve('mark_resolved')"/>
+                        <Checkbox binary class="w-5 h-5" @click="confirmResolve('mark_resolved', data.ticket_id)"/>
                         <span class="text-sm text-gray-700 font-medium">{{ $t('public.mark_as_resolved') }}</span>
                     </label>
                     <Button

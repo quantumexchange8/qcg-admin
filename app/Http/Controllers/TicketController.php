@@ -36,7 +36,22 @@ class TicketController extends Controller
 
     public function history()
     {
-        return Inertia::render('Tickets/History');
+        $categories = TicketCategory::orderBy('order')
+            ->get()
+            ->map(function($ticket_category) {
+                $category = json_decode($ticket_category->category, true);
+
+                return [
+                    'category_id' => $ticket_category->id,
+                    'category' => $category,
+                ];
+
+            })
+            ->values();
+
+        return Inertia::render('Tickets/History', [
+            'categories' => $categories,
+        ]);
     }
 
     public function getPendingTickets(Request $request)
@@ -44,8 +59,7 @@ class TicketController extends Controller
         $status = $request->query('status');
         $category_id = $request->query('category_id');
 
-        Log::info($request);
-        $query = Ticket::with(['category', 'user']);
+        $query = Ticket::with(['category', 'user'])->whereNot('status', 'resolved');
 
         if ($status) {
             $query->where('status', $status);
@@ -60,7 +74,7 @@ class TicketController extends Controller
         $tickets = $query->get()
             ->map(function($ticket) {
                 $category = json_decode($ticket->category->category, true);
-                $ticket_attachments = $ticket->getMedia('ticket_attachments');
+                $ticket_attachments = $ticket->getMedia('ticket_attachment');
 
                 return [
                     'ticket_id' => $ticket->id,
@@ -71,6 +85,7 @@ class TicketController extends Controller
                     'created_at' => $ticket->created_at,
                     'category' => $category,
                     'status' => $ticket->status,
+                    'ticket_attachments' => $ticket_attachments,
                 ];
 
             })
@@ -83,7 +98,36 @@ class TicketController extends Controller
 
     public function getTicketHistory(Request $request)
     {
+        $category_id = $request->query('category_id');
 
+        $query = Ticket::with(['category', 'user'])->where('status', 'resolved');
+
+        if ($category_id) {
+            $query->whereHas('category', function ($query) use ($category_id) {
+                $query->where('id', $category_id);
+            });
+        }
+
+        $tickets = $query->get()
+            ->map(function($ticket) {
+                $category = json_decode($ticket->category->category, true);
+                $ticket_attachments = $ticket->getMedia('ticket_attachment');
+
+                return [
+                    'ticket_id' => $ticket->id,
+                    'subject' => $ticket->subject,
+                    'description' => $ticket->description,
+                    'name' => $ticket->user->chinese_name ?? $ticket->user->first_name,
+                    'email' => $ticket->user->email,
+                    'created_at' => $ticket->created_at,
+                    'closed_at' => $ticket->closed_at,
+                    'category' => $category,
+                    'status' => $ticket->status,
+                    'ticket_attachments' => $ticket_attachments,
+                ];
+
+            })
+            ->values();
 
         return response()->json([
             'tickets' => $tickets,
@@ -95,8 +139,7 @@ class TicketController extends Controller
         // $ticket_id = $request->query('ticket_id');
         $ticket = Ticket::with(['replies.user:id,first_name,chinese_name,email', 'user:id,first_name,chinese_name,email'])->where('id', $request->ticket_id)->get()
                     ->map(function($ticket_details) {
-                        Log::info($ticket_details);
-                        $ticket_attachments = $ticket_details->getMedia('ticket_attachments');
+                        $ticket_attachments = $ticket_details->getMedia('ticket_attachment');
 
                         $replies = $ticket_details->replies->map(function ($reply) {
                             return [
@@ -105,7 +148,7 @@ class TicketController extends Controller
                                 'name' => $reply->user->chinese_name ?? $reply->user->first_name,
                                 'message' => $reply->message,
                                 'sent_at' => $reply->created_at,
-                                'reply_attachments' => $reply->getMedia('reply_attachments'),
+                                'reply_attachments' => $reply->getMedia('ticket_attachment'),
                             ];
                         });
 
@@ -174,5 +217,18 @@ class TicketController extends Controller
         //     'title' => trans('public.toast_send_reply_error'),
         //     'type' => 'error'
         // ]);
+    }
+
+    public function resolveTicket(Request $request)
+    {
+        Ticket::where('id', $request->ticket_id)->update([
+            'status' => 'resolved',
+            'closed_at' => now(),
+        ]);
+
+        return redirect()->back()->with('toast', [
+            'title' => trans('public.toast_resolve_ticket_success'),
+            'type' => 'success'
+        ]);
     }
 }

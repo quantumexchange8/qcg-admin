@@ -114,6 +114,7 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
 
         Route::get('/getTicketReplies', [TicketController::class, 'getTicketReplies'])->name('tickets.getTicketReplies');
         Route::post('/sendReply', [TicketController::class, 'sendReply'])->name('tickets.sendReply');
+        Route::post('/resolveTicket', [TicketController::class, 'resolveTicket'])->name('tickets.resolveTicket');
         // Route::get('/getPendingIncentiveData', [PendingController::class, 'getPendingIncentiveData'])->name('pending.getPendingIncentiveData')->middleware('role_and_permission:admin,access_incentive_request');
         // Route::get('/getPendingRewardsData', [PendingController::class, 'getPendingRewardsData'])->name('pending.getPendingRewardsData')->middleware('role_and_permission:admin,access_rewards_request');
         // Route::get('/getPendingKycData', [PendingController::class, 'getPendingKycData'])->name('pending.getPendingKycData')->middleware('role_and_permission:admin,access_kyc_request');
