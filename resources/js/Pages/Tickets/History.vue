@@ -199,11 +199,7 @@ watchEffect(() => {
                                 </div>
                             </div>
                         </div>
-                        <div class="grid grid-cols-2 md:flex md:flex-row gap-3 md:gap-2 w-full md:w-auto shrink-0">
-                            <!-- <Button variant="primary-outlined" class="col-span-1 md:w-auto">
-                                <IconDownload size="20" stroke-width="1.25" />
-                                {{ $t('public.export') }}
-                            </Button> -->
+                        <div class="grid grid-cols-1 md:flex md:flex-row gap-3 md:gap-2 w-full md:w-auto shrink-0">
                             <Button
                                 type="button"
                                 variant="error-outlined"
@@ -230,56 +226,59 @@ watchEffect(() => {
                     </div>
                 </template>
                 <template v-if="tickets?.length > 0 && filteredValue?.length > 0">
-                    <Column field="ticket_id" sortable :header="$t('public.ticket_id')" class="hidden md:table-cell w-[15%]">
+                    <Column field="ticket_id" sortable :header="$t('public.ticket_id')" class="hidden md:table-cell md:w-[18%] lg:w-[16.5%] xl:w-[12.5%]">
                         <template #body="slotProps">
                             <div class="text-gray-950 text-sm">
-                                {{ String(slotProps.data.ticket_id).padStart(6, '0') }}
+                                #{{ String(slotProps.data.ticket_id).padStart(6, '0') }}
                             </div>
                         </template>
                     </Column>
-                    <Column field="subject" :header="$t('public.subject')" class="w-1/3 md:w-[15%] px-3 ">
+                    <Column field="subject" :header="$t('public.subject')" class="hidden md:table-cell w-full md:w-[28%] px-3 ">>
                         <template #body="slotProps">
                             <div class="text-gray-950 text-sm">
                                 {{ slotProps.data?.subject || '-' }}
                             </div>
                         </template>
                     </Column>
-                    <Column field="name" sortable :header="$t('public.by')" class="w-2/3 md:w-[20%] max-w-0 px-3">
+                    <Column field="name" sortable :header="$t('public.by')" headerClass="hidden" class="md:table-cell w-2/3 md:w-[18%] max-w-0 px-3">
                         <template #body="slotProps">
-                            <div class="flex flex-col items-start max-w-full">
-                                <div class="flex max-w-full gap-2 items-center">
-                                    <div class="font-semibold truncate max-w-full">
+                            <div class="flex flex-col items-start max-w-full gap-1 truncate">
+                                <div class="flex flex-row max-w-full gap-2 items-center text-gray-950 text-sm font-semibold truncate">
+                                    <div class="max-w-full">
                                         {{ slotProps.data.name }}
                                     </div>
-                                    <!-- <div
-                                        v-if="slotProps.data.team_id"
-                                        class="flex justify-center items-center gap-2 rounded-sm py-1 px-2 md:hidden"
-                                        :style="{ backgroundColor: formatRgbaColor(slotProps.data.team_color, 1) }"
-                                    >
-                                        <div
-                                            class="text-white text-xs text-center"
-                                        >
-                                            {{ slotProps.data.team_name }}
-                                        </div>
-                                    </div> -->
+                                    <div class="flex md:hidden">|</div>
+                                    <div class="md:hidden truncate max-w-full">
+                                        {{ slotProps.data.subject || '-' }}
+                                    </div>
                                 </div>
-                                <div class="text-gray-500 text-xs truncate max-w-full hidden md:flex">
+                                <div class="text-gray-500 text-xs truncate max-w-full hidden md:block">
                                     {{ slotProps.data.email }}
                                 </div>
-                                <!-- <div class="text-gray-500 text-xs truncate max-w-full md:hidden flex">
-                                    {{ dayjs(slotProps.data.approved_at ?? slotProps.data.approved_at).format('YYYY/MM/DD HH:mm:ss') }}
-                                </div> -->
+                                <div class="flex flex-row md:hidden max-w-full gap-1 items-center text-gray-500 text-xs truncate">
+                                    <div>
+                                        #{{ String(slotProps.data.ticket_id).padStart(6, '0') }}
+                                    </div>
+                                    <div>|</div>
+                                    <div>
+                                        {{ dayjs(slotProps.data.created_at).format('YYYY/MM/DD HH:mm') }}
+                                    </div>
+                                    <div>|</div>
+                                    <div class="truncate">
+                                        {{ slotProps.data?.category[locale] }}
+                                    </div>
+                                </div>
                             </div>
                         </template>
                     </Column>
-                    <Column field="closed_at" :header="$t('public.resolved')" sortable class="hidden md:table-cell w-full md:w-[20%] max-w-0">
+                    <Column field="closed_at" :header="$t('public.resolved')" sortable class="hidden md:table-cell w-full md:w-[18%] max-w-0">
                         <template #body="slotProps">
-                            <div class="text-gray-950 text-sm truncate max-w-full">
+                            <div class="text-gray-950 text-sm max-w-full">
                                 {{ dayjs(slotProps.data.closed_at).format('YYYY/MM/DD HH:mm') }}
                             </div>
                         </template>
                     </Column>
-                    <Column field="category" :header="$t('public.category')" class="w-1/3 md:w-[15%] px-3 ">
+                    <Column field="category" :header="$t('public.category')" class="hidden md:table-cell w-full md:w-[18%] max-w-0">
                         <template #body="slotProps">
                             <div class="text-gray-950 text-sm">
                                 {{ slotProps.data?.category[locale] }}
@@ -292,6 +291,28 @@ watchEffect(() => {
     </AuthenticatedLayout>
 
     <Dialog v-model:visible="visible" modal :header="$t('public.ticket')" class="dialog-xs md:dialog-lg">
+        <template #header>
+            <div class="flex flex-col gap-0 md:gap-1 justify-center max-w-full truncate">
+                <span class="text-gray-950 text-base md:text-lg font-semibold">#{{ String(data.ticket_id).padStart(6, '0') }}</span>
+                <div class="flex flex-row gap-2 md:gap-3 items-center text-gray-500 text-xs md:text-sm max-w-full truncate">
+                    <StatusBadge :variant="data.status" :value="$t('public.' + data.status)" class="hidden md:flex"/>
+                    <div class="flex flex-row gap-1 items-center md:hidden">
+                        <div class="w-1.5 h-1.5 flex-shrink-0" 
+                            :class="{
+                                'bg-success-500': data.status === 'resolved', 
+                                'bg-info-500': data.status === 'new',
+                                'bg-warning-500': data.status === 'in_progress',
+                            }"
+                        ></div>
+                        <span>{{ $t(`public.${data.status}`) }}</span>
+                    </div>
+                    <div>|</div>
+                    <span class="truncate">{{ data.category[locale] }}</span>
+                    <div class="hidden md:flex">|</div>
+                    <span class="hidden md:flex">{{ data.email }}</span>
+                </div>
+            </div>
+        </template>
         <div class="flex flex-col justify-center items-center gap-5 self-stretch pt-4 md:pt-6">
             <div class="flex flex-col items-center gap-2 self-stretch">
                 <div class="flex flex-row justify-between items-center self-stretch">
@@ -301,7 +322,7 @@ watchEffect(() => {
                 <div class="flex flex-col p-2 justify-center items-center gap-2 self-stretch rounded bg-primary-100">
                     <span class="text-sm font-semibold text-gray-950 self-stretch">{{ data.subject }}</span>
                     <span class="text-sm text-gray-950 self-stretch">{{ data.description }}</span>
-                    <div v-if="data.ticket_attachments" class="grid grid-cols-2 md:grid-cols-3 gap-2 self-stretch">
+                    <div v-if="data.ticket_attachments.length !== 0" class="grid grid-cols-2 md:grid-cols-3 gap-2 self-stretch">
                         <div v-for="file in data.ticket_attachments" :key="file.id" @click="openPhotoDialog(file)" 
                             class="flex items-center gap-3 w-full p-2 bg-white rounded border border-gray-200 cursor-pointer hover:bg-gray-100"
                         >

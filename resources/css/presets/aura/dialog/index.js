@@ -1,4 +1,4 @@
-export default {
+    export default {
     root: ({ state }) => ({
         class: [
             // Shape
@@ -94,7 +94,7 @@ export default {
             'gap-2',
 
             // Spacing
-            'px-6',
+            'px-4 md:px-6',
             'pb-6',
 
             // Shape

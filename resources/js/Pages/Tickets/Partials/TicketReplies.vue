@@ -68,11 +68,11 @@ const openPhotoDialog = (attachment) => {
             :class="{'bg-primary-100': reply.user_id === ticket.user_id, 'bg-gray-100': reply.user_id !== ticket.user_id}"
         >
             <span class="text-sm text-gray-950 self-stretch whitespace-pre-line">{{ reply.message }}</span>
-            <div v-if="reply.reply_attachments" class="grid grid-cols-2 md:grid-cols-3 gap-2 self-stretch">
+            <div v-if="reply.reply_attachments.length !== 0" class="grid grid-cols-2 md:grid-cols-3 gap-2 self-stretch">
                 <div v-for="file in reply.reply_attachments" :key="file.id" @click="openPhotoDialog(file)" 
                     class="flex items-center gap-3 w-full p-2 bg-white rounded border border-gray-200 cursor-pointer hover:bg-gray-100"
                 >
-                    <img :src="file.original_url" :alt="file.file_name" class="w-16 h-12 rounded" />
+                    <img :src="file.original_url" :alt="file.file_name" class="w-8 h-6 md:w-16 md:h-12 rounded" />
                     <span class="text-sm text-gray-700 truncate">{{ file.file_name }}</span>
                 </div>
             </div>

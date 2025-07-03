@@ -115,12 +115,6 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
         Route::get('/getTicketReplies', [TicketController::class, 'getTicketReplies'])->name('tickets.getTicketReplies');
         Route::post('/sendReply', [TicketController::class, 'sendReply'])->name('tickets.sendReply');
         Route::post('/resolveTicket', [TicketController::class, 'resolveTicket'])->name('tickets.resolveTicket');
-        // Route::get('/getPendingIncentiveData', [PendingController::class, 'getPendingIncentiveData'])->name('pending.getPendingIncentiveData')->middleware('role_and_permission:admin,access_incentive_request');
-        // Route::get('/getPendingRewardsData', [PendingController::class, 'getPendingRewardsData'])->name('pending.getPendingRewardsData')->middleware('role_and_permission:admin,access_rewards_request');
-        // Route::get('/getPendingKycData', [PendingController::class, 'getPendingKycData'])->name('pending.getPendingKycData')->middleware('role_and_permission:admin,access_kyc_request');
-
-        // Route::post('withdrawalApproval', [PendingController::class, 'withdrawalApproval'])->name('pending.withdrawalApproval');
-        // Route::post('kycApproval', [PendingController::class, 'kycApproval'])->name('pending.kycApproval');
     });
 
     Route::prefix('member')->middleware('role_and_permission:admin,access_member_listing,access_member_network,access_member_forum,access_account_listing')->group(function () {

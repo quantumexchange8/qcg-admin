@@ -63,7 +63,7 @@ watchEffect(() => {
     <div
         tagname="nav"
         aria-label="main"
-        class="relative w-full flex flex-col flex-1 max-w-full max-h-full gap-1 items-center "
+        class="flex flex-1 flex-col w-full gap-1 items-center max-h-full max-w-full relative"
     >
         <!-- Dashboard -->
         <SidebarLink
