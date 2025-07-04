@@ -420,7 +420,10 @@ export default {
             enterActiveClass: 'transition-[transform,opacity] duration-[120ms] ease-[cubic-bezier(0,0,0.2,1)]',
             leaveActiveClass: 'transition-opacity duration-100 ease-linear',
             leaveToClass: 'opacity-0'
-        }
+        },
+        reorderableRowHandle: {
+            class: 'cursor-move'
+        },
     },
     bodyRow: ({ context, props }) => ({
         class: [
@@ -437,7 +440,10 @@ export default {
             { 'transition duration-200': (props.selectionMode && !context.selected) || props.rowHover },
 
             // Misc
-            { 'cursor-pointer': props.selectionMode }
+            { 'cursor-pointer': props.selectionMode },
+
+            '[&[data-p-datatable-dragpoint-top="true"]>td]:shadow-[inset_0_2px_0_0_theme(colors.black)]',
+            '[&[data-p-datatable-dragpoint-bottom="true"]>td]:shadow-[inset_0_-2px_0_0_theme(colors.black)]'
         ]
     }),
     rowExpansion: {
@@ -485,5 +491,5 @@ export default {
     },
     columnResizeIndicator: {
         class: 'absolute hidden w-[2px] z-10 bg-primary'
-    }
+    },
 };

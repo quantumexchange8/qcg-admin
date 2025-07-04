@@ -51,23 +51,8 @@ const getResults = async () => {
     loading.value = true;
 
     try {
-        // Create the base URL with the type parameter directly in the URL
         let url = `/highlights/getAnnouncement`;
 
-        // if (selectedMonth) {
-        //     const formattedMonth = selectedMonth === 'select_all' 
-        //         ? 'select_all' 
-        //         : dayjs(selectedMonth, 'DD MMMM YYYY').format('MMMM YYYY');
-
-        //     url += `&selectedMonth=${formattedMonth}`;
-        // }
-
-        // if (selectedTeams && selectedTeams.length > 0) {
-        //     const selectedTeamValues = selectedTeams.map((team) => team.value);
-        //     url += `&selectedTeams=${selectedTeamValues.join(',')}`;
-        // }
-
-        // Make the API call with the constructed URL
         const response = await axios.get(url);
         announcements.value = response.data.announcements;
 

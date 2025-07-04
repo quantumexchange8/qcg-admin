@@ -859,7 +859,7 @@ return [
     'select_agent' => '選擇代理',
     'tickets' => '工單',
     'pending' => '待處理',
-    'pending_tickets' => '待處理工單',
+    'pending_tickets' => '待處理技術問題',
     'new' => '新增',
     'in_progress' => '處理中',
     'ticket_history' => '工單紀錄',
@@ -877,4 +877,7 @@ return [
     'toast_send_reply_success' => '成功發送回覆！',
     'resolved' => '已解決',
     'ticket_id' => '工單編號',
+    'add' => '新增',
+    'toast_create_category_success' => '分類建立成功！',
+    'toast_add_agent_access_success' => '已成功將代理新增至工單存取權限！',
 ];

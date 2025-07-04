@@ -860,7 +860,7 @@ return [
     'select_agent' => '选择代理',
     'tickets' => '工单',
     'pending' => '待处理',
-    'pending_tickets' => '待处理工单',
+    'pending_tickets' => '待处理技术问题',
     'new' => '新建',
     'in_progress' => '处理中',
     'ticket_history' => '工单记录',
@@ -878,4 +878,7 @@ return [
     'toast_send_reply_success' => '回复发送成功！',
     'resolved' => '已解决',
     'ticket_id' => '工单编号',
+    'add' => '添加',
+    'toast_create_category_success' => '分类创建成功！',
+    'toast_add_agent_access_success' => '已成功将代理添加到工单访问权限！',
 ];

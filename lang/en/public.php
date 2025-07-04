@@ -651,7 +651,7 @@ return [
     'expiry_date' => 'Expiry Date',
     'maximum_redemption' => 'Maximum Redemption',
     'autohide_after_expiry' => 'Auto-hide After Expiry',
-    'name_en_placeholder' => 'Display name for users in Englsih',
+    'name_en_placeholder' => 'Display name for users in English',
     'name_tw_placeholder' => 'Display name for users in Traditional Chinese',
     'name_cn_placeholder' => 'Display name for users in Simplified Chinese',
     'cash_rewards' => 'Cash Rewards',
@@ -878,4 +878,7 @@ return [
     'toast_send_reply_success' => 'Successfully sent reply!',
     'resolved' => 'Resolved',
     'ticket_id' => 'Ticket ID',
+    'add' => 'Add',
+    'toast_create_category_success' => 'Successfully created category!',
+    'toast_add_agent_access_success' => 'Successfully added agent to ticket accessibility!',
 ];

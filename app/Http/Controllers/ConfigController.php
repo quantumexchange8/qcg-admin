@@ -187,17 +187,21 @@ class ConfigController extends Controller
 
     public function updateTicketCategories(Request $request)
     {
+        $order = 1;
         foreach ($request->categories as $item) {
+            Log::info($item);
             TicketCategory::where('id', $item['category_id'])->update([
                 'category' => json_encode($item['category']),
-                'order' => $item['order'],
+                'order' => $order,
             ]);
+
+            $order++;
         }
 
-        return redirect()->back()->with('toast', [
-            'title' => trans('public.toast_update_ticket_schedule_success'),
-            'type' => 'success'
-        ]);
+        // return back()->with('toast', [
+        //     'title' => trans('public.toast_update_ticket_schedule_success'),
+        //     'type' => 'success'
+        // ]);
     }
 
     public function getAgentAccesses()
@@ -236,6 +240,74 @@ class ConfigController extends Controller
             TicketAgentAccessibility::where('id', $access['id'])->update([
                 'user_id' => $access['user']['id'],
                 'access_level' => $access['access_level'],
+            ]);
+        }
+    }
+
+    public function addTicketCategory(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => ['required', 'array'],
+            'name.*' => ['required', 'string'],
+        ])->setAttributeNames([
+            'name.*' => trans('public.name'),
+        ]);
+        $validator->validate();
+
+        $order = TicketCategory::max('order') ?? 0;
+        try {
+            $category = TicketCategory::create([
+                'category' => json_encode($request->name),
+                'order' => $order + 1,
+            ]);
+
+            // Redirect with success message
+            return back()->with('toast', [
+                'title' => trans("public.toast_create_category_success"),
+                'type' => 'success',
+            ]);
+        } catch (\Exception $e) {
+            // Log the exception and show a generic error message
+            Log::error('Error creating the category : '.$e->getMessage());
+
+            return back()->with('toast', [
+                'title' => 'There was an error creating the category.',
+                'type' => 'error'
+            ]);
+        }
+    }
+
+    public function addAgentAccess(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user' => ['required'],
+            'access_level' => ['required', 'string'],
+        ])->setAttributeNames([
+            'user' => trans('public.agent'),
+            'access_level' => trans('public.access_level'),
+        ]);
+        $validator->validate();
+
+        try {
+            Log::info($request);
+
+            $agent_access = TicketAgentAccessibility::create([
+                'user_id' => $request->user['id'],
+                'access_level' => $request->access_level,
+            ]);
+
+            // Redirect with success message
+            return back()->with('toast', [
+                'title' => trans("public.toast_add_agent_access_success"),
+                'type' => 'success',
+            ]);
+        } catch (\Exception $e) {
+            // Log the exception and show a generic error message
+            Log::error('Error adding access : '.$e->getMessage());
+
+            return back()->with('toast', [
+                'title' => 'There was an error adding access to the agent.',
+                'type' => 'error'
             ]);
         }
     }

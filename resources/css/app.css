@@ -108,3 +108,11 @@
 .no-header-border [data-pc-section="header"] {
     border: none !important;
   }
+
+.p-datatable-tbody > tr.p-datatable-dragpoint-top > td {
+@apply shadow-[inset_0_2px_0_0_theme(colors.primary)];
+}
+
+.p-datatable-tbody > tr.p-datatable-dragpoint-bottom > td {
+    @apply shadow-[inset_0_-2px_0_0_theme(colors.primary)];
+}
