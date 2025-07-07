@@ -2,7 +2,7 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { usePage } from "@inertiajs/vue3";
 import { IconCircleXFilled, IconSearch, IconDownload, IconFilterOff, IconCopy } from "@tabler/icons-vue";
-import { ref, watch, watchEffect, onMounted, onUnmounted } from "vue";
+import { ref, watch, watchEffect, computed, onMounted, onUnmounted } from "vue";
 import Loader from "@/Components/Loader.vue";
 import Dialog from "primevue/dialog";
 import DataTable from "primevue/datatable";
@@ -23,12 +23,27 @@ import Tag from 'primevue/tag';
 const { formatAmount } = transactionFormat();
 const { formatRgbaColor } = generalFormat();
 
+const props = defineProps({
+    teams: Array,
+});
+
 const visible = ref(false);
 const loading = ref(false);
 const dt = ref(null);
 const transactions = ref();
 const totalAmount = ref();
 const filteredValue = ref();
+// const selectedTeams = ref([]);
+// const teams = ref(props.teams);
+const teams = ref([
+    {
+        value: null,
+        name: wTrans('public.all'),
+        color: '000000'
+    },
+    ...props.teams
+]);
+const selectedTeam = ref(teams.value[0]);
 
 // Define the status options
 const statusOption = [
@@ -62,12 +77,11 @@ const getTransactionMonths = async () => {
 
 getTransactionMonths()
 
-const getResults = async (selectedMonth = '') => {
+const getResults = async (selectedMonth = '', selectedTeam = null) => {
     loading.value = true;
 
     try {
-        // Create the base URL with the type parameter directly in the URL
-        let url = `/transaction/getAdjustmentHistoryData`;
+        const params = new URLSearchParams();
 
         if (selectedMonth) {
             let formattedMonth = selectedMonth;
@@ -76,14 +90,17 @@ const getResults = async (selectedMonth = '') => {
                 formattedMonth = dayjs(selectedMonth, 'DD MMMM YYYY').format('MMMM YYYY');
             }
 
-            url += `?selectedMonth=${formattedMonth}`;
+            params.append('selectedMonth', formattedMonth);
+        }
+
+        if (selectedTeam.value) {
+            params.append('selectedTeam', selectedTeam.value);
         }
 
         // Make the API call with the constructed URL
-        const response = await axios.get(url);
+        const response = await axios.get('/transaction/getAdjustmentHistoryData', { params });
         transactions.value = response.data.transactions;
         totalAmount.value = response.data.totalAmount;
-
     } catch (error) {
         console.error('Error fetching data:', error);
     } finally {
@@ -91,9 +108,13 @@ const getResults = async (selectedMonth = '') => {
     }
 };
 
-watch(selectedMonth, (newMonth) => {
-    getResults(newMonth);
-    // console.log(newMonths)
+const searchParams = computed(() => ({
+    month: selectedMonth.value,
+    team: selectedTeam.value
+}));
+
+watch(searchParams, ({ month, team }) => {
+    getResults(month, team);
 });
 
 const filters = ref({
@@ -101,6 +122,7 @@ const filters = ref({
     name: { value: null, matchMode: FilterMatchMode.CONTAINS },
     email: { value: null, matchMode: FilterMatchMode.CONTAINS },
     status: { value: 'successful', matchMode: FilterMatchMode.EQUALS },
+    team_id: { value: null, matchMode: FilterMatchMode.CONTAINS },
 });
 
 const recalculateTotals = () => {
@@ -147,8 +169,10 @@ const clearFilter = () => {
         name: { value: null, matchMode: FilterMatchMode.CONTAINS },
         email: { value: null, matchMode: FilterMatchMode.CONTAINS },
         status: { value: 'successful', matchMode: FilterMatchMode.EQUALS },
+        team_id: { value: null, matchMode: FilterMatchMode.CONTAINS },
     };
     selectedMonth.value = getCurrentMonthYear();
+    selectedTeam.value = teams.value[0];
     filteredValue.value = null; 
 };
 
@@ -171,6 +195,7 @@ const exportXLSX = () => {
         trans('public.name'),
         trans('public.email'),
         trans('public.date'),
+        trans('public.sales_team'),
         trans('public.id'),
         trans('public.type'),
         trans('public.target'),
@@ -187,6 +212,7 @@ const exportXLSX = () => {
             obj.name !== undefined ? obj.name : '',
             obj.email !== undefined ? obj.email : '',
             obj.created_at !== undefined ? dayjs(obj.created_at).format('YYYY/MM/DD') : '',
+            obj.team_name !== undefined ? obj.team_name : '',
             obj.transaction_number !== undefined ? obj.transaction_number : '',
             toDisplay,
             target,
@@ -300,7 +326,7 @@ onUnmounted(() => {
             >
                 <template #header>
                     <div class="flex flex-col justify-between items-center pb-5 gap-3 self-stretch md:flex-row md:pb-6">
-                        <div class="grid grid-cols-2 md:grid-cols-3 items-center gap-3 self-stretch md:flex-row md:gap-2">
+                        <div class="grid grid-cols-2 md:grid-cols-4 items-center gap-3 self-stretch md:flex-row md:gap-2">
                             <Select 
                                 v-model="selectedMonth" 
                                 :options="months" 
@@ -356,11 +382,37 @@ onUnmounted(() => {
                                 optionLabel="name"
                                 optionValue="value"
                                 :placeholder="$t('public.filter_by_status')"
-                                class="col-span-2 md:col-span-1 font-normal"
+                                class="col-span-1 font-normal"
                                 scroll-height="236px"
                             >
                                 <template #value="data">
                                     <span class="font-normal text-gray-950" >{{ $t('public.' + (data.value || 'all')) }}</span>
+                                </template>
+                            </Select>
+                            <Select
+                                v-model="selectedTeam"
+                                :options="teams"
+                                filter
+                                :filterFields="['name']"
+                                optionLabel="name"
+                                :placeholder="$t('public.filter_by_sales_team')"
+                                class="col-span-1 font-normal"
+                                scroll-height="236px"
+                            >
+                                <template #value="slotProps">
+                                    <div v-if="slotProps.value" class="flex items-center gap-3">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-4 h-4 rounded-full overflow-hidden grow-0 shrink-0" :style="{ backgroundColor: `#${slotProps.value.color}` }"></div>
+                                            <div>{{ slotProps.value.name }}</div>
+                                        </div>
+                                    </div>
+                                    <span v-else class="text-gray-400">{{ slotProps.placeholder }}</span>
+                                </template>
+                                <template #option="slotProps">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-4 h-4 rounded-full overflow-hidden grow-0 shrink-0" :style="{ backgroundColor: `#${slotProps.option.color}` }"></div>
+                                        <div>{{ slotProps.option.name }}</div>
+                                    </div>
                                 </template>
                             </Select>
                             <div class="relative hidden md:block md:col-span-1">

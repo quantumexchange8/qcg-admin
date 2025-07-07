@@ -60,7 +60,9 @@ class TransactionController extends Controller
 
     public function adjustment()
     {
-        return Inertia::render('Transaction/AdjustmentHistory');
+        return Inertia::render('Transaction/AdjustmentHistory', [
+            'teams' => (new GeneralController())->getTeams(true),
+        ]);
     }
 
     public function getTransactionData(Request $request)
@@ -430,6 +432,7 @@ class TransactionController extends Controller
     public function getAdjustmentHistoryData(Request $request)
     {
         $monthYear = $request->input('selectedMonth');
+        $selectedTeam = $request->query('selectedTeam');
 
         if ($monthYear === 'select_all') {
             $startDate = Carbon::createFromDate(2020, 1, 1)->startOfDay();
@@ -448,11 +451,18 @@ class TransactionController extends Controller
         }
 
         // Initialize the query
-        $query = Transaction::whereIn('transaction_type', [
+        $query = Transaction::with('user.teamHasUser.team')
+        ->whereIn('transaction_type', [
                 'rebate_in', 'rebate_out', 'balance_in', 'balance_out', 'credit_in', 'credit_out',
             ])
             ->where('status', 'successful')
             ->whereBetween('created_at', [$startDate, $endDate]);
+
+        if ($selectedTeam) {
+            $query->whereHas('user.teamHasUser.team', function ($query) use ($selectedTeam) {
+                $query->where('id', $selectedTeam);
+            });
+        }
 
         // Fetch transactions
         $adjustment_history = $query->latest()->get();
