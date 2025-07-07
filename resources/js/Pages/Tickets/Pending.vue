@@ -151,6 +151,13 @@ const openDialog = (rowData) => {
     data.value = rowData;
 
     form.ticket_id = data.value.ticket_id;
+
+    // update ticket_log here
+    rowData.read_status = true;
+    axios.post('/tickets/markAsViewed', {
+        ticket_id: data.value.ticket_id,
+    })
+
 };
 
 const visiblePhoto = ref(false);
@@ -240,7 +247,7 @@ const refreshChild = () => {
                                 optionLabel="name"
                                 optionValue="value"
                                 :placeholder="$t('public.filter_by_status')"
-                                class="w-full md:max-w-60 font-normal"
+                                class="w-full font-normal"
                                 scroll-height="236px"
                             />
                             <Select
@@ -249,7 +256,7 @@ const refreshChild = () => {
                                 :optionLabel="(option) => option.category[locale]"
                                 optionValue="category_id"
                                 :placeholder="$t('public.filter_by_category')"
-                                class="w-full md:max-w-60 font-normal"
+                                class="w-full font-normal"
                                 scroll-height="236px"
                             />
                             <div class="relative block col-span-1">
@@ -267,10 +274,6 @@ const refreshChild = () => {
                             </div>
                         </div>
                         <div class="grid grid-cols-1 md:flex md:flex-row gap-3 md:gap-2 w-full md:w-auto shrink-0">
-                            <!-- <Button variant="primary-outlined" class="col-span-1 md:w-auto">
-                                <IconDownload size="20" stroke-width="1.25" />
-                                {{ $t('public.export') }}
-                            </Button> -->
                             <Button
                                 type="button"
                                 variant="error-outlined"
@@ -306,8 +309,11 @@ const refreshChild = () => {
                     </Column>
                     <Column field="subject" :header="$t('public.subject')" class="hidden md:table-cell w-full md:w-[28%] px-3 ">
                         <template #body="slotProps">
-                            <div class="text-gray-950 text-sm">
-                                {{ slotProps.data?.subject || '-' }}
+                            <div class="flex items-center max-w-full gap-2">
+                                <div class="text-gray-950 text-sm truncate max-w-full">
+                                    {{ slotProps.data?.subject || '-' }}
+                                </div>
+                                <div v-if="!(slotProps.data.read_status)" class="w-2 h-2 flex-shrink-0 bg-error-500 rounded-full" ></div>
                             </div>
                         </template>
                     </Column>
@@ -315,13 +321,14 @@ const refreshChild = () => {
                         <template #body="slotProps">
                             <div class="flex flex-col items-start max-w-full gap-1 truncate">
                                 <div class="flex flex-row max-w-full gap-2 items-center text-gray-950 text-sm font-semibold truncate">
-                                    <div class="max-w-full">
+                                    <div class="truncate max-w-full">
                                         {{ slotProps.data.name }}
                                     </div>
                                     <div class="flex md:hidden">|</div>
                                     <div class="md:hidden truncate max-w-full">
                                         {{ slotProps.data.subject || '-' }}
                                     </div>
+                                    <div v-if="!(slotProps.data.read_status)" class="md:hidden w-2 h-2 flex-shrink-0 bg-error-500 rounded-full" ></div>
                                 </div>
                                 <div class="text-gray-500 text-xs truncate max-w-full hidden md:block">
                                     {{ slotProps.data.email }}
@@ -364,7 +371,7 @@ const refreshChild = () => {
         </div>
     </AuthenticatedLayout>
 
-    <Dialog v-model:visible="visible" modal :header="$t('public.ticket')" class="dialog-xs md:dialog-lg">
+    <Dialog v-model:visible="visible" modal :header="$t('public.ticket')" class="dialog-xs md:dialog-lg" :draggable="false">
         <template #header>
             <div class="flex flex-col gap-0 md:gap-1 justify-center max-w-full truncate">
                 <span class="text-gray-950 text-base md:text-lg font-semibold">#{{ String(data.ticket_id).padStart(6, '0') }}</span>
@@ -415,7 +422,6 @@ const refreshChild = () => {
 
         <template #footer>
             <div class="flex flex-col gap-2 md:gap-4 justify-center w-full pt-4">
-
                 <TextArea
                     id="message"
                     type="text"

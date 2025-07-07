@@ -38,4 +38,9 @@ class Ticket extends Model implements HasMedia
     {
         return $this->hasMany(TicketReply::class, 'ticket_id', 'id');
     }
+
+    public function read()
+    {
+        return $this->hasMany(TicketLog::class, 'ticket_id', 'id');
+    }
 }

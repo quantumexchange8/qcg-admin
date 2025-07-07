@@ -115,6 +115,7 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
         Route::get('/getTicketReplies', [TicketController::class, 'getTicketReplies'])->name('tickets.getTicketReplies');
         Route::post('/sendReply', [TicketController::class, 'sendReply'])->name('tickets.sendReply');
         Route::post('/resolveTicket', [TicketController::class, 'resolveTicket'])->name('tickets.resolveTicket');
+        Route::post('/markAsViewed', [TicketController::class, 'markAsViewed'])->name('tickets.markAsViewed');
     });
 
     Route::prefix('member')->middleware('role_and_permission:admin,access_member_listing,access_member_network,access_member_forum,access_account_listing')->group(function () {

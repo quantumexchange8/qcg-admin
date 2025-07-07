@@ -290,7 +290,7 @@ watchEffect(() => {
         </div>
     </AuthenticatedLayout>
 
-    <Dialog v-model:visible="visible" modal :header="$t('public.ticket')" class="dialog-xs md:dialog-lg">
+    <Dialog v-model:visible="visible" modal :header="$t('public.ticket')" class="dialog-xs md:dialog-lg" :draggable="false">
         <template #header>
             <div class="flex flex-col gap-0 md:gap-1 justify-center max-w-full truncate">
                 <span class="text-gray-950 text-base md:text-lg font-semibold">#{{ String(data.ticket_id).padStart(6, '0') }}</span>

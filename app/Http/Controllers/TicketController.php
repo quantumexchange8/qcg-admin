@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Ticket;
 use App\Models\TicketCategory;
+use App\Models\TicketLog;
 use App\Models\TicketReply;
 use Inertia\Inertia;
 use Illuminate\Support\Carbon;
@@ -59,7 +60,7 @@ class TicketController extends Controller
         $status = $request->query('status');
         $category_id = $request->query('category_id');
 
-        $query = Ticket::with(['category', 'user'])->whereNot('status', 'resolved');
+        $query = Ticket::with(['category', 'user', 'replies', 'read'])->whereNot('status', 'resolved');
 
         if ($status) {
             $query->where('status', $status);
@@ -71,10 +72,16 @@ class TicketController extends Controller
             });
         }
 
-        $tickets = $query->get()
+        $tickets = $query->orderByRaw('COALESCE(last_replied_at, created_at) DESC')
+        ->get()
             ->map(function($ticket) {
                 $category = json_decode($ticket->category->category, true);
                 $ticket_attachments = $ticket->getMedia('ticket_attachment');
+
+                $lastReply = $ticket->replies->sortByDesc('created_at')->first();
+                $lastRead = $ticket->read->where('user_id', Auth::id())->first();
+
+                $read_status = $lastRead ? ($lastReply ? ($lastReply->created_at < $lastRead->date_read) : true) : false;
 
                 return [
                     'ticket_id' => $ticket->id,
@@ -86,6 +93,7 @@ class TicketController extends Controller
                     'category' => $category,
                     'status' => $ticket->status,
                     'ticket_attachments' => $ticket_attachments,
+                    'read_status' => $read_status,
                 ];
 
             })
@@ -108,7 +116,8 @@ class TicketController extends Controller
             });
         }
 
-        $tickets = $query->get()
+        $tickets = $query->orderByRaw('COALESCE(closed_at, last_replied_at, created_at) DESC')
+            ->get()
             ->map(function($ticket) {
                 $category = json_decode($ticket->category->category, true);
                 $ticket_attachments = $ticket->getMedia('ticket_attachment');
@@ -230,5 +239,23 @@ class TicketController extends Controller
             'title' => trans('public.toast_resolve_ticket_success'),
             'type' => 'success'
         ]);
+    }
+
+    public function markAsViewed(Request $request)
+    {
+        $user = Auth::user();
+        $ticket_id = $request->input('ticket_id');
+
+        TicketLog::updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'ticket_id' => $ticket_id,
+            ],
+            [
+                'date_read' => now(),
+            ]
+        );
+
+        return response()->json(['status' => 'ok']);
     }
 }

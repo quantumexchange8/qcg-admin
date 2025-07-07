@@ -143,6 +143,11 @@ class User extends Authenticatable implements HasMedia
         return $this->hasMany(UserPostInteraction::class, 'user_id'); 
     }
 
+    public function read_ticket()
+    {
+        return $this->hasMany(TicketLog::class, 'user_id');
+    }
+
     // // Logs
     // public function getActivitylogOptions(): LogOptions
     // {
