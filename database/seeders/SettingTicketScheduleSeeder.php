@@ -20,6 +20,7 @@ class SettingTicketScheduleSeeder extends Seeder
                 'start_time' => null,
                 'end_time' => null,
                 'status' => 'inactive',
+                'is_enabled' => 0,
                 'created_at' => now(),
                 'updated_at' => now(),
                 'deleted_at' => null,

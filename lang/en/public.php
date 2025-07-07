@@ -881,4 +881,5 @@ return [
     'add' => 'Add',
     'toast_create_category_success' => 'Successfully created category!',
     'toast_add_agent_access_success' => 'Successfully added agent to ticket accessibility!',
+    'schedule_check' => 'Schedule Check',
 ];

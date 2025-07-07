@@ -881,4 +881,5 @@ return [
     'add' => '添加',
     'toast_create_category_success' => '分类创建成功！',
     'toast_add_agent_access_success' => '已成功将代理添加到工单访问权限！',
+    'schedule_check' => '时间表检查',
 ];

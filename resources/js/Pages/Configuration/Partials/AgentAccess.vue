@@ -29,7 +29,6 @@ const getResults = async () => {
         // console.log(agents.value)
         agentAccesses.value = response.data.agentAccesses;
         // console.log(agentAccesses.value)
-        console.log(agentAccesses)
     } catch (error) {
         console.error('Error getting accessbilities:', error);
     } finally {

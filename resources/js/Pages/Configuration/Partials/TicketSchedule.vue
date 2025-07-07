@@ -15,10 +15,11 @@ const loading = ref(false);
 
 const form = useForm({
     settings: [],
+    schedule_check: false,
 });
 
-const checked = ref(false);
-watch(checked, (newVal) => {
+// const scheduleCheck = ref(false);
+watch(() => form.schedule_check, (newVal) => {
     if (!newVal) {
         form.settings.forEach(setting => {
             setting.status = false;
@@ -39,7 +40,8 @@ const getSettings = async () => {
             start_time: setting.start_time,
             end_time: setting.end_time,
         }));
-        checked.value = ticketSchedule.value.some(setting => setting.status === 'active');
+        form.schedule_check = ticketSchedule.value.some(setting => !!setting.is_enabled);
+
         //  console.log('test')
         //  console.log(form.settings)
     } catch (error) {
@@ -79,7 +81,7 @@ watchEffect(() => {
                 <div class="flex flex-col gap-3 self-stretch">
                     <div class="flex flex-row gap-3">
                         <ToggleSwitch 
-                            v-model="checked"
+                            v-model="form.schedule_check"
                         />
                         <span class="text-sm font-semibold text-gray-950">{{ $t("public.enable_ticket_center_scheduler") }}</span>
                     </div>
@@ -90,7 +92,7 @@ watchEffect(() => {
                         <div class="flex flex-row gap-3 items-center flex-1 self-stretch">
                             <ToggleSwitch 
                                 v-model="setting.status"
-                                :disabled="!checked"
+                                :disabled="!form.schedule_check"
                             />
                             <span class="text-sm font-semibold text-gray-950 flex-1">{{ dayName(setting.day) }}</span>
                         </div>

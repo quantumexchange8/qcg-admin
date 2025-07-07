@@ -120,11 +120,13 @@ class ConfigController extends Controller
             $validator = Validator::make($request->all(), [
                 'settings.*.start_time' => ['nullable'],
                 'settings.*.end_time' => ['nullable'],
+                'schedule_check' => ['required'],
             ], [
                 'settings.*.end_time.after' => trans('public.start_end_time'),
             ])->setAttributeNames([
                 'settings.*.start_time' => trans('public.start_time'),
                 'settings.*.end_time' => trans('public.end_time'),
+                'schedule_check' => trans('public.schedule_check'),
             ]);
         
             foreach ($request->settings as $index => $setting) {
@@ -138,6 +140,7 @@ class ConfigController extends Controller
         
             foreach ($request->settings as $setting) {
                 $data = [
+                    'is_enabled' => $request->schedule_check,
                     'status' => $setting['status'] ? 'active' : 'inactive',
                 ];
         
