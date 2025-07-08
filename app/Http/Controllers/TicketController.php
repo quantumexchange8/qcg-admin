@@ -9,7 +9,11 @@ use App\Models\TicketLog;
 use App\Models\TicketReply;
 use Inertia\Inertia;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
 
 class TicketController extends Controller
@@ -78,7 +82,7 @@ class TicketController extends Controller
                 $category = json_decode($ticket->category->category, true);
                 $ticket_attachments = $ticket->getMedia('ticket_attachment');
 
-                $lastReply = $ticket->replies->sortByDesc('created_at')->first();
+                $lastReply = $ticket->replies->where('user_id', '!=', Auth::id())->sortByDesc('created_at')->first();
                 $lastRead = $ticket->read->where('user_id', Auth::id())->first();
 
                 $read_status = $lastRead ? ($lastReply ? ($lastReply->created_at < $lastRead->date_read) : true) : false;
@@ -182,6 +186,10 @@ class TicketController extends Controller
 
     public function sendReply(Request $request)
     {
+        $request->validate([
+            'message' => 'required',
+        ]);
+
         TicketReply::create([
             'ticket_id' => $request->ticket_id,
             'user_id' => Auth::id(),

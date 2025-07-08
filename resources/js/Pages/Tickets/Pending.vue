@@ -430,6 +430,7 @@ const refreshChild = () => {
                     :placeholder="$t('public.message_placeholder')"
                     rows="5"
                     cols="30"
+                    :invalid="!!form.errors.message"
                 />
                 <div class="flex flex-row justify-between items-center w-full">
                     <label class="flex items-center gap-2">
@@ -440,6 +441,7 @@ const refreshChild = () => {
                         type="button"
                         variant="primary-flat"
                         @click="submitForm"
+                        :disabled="form.processing"
                     >
                         {{ $t('public.reply') }}
                     </Button>

@@ -881,4 +881,5 @@ return [
     'toast_create_category_success' => '分類建立成功！',
     'toast_add_agent_access_success' => '已成功將代理新增至工單存取權限！',
     'schedule_check' => '時間表檢查',
+    'history' => '歷史',
 ];
