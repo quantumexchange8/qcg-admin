@@ -54,7 +54,7 @@ const onCellEditComplete = (event) => {
 
     if (field === 'user') {
         data[field] = newValue;
-        console.log(event)
+        // console.log(event)
     } else if (field === 'access_level') {
         data[field] = newValue;
     }
@@ -89,6 +89,11 @@ watchEffect(() => {
     }
 });
 
+const filterText = ref('');
+
+const handleFilter = (event) => {
+    filterText.value = event.value;
+};
 </script>
 
 <template>
@@ -123,12 +128,13 @@ watchEffect(() => {
                                 <div class="w-full flex flex-col">
                                     <Select
                                         v-model="data[field]"
-                                        :options="agents"
+                                        :options="filterText.length > 0 ? agents : []"
                                         filter
-                                        :filterFields="['name']"
+                                        :filterFields="['name', 'email']"
                                         optionLabel="name"
                                         :placeholder="$t('public.select_agent')"
                                         class="w-full font-normal md:w-60"
+                                        @filter="handleFilter"
                                     />
                                 </div>
                             </template>

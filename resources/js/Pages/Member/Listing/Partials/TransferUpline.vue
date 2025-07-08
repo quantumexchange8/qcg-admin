@@ -96,6 +96,11 @@ const requireConfirmation = (action_type) => {
     });
 };
 
+const filterText = ref('');
+
+const handleFilter = (event) => {
+    filterText.value = event.value;
+};
 </script>
 
 <template>
@@ -110,12 +115,13 @@ const requireConfirmation = (action_type) => {
                     <InputLabel for="upline" :value="$t('public.upline')" />
                     <Select
                         v-model="form.upline_id"
-                        :options="uplines"
+                        :options="filterText.length > 0 ? uplines : []"
                         optionLabel="name"
                         optionValue="value"
                         filter
                         :filterFields="['name', 'email']"
                         class="w-full font-normal"
+                        @filter="handleFilter"
                         :disabled="isLoading"
                     />
                     <InputError :message="form.errors.upline_id" />

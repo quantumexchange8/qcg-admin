@@ -211,15 +211,16 @@ class ConfigController extends Controller
     {
         $has_access = TicketAgentAccessibility::pluck('user_id')->toArray();
         $agents = User::where('role', 'agent')
-            ->select('id', 'first_name', 'chinese_name')
+            ->select('id', 'first_name', 'chinese_name', 'email')
             ->get()->map(function ($agent) {   
                 return [
                     'id' => $agent->id,
                     'name' => !empty($agent->chinese_name) ? $agent->chinese_name : $agent->first_name,
+                    'email' => $agent->email
                 ];
              })->values();
 
-        $agentAccesses = TicketAgentAccessibility::with('user:id,first_name,chinese_name')->get();
+        $agentAccesses = TicketAgentAccessibility::with('user:id,first_name,chinese_name,email')->get();
 
         $agentAccesses = $agentAccesses->map(function ($access) {
             if ($access->user) {

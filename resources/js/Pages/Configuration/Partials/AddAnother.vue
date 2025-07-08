@@ -79,6 +79,12 @@ const submitForm = () => {
         });
     }
 };
+
+const filterText = ref('');
+
+const handleFilter = (event) => {
+    filterText.value = event.value;
+};
 </script>
 
 <template>
@@ -131,12 +137,13 @@ const submitForm = () => {
                         <div class="flex flex-col w-full items-start gap-2">
                             <Select
                                 v-model="form.user"
-                                :options="agents"
+                                :options="filterText.length > 0 ? agents : []"
                                 filter
-                                :filterFields="['name']"
+                                :filterFields="['name','email']"
                                 optionLabel="name"
                                 :placeholder="$t('public.select_agent')"
                                 class="w-full font-normal"
+                                @filter="handleFilter"
                             />
                             <InputError :message="form.errors.user" />
                         </div>
