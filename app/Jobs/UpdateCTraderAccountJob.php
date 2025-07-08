@@ -39,17 +39,17 @@ class UpdateCTraderAccountJob implements ShouldQueue
 
                 // If no data is returned (null or empty), mark the account as inactive
                 if (empty($accData)) {
-                    if ($account->acc_status !== 'inactive') {
-                        $account->acc_status = 'inactive';
-                        $account->save();
-                    }
+                    // if ($account->acc_status !== 'inactive') {
+                    //     $account->acc_status = 'inactive';
+                    //     $account->save();
+                    // }
 
-                    $tradingAccount = $account->trading_account;
-                    if ($tradingAccount) {
-                        $tradingAccount->delete();
-                    }
+                    // $tradingAccount = $account->trading_account;
+                    // if ($tradingAccount) {
+                    //     $tradingAccount->delete();
+                    // }
                     
-                    $account->delete();
+                    // $account->delete();
 
                 } else {
                     // Proceed with updating account information

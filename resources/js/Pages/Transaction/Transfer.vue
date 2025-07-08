@@ -546,6 +546,17 @@ onUnmounted(() => {
                         ></Tag>
                     </span>
                 </div>
+                <div v-if="data.from_account_type" class="flex flex-col items-start md:items-center gap-1 md:flex-row self-stretch">
+                    <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.account_type') }}</span>
+                    <div
+                        class="flex px-2 py-1 justify-center items-center text-xs rounded-sm text-white"
+                        :style="{
+                            backgroundColor: `#${data.from_account_type_color}`,
+                        }"
+                    >
+                        {{ data.from_account_type }}
+                    </div>
+                </div>
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.to') }}</span>
                     <span class="flex gap-1 break-all text-gray-950 text-sm font-medium relative">
@@ -568,6 +579,17 @@ onUnmounted(() => {
                             :value="$t(`public.${tooltipText}`)"
                         ></Tag>
                     </span>
+                </div>
+                <div v-if="data.to_account_type" class="flex flex-col items-start md:items-center gap-1 md:flex-row self-stretch">
+                    <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.account_type') }}</span>
+                    <div
+                        class="flex px-2 py-1 justify-center items-center text-xs rounded-sm text-white"
+                        :style="{
+                            backgroundColor: `#${data.to_account_type_color}`,
+                        }"
+                    >
+                        {{ data.to_account_type }}
+                    </div>
                 </div>
             </div>
         </div>

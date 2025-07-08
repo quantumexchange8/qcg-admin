@@ -965,16 +965,7 @@ class MemberController extends Controller
             foreach ($tradingAccounts as $tradingAccount) {
                 // Get user info from cTrader service
                 try {
-                    $accData = (new CTraderService())->getUser($tradingAccount->meta_login);
-
-                    if (empty($accData)) {
-                        $tradingAccount->trading_user->delete();
-                        $tradingAccount->delete();
-                    } else {
-                        // Proceed with updating tradingAccount information
-                        (new UpdateTradingUser)->execute($tradingAccount->meta_login, $accData);
-                        (new UpdateTradingAccount)->execute($tradingAccount->meta_login, $accData);
-                    }
+                    (new CTraderService())->getUserInfo($tradingAccount->meta_login);
                 } catch (\Throwable $e) {
                     Log::error($e->getMessage());
                     return back()->with('toast', [

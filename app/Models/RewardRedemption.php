@@ -35,4 +35,9 @@ class RewardRedemption extends Model
     {
         return $this->hasOne(Transaction::class, 'redemption_id', 'id')->where('transaction_type', 'redemption');
     }
+
+    public function tradingAccount(): belongsTo
+    {
+        return $this->belongsTo(TradingAccount::class, 'receiving_account', 'meta_login')->withTrashed();
+    }
 }

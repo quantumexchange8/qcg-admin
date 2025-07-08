@@ -72,12 +72,34 @@ class DashboardController extends Controller
     {
         $total_deposit = Transaction::whereIn('transaction_type', ['deposit', 'rebate_in', 'balance_in', 'credit_in'])
             ->where('status', 'successful')
+            ->where(function ($query) {
+                $query->whereHas('toMetaLogin', function ($q) {
+                    $q->whereHas('accountType', function ($q2) {
+                        $q2->where('account_group', 'STANDARD.t');
+                    });
+                })
+                ->orWhere(function ($q) {
+                    $q->whereNull('to_meta_login')
+                    ->orWhereDoesntHave('toMetaLogin');
+                });
+            })
             ->sum('transaction_amount');
-    
+            
         $total_withdrawal = Transaction::whereIn('transaction_type', ['withdrawal', 'rebate_out', 'balance_out', 'credit_out'])
             ->where('status', 'successful')
+            ->where(function ($query) {
+                $query->whereHas('fromMetaLogin', function ($q) {
+                    $q->whereHas('accountType', function ($q2) {
+                        $q2->where('account_group', 'STANDARD.t');
+                    });
+                })
+                ->orWhere(function ($q) {
+                    $q->whereNull('from_meta_login')
+                    ->orWhereDoesntHave('fromMetaLogin');
+                });
+            })
             ->sum('amount');
-        
+
         $total_agent = User::where('role', 'agent')->count();
 
         $total_member = User::where('role', 'member')->count();
@@ -85,11 +107,33 @@ class DashboardController extends Controller
         $today_deposit = Transaction::whereIn('transaction_type', ['deposit', 'rebate_in', 'balance_in', 'credit_in'])
             ->where('status', 'successful')
             ->whereDate('created_at', today())
+            ->where(function ($query) {
+                $query->whereHas('toMetaLogin', function ($q) {
+                    $q->whereHas('accountType', function ($q2) {
+                        $q2->where('account_group', 'STANDARD.t');
+                    });
+                })
+                ->orWhere(function ($q) {
+                    $q->whereNull('to_meta_login')
+                    ->orWhereDoesntHave('toMetaLogin');
+                });
+            })
             ->sum('transaction_amount');
 
         $today_withdrawal = Transaction::whereIn('transaction_type', ['withdrawal', 'rebate_out', 'balance_out', 'credit_out'])
             ->where('status', 'successful')
             ->whereDate('created_at', today())
+            ->where(function ($query) {
+                $query->whereHas('fromMetaLogin', function ($q) {
+                    $q->whereHas('accountType', function ($q2) {
+                        $q2->where('account_group', 'STANDARD.t');
+                    });
+                })
+                ->orWhere(function ($q) {
+                    $q->whereNull('from_meta_login')
+                    ->orWhereDoesntHave('fromMetaLogin');
+                });
+            })
             ->sum('amount');
 
         $today_agent = User::where('role', 'agent')->whereDate('created_at', today())->count();
@@ -130,6 +174,8 @@ class DashboardController extends Controller
             // Find the corresponding AccountType model
             $accountType = AccountType::where('account_group_id', $groupId)->first();
 
+            // $accountType = AccountType::where('account_group', 'STANDARD.t')->first();
+
             // Initialize or reset group balance and equity
             $groupBalance = 0;
             $groupEquity = 0;
@@ -158,8 +204,8 @@ class DashboardController extends Controller
         }
 
         // Recalculate total balance and equity from the updated account types
-        $totalBalance = AccountType::sum('account_group_balance');
-        $totalEquity = AccountType::sum('account_group_equity');
+        $totalBalance = AccountType::where('account_group', 'STANDARD.t')->sum('account_group_balance');
+        $totalEquity = AccountType::where('account_group', 'STANDARD.t')->sum('account_group_equity');
 
         // Return the total balance and total equity as a JSON response
         return response()->json([
@@ -212,6 +258,7 @@ class DashboardController extends Controller
                 COALESCE(SUM(CASE WHEN tlv_day = 0 THEN tlv_lotsize END), SUM(tlv_lotsize)) AS total_trade_lots,
                 COALESCE(SUM(CASE WHEN tlv_day = 0 THEN tlv_volume_usd END), SUM(tlv_volume_usd)) AS total_volume
             ")
+            ->where('tlv_group', 'STANDARD.t')
             ->groupBy('tlv_year', 'tlv_month')
             ->get();
 
@@ -227,12 +274,14 @@ class DashboardController extends Controller
             $totalTradeLots = TradeLotSizeVolume::whereBetween(
                     DB::raw('DATE(CONCAT(tlv_year, "-", LPAD(tlv_month, 2, "0"), "-", LPAD(tlv_day, 2, "0")))'),
                     [$startOfWeek, $endOfWeek]
-                )->sum('tlv_lotsize');
+                )->where('tlv_group', 'STANDARD.t')
+                ->sum('tlv_lotsize');
 
             $totalVolume = TradeLotSizeVolume::whereBetween(
                     DB::raw('DATE(CONCAT(tlv_year, "-", LPAD(tlv_month, 2, "0"), "-", LPAD(tlv_day, 2, "0")))'),
                     [$startOfWeek, $endOfWeek]
-                )->sum('tlv_volume_usd');
+                )->where('tlv_group', 'STANDARD.t')
+                ->sum('tlv_volume_usd');
         } else {
             // Parse the month/year string into a Carbon date
             $carbonDate = Carbon::createFromFormat('m/Y', $monthYear);
@@ -245,6 +294,7 @@ class DashboardController extends Controller
             $hasSummaryRecord = TradeLotSizeVolume::where('tlv_year', $year)
                                                 ->where('tlv_month', $month)
                                                 ->where('tlv_day', 0)
+                                                ->where('tlv_group', 'STANDARD.t')
                                                 ->exists();
         
             if ($hasSummaryRecord) {
@@ -252,20 +302,24 @@ class DashboardController extends Controller
                 $totalTradeLots = TradeLotSizeVolume::where('tlv_year', $year)
                                                     ->where('tlv_month', $month)
                                                     ->where('tlv_day', 0)
+                                                    ->where('tlv_group', 'STANDARD.t')
                                                     ->sum('tlv_lotsize');
         
                 $totalVolume = TradeLotSizeVolume::where('tlv_year', $year)
                                                 ->where('tlv_month', $month)
                                                 ->where('tlv_day', 0)
+                                                ->where('tlv_group', 'STANDARD.t')
                                                 ->sum('tlv_volume_usd');
             } else {
                 // No summary record for this month, sum all available days
                 $totalTradeLots = TradeLotSizeVolume::where('tlv_year', $year)
                                                     ->where('tlv_month', $month)
+                                                    ->where('tlv_group', 'STANDARD.t')
                                                     ->sum('tlv_lotsize');
         
                 $totalVolume = TradeLotSizeVolume::where('tlv_year', $year)
                                                 ->where('tlv_month', $month)
+                                                ->where('tlv_group', 'STANDARD.t')
                                                 ->sum('tlv_volume_usd');
             }
         }

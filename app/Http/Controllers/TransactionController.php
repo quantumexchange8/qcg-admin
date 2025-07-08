@@ -60,7 +60,9 @@ class TransactionController extends Controller
 
     public function adjustment()
     {
-        return Inertia::render('Transaction/AdjustmentHistory');
+        return Inertia::render('Transaction/AdjustmentHistory', [
+            'teams' => (new GeneralController())->getTeams(true),
+        ]);
     }
 
     public function getTransactionData(Request $request)
@@ -106,7 +108,7 @@ class TransactionController extends Controller
             'approved_at',
         ];
 
-        $query = Transaction::with('user.teamHasUser.team', 'from_wallet', 'to_wallet', 'redemption.reward');
+        $query = Transaction::with('user.teamHasUser.team', 'from_wallet', 'to_wallet', 'redemption.reward', 'redemption.tradingAccount.accountType', 'fromMetaLogin.accountType', 'toMetaLogin.accountType');
         $status = request('status');
         if ($status === 'processing' || $type === 'transfer') {
             $query->whereBetween('created_at', [$startDate, $endDate]);
@@ -155,6 +157,11 @@ class TransactionController extends Controller
             $result['role'] = $transaction->user ? $transaction->user->role : null;
             $result['kyc_status'] = $transaction->user ? $transaction->user->kyc_approval : null;
 
+            $toMetaLogin = optional($transaction->toMetaLogin);
+            $toAccountType = optional($toMetaLogin->accountType);
+            $fromMetaLogin = optional($transaction->fromMetaLogin);
+            $fromAccountType = optional($fromMetaLogin->accountType);
+
             // Add type-specific fields
             if ($type === 'deposit') {
                 $result['team_id'] = $transaction->user->teamHasUser->team_id ?? null;
@@ -163,6 +170,8 @@ class TransactionController extends Controller
                 $result['from_wallet_address'] = $transaction->from_wallet_address;
                 $result['to_wallet_address'] = $transaction->to_wallet_address;
                 $result['to_meta_login'] = $transaction->to_meta_login;
+                $result['account_type'] = $toAccountType->account_group;
+                $result['account_type_color'] = $toAccountType->color;
                 $result['to_wallet_id'] = $transaction->to_wallet ? $transaction->to_wallet->id : null;
                 $result['from_wallet_name'] = $transaction->to_wallet ? ($transaction->to_wallet->type === 'rebate_wallet' ? 'rebate' : 'incentive') : null;
             } elseif ($type === 'withdrawal') {
@@ -171,6 +180,8 @@ class TransactionController extends Controller
                 $result['team_color'] = $transaction->user->teamHasUser->team->color ?? null;
                 $result['to_wallet_address'] = $transaction->to_wallet_address;
                 $result['from_meta_login'] = $transaction->from_meta_login;
+                $result['account_type'] = $fromAccountType->account_group;
+                $result['account_type_color'] = $fromAccountType->color;
                 $result['from_wallet_id'] = $transaction->from_wallet ? $transaction->from_wallet->id : null;
                 $result['from_wallet_name'] = $transaction->from_wallet ? ($transaction->from_wallet->type === 'rebate_wallet' ? 'rebate' : 'incentive') : null;
                 $result['wallet_id'] = $transaction->payment_account ? $transaction->payment_account->id : null;
@@ -179,7 +190,11 @@ class TransactionController extends Controller
                 $result['approved_at'] = $transaction->approved_at;
             } elseif ($type === 'transfer') {
                 $result['from_meta_login'] = $transaction->from_meta_login;
+                $result['from_account_type'] = $fromAccountType->account_group;
+                $result['from_account_type_color'] = $fromAccountType->color;
                 $result['to_meta_login'] = $transaction->to_meta_login;
+                $result['to_account_type'] = $toAccountType->account_group;
+                $result['to_account_type_color'] = $toAccountType->color;
                 $result['from_wallet_id'] = $transaction->from_wallet ? $transaction->from_wallet->id : null;
                 $result['from_wallet_name'] = $transaction->from_wallet ? ($transaction->from_wallet->type === 'rebate_wallet' ? 'rebate' : 'incentive') : null;
                 $result['to_wallet_id'] = $transaction->to_wallet ? $transaction->to_wallet->id : null;
@@ -189,6 +204,8 @@ class TransactionController extends Controller
                 $result['team_name'] = $transaction->user->teamHasUser->team->name ?? null;
                 $result['team_color'] = $transaction->user->teamHasUser->team->color ?? null;
                 $result['to_meta_login'] = $transaction->to_meta_login;
+                $result['account_type'] = $toAccountType->account_group;
+                $result['account_type_color'] = $toAccountType->color;
                 $result['approved_at'] = $transaction->approved_at;
 
                 $previousCreditBonus = Transaction::where('to_meta_login', $transaction->to_meta_login)
@@ -221,6 +238,8 @@ class TransactionController extends Controller
                 $result['reward_code'] = $transaction->redemption->reward->code;
                 $result['reward_name'] = $reward_name;
                 $result['receiving_account'] = $transaction->redemption->receiving_account ?? null;
+                $result['account_type'] = $transaction->redemption->receiving_account ? $transaction->redemption->tradingAccount->accountType->account_group : null;
+                $result['account_type_color'] = $transaction->redemption->receiving_account ? $transaction->redemption->tradingAccount->accountType->color : null;
                 $result['recipient_name'] = $transaction->redemption->recipient_name ?? null;
                 $result['phone_number'] = $transaction->redemption->phone_number ?? null;
                 $result['address'] = $transaction->redemption->address ?? null;
@@ -413,6 +432,7 @@ class TransactionController extends Controller
     public function getAdjustmentHistoryData(Request $request)
     {
         $monthYear = $request->input('selectedMonth');
+        $selectedTeam = $request->query('selectedTeam');
 
         if ($monthYear === 'select_all') {
             $startDate = Carbon::createFromDate(2020, 1, 1)->startOfDay();
@@ -431,11 +451,18 @@ class TransactionController extends Controller
         }
 
         // Initialize the query
-        $query = Transaction::whereIn('transaction_type', [
+        $query = Transaction::with('user.teamHasUser.team')
+        ->whereIn('transaction_type', [
                 'rebate_in', 'rebate_out', 'balance_in', 'balance_out', 'credit_in', 'credit_out',
             ])
             ->where('status', 'successful')
             ->whereBetween('created_at', [$startDate, $endDate]);
+
+        if ($selectedTeam) {
+            $query->whereHas('user.teamHasUser.team', function ($query) use ($selectedTeam) {
+                $query->where('id', $selectedTeam);
+            });
+        }
 
         // Fetch transactions
         $adjustment_history = $query->latest()->get();

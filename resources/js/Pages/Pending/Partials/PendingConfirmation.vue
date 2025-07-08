@@ -235,6 +235,17 @@ const submit = () => {
                         ></Tag>
                     </div>
                 </div>
+                <div v-if="props.pendingData.account_type" class="flex flex-col items-start md:items-center gap-1 md:flex-row self-stretch">
+                    <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.account_type') }}</span>
+                    <div
+                        class="flex px-2 py-1 justify-center items-center text-xs rounded-sm text-white"
+                        :style="{
+                            backgroundColor: `#${props.pendingData.account_type_color}`,
+                        }"
+                    >
+                        {{ props.pendingData.account_type }}
+                    </div>
+                </div>
                 <div class="flex flex-col md:flex-row md:items-center gap-1 self-stretch">
                     <div class="w-[140px] text-gray-500 text-sm">
                         {{ $t('public.sales_team') }}
@@ -315,6 +326,17 @@ const submit = () => {
                             severity="contrast"
                             :value="$t(`public.${tooltipText}`)"
                         ></Tag>
+                    </div>
+                </div>
+                <div v-if="props.pendingData.account_type" class="flex flex-col items-start md:items-center gap-1 md:flex-row self-stretch">
+                    <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.account_type') }}</span>
+                    <div
+                        class="flex px-2 py-1 justify-center items-center text-xs rounded-sm text-white"
+                        :style="{
+                            backgroundColor: `#${props.pendingData.account_type_color}`,
+                        }"
+                    >
+                        {{ props.pendingData.account_type }}
                     </div>
                 </div>
                 <!-- <div class="flex flex-col md:flex-row md:items-center gap-1 self-stretch">

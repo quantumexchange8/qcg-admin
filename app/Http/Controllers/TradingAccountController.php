@@ -222,6 +222,7 @@ class TradingAccountController extends Controller
                 $account->equity = $account->trading_account->equity ?? 0;
                 $account->account_type_id = $account->accountType->id;
                 $account->account_type = $account->accountType->name;
+                $account->account_type_color = $account->accountType->color;
                 $account->account_group = $account->accountType->account_group;
                 // Calculate `is_active` dynamically
                 $account->is_active = (
@@ -249,6 +250,16 @@ class TradingAccountController extends Controller
                 'data' => $accounts,
             ]);
         } else {
+            $cTraderService = (new CTraderService);
+
+            $conn = $cTraderService->connectionStatus();
+            if ($conn['code'] != 0) {
+                return back()
+                    ->with('toast', [
+                        'title' => 'Connection Error',
+                        'type' => 'error'
+                    ]);
+            }
             // Handle inactive accounts or other types
             $query = TradingUser::onlyTrashed()
                 ->with([
@@ -308,10 +319,21 @@ class TradingAccountController extends Controller
 
             // After the accounts are retrieved, you can access `getFirstMediaUrl` for each user using foreach
             foreach ($accounts as $account) {
+                $account->cbroker_status = null;
+                $response = $cTraderService->getUser($account->meta_login);
+
+                if ($response) {
+                    $account->cbroker_status = 'active';
+                }
+                else {
+                    $account->cbroker_status = 'deleted';
+                }
+
                 $account->name = $account->userData->first_name;
                 $account->email = $account->userData->email;
                 $account->account_type_id = $account->accountType->id;
                 $account->account_type = $account->accountType->name;
+                $account->account_type_color = $account->accountType->color;
                 $account->account_group = $account->accountType->account_group;
 
                 // Remove unnecessary nested data (users and trading_account)
@@ -437,7 +459,7 @@ class TradingAccountController extends Controller
                 ]);
         }
 
-        $trading_account = TradingAccount::where('meta_login', $request->meta_login)->first();
+        $trading_account = TradingAccount::with('accountType')->where('meta_login', $request->meta_login)->first();
         $action = $request->action;
         $type = $request->type;
         $amount = $request->amount;
@@ -532,6 +554,10 @@ class TradingAccountController extends Controller
                 }
             }
 
+            if ($trading_account->accountType->account_group == 'VIRTUAL') {
+                $transaction->delete();
+            }
+
             return redirect()->back()->with('toast', [
                 'title' => $type == 'account_balance' ? trans('public.toast_balance_adjustment_success') : trans('public.toast_credit_adjustment_success'),
                 'type' => 'success'
@@ -548,6 +574,10 @@ class TradingAccountController extends Controller
                 TradingUser::firstWhere('meta_login', $trading_account->meta_login)->update(['acc_status' => 'inactive']);
             } else {
                 Log::error($e->getMessage());
+            }
+
+            if ($trading_account->accountType->account_group == 'VIRTUAL') {
+                $transaction->delete();
             }
 
             return back()
@@ -722,4 +752,103 @@ class TradingAccountController extends Controller
     {
         UpdateCTraderAccountJob::dispatch();
     }
+
+    public function accountRestore(Request $request)
+    {
+        $cTraderService = (new CTraderService);
+
+        $conn = $cTraderService->connectionStatus();
+        if ($conn['code'] != 0) {
+            return back()
+                ->with('toast', [
+                    'title' => 'Connection Error',
+                    'type' => 'error'
+                ]);
+        }
+
+        try {
+            $cTraderService->getUserInfo($request->meta_login);
+        } catch (\Throwable $e) {
+            Log::error($e->getMessage());
+
+            return back()
+                ->with('toast', [
+                    'title' => 'No cTrader Account Found',
+                    'type' => 'error'
+                ]);
+        }
+
+        $trading_account = TradingAccount::where('meta_login', $request->meta_login)->withTrashed()->first();
+
+        try {
+
+            $trading_account->trading_user->restore();
+            $trading_account->trading_user->update(['acc_status' => 'active']);
+            $trading_account->restore();
+
+            // Return success response with a flag for toast
+            return redirect()->back()->with('toast', [
+                'title' => trans('public.toast_restore_trading_account_success'),
+                'type' => 'success',
+            ]);
+        } catch (\Throwable $e) {
+            // Log the error and return failure response
+            Log::error('Failed to restore trading account: ' . $e->getMessage());
+
+            return back()
+                ->with('toast', [
+                    'title' => 'No Account Found',
+                    'type' => 'error'
+                ]);
+        }
+    }
+
+
+    public function ctraderAccountDelete(Request $request)
+    {
+        $cTraderService = (new CTraderService);
+
+        $conn = $cTraderService->connectionStatus();
+        if ($conn['code'] != 0) {
+            return back()
+                ->with('toast', [
+                    'title' => 'Connection Error',
+                    'type' => 'error'
+                ]);
+        }
+
+        try {
+            $cTraderService->getUserInfo($request->meta_login);
+        } catch (\Throwable $e) {
+            Log::error($e->getMessage());
+
+            return back()
+                ->with('toast', [
+                    'title' => 'No Account Found',
+                    'type' => 'error'
+                ]);
+        }
+
+        $trading_account = TradingAccount::where('meta_login', $request->meta_login)->withTrashed()->first();
+
+        try {
+            $cTraderService->deleteTrader($trading_account->meta_login);
+
+            // Return success response with a flag for toast
+            return redirect()->back()->with('toast', [
+                'title' => trans('public.toast_delete_ctrader_account_success'),
+                'type' => 'success',
+            ]);
+        } catch (\Throwable $e) {
+            // Log the error and return failure response
+            Log::error('Failed to delete trading account: ' . $e->getMessage());
+
+            return back()
+                ->with('toast', [
+                    'title' => 'No Account Found',
+                    'type' => 'error'
+                ]);
+        }
+    }
+
 }

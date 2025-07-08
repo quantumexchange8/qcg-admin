@@ -50,7 +50,8 @@ class PendingController extends Controller
             'user:id,email,first_name,kyc_approval',
             'payment_account:id,payment_account_name,account_no',
             'user.teamHasUser:id,team_id,user_id',
-            'user.teamHasUser.team:id,name,color'
+            'user.teamHasUser.team:id,name,color',
+            'fromMetaLogin.accountType:id,account_group,color'
         ])
             ->where('transaction_type', 'withdrawal')
             ->where('status', 'processing')
@@ -80,6 +81,8 @@ class PendingController extends Controller
                     'user_email' => $transaction->user->email,
                     'user_kyc_status' => $transaction->user->kyc_approval,
                     'from' => $transaction->from_meta_login ? $transaction->from_meta_login : 'rebate_wallet',
+                    'account_type' => $transaction->from_meta_login ? $transaction->fromMetaLogin->accountType->account_group : null,
+                    'account_type_color' => $transaction->from_meta_login ? $transaction->fromMetaLogin->accountType->color : null,
                     'balance' => $balance, // Get balance after ensuring it's updated
                     'amount' => $transaction->amount,
                     'transaction_charges' => $transaction->transaction_charges,
@@ -153,7 +156,8 @@ class PendingController extends Controller
             'user:id,email,first_name',
             'payment_account:id,payment_account_name,account_no',
             'user.teamHasUser:id,team_id,user_id',
-            'user.teamHasUser.team:id,name,color'
+            'user.teamHasUser.team:id,name,color',
+            'toMetaLogin.accountType:id,account_group,color'
         ])
             ->whereIn('transaction_type', ['credit_bonus'])
             ->where('status', 'processing')
@@ -201,6 +205,8 @@ class PendingController extends Controller
                     'user_name' => $transaction->user->first_name,
                     'user_email' => $transaction->user->email,
                     'from' => $transaction->to_meta_login ? $transaction->to_meta_login : 'bonus',
+                    'account_type' => $transaction->to_meta_login ? $transaction->toMetaLogin->accountType->account_group : null,
+                    'account_type_color' => $transaction->to_meta_login ? $transaction->toMetaLogin->accountType->color : null,
                     'balance' => $balance, // Get balance after ensuring it's updated
                     'amount' => $transaction->amount,
                     'transaction_charges' => $transaction->transaction_charges,
@@ -378,7 +384,8 @@ class PendingController extends Controller
             'user:id,email,first_name',
             'payment_account:id,payment_account_name,account_no',
             'user.teamHasUser:id,team_id,user_id',
-            'user.teamHasUser.team:id,name,color'
+            'user.teamHasUser.team:id,name,color',
+            'fromMetaLogin.accountType:id,account_group,color'
         ])
             ->where('transaction_type', 'withdrawal')
             ->where('status', 'processing')
@@ -407,6 +414,8 @@ class PendingController extends Controller
                     'user_name' => $transaction->user->first_name,
                     'user_email' => $transaction->user->email,
                     'from' => $transaction->from_meta_login ? $transaction->from_meta_login : 'incentive',
+                    'account_type' => $transaction->from_meta_login ? $transaction->fromMetaLogin->accountType->account_group : null,
+                    'account_type_color' => $transaction->from_meta_login ? $transaction->fromMetaLogin->accountType->color : null,
                     'balance' => $balance,
                     'amount' => $transaction->amount,
                     'transaction_charges' => $transaction->transaction_charges,
