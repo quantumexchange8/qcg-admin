@@ -186,9 +186,12 @@ class TicketController extends Controller
 
     public function sendReply(Request $request)
     {
-        $request->validate([
-            'message' => 'required',
+        $validator = Validator::make($request->all(), [
+            'message' => ['required'],
+        ])->setAttributeNames([
+            'message' => trans('public.message'),
         ]);
+        $validator->validate();
 
         TicketReply::create([
             'ticket_id' => $request->ticket_id,

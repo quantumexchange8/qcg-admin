@@ -21,6 +21,7 @@ import Checkbox from 'primevue/checkbox';
 import TextArea from "primevue/textarea";
 import TicketReplies from "@/Pages/Tickets/Partials/TicketReplies.vue";
 import { useConfirm } from "primevue/useconfirm";
+import InputError from '@/Components/InputError.vue';
 
 const {locale} = useLangObserver();
 
@@ -432,6 +433,7 @@ const refreshChild = () => {
                     cols="30"
                     :invalid="!!form.errors.message"
                 />
+                <InputError :message="form.errors.message" />
                 <div class="flex flex-row justify-between items-center w-full">
                     <label class="flex items-center gap-2">
                         <Checkbox binary class="w-5 h-5" @click="confirmResolve('mark_resolved', data.ticket_id)"/>
