@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class TicketController extends Controller
 {
@@ -188,16 +189,37 @@ class TicketController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'message' => ['required'],
+            'ticket_attachment' => ['array'],
+            'ticket_attachment.*' => ['mimes:jpg,png', 'max:10000'],
         ])->setAttributeNames([
             'message' => trans('public.message'),
+            'ticket_attachment' => trans('public.ticket_attachment'),
+            'ticket_attachment.*' => trans('public.ticket_attachment_file'),
         ]);
+        
+        $validator->after(function ($validator) {
+            $errors = $validator->errors();
+        
+            foreach ($errors->getMessages() as $key => $messages) {
+                if (Str::startsWith($key, 'ticket_attachment.')) {
+                    $errors->add('ticket_attachment', $messages[0]);
+                    break; // only add one error
+                }
+            }
+        });
         $validator->validate();
 
-        TicketReply::create([
+        $reply = TicketReply::create([
             'ticket_id' => $request->ticket_id,
             'user_id' => Auth::id(),
             'message' => $request->message,
         ]);
+
+        if ($request->file('ticket_attachment')) {
+            foreach ($request->file('ticket_attachment') as $file) {
+                $reply->addMedia($file)->toMediaCollection('ticket_attachment'); 
+            }
+        }
 
         Ticket::where('id', $request->ticket_id)->update([
             'status' => 'in_progress',

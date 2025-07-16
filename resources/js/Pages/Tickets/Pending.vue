@@ -1,7 +1,7 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { usePage, useForm, router } from "@inertiajs/vue3";
-import { IconCircleXFilled, IconSearch, IconDownload, IconFilterOff, IconCopy } from "@tabler/icons-vue";
+import { IconCircleXFilled, IconSearch, IconDownload, IconFilterOff, IconCopy, IconPlus, IconX } from "@tabler/icons-vue";
 import { ref, watch, watchEffect, onMounted, onUnmounted } from "vue";
 import Loader from "@/Components/Loader.vue";
 import Dialog from "primevue/dialog";
@@ -131,6 +131,7 @@ onUnmounted(() => {
 const form = useForm({
     ticket_id: '',
     message: '',
+    ticket_attachment: [],
 })
 
 const submitForm = () => {
@@ -139,11 +140,17 @@ const submitForm = () => {
         onSuccess: () => {
             // closeDialog();
             // form.reset();
-            form.message = '';
+            resetDialogForm();
             refreshChild();
         },
     });
 };
+
+const resetDialogForm = () => {
+    selectedAttachments.value = [];
+    form.ticket_attachment = [];
+    form.message = '';
+}
 
 // dialog
 const data = ref({});
@@ -151,6 +158,7 @@ const openDialog = (rowData) => {
     visible.value = true;
     data.value = rowData;
 
+    resetDialogForm();
     form.ticket_id = data.value.ticket_id;
 
     // update ticket_log here
@@ -214,6 +222,38 @@ const refreshChild = () => {
   refreshKey.value++
 //   console.log(refreshKey.value)
 }
+
+const selectedAttachments = ref([]); // Array for up to 2 images
+
+const handleAttachment = (event) => {
+    const files = Array.from(event.target.files);
+
+    // if (files.length > 2) {
+    //     alert("You can only upload up to 2 files.");
+    //     return;
+    // }
+
+    selectedAttachments.value = [];
+    form.ticket_attachment = [];
+
+    files.forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            selectedAttachments.value.push({
+                name: file.name,
+                url: e.target.result,
+                file: file,
+            });
+        };
+        reader.readAsDataURL(file);
+        form.ticket_attachment.push(file);
+    });
+};
+
+const removeAttachment = (index) => {
+    selectedAttachments.value.splice(index, 1);
+    form.ticket_attachment.splice(index, 1);
+};
 </script>
 
 <template>
@@ -422,7 +462,7 @@ const refreshChild = () => {
         </div>
 
         <template #footer>
-            <div class="flex flex-col gap-2 md:gap-4 justify-center w-full pt-4">
+            <div class="flex flex-col gap-2 md:gap-4 justify-center items-start w-full pt-4">
                 <TextArea
                     id="message"
                     type="text"
@@ -434,6 +474,49 @@ const refreshChild = () => {
                     :invalid="!!form.errors.message"
                 />
                 <InputError :message="form.errors.message" />
+                <div v-if="selectedAttachments.length" class="flex flex-row gap-2 w-full">
+                    <div 
+                        v-for="(file, index) in selectedAttachments"
+                        :key="index"
+                        class="relative py-3 pl-4 flex justify-between rounded-xl bg-gray-100 max-w-48"
+                    >
+                        <div class="inline-flex items-center gap-3 truncate">
+                            <img :src="file.url" alt="Selected Image" class="max-w-full h-9 object-contain rounded" />
+                            <div class="text-sm text-gray-950 truncate">
+                                {{ file.name }}
+                            </div>
+                        </div>
+                        <Button
+                            type="button"
+                            variant="gray-text"
+                            @click="removeAttachment(index)"
+                            pill
+                            iconOnly
+                        >
+                            <IconX class="text-gray-700 w-5 h-5" />
+                        </Button>
+                    </div>
+                </div>
+                <InputError :message="form.errors.ticket_attachment" />
+                <div class="flex flex-col gap-3">
+                    <input
+                        ref="attachmentInput"
+                        id="attachment"
+                        type="file"
+                        class="hidden"
+                        accept="image/*"
+                        @change="handleAttachment"
+                        multiple
+                    />
+                    <Button
+                        type="button"
+                        variant="primary-text"
+                        @click="$refs.attachmentInput.click()"
+                    >
+                        <IconPlus size="20" stroke-width="1.25" />
+                        {{ $t('public.add_attachment') }}
+                    </Button>
+                </div>
                 <div class="flex flex-row justify-between items-center w-full">
                     <label class="flex items-center gap-2">
                         <Checkbox binary class="w-5 h-5" @click="confirmResolve('mark_resolved', data.ticket_id)"/>
