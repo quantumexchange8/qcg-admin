@@ -125,6 +125,7 @@ export default {
         'dropdown': '0px 8px 16px -4px rgba(12, 17, 29, 0.08)',
         'dialog': '0 12px 24px -4px rgba(12, 17, 29, 0.10)',
         'card': '0px 4px 30px 0px #F3F4F6',
+        'box': '1px 2px 2px 0px rgba(0, 0, 0, 0.25)',
         // 'toast': '0 4px 20px 0 rgba(12, 17, 29, 0.08)',
         // 'table': '0 2px 8px 0 rgba(12, 17, 29, 0.05)',
       },

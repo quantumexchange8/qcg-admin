@@ -14,19 +14,19 @@ defineProps({
 <template>
     <Head :title="title"></Head>
 
-    <div class="min-h-screen bg-gray-100 flex flex-col">
+    <div class="min-h-screen bg-gray-100 flex flex-col items-center">
         <!-- Main container for Sidebar and Navbar -->
-        <div class="flex flex-col flex-1">
+        <div class="flex flex-col px-3 md:px-5 flex-1 max-w-[1440px] w-full">
             <!-- Navbar -->
             <Navbar :title="title" />
 
-            <div class="flex flex-1 px-3 py-5 gap-5 md:px-5">
+            <div class="flex flex-1 py-3 md:py-5 gap-5">
                 <!-- Sidebar -->
                 <Sidebar  />
 
                 <!-- Page Content -->
-                <main class="flex flex-1 justify-center items-start">
-                    <div class="w-full max-w-[1440px]">
+                <main class="flex flex-1 flex-col items-start justify-start relative min-w-0">
+                    <div class="flex flex-col w-full flex-1">
                         <!-- Toast -->
                         <ToastList />
                         <!-- Confirmation Dialog -->

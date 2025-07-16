@@ -10,6 +10,8 @@ import {
     IconChevronDown,
     IconUserFilled,
     IconCaretUpFilled,
+    IconCaretDownFilled,
+    IconAlertCircle,
 } from '@tabler/icons-vue';
 import {
     DepositIcon,
@@ -26,6 +28,7 @@ import Badge from '@/Components/Badge.vue';
 import { router } from '@inertiajs/vue3'
 import Select from "primevue/select";
 import dayjs from "dayjs";
+import Divider from 'primevue/divider';
 import DashboardTeamView from "@/Pages/Dashboard/DashboardTeamView.vue";
 
 const props = defineProps({
@@ -43,8 +46,14 @@ const totalDeposit = ref(0);
 const totalWithdrawal = ref(0);
 const totalAgent = ref(0);
 const totalMember = ref(0);
+const ytdDeposit = ref(0);
 const todayDeposit = ref(0);
+const lastMonthDeposit = ref(0);
+const currentMonthDeposit = ref(0);
+const ytdWithdrawal = ref(0);
 const todayWithdrawal = ref(0);
+const lastMonthWithdrawal = ref(0);
+const currentMonthWithdrawal = ref(0);
 const todayAgent = ref(0);
 const todayMember = ref(0);
 
@@ -54,16 +63,6 @@ const counterBalance = ref(null);
 const balance = ref(0)
 const equity = ref(0)
 const accountLoading = ref(false);
-
-const pendingWithdrawal = ref(0);
-const pendingWithdrawalCount = ref(0);
-const pendingBonus = ref(0);
-const pendingBonusCount = ref(0);
-const pendingKyc = ref(0);
-const pendingRewards = ref(0);
-// const pendingIncentive = ref(0);
-// const pendingIncentiveCount = ref(0);
-const pendingLoading = ref(false);
 
 const selectedMonth = ref('');
 const selectedTeamMonth = ref('');
@@ -121,30 +120,24 @@ const navigateWithQueryParams = (route, type) => {
 // data overview
 const dataOverviews = computed(() => [
     {
-        pendingCount: pendingWithdrawalCount.value,
-        total: pendingWithdrawal.value,
-        label: trans('public.dashboard_withdrawal_request'),
-        route: 'pending/withdrawal',
+        icon: DepositIcon,
+        total: totalDeposit.value,
+        yesterday: ytdDeposit.value,
+        today: todayDeposit.value,
+        last_month: lastMonthDeposit.value,
+        current_month: currentMonthDeposit.value,
+        label: trans('public.dashboard_total_deposit'),
+        route: 'transaction/deposit',
     },
     {
-        pendingCount: pendingBonusCount.value,
-        total: pendingBonus.value,
-        label: trans('public.dashboard_bonus_request'),
-        route: 'pending/bonus',
-    },
-    {
-        // pendingCount: pendingBonusCount.value,
-        icon: KycIcon,
-        total: pendingKyc.value,
-        label: trans('public.dashboard_pending_kyc'),
-        route: 'pending/kyc',
-    },
-    {
-        // pendingCount: pendingBonusCount.value,
-        icon: RewardsIcon,
-        total: pendingRewards.value,
-        label: trans('public.dashboard_rewards_request'),
-        route: 'pending/rewards',
+        icon: WithdrawalIcon,
+        total: totalWithdrawal.value,
+        yesterday: ytdWithdrawal.value,
+        today: todayWithdrawal.value,
+        last_month: lastMonthWithdrawal.value,
+        current_month: currentMonthWithdrawal.value,
+        label: trans('public.dashboard_total_withdrawal'),
+        route: 'transaction/withdrawal',
     },
     {
         icon: AgentIcon,
@@ -162,20 +155,6 @@ const dataOverviews = computed(() => [
         route: 'member/listing',
         type: 'member'
     },
-    {
-        icon: DepositIcon,
-        total: totalDeposit.value,
-        today: todayDeposit.value,
-        label: trans('public.dashboard_total_deposit'),
-        route: 'transaction/deposit',
-    },
-    {
-        icon: WithdrawalIcon,
-        total: totalWithdrawal.value,
-        today: todayWithdrawal.value,
-        label: trans('public.dashboard_total_withdrawal'),
-        route: 'transaction/withdrawal',
-    },
 ]);
 
 const getDashboardData = async () => {
@@ -185,8 +164,14 @@ const getDashboardData = async () => {
         totalWithdrawal.value = response.data.totalWithdrawal;
         totalAgent.value = response.data.totalAgent;
         totalMember.value = response.data.totalMember;
+        ytdDeposit.value = response.data.ytdDeposit;
         todayDeposit.value = response.data.todayDeposit;
+        lastMonthDeposit.value = response.data.lastMonthDeposit;
+        currentMonthDeposit.value = response.data.currentMonthDeposit;
+        ytdWithdrawal.value = response.data.ytdWithdrawal;
         todayWithdrawal.value = response.data.todayWithdrawal;
+        lastMonthWithdrawal.value = response.data.lastMonthWithdrawal;
+        currentMonthWithdrawal.value = response.data.currentMonthWithdrawal;
         todayAgent.value = response.data.todayAgent;
         todayMember.value = response.data.todayMember;
     } catch (error) {
@@ -217,18 +202,23 @@ const getAccountData = async () => {
 
 getAccountData();
 
+const pendingWithdrawalCount = ref(0);
+const pendingKycCount = ref(0);
+const pendingTicketsCount = ref(0);
+const pendingRewardsCount = ref(0);
+const pendingTotalCount = ref(0);
+const pendingLoading = ref(false);
+
 const getPendingData = async () => {
     pendingLoading.value = true;
     try {
-        const response = await axios.get('dashboard/getPendingData');
-        pendingWithdrawal.value = response.data.pendingWithdrawal;
-        pendingWithdrawalCount.value = response.data.pendingWithdrawalCount;
-        pendingBonus.value = response.data.pendingBonus;
-        pendingBonusCount.value = response.data.pendingBonusCount;
-        pendingKyc.value = response.data.pendingKyc;
-        pendingRewards.value = response.data.pendingRewards;
-        // pendingIncentive.value = response.data.pendingIncentive;
-        // pendingIncentiveCount.value = response.data.pendingIncentiveCount;
+        const response = await axios.get('dashboard/getPendingCounts');
+        pendingWithdrawalCount.value = response.data.pendingWithdrawals;
+        pendingKycCount.value = response.data.pendingKyc;
+        pendingTicketsCount.value = response.data.pendingTickets;
+        pendingRewardsCount.value = response.data.pendingRewards;
+
+        pendingTotalCount.value = pendingWithdrawalCount.value + pendingKycCount.value + pendingTicketsCount.value + pendingRewardsCount.value;
     } catch (error) {
         console.error('Error pending data:', error);
         pendingLoading.value = false;
@@ -239,6 +229,29 @@ const getPendingData = async () => {
 };
 
 getPendingData();
+
+const pendingOverview = computed(() => [
+    {
+        pendingCount: pendingWithdrawalCount.value,
+        label: trans('public.withdrawal'),
+        route: 'pending/withdrawal',
+    },
+    {
+        pendingCount: pendingKycCount.value,
+        label: trans('public.kyc'),
+        route: 'pending/kyc',
+    },
+    {
+        pendingCount: pendingTicketsCount.value,
+        label: trans('public.tickets'),
+        route: 'tickets/pending',
+    },
+    {
+        pendingCount: pendingRewardsCount.value,
+        label: trans('public.rewards'),
+        route: 'pending/rewards',
+    },
+]);
 
 const getTradeLotVolume = async () => {
     tradeLotVolumeLoading.value = true;
@@ -352,34 +365,30 @@ watch(() => usePage().props, (newProps, oldProps) => {
             <div class="w-full flex flex-col items-start gap-3 md:gap-5">
                 <!-- overview data -->
                 <div class="grid grid-cols-2 w-full gap-2 md:gap-5">
-                    <div class="flex flex-col bg-white justify-center rounded-lg shadow-card w-full cursor-pointer items-center"
+                    <div class="flex flex-col bg-white justify-center rounded-lg shadow-box w-full cursor-pointer items-center"
+                        :class="{'col-span-2 md:col-span-1': (item.icon === DepositIcon || item.icon === WithdrawalIcon)}"
                         v-for="(item, index) in dataOverviews" :key="index"
                         @click="navigateWithQueryParams(item.route, item.type)"
                     >
-                        <div class="flex w-full gap-2 items-center md:pb-2 md:pt-4 md:px-6 pb-1 pt-2 px-2 self-stretch">
-                            <div v-if="item.pendingCount || item.pendingCount === 0" class="flex justify-center items-center">
-                                <Badge 
-                                    variant="error"
-                                    class="h-6 text-center text-white text-xs w-6 font-medium md:h-9 md:text-base md:w-9 self-stretch truncate"
-                                >
-                                    {{ item.pendingCount }}
-                                </Badge>
-                            </div>
-                            <component v-if="item.icon" :is="item.icon" class="h-6 w-6 grow-0 md:h-9 md:w-9 shrink-0"
+                        <div class="flex w-full gap-2 items-center md:pb-2 md:pt-4 md:px-6 pb-1 self-stretch"
+                        :class="{
+                            'px-6 pt-3.5': item.icon === DepositIcon || item.icon == WithdrawalIcon,
+                            'px-2 pt-2': item.icon === AgentIcon || item.icon === MemberIcon,
+                        }">
+                            <component v-if="item.icon" :is="item.icon" class="grow-0 md:h-9 md:w-9 shrink-0"
                                 :class="{
-                                    'text-success-600': item.icon == DepositIcon,
-                                    'text-error-600': item.icon == WithdrawalIcon,
-                                    'text-orange': item.icon == AgentIcon,
-                                    'text-cyan': item.icon == MemberIcon,
-                                    'text-teal': item.icon == KycIcon,
-                                    'text-purple': item.icon == RewardsIcon,
+                                    'text-success-600 h-9 w-9': item.icon == DepositIcon,
+                                    'text-error-600 h-9 w-9': item.icon == WithdrawalIcon,
+                                    'text-orange h-6 w-6': item.icon == AgentIcon,
+                                    'text-cyan h-6 w-6': item.icon == MemberIcon,
                                 }" 
                             />
 
                             <div class="grid grid-cols-1 w-full gap-1 items-end">
                                 <span class="text-gray-500 text-right text-xxs md:text-sm self-stretch truncate">{{ item.label }}</span>
-                                <span v-if="(item.total || item.total === 0) && !pendingLoading" class="text-gray-950 text-right font-semibold md:text-xl self-stretch truncate">
-                                    <template v-if="item.icon === AgentIcon || item.icon === MemberIcon || item.icon === KycIcon || item.icon === RewardsIcon">
+                                <span v-if="(item.total || item.total === 0) && !pendingLoading" class="text-gray-950 text-right font-semibold md:text-xl self-stretch truncate"
+                                    :class="{'text-xl': item.icon === DepositIcon || item.icon == WithdrawalIcon,}">
+                                    <template v-if="item.icon === AgentIcon || item.icon === MemberIcon">
                                         {{ formatAmount(item.total, 0) }}
                                     </template>
                                     <template v-else>
@@ -389,10 +398,11 @@ watch(() => usePage().props, (newProps, oldProps) => {
                                 <span v-else class="flex justify-end text-gray-950 text-right animate-pulse font-semibold md:text-xl self-stretch truncate">
                                     <div class="bg-gray-200 h-2.5 rounded-full w-1/3"></div>
                                 </span>
-                                <div v-if="(item.today || item.today === 0)  && !pendingLoading" class="flex gap-2 items-center">
+
+                                <div v-if="(item.icon === AgentIcon || item.icon === MemberIcon)  && !pendingLoading" class="flex gap-2 items-center">
                                     <div class="flex justify-end w-full gap-0.5 items-center">
                                         <IconCaretUpFilled 
-                                            v-if="[DepositIcon, AgentIcon, MemberIcon].includes(item.icon)"
+                                            v-if="[AgentIcon, MemberIcon].includes(item.icon)"
                                             class="h-3 w-3 md:h-4 md:w-4"
                                             :class="{'text-success-500': item.today > 0, 'text-gray-950': item.today <= 0}"
                                         />
@@ -404,19 +414,82 @@ watch(() => usePage().props, (newProps, oldProps) => {
                                                 'text-gray-950': item.today <= 0,
                                             }"
                                         >
-                                            <template v-if="item.icon === AgentIcon || item.icon === MemberIcon">
-                                                {{ formatAmount(item.today, 0) }}
-                                            </template>
-                                            <template v-else>
-                                                $ {{ formatAmount(item.today) }}
-                                            </template>
+                                            {{ formatAmount(item.today, 0) }}
                                         </span>
                                     </div>
                                     <span class="text-gray-500 text-nowrap text-right text-sm hidden md:block">{{ $t('public.today') }}</span>
                                 </div>
+
+                            
                             </div>
                         </div>
-                        <div class="flex justify-center w-full gap-2 items-center px-2 self-stretch">
+                        <div v-if="(item.icon === DepositIcon || item.icon === WithdrawalIcon)  && !pendingLoading" class="rounded-lg bg-gray-50 p-3 flex flex-row items-center md:mb-2 md:mx-6 mb-1 mx-3 self-stretch">
+                            <div class="flex flex-col gap-2 flex-1 min-w-0">
+                                <div class="flex flex-col items-end justify-center">
+                                    <span class="text-gray-500 text-xxs text-right truncate w-full">{{ $t('public.yesterday') }}</span>
+                                    <span class="text-gray-950 text-sm text-right font-medium truncate w-full">$ {{ formatAmount(item.yesterday) }}</span>
+                                </div>
+                                <div v-if="(item.today || item.today === 0)  && !pendingLoading" class="flex flex-col items-center">
+                                    <span class="w-full text-gray-500 text-nowrap text-right text-xxs truncate">{{ $t('public.today') }}</span>
+                                    <div class="flex justify-end w-full gap-0.5 items-center">
+                                        <IconCaretUpFilled 
+                                            v-if="item.today > item.yesterday"
+                                            class="h-3 w-3 md:h-4 md:w-4"
+                                            :class="{'text-success-500': item.icon === DepositIcon, 'text-error-600': item.icon === WithdrawalIcon}"
+                                        />
+                                        <IconCaretDownFilled 
+                                            v-else-if="item.today < item.yesterday"
+                                            class="h-3 w-3 md:h-4 md:w-4"
+                                            :class="{'text-success-500': item.icon === DepositIcon, 'text-error-600': item.icon === WithdrawalIcon}"
+                                        />
+                                        <span 
+                                            class="text-right text-sm truncate font-medium block"
+                                            :class="{
+                                                'text-success-500': item.today > 0 && item.icon !== WithdrawalIcon, 
+                                                'text-error-600': item.icon === WithdrawalIcon && item.today > 0,
+                                                'text-gray-950': item.today <= 0,
+                                            }"
+                                        >
+                                            $ {{ formatAmount(item.today) }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <Divider layout="vertical"/>
+                            <div class="flex flex-col gap-2 flex-1 min-w-0">
+                                <div class="flex flex-col items-end justify-center">
+                                    <span class="text-gray-500 text-xxs text-right truncate w-full">{{ $t('public.last_month') }}</span>
+                                    <span class="text-gray-950 text-sm text-right font-medium truncate w-full">$ {{ formatAmount(item.yesterday) }}</span>
+                                </div>
+                                <div v-if="(item.current_month || item.current_month === 0)  && !pendingLoading" class="flex flex-col items-center">
+                                    <span class="w-full text-gray-500 text-nowrap text-right text-xxs truncate">{{ $t('public.current_month') }}</span>
+                                    <div class="flex justify-end w-full gap-0.5 items-center">
+                                        <IconCaretUpFilled 
+                                            v-if="item.current_month > item.last_month"
+                                            class="h-3 w-3 md:h-4 md:w-4"
+                                            :class="{'text-success-500': item.icon === DepositIcon, 'text-error-600': item.icon === WithdrawalIcon}"
+                                        />
+                                        <IconCaretDownFilled 
+                                            v-else-if="item.current_month < item.last_month"
+                                            class="h-3 w-3 md:h-4 md:w-4"
+                                            :class="{'text-success-500': item.icon === DepositIcon, 'text-error-600': item.icon === WithdrawalIcon}"
+                                        />
+                                        <span 
+                                            class="text-right text-sm truncate font-medium block"
+                                            :class="{
+                                                'text-success-500': item.current_month > 0 && item.icon !== WithdrawalIcon, 
+                                                'text-error-600': item.icon === WithdrawalIcon && item.current_month > 0,
+                                                'text-gray-950': item.current_month <= 0,
+                                            }"
+                                        >
+                                            $ {{ formatAmount(item.current_month) }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex justify-center w-full gap-2 items-center px-2 self-stretch"
+                        :class="{'py-2': item.icon === DepositIcon || item.icon == WithdrawalIcon}">
                             <IconDots class="h-4 text-gray-400 w-4" />
                         </div>
                     </div>
@@ -424,10 +497,10 @@ watch(() => usePage().props, (newProps, oldProps) => {
                 <!-- account listing and forum link -->
                 <div class="flex w-full gap-2 items-center flex-row md:gap-5">
                     <div 
-                        class="flex bg-white rounded-lg shadow-card w-full cursor-pointer gap-1 md:gap-3 items-center md:px-6 md:py-3 px-3 py-2 truncate"
+                        class="flex bg-white rounded-lg shadow-box w-full cursor-pointer gap-1 md:gap-3 items-center md:px-6 md:py-3 px-3 py-2 truncate"
                         @click="router.visit(route('member.account_listing'))"
                     >
-                        <span class="text-gray-950 text-sm w-full font-semibold md:text-base truncate">{{ $t('public.ctrader_listing') }}</span>
+                        <span class="text-gray-950 text-sm w-full font-semibold md:text-base truncate">{{ $t('public.ctrader_account_listing') }}</span>
                         <Button 
                             variant="gray-text" 
                             size="sm" 
@@ -437,26 +510,28 @@ watch(() => usePage().props, (newProps, oldProps) => {
                             <IconChevronRight size="16" stroke-width="1.25" color="#374151" />
                         </Button>
                     </div>
+                </div>
+                <div class="w-full h-full flex flex-col items-center gap-3 md:gap-5">
+                    <div class="w-full flex items-center pl-2.5 gap-1">
+                        <span class="text-sm text-gray-950 font-semibold">{{ $t('public.pending_request') }}</span>
+                        <IconAlertCircle v-if="!pendingLoading && pendingTotalCount > 0" class="h-4 text-red-500 w-4" />
+                    </div>
 
-                    <div 
-                        class="flex bg-white rounded-lg shadow-card w-full cursor-pointer gap-1 md:gap-3 items-center md:px-6 md:py-3 px-3 py-2 truncate"
-                        @click="router.visit(route('highlights') + '?type=forum')"
-                    >
-                        <span class="text-gray-950 text-sm w-full font-semibold md:text-base truncate">{{ $t('public.editing_forum') }}</span>
-                        <Button 
-                            variant="gray-text" 
-                            size="sm" 
-                            type="button"
-                            iconOnly 
-                            v-slot="{ iconSizeClasses }"
-                        >
-                            <IconChevronRight size="16" stroke-width="1.25" color="#374151" />
-                        </Button>
+                    <div class="w-full h-full flex flex-row justify-center items-center gap-2 md:gap-5 py-0 md:py-1">
+                        <div class="w-full bg-white rounded-lg shadow-box px-3 py-2 md:px-6 md:pt-4 md:pb-2 flex flex-col gap-2 md:gap-3 items-center cursor-pointer"
+                            v-for="(item, index) in pendingOverview" :key="index"
+                            @click="navigateWithQueryParams(item.route)">
+                            <span class="text-gray-500 text-xxs md:text-sm">{{ item.label }}</span>
+                            <span v-if="pendingLoading" class="w-5 flex items-center h-5">
+                                <div class="bg-gray-200 h-2.5 rounded-full w-full animate-pulse"></div>
+                            </span>
+                            <span v-else class="text-error-600 text-base md:text-lg font-semibold">{{ item.pendingCount }}</span>
+                        </div>
                     </div>
                 </div>
                 <div class="w-full h-full flex flex-col items-center gap-3 md:gap-5">
                     <!-- account balance & equity, request -->
-                    <div class="w-full h-full flex flex-col items-center pt-2 pb-3 px-3 gap-3 rounded-lg bg-white shadow-card md:p-6 md:gap-5">
+                    <div class="w-full h-full flex flex-col items-center pt-2 pb-3 px-3 gap-3 rounded-lg bg-white shadow-box md:p-6 md:gap-5">
                         <div class="w-full flex items-center md:h-9 gap-1">
                             <span class="w-full truncate text-gray-950 text-sm font-semibold md:text-base">{{ $t('public.account_balance_equity') }}</span>
                             <Button 
@@ -496,7 +571,7 @@ watch(() => usePage().props, (newProps, oldProps) => {
                         </div>
                     </div>
 
-                    <div class="w-full h-full flex flex-col items-center p-3 gap-3 rounded-lg bg-white shadow-card md:p-6 md:gap-5">
+                    <div class="w-full h-full flex flex-col items-center p-3 gap-3 rounded-lg bg-white shadow-box md:p-6 md:gap-5">
                         <div class="w-full flex justify-between items-center gap-1">
                             <Select 
                                 v-model="selectedMonth" 
@@ -548,7 +623,7 @@ watch(() => usePage().props, (newProps, oldProps) => {
                     </div>
 
                     <!-- P&L Section -->
-                    <div class="w-full h-full flex flex-col items-start p-3 gap-3 rounded-lg bg-white shadow-card md:p-6 md:gap-5">
+                    <div class="w-full h-full flex flex-col items-start p-3 gap-3 rounded-lg bg-white shadow-box md:p-6 md:gap-5">
                         <div class="w-full flex justify-between items-center gap-1">
                             <Select 
                                 v-model="selectedPnlMonth" 

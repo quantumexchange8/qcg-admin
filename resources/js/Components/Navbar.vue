@@ -41,7 +41,7 @@ const changeLanguage = async (langVal) => {
 <template>
     <nav
         aria-label="secondary"
-        class="sticky top-0 z-10 py-3.5 md:py-2 px-2 md:px-5 bg-white flex items-center gap-2 md:gap-3 justify-between"
+        class="sticky top-0 z-10 py-3.5 md:py-2 px-2 md:px-5 bg-white flex items-center gap-2 md:gap-3 justify-between rounded-b-lg opacity-80 shadow-box"
     >
         <div
             class="inline-flex justify-center items-center rounded-full border border-gray-200 hover:bg-gray-100 w-9 h-9 md:w-12 md:h-12 shrink-0 grow-0 hover:select-none hover:cursor-pointer"

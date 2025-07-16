@@ -104,6 +104,22 @@ class DashboardController extends Controller
 
         $total_member = User::where('role', 'member')->count();
 
+        $yesterday_deposit = Transaction::whereIn('transaction_type', ['deposit', 'rebate_in', 'balance_in', 'credit_in'])
+            ->where('status', 'successful')
+            ->whereDate('created_at', today()->subDay())
+            ->where(function ($query) {
+                $query->whereHas('toMetaLogin', function ($q) {
+                    $q->whereHas('accountType', function ($q2) {
+                        $q2->where('account_group', 'STANDARD.t');
+                    });
+                })
+                ->orWhere(function ($q) {
+                    $q->whereNull('to_meta_login')
+                    ->orWhereDoesntHave('toMetaLogin');
+                });
+            })
+            ->sum('transaction_amount');
+
         $today_deposit = Transaction::whereIn('transaction_type', ['deposit', 'rebate_in', 'balance_in', 'credit_in'])
             ->where('status', 'successful')
             ->whereDate('created_at', today())
@@ -120,9 +136,92 @@ class DashboardController extends Controller
             })
             ->sum('transaction_amount');
 
+        $last_month_deposit = Transaction::whereIn('transaction_type', ['deposit', 'rebate_in', 'balance_in', 'credit_in'])
+            ->where('status', 'successful')
+            ->whereMonth('created_at', now()->subMonth()->month)
+            ->whereYear('created_at', now()->subMonth()->year)
+            ->where(function ($query) {
+                $query->whereHas('toMetaLogin', function ($q) {
+                    $q->whereHas('accountType', function ($q2) {
+                        $q2->where('account_group', 'STANDARD.t');
+                    });
+                })
+                ->orWhere(function ($q) {
+                    $q->whereNull('to_meta_login')
+                    ->orWhereDoesntHave('toMetaLogin');
+                });
+            })
+            ->sum('transaction_amount');
+
+        $current_month_deposit = Transaction::whereIn('transaction_type', ['deposit', 'rebate_in', 'balance_in', 'credit_in'])
+            ->where('status', 'successful')
+            ->whereMonth('created_at', today()->month)
+            ->whereYear('created_at', today()->year)
+            ->where(function ($query) {
+                $query->whereHas('toMetaLogin', function ($q) {
+                    $q->whereHas('accountType', function ($q2) {
+                        $q2->where('account_group', 'STANDARD.t');
+                    });
+                })
+                ->orWhere(function ($q) {
+                    $q->whereNull('to_meta_login')
+                    ->orWhereDoesntHave('toMetaLogin');
+                });
+            })
+            ->sum('transaction_amount');
+
+        $yesterday_withdrawal = Transaction::whereIn('transaction_type', ['withdrawal', 'rebate_out', 'balance_out', 'credit_out'])
+            ->where('status', 'successful')
+            ->whereDate('created_at', today()->subDay())
+            ->where(function ($query) {
+                $query->whereHas('fromMetaLogin', function ($q) {
+                    $q->whereHas('accountType', function ($q2) {
+                        $q2->where('account_group', 'STANDARD.t');
+                    });
+                })
+                ->orWhere(function ($q) {
+                    $q->whereNull('from_meta_login')
+                    ->orWhereDoesntHave('fromMetaLogin');
+                });
+            })
+            ->sum('amount');
+
         $today_withdrawal = Transaction::whereIn('transaction_type', ['withdrawal', 'rebate_out', 'balance_out', 'credit_out'])
             ->where('status', 'successful')
-            ->whereDate('created_at', today())
+            ->where('created_at', today())
+            ->where(function ($query) {
+                $query->whereHas('fromMetaLogin', function ($q) {
+                    $q->whereHas('accountType', function ($q2) {
+                        $q2->where('account_group', 'STANDARD.t');
+                    });
+                })
+                ->orWhere(function ($q) {
+                    $q->whereNull('from_meta_login')
+                    ->orWhereDoesntHave('fromMetaLogin');
+                });
+            })
+            ->sum('amount');
+
+        $last_month_withdrawal = Transaction::whereIn('transaction_type', ['withdrawal', 'rebate_out', 'balance_out', 'credit_out'])
+            ->where('status', 'successful')
+            ->whereMonth('created_at', now()->subMonth()->month)
+            ->whereYear('created_at', now()->subMonth()->year)
+            ->where(function ($query) {
+                $query->whereHas('fromMetaLogin', function ($q) {
+                    $q->whereHas('accountType', function ($q2) {
+                        $q2->where('account_group', 'STANDARD.t');
+                    });
+                })
+                ->orWhere(function ($q) {
+                    $q->whereNull('from_meta_login')
+                    ->orWhereDoesntHave('fromMetaLogin');
+                });
+            })
+            ->sum('amount');
+
+        $current_month_withdrawal = Transaction::whereIn('transaction_type', ['withdrawal', 'rebate_out', 'balance_out', 'credit_out'])
+            ->where('status', 'successful')
+            ->whereMonth('created_at', today()->month)
             ->where(function ($query) {
                 $query->whereHas('fromMetaLogin', function ($q) {
                     $q->whereHas('accountType', function ($q2) {
@@ -145,7 +244,14 @@ class DashboardController extends Controller
             'totalWithdrawal' => $total_withdrawal,
             'totalAgent' => $total_agent,
             'totalMember' => $total_member,
+            'ytdDeposit' => $yesterday_deposit,
             'todayDeposit' => $today_deposit,
+            'lastMonthDeposit' => $last_month_deposit,
+            'currentMonthDeposit' => $current_month_deposit,
+            'ytdWithdrawal' => $yesterday_withdrawal,
+            'todayWithdrawal' => $today_withdrawal,
+            'lastMonthWithdrawal' => $last_month_withdrawal,
+            'currentMonthWithdrawal' => $current_month_withdrawal,
             'todayWithdrawal' => $today_withdrawal,    
             'todayAgent' => $today_agent,
             'todayMember' => $today_member,
@@ -211,39 +317,6 @@ class DashboardController extends Controller
         return response()->json([
             'totalBalance' => $totalBalance,
             'totalEquity' => $totalEquity,
-        ]);
-    }
-
-    public function getPendingData()
-    {
-        $pending_withdrawal = Transaction::whereNotIn('category', ['incentive_wallet', 'bonus'])
-            ->where('transaction_type', 'withdrawal')
-            ->where('status', 'processing');
-
-        $pending_bonus = Transaction::where('category', 'bonus')
-            ->where('transaction_type', 'credit_bonus')
-            ->where('status', 'processing');
-
-        $pending_incentive = Transaction::where('category', 'incentive_wallet')
-            ->where('transaction_type', 'withdrawal')
-            ->where('status', 'processing');
-
-        $pendingRewards = Transaction::where('category', 'trade_points')
-        ->where('transaction_type', 'redemption')
-        ->where('status', 'processing')
-        ->count();
-
-        $pendingKyc = User::where('kyc_approval', 'pending')->count();
-
-        return response()->json([
-            'pendingWithdrawal' => $pending_withdrawal->sum('transaction_amount'),
-            'pendingBonus' => $pending_bonus->sum('transaction_amount'),
-            'pendingIncentive' => $pending_incentive->sum('transaction_amount'),
-            'pendingWithdrawalCount' => $pending_withdrawal->count(),
-            'pendingBonusCount' => $pending_bonus->count(),
-            'pendingIncentiveCount' => $pending_incentive->count(),
-            'pendingRewards' => $pendingRewards,
-            'pendingKyc' => $pendingKyc,
         ]);
     }
 
