@@ -16,7 +16,7 @@ defineProps({
 
     <div class="min-h-screen bg-gray-100 flex flex-col items-center">
         <!-- Main container for Sidebar and Navbar -->
-        <div class="flex flex-col px-3 md:px-5 flex-1 max-w-[1440px] w-full">
+        <div class="flex flex-col px-3 md:px-5 flex-1 max-w-[1688px] w-full">
             <!-- Navbar -->
             <Navbar :title="title" />
 

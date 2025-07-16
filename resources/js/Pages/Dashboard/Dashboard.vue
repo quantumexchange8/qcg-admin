@@ -370,10 +370,10 @@ watch(() => usePage().props, (newProps, oldProps) => {
                         v-for="(item, index) in dataOverviews" :key="index"
                         @click="navigateWithQueryParams(item.route, item.type)"
                     >
-                        <div class="flex w-full gap-2 items-center md:pb-2 md:pt-4 md:px-6 pb-1 self-stretch"
+                        <div class="flex w-full gap-2 items-center md:pb-2 md:pt-4 pb-1 self-stretch"
                         :class="{
-                            'px-6 pt-3.5': item.icon === DepositIcon || item.icon == WithdrawalIcon,
-                            'px-2 pt-2': item.icon === AgentIcon || item.icon === MemberIcon,
+                            'px-6 md:px-5 pt-3.5': item.icon === DepositIcon || item.icon == WithdrawalIcon,
+                            'px-2 md:px-6 pt-2': item.icon === AgentIcon || item.icon === MemberIcon,
                         }">
                             <component v-if="item.icon" :is="item.icon" class="grow-0 md:h-9 md:w-9 shrink-0"
                                 :class="{
@@ -423,7 +423,7 @@ watch(() => usePage().props, (newProps, oldProps) => {
                             
                             </div>
                         </div>
-                        <div v-if="(item.icon === DepositIcon || item.icon === WithdrawalIcon)  && !pendingLoading" class="rounded-lg bg-gray-50 p-3 flex flex-row items-center md:mb-2 md:mx-6 mb-1 mx-3 self-stretch">
+                        <div v-if="(item.icon === DepositIcon || item.icon === WithdrawalIcon)  && !pendingLoading" class="rounded-lg bg-gray-50 p-3 flex flex-row items-center md:mb-2 md:mx-2.5 mb-1 mx-3 self-stretch">
                             <div class="flex flex-col gap-2 flex-1 min-w-0">
                                 <div class="flex flex-col items-end justify-center">
                                     <span class="text-gray-500 text-xxs text-right truncate w-full">{{ $t('public.yesterday') }}</span>
@@ -434,12 +434,12 @@ watch(() => usePage().props, (newProps, oldProps) => {
                                     <div class="flex justify-end w-full gap-0.5 items-center">
                                         <IconCaretUpFilled 
                                             v-if="item.today > item.yesterday"
-                                            class="h-3 w-3 md:h-4 md:w-4"
+                                            class="h-3 w-3"
                                             :class="{'text-success-500': item.icon === DepositIcon, 'text-error-600': item.icon === WithdrawalIcon}"
                                         />
                                         <IconCaretDownFilled 
                                             v-else-if="item.today < item.yesterday"
-                                            class="h-3 w-3 md:h-4 md:w-4"
+                                            class="h-3 w-3"
                                             :class="{'text-success-500': item.icon === DepositIcon, 'text-error-600': item.icon === WithdrawalIcon}"
                                         />
                                         <span 
@@ -466,12 +466,12 @@ watch(() => usePage().props, (newProps, oldProps) => {
                                     <div class="flex justify-end w-full gap-0.5 items-center">
                                         <IconCaretUpFilled 
                                             v-if="item.current_month > item.last_month"
-                                            class="h-3 w-3 md:h-4 md:w-4"
+                                            class="h-3 w-3"
                                             :class="{'text-success-500': item.icon === DepositIcon, 'text-error-600': item.icon === WithdrawalIcon}"
                                         />
                                         <IconCaretDownFilled 
                                             v-else-if="item.current_month < item.last_month"
-                                            class="h-3 w-3 md:h-4 md:w-4"
+                                            class="h-3 w-3"
                                             :class="{'text-success-500': item.icon === DepositIcon, 'text-error-600': item.icon === WithdrawalIcon}"
                                         />
                                         <span 
@@ -551,26 +551,27 @@ watch(() => usePage().props, (newProps, oldProps) => {
                         <div class="w-full h-full flex flex-row justify-center items-center gap-2 md:gap-5 ">
                             <div class="w-full h-full grid grid-cols-1 justify-center items-center py-3 px-0.5 gap-1 bg-gray-50 md:px-0">
                                 <span class="w-full truncate text-gray-500 text-center text-xxs md:text-sm">{{ $t('public.total_balance') }}</span>
-                                <span v-if="(balance || balance === 0) && !accountLoading" class="w-full truncate text-gray-950 text-center font-semibold md:text-xl">
+                                <span v-if="(balance || balance === 0) && !accountLoading" class="w-full truncate text-gray-950 text-center font-semibold md:text-lg">
                                     $ {{ formatAmount(balance) }}
                                 </span>
-                                <span v-else class="flex justify-center text-gray-950 text-right animate-pulse font-semibold items-center md:text-xl self-stretch truncate">
+                                <span v-else class="flex justify-center text-gray-950 text-right animate-pulse font-semibold items-center md:text-lg self-stretch truncate">
                                     <div class="bg-gray-200 h-2.5 rounded-full w-1/3"></div>
                                 </span>
                             </div>
 
                             <div class="grid grid-cols-1 bg-gray-50 h-full justify-center w-full gap-1 items-center md:px-0 px-0.5 py-3">
                                 <span class="text-center text-gray-500 text-xxs w-full md:text-sm truncate">{{ $t('public.total_equity') }}</span>
-                                <span v-if="(equity || equity === 0) && !accountLoading" class="text-center text-gray-950 w-full font-semibold md:text-xl truncate">
+                                <span v-if="(equity || equity === 0) && !accountLoading" class="text-center text-gray-950 w-full font-semibold md:text-lg truncate">
                                     $ {{ formatAmount(equity) }}
                                 </span>
-                                <span v-else class="flex justify-center text-gray-950 text-right animate-pulse font-semibold items-center md:text-xl self-stretch truncate">
+                                <span v-else class="flex justify-center text-gray-950 text-right animate-pulse font-semibold items-center md:text-lg self-stretch truncate">
                                     <div class="bg-gray-200 h-2.5 rounded-full w-1/3"></div>
                                 </span>
                             </div>
                         </div>
                     </div>
 
+                    <!-- Trade Lot & Volume -->
                     <div class="w-full h-full flex flex-col items-center p-3 gap-3 rounded-lg bg-white shadow-box md:p-6 md:gap-5">
                         <div class="w-full flex justify-between items-center gap-1">
                             <Select 
@@ -602,20 +603,20 @@ watch(() => usePage().props, (newProps, oldProps) => {
                                 <span class="w-full truncate text-gray-500 text-center text-xxs md:text-sm">{{
                                     $t('public.total_trade_lots') }}</span>
                                 <span v-if="(trade_lot || trade_lot === 0) && !tradeLotVolumeLoading"
-                                    class="text-center text-gray-950 w-full font-semibold md:text-xl truncate">
+                                    class="text-center text-gray-950 w-full font-semibold md:text-lg truncate">
                                     {{ formatAmount(trade_lot) }} Ł
                                 </span>
-                                <span v-else class="flex justify-center text-gray-950 text-right animate-pulse font-semibold items-center md:text-xl self-stretch truncate">
+                                <span v-else class="flex justify-center text-gray-950 text-right animate-pulse font-semibold items-center md:text-lg self-stretch truncate">
                                     <div class="bg-gray-200 h-2.5 rounded-full w-1/3"></div>
                                 </span>
                             </div>
 
                             <div class="grid grid-cols-1 bg-gray-50 h-full justify-center w-full gap-1 items-center md:px-0 px-0.5 py-3">
                                 <span class="text-center text-gray-500 text-xxs w-full md:text-sm truncate">{{ $t('public.total_trade_volume') }}</span>
-                                <span v-if="(volume || volume === 0) && !tradeLotVolumeLoading" class="text-center text-gray-950 w-full font-semibold md:text-xl truncate">
+                                <span v-if="(volume || volume === 0) && !tradeLotVolumeLoading" class="text-center text-gray-950 w-full font-semibold md:text-lg truncate">
                                     {{ formatAmount(volume, 0) }}
                                 </span>
-                                <span v-else class="flex justify-center text-gray-950 text-right animate-pulse font-semibold items-center md:text-xl self-stretch truncate">
+                                <span v-else class="flex justify-center text-gray-950 text-right animate-pulse font-semibold items-center md:text-lg self-stretch truncate">
                                     <div class="bg-gray-200 h-2.5 rounded-full w-1/3"></div>
                                 </span>
                             </div>
