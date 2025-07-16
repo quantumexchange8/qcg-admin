@@ -459,7 +459,7 @@ watch(() => usePage().props, (newProps, oldProps) => {
                             <div class="flex flex-col gap-2 flex-1 min-w-0">
                                 <div class="flex flex-col items-end justify-center">
                                     <span class="text-gray-500 text-xxs text-right truncate w-full">{{ $t('public.last_month') }}</span>
-                                    <span class="text-gray-950 text-sm text-right font-medium truncate w-full">$ {{ formatAmount(item.yesterday) }}</span>
+                                    <span class="text-gray-950 text-sm text-right font-medium truncate w-full">$ {{ formatAmount(item.last_month) }}</span>
                                 </div>
                                 <div v-if="(item.current_month || item.current_month === 0)  && !pendingLoading" class="flex flex-col items-center">
                                     <span class="w-full text-gray-500 text-nowrap text-right text-xxs truncate">{{ $t('public.current_month') }}</span>
