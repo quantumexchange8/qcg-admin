@@ -188,7 +188,7 @@ class DashboardController extends Controller
 
         $today_withdrawal = Transaction::whereIn('transaction_type', ['withdrawal', 'rebate_out', 'balance_out', 'credit_out'])
             ->where('status', 'successful')
-            ->where('created_at', today())
+            ->whereDate('created_at', today())
             ->where(function ($query) {
                 $query->whereHas('fromMetaLogin', function ($q) {
                     $q->whereHas('accountType', function ($q2) {
@@ -222,6 +222,7 @@ class DashboardController extends Controller
         $current_month_withdrawal = Transaction::whereIn('transaction_type', ['withdrawal', 'rebate_out', 'balance_out', 'credit_out'])
             ->where('status', 'successful')
             ->whereMonth('created_at', today()->month)
+            ->whereYear('created_at', today()->year)
             ->where(function ($query) {
                 $query->whereHas('fromMetaLogin', function ($q) {
                     $q->whereHas('accountType', function ($q2) {
