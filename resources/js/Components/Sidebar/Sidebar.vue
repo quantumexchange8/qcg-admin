@@ -41,7 +41,7 @@ onMounted(() => {
             transition-duration: 150ms;
         "
         :class="[
-            'fixed h-full top-0 left-0 z-20 bg-gray-100 flex flex-col lg:sticky lg:z-0 lg:top-20 lg:overflow-y-auto lg:h-[calc(90vh)]',
+            'fixed h-full top-0 left-0 z-20 bg-gray-100 flex flex-col lg:sticky lg:z-0 lg:top-20 lg:overflow-y-auto lg:h-[calc(90vh)] rounded-lg',
             {
                 'translate-x-0 w-[232px]':
                     sidebarState.isOpen || sidebarState.isHovered,
