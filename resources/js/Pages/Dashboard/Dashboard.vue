@@ -157,27 +157,33 @@ const dataOverviews = computed(() => [
     },
 ]);
 
+const dashboardLoading = ref(false);
+
 const getDashboardData = async () => {
+    dashboardLoading.value = true;
     try {
         const response = await axios.get('dashboard/getDashboardData');
         totalDeposit.value = response.data.totalDeposit;
         totalWithdrawal.value = response.data.totalWithdrawal;
         totalAgent.value = response.data.totalAgent;
         totalMember.value = response.data.totalMember;
-        ytdDeposit.value = response.data.ytdDeposit;
-        todayDeposit.value = response.data.todayDeposit;
-        lastMonthDeposit.value = response.data.lastMonthDeposit;
-        currentMonthDeposit.value = response.data.currentMonthDeposit;
-        ytdWithdrawal.value = response.data.ytdWithdrawal;
-        todayWithdrawal.value = response.data.todayWithdrawal;
-        lastMonthWithdrawal.value = response.data.lastMonthWithdrawal;
-        currentMonthWithdrawal.value = response.data.currentMonthWithdrawal;
-        todayAgent.value = response.data.todayAgent;
-        todayMember.value = response.data.todayMember;
+
+        ytdDeposit.value = Number(response.data.ytdDeposit);
+        todayDeposit.value = Number(response.data.todayDeposit);
+        lastMonthDeposit.value = Number(response.data.lastMonthDeposit);
+        currentMonthDeposit.value = Number(response.data.currentMonthDeposit);
+        ytdWithdrawal.value = Number(response.data.ytdWithdrawal);
+        todayWithdrawal.value = Number(response.data.todayWithdrawal);
+        lastMonthWithdrawal.value = Number(response.data.lastMonthWithdrawal);
+        currentMonthWithdrawal.value = Number(response.data.currentMonthWithdrawal);
+        todayAgent.value = Number(response.data.todayAgent);
+        todayMember.value = Number(response.data.todayMember);
     } catch (error) {
         console.error('Error pending counts:', error);
+        dashboardLoading.value = false;
     } finally {
-        counterDuration.value = 1
+        counterDuration.value = 1;
+        dashboardLoading.value = false;
     }
 };
 
@@ -386,7 +392,7 @@ watch(() => usePage().props, (newProps, oldProps) => {
 
                             <div class="grid grid-cols-1 w-full gap-1 items-end">
                                 <span class="text-gray-500 text-right text-xxs md:text-sm self-stretch truncate">{{ item.label }}</span>
-                                <span v-if="(item.total || item.total === 0) && !pendingLoading" class="text-gray-950 text-right font-semibold md:text-xl self-stretch truncate"
+                                <span v-if="(item.total || item.total === 0) && !dashboardLoading" class="text-gray-950 text-right font-semibold md:text-xl self-stretch truncate"
                                     :class="{'text-xl': item.icon === DepositIcon || item.icon == WithdrawalIcon,}">
                                     <template v-if="item.icon === AgentIcon || item.icon === MemberIcon">
                                         {{ formatAmount(item.total, 0) }}
@@ -399,7 +405,7 @@ watch(() => usePage().props, (newProps, oldProps) => {
                                     <div class="bg-gray-200 h-2.5 rounded-full w-1/3"></div>
                                 </span>
 
-                                <div v-if="(item.icon === AgentIcon || item.icon === MemberIcon)  && !pendingLoading" class="flex gap-2 items-center">
+                                <div v-if="(item.icon === AgentIcon || item.icon === MemberIcon)  && !dashboardLoading" class="flex gap-2 items-center">
                                     <div class="flex justify-end w-full gap-0.5 items-center">
                                         <IconCaretUpFilled 
                                             v-if="[AgentIcon, MemberIcon].includes(item.icon)"
@@ -419,17 +425,16 @@ watch(() => usePage().props, (newProps, oldProps) => {
                                     </div>
                                     <span class="text-gray-500 text-nowrap text-right text-sm hidden md:block">{{ $t('public.today') }}</span>
                                 </div>
-
                             
                             </div>
                         </div>
-                        <div v-if="(item.icon === DepositIcon || item.icon === WithdrawalIcon)  && !pendingLoading" class="rounded-lg bg-gray-50 p-3 flex flex-row items-center md:mb-2 md:mx-2.5 mb-1 mx-3 self-stretch">
+                        <div v-if="(item.icon === DepositIcon || item.icon === WithdrawalIcon)  && !dashboardLoading" class="rounded-lg bg-gray-50 p-3 flex flex-row items-center md:mb-2 md:mx-2.5 mb-1 mx-3 self-stretch">
                             <div class="flex flex-col gap-2 flex-1 min-w-0">
                                 <div class="flex flex-col items-end justify-center">
                                     <span class="text-gray-500 text-xxs text-right truncate w-full">{{ $t('public.yesterday') }}</span>
                                     <span class="text-gray-950 text-sm text-right font-medium truncate w-full">$ {{ formatAmount(item.yesterday) }}</span>
                                 </div>
-                                <div v-if="(item.today || item.today === 0)  && !pendingLoading" class="flex flex-col items-center">
+                                <div v-if="(item.today || item.today === 0)  && !dashboardLoading" class="flex flex-col items-center">
                                     <span class="w-full text-gray-500 text-nowrap text-right text-xxs truncate">{{ $t('public.today') }}</span>
                                     <div class="flex justify-end w-full gap-0.5 items-center">
                                         <IconCaretUpFilled 
@@ -461,7 +466,7 @@ watch(() => usePage().props, (newProps, oldProps) => {
                                     <span class="text-gray-500 text-xxs text-right truncate w-full">{{ $t('public.last_month') }}</span>
                                     <span class="text-gray-950 text-sm text-right font-medium truncate w-full">$ {{ formatAmount(item.last_month) }}</span>
                                 </div>
-                                <div v-if="(item.current_month || item.current_month === 0)  && !pendingLoading" class="flex flex-col items-center">
+                                <div v-if="(item.current_month || item.current_month === 0)  && !dashboardLoading" class="flex flex-col items-center">
                                     <span class="w-full text-gray-500 text-nowrap text-right text-xxs truncate">{{ $t('public.current_month') }}</span>
                                     <div class="flex justify-end w-full gap-0.5 items-center">
                                         <IconCaretUpFilled 
