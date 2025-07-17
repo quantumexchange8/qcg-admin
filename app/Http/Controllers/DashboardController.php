@@ -56,7 +56,17 @@ class DashboardController extends Controller
 
         $pendingKyc = User::where('kyc_approval', 'pending')->count();
 
-        $pendingTickets = Ticket::whereIn('status', ['new','in_progress'])->count();
+        $pendingTickets = Ticket::with(['replies','read'])->whereIn('status', ['new','in_progress'])
+                            ->get()
+                            ->filter(function ($ticket) {
+                                $lastReply = $ticket->replies->where('user_id', '!=', Auth::id())->sortByDesc('created_at')->first();
+                                $lastRead = $ticket->read->where('user_id', Auth::id())->first();
+                        
+                                $read_status = $lastRead ? ($lastReply ? ($lastReply->created_at < $lastRead->date_read) : true) : false;
+                        
+                                return $read_status === false;
+                            })
+                            ->count();
 
         return response()->json([
             'pendingWithdrawals' => $pendingWithdrawals,
