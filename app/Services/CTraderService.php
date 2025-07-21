@@ -186,6 +186,14 @@ class CTraderService
         $this->getUserInfo($meta_login);
     }
 
+    public function changeReportStatus($meta_login, $report_status): void
+    {
+        Http::acceptJson()->patch($this->baseURL . "/v2/webserv/traders/$meta_login?token=$this->token", [
+            'sendOwnStatement' => $report_status,
+        ]);
+
+        $this->getUserInfo($meta_login);
+    }
 }
 
 class CTraderAccessRights
