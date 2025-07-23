@@ -1,6 +1,6 @@
 <script setup>
 import { usePage } from "@inertiajs/vue3";
-import { ref, watch, watchEffect } from "vue";
+import { ref, watch, watchEffect, computed } from "vue";
 import Loader from "@/Components/Loader.vue";
 import Dialog from "primevue/dialog";
 import { FilterMatchMode } from '@primevue/core/api';
@@ -44,6 +44,14 @@ const openPhotoDialog = (attachment) => {
     visiblePhoto.value = true;
     selectedAttachment.value = attachment;
 }
+
+function formatMessage(message) {
+  const urlRegex = /((https?:\/\/|www\.)[^\s<]+)/g;
+  return message.replace(urlRegex, (url) => {
+    const fullUrl = url.startsWith('http') ? url : `https://${url}`;
+    return `<a href="${fullUrl}" target="_blank" rel="noopener noreferrer" class="text-blue-600 underline">${url}</a>`;
+  });
+}
 </script>
 
 <template>
@@ -67,7 +75,10 @@ const openPhotoDialog = (attachment) => {
         <div class="flex flex-col p-2 justify-center items-center gap-2 self-stretch rounded "
             :class="{'bg-primary-100': reply.user_id === ticket.user_id, 'bg-gray-100': reply.user_id !== ticket.user_id}"
         >
-            <span class="text-sm text-gray-950 self-stretch whitespace-pre-line">{{ reply.message }}</span>
+            <span
+                class="text-sm text-gray-950 self-stretch whitespace-pre-line break-all"
+                v-html="formatMessage(reply.message)"
+            ></span>
             <div v-if="reply.reply_attachments.length !== 0" class="grid grid-cols-2 md:grid-cols-3 gap-2 self-stretch">
                 <div v-for="file in reply.reply_attachments" :key="file.id" @click="openPhotoDialog(file)" 
                     class="flex items-center gap-3 w-full p-2 bg-white rounded border border-gray-200 cursor-pointer hover:bg-gray-100"
