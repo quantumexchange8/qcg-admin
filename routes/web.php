@@ -26,6 +26,7 @@ use App\Http\Controllers\KycController;
 use App\Http\Controllers\ConfigController;
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\CompetitionController;
 
 Route::get('locale/{locale}', function ($locale) {
     App::setLocale($locale);
@@ -287,6 +288,16 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
         Route::post('/editIncentiveProfile', [LeaderboardController::class, 'editIncentiveProfile'])->name('leaderboard.editIncentiveProfile');
         Route::delete('/deleteIncentiveProfile', [LeaderboardController::class, 'deleteIncentiveProfile'])->name('leaderboard.deleteIncentiveProfile');
 
+    });
+
+    /**
+     * ==============================
+     *          Competition
+     * ==============================
+     */
+    Route::prefix('competition')->middleware('role_and_permission:admin,access_competition')->group(function () {
+        Route::get('/', [CompetitionController::class, 'index'])->name('competition');
+        Route::get('/new_competition', [CompetitionController::class, 'newCompetition'])->name('competition.new_competition');
 
     });
 

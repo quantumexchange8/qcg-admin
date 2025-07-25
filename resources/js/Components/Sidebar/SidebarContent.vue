@@ -21,7 +21,8 @@ import {
     IconChartArrowsVertical,
     IconSettings,
     IconWand,
-    IconTicket
+    IconTicket,
+    IconStars,
 } from '@tabler/icons-vue';
 import { usePermission } from "@/Composables/index.js";
 
@@ -270,6 +271,16 @@ watchEffect(() => {
             </template>
         </SidebarLink>
 
+        <SidebarLink
+            :title="$t('public.competition')"
+            :href="route('competition')"
+            :active="route().current('competition')"
+            v-if="hasRole('super-admin') || hasPermission('access_competition')"
+        >
+            <template #icon>
+                <IconStars :size="20" stroke-width="1.25" />
+            </template>
+        </SidebarLink>
 
         <!-- Transaction -->
         <SidebarCollapsible
