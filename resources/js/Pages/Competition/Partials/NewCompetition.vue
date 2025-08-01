@@ -3,7 +3,7 @@ import Button from "@/Components/Button.vue";
 import Dialog from 'primevue/dialog';
 import {ref, watchEffect, computed} from "vue";
 import { useForm, usePage, router, Link, Head } from '@inertiajs/vue3';
-import { IconPlus, IconChevronRight, IconClock, IconPlaylistAdd, IconWorld, IconSquareRoundedMinus } from "@tabler/icons-vue";
+import { IconPlus, IconChevronRight, IconClock, IconPlaylistAdd, IconWorld, IconSquareRoundedMinus, IconUpload } from "@tabler/icons-vue";
 import InputLabel from "@/Components/InputLabel.vue";
 import InputText from 'primevue/inputtext';
 import InputError from "@/Components/InputError.vue";
@@ -32,6 +32,27 @@ const categories = ref([
     { name: 'trade_position', key: 'position' },
 ]);
 
+const DEFAULT_UNRANKED_BADGE_PATH = '/img/Competition/pepe-2.svg';
+
+let newRowIdCounter = -1; // Start from -1 or any negative number to avoid conflicting with actual database IDs
+
+const RAW_STATIC_INITIAL_REWARDS = [
+    { id: 1, min_rank: 1, max_rank: 1, title:{ en: '1st' }, points_rewarded: 500, rank_badge: "/img/Competition/profit-rate-1.svg", },
+    { id: 2, min_rank: 2, max_rank: 2, title:{ en: '2nd' }, points_rewarded: 300, rank_badge: "/img/Competition/profit-rate-2.svg", },
+    { id: 3, min_rank: 3, max_rank: 3, title:{ en: '3rd' }, points_rewarded: 100, rank_badge: "/img/Competition/profit-rate-3.svg", },
+    { id: 4, min_rank: 4, max_rank: 10, title:{ en: 'Top 10' }, points_rewarded: 50, rank_badge: "/img/Competition/pepe-1.svg", },
+    { id: 5, min_rank: 11, max_rank: 20, title:{ en: 'Top 20' }, points_rewarded: 30, rank_badge: "/img/Competition/pepe-1.svg", },
+];
+
+const processedInitialRewards = RAW_STATIC_INITIAL_REWARDS.map(reward => {
+    const newTempId = newRowIdCounter--;
+    return {
+        ...reward,
+        id: newTempId,
+        __isNew: true,
+    };
+});
+
 const form = useForm({
     category: 'profit_rate',
     name: {
@@ -44,21 +65,24 @@ const form = useForm({
     end_date: '',
     end_time: '',
     min_amount: null,
+    unranked_badge: DEFAULT_UNRANKED_BADGE_PATH,
+    rewards: processedInitialRewards,
 });
 
 const today = new Date();
 
 const submitForm = () => {
+    // if (form.expiry_date) {
+    //     form.expiry_date = formatDate(form.expiry_date);
+    // }
     
-}
-
-const rewards = ref([
-    { id: 1, min_rank: 1, max_rank: 1, title:{ en: '1st' }, points_rewarded: 500,},
-    { id: 2, min_rank: 2, max_rank: 2, title:{ en: '2nd' }, points_rewarded: 300,},
-    { id: 3, min_rank: 3, max_rank: 3, title:{ en: '3rd' }, points_rewarded: 100,},
-    { id: 4, min_rank: 4, max_rank: 10, title:{ en: 'Top 10' }, points_rewarded: 50,},
-    { id: 5, min_rank: 11, max_rank: 20, title:{ en: 'Top 20' }, points_rewarded: 30,},
-]);
+    form.post(route('competition.createCompetition'), {
+        onSuccess: () => {
+            visible.value = false;
+            form.reset();
+        },
+    });
+};
 
 const dynamicSuffix = computed(() => {
     if (form.category === 'profit_rate') {
@@ -78,9 +102,9 @@ const onCellEditComplete = (event) => {
         if (Number.isInteger(parsedValue) && parsedValue >= 0) {
             data[field] = parsedValue;
 
-            const index = rewards.value.findIndex(item => item.id === data.id);
+            const index = form.rewards.findIndex(item => item.id === data.id);
             if (index !== -1) {
-                rewards.value[index][field] = parsedValue;
+                form.rewards[index][field] = parsedValue;
                 console.log(`Updated ${field} for row ID ${data.id}: ${parsedValue}`);
             }
         } else {
@@ -125,16 +149,104 @@ const closeTitleDialog = () => {
 }
 
 const saveTitle = () => {
-    const index = rewards.value.findIndex(item => item.id === data.value.id);
+    const index = form.rewards.findIndex(item => item.id === data.value.id);
 
     if (index !== -1) {
-        if (!rewards.value[index].title) {
-            rewards.value[index].title = {};
+        if (!form.rewards[index].title) {
+            form.rewards[index].title = {};
         }
-        rewards.value[index].title = data.value.title;
+        form.rewards[index].title = data.value.title;
     }
     closeTitleDialog();
 }
+
+const addNewRow = () => {
+    let newMinRank = 1;
+    let newMaxRank = 1;
+
+    if (form.rewards.length > 0) {
+        // Find the highest max_rank among all existing rewards
+        // We use reduce to iterate through the array and keep track of the maximum.
+        // Math.max ensures we compare numbers correctly.
+        // We use '|| 0' as a fallback in case 'max_rank' is undefined or null for some reason.
+        const highestMaxRank = form.rewards.reduce((max, reward) => {
+            return Math.max(max, reward.max_rank || 0);
+        }, 0); // Start 'max' accumulator at 0
+
+        newMinRank = highestMaxRank + 1;
+        newMaxRank = highestMaxRank + 1;
+    }
+
+    const newReward = {
+        id: newRowIdCounter--,
+        min_rank: newMinRank, 
+        max_rank: newMaxRank,
+        title: { en: '' },
+        points_rewarded: 0,
+        created_at: null,
+        updated_at: null,
+        __isNew: true,
+    };
+
+    form.rewards.push(newReward);
+
+    // Optional: If you want to immediately put the new row into edit mode,
+    // you'd need to programmatically trigger PrimeVue's cell editing here.
+    // This often involves storing the new row's data and the field to edit,
+    // and then calling a DataTable method or managing active cell state.
+    // For simplicity, we'll just add the row for now.
+};
+
+// --- Example delete function (for the delete button) ---
+const deleteRow = (rowData) => {
+    const index = form.rewards.findIndex(item => item.id === rowData.id);
+    if (index !== -1) {
+        // Option 1: Optimistic UI - remove immediately
+        form.rewards.splice(index, 1);
+        // Option 2: Confirm then delete from backend
+        // if (confirm('Are you sure you want to delete this row?')) {
+        //     axios.delete(`/api/rewards/${rowData.id}`)
+        //         .then(() => {
+        //             rewards.value.splice(index, 1);
+        //             console.log('Row deleted successfully!');
+        //         })
+        //         .catch(error => console.error('Error deleting row:', error));
+        // }
+    }
+};
+
+const selectedUnrankedBadge = ref(DEFAULT_UNRANKED_BADGE_PATH);
+const handleUploadUnranked = (event) => {
+    const unrankedInput = event.target;
+    const file = unrankedInput.files[0];
+
+    if (file) {
+        // Display the selected image
+        const reader = new FileReader();
+        reader.onload = () => {
+            selectedUnrankedBadge.value = reader.result;
+        };
+        reader.readAsDataURL(file);
+        form.unranked_badge = event.target.files[0];
+    } else {
+        selectedUnrankedBadge.value = DEFAULT_UNRANKED_BADGE_PATH;
+        form.unranked_badge = DEFAULT_UNRANKED_BADGE_PATH;
+    }
+};
+
+const handleUploadRanked = (event, rowData) => {
+    const file = event.target.files[0];
+
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+            rowData.rank_badge = reader.result; // update preview
+        };
+        reader.readAsDataURL(file);
+
+        rowData._uploadedBadgeFile = file; // store file separately for backend
+    }
+};
 </script>
 
 <template>
@@ -170,6 +282,7 @@ const saveTitle = () => {
                 <Button
                     variant="primary-flat"
                     size="sm"
+                    :disabled="form.processing"
                     @click="submitForm"
                 >
                     {{ $t('public.create') }}
@@ -300,14 +413,14 @@ const saveTitle = () => {
                                     type="button"
                                     variant="primary-text"
                                     size="sm"
-
+                                    @click="addNewRow()"
                                 >
                                     <IconPlaylistAdd stroke-width="1.25" class="w-4 h-4" />
                                     {{ $t('public.add_another') }}
                                 </Button>
                             </div>
                             <DataTable
-                                :value="rewards"
+                                :value="form.rewards"
                                 tableStyle="md:min-width: 50rem"
                                 dataKey="id"
                                 editMode="cell" 
@@ -391,18 +504,37 @@ const saveTitle = () => {
                                         :header="$t('public.badge')"
                                         style="width:18%;"
                                     >
-                                        <!-- <template #body="slotProps">
-                                            {{ slotProps.data.to }}
-                                        </template>
-                                        <template #editor="{ data, field }">
-                                            <div class="w-full flex flex-col">
-                                                <InputText
-                                                    v-model="data[field]"
-                                                    type="text"
-                                                    class="block w-full" 
-                                                />
+                                        <template #body="slotProps">
+                                            <input
+                                                :ref="`rankedInput_${slotProps.index}`"
+                                                :id="`ranked_badge_${slotProps.index}`"
+                                                type="file"
+                                                class="hidden"
+                                                accept="image/*"
+                                                @change="(e) => handleUploadRanked(e, slotProps.data)"
+                                            />
+                                            <div v-if="slotProps.data.rank_badge" class="relative group w-[60px] h-[60px]">
+                                                <div
+                                                    class="absolute inset-0 bg-gray-300 opacity-0 group-hover:opacity-60 transition-opacity rounded pointer-events-none"
+                                                ></div>
+                                                <div
+                                                    class="w-full h-full bg-cover bg-center bg-no-repeat rounded flex items-center justify-center hover:cursor-pointer"
+                                                    :style="{ backgroundImage: `url('${slotProps.data.rank_badge}')` }"
+                                                    @click="$refs[`rankedInput_${slotProps.index}`].click()"
+                                                >
+                                                    <IconUpload class="w-4 h-4 text-white opacity-0 group-hover:opacity-100 z-10" />
+                                                </div>
                                             </div>
-                                        </template> -->
+                                            <Button
+                                                v-else
+                                                type="button"
+                                                variant="primary-flat"
+                                                size="sm"
+                                                @click="$refs[`rankedInput_${slotProps.index}`].click()"
+                                            >
+                                                {{ $t('public.choose') }}
+                                            </Button>
+                                        </template>
                                     </Column>
                                     <Column
                                         field="action"
@@ -426,7 +558,7 @@ const saveTitle = () => {
                                                 type="button"
                                                 iconOnly
                                                 pill
-                                                @click=""
+                                                @click="deleteRow(slotProps.data)"
                                             >
                                                 <IconSquareRoundedMinus size="16" stroke-width="1.5" />
                                             </Button>
@@ -444,13 +576,21 @@ const saveTitle = () => {
                             </div>
                             <div class="flex items-end gap-5 self-stretch">
                                 <div class="w-40 h-40">
-
+                                    <img :src="selectedUnrankedBadge" alt="unranked_badge" class="w-40 h-40" />
                                 </div>
+                                <input
+                                    ref="unrankedInput"
+                                    id="unranked_badge"
+                                    type="file"
+                                    class="hidden"
+                                    accept="image/*"
+                                    @change="handleUploadUnranked"
+                                />
                                 <Button
                                     type="button"
                                     variant="primary-flat"
                                     size="sm"
-                                    
+                                    @click="$refs.unrankedInput.click()"
                                 >
                                     {{ $t('public.upload') }}
                                 </Button>

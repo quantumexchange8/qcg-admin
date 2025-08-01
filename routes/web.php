@@ -297,7 +297,10 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
      */
     Route::prefix('competition')->middleware('role_and_permission:admin,access_competition')->group(function () {
         Route::get('/', [CompetitionController::class, 'index'])->name('competition');
+        Route::get('/getCurrentCompetitions', [CompetitionController::class, 'getCurrentCompetitions'])->name('competition.getCurrentCompetitions');
+        Route::get('/getCompetitionHistory', [CompetitionController::class, 'getCompetitionHistory'])->name('competition.getCompetitionHistory');
         Route::get('/new_competition', [CompetitionController::class, 'newCompetition'])->name('competition.new_competition');
+        Route::post('/createCompetition', [CompetitionController::class, 'createCompetition'])->name('competition.createCompetition');
 
     });
 
