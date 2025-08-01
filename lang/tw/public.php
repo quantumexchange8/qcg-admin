@@ -936,4 +936,6 @@ return [
     'hour_s' => '小時',
     'minute_s' => '分鐘',
     'second_s' => '秒',
+    'empty_competition_history_title' => '未找到比賽記錄',
+    'empty_competition_history_message' => '目前沒有可用的比賽記錄。請稍後再回來查看最新資訊。',
 ];

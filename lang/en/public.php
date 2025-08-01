@@ -938,4 +938,6 @@ return [
     'hour_s' => 'hours(s)',
     'minute_s' => 'minute(s)',
     'second_s' => 'second(s)',
+    'empty_competition_history_title' => 'No Competitions Found',
+    'empty_competition_history_message' => 'There are no competition records available at this time. Please check back later for updates.',
 ];

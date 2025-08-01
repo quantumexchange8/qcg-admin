@@ -937,4 +937,6 @@ return [
     'hour_s' => '小时',
     'minute_s' => '分钟',
     'second_s' => '秒',
+    'empty_competition_history_title' => '未找到比赛记录',
+    'empty_competition_history_message' => '当前没有可用的比赛记录。请稍后再回来查看最新信息。',
 ];
