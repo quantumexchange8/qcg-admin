@@ -1,10 +1,10 @@
 <script setup>
 import Button from "@/Components/Button.vue";
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { ref, computed } from "vue";
+import { ref, computed, watchEffect } from "vue";
 import { usePage, router, Link } from '@inertiajs/vue3';
 import NewCompetition from "@/Pages/Competition/Partials/NewCompetition.vue";
-// import Action from "@/Pages/Competition/Partials/Action.vue";
+import Action from "@/Pages/Competition/Partials/Action.vue";
 import CompetitionHistory from "@/Pages/Competition/Partials/CompetitionHistory.vue";
 import { IconPlus } from "@tabler/icons-vue";
 import {useLangObserver} from "@/Composables/localeObserver.js";
@@ -53,6 +53,12 @@ const categoryBgClass = computed(() => (category) => {
     }
 });
 
+watchEffect(() => {
+    if (usePage().props.toast !== null) {
+        getResults();
+    }
+});
+
 </script>
 
 <template>
@@ -86,12 +92,13 @@ const categoryBgClass = computed(() => (category) => {
                                 </div>
                                 <div class="flex items-center gap-1 text-warning-500 text-sm font-medium">
                                     <PointIcon class="w-4 h-4"/>
-                                    <span class="text-xs font-medium">0tp {{ $t('public.to_be_paid') }}</span>
+                                    <span class="text-xs font-medium">{{ competition.total_points }}tp {{ $t('public.to_be_paid') }}</span>
                                 </div>
                             </div>
-                            <!-- <Action
+                            <Action
                                 :competition_id="competition.competition_id" 
-                            /> -->
+                                :status="competition.status"
+                            />
                         </div>
                         <span class="self-stretch text-gray-950 font-semibold">{{ competition.name[locale] }}</span>
                         <div class="flex self-stretch justify-between items-center text-sm">

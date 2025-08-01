@@ -28,6 +28,9 @@ const selectedCategory = ref(null);
 const loading = ref(false);
 const competitions = ref();
 
+const dt = ref(null);
+const filteredValue = ref();
+
 const getResults = async (category = null) => {
     loading.value = true;
 
@@ -179,9 +182,9 @@ const handleFilter = (e) => {
                 </Column>
                 <Column field="total_points" :header="$t('public.trade_points_paid') + ' (tp)'" class="">
                     <template #body="slotProps">
-                        <!-- <div class="text-gray-950 text-sm max-w-full">
+                        <div class="text-gray-950 text-sm max-w-full">
                             {{ slotProps.data.total_points }}
-                        </div> -->
+                        </div>
                     </template>
                 </Column>
                 <Column field="action" headless class="">

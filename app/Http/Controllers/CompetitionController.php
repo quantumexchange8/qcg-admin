@@ -29,17 +29,26 @@ class CompetitionController extends Controller
     public function getCurrentCompetitions()
     {
         $competitions = Competition::whereNot('status', 'completed')
+            ->with('rewards')
             ->orderBy('start_date')
             ->get()
             ->map(function ($competition) {
                 $name = json_decode($competition->name, true);
 
+                $totalPointsDistributed = $competition->rewards->sum(function ($reward) {
+                    $numberOfRanksInTier = ($reward->max_rank - $reward->min_rank + 1);
+        
+                    return $numberOfRanksInTier * $reward->points_rewarded;
+                });
+
                 return [
                     'competition_id' => $competition->id,
                     'category' => $competition->category,
                     'name' => $name,
+                    'status' => $competition->status,
                     'start_date' => $competition->start_date,
                     'end_date' => $competition->end_date,
+                    'total_points' => $totalPointsDistributed,
                 ];
             })
             ->values();
@@ -59,9 +68,16 @@ class CompetitionController extends Controller
         }
 
         $competitions = $query->orderBy('end_date')
+            ->with('rewards')
             ->get()
             ->map(function ($competition) {
                 $name = json_decode($competition->name, true);
+
+                $totalPointsDistributed = $competition->rewards->sum(function ($reward) {
+                    $numberOfRanksInTier = ($reward->max_rank - $reward->min_rank + 1);
+        
+                    return $numberOfRanksInTier * $reward->points_rewarded;
+                });
 
                 return [
                     'competition_id' => $competition->id,
@@ -69,7 +85,7 @@ class CompetitionController extends Controller
                     'name' => $name,
                     'start_date' => $competition->start_date,
                     'end_date' => $competition->end_date,
-                    // 'total_points' => ,
+                    'total_points' => $totalPointsDistributed,
                 ];
             })
             ->values();
@@ -175,5 +191,87 @@ class CompetitionController extends Controller
             ]);
         }
 
+    }
+
+    public function deleteCompetition(Request $request)
+    {
+        $competition = Competition::find($request->id);
+
+        try {
+            if ($competition) {
+                $competition->load('rewards');
+            
+                foreach ($competition->rewards as $reward) {
+                    $reward->clearMediaCollection('rank_badge');
+                }
+
+                // note to self: deleting this way is more efficient than for each
+                $competition->rewards()->delete();
+            }
+
+            $competition->clearMediaCollection('unranked_badge');
+            $competition->delete();
+
+            return back()->with('toast', [
+                'title' => trans("public.toast_competition_deleted"),
+                'type' => 'success',
+            ]);
+
+        } catch (\Exception $e) {
+            // Log the exception and show a generic error message
+            Log::error('Error deleting the competition : '.$e->getMessage());
+
+            return back()->with('toast', [
+                'title' => 'There was an error deleting the competition.',
+                'type' => 'error'
+            ]);
+        }
+    }
+
+    public function editCompetition(Request $request, string $id) {
+        $competition = Competition::findOrFail($id);
+
+        
+    }
+
+    public function viewCompetition(Request $request, string $id)
+    {
+        $competition = Competition::with('rewards')->findOrFail($request->id);
+
+        // 2. Decode/Transform the top-level Competition data
+        //    If 'name' is already cast to 'array' in your Competition model, you can skip json_decode.
+        $decodedCompetitionName = json_decode($competition->name, true);
+
+        // 3. Transform each item in the nested 'rewards' collection
+        //    This is where you use map() on the collection of rewards.
+        $transformedRewards = $competition->rewards->map(function (CompetitionReward $reward) {
+            // Assuming 'description' is the JSON field on the reward model that needs decoding
+            // If 'description' is cast to 'array' in your CompetitionReward model, skip json_decode.
+            $decodedRewardDescription = json_decode($reward->description, true);
+
+            return [
+                'id' => $reward->id,
+                'min_rank' => $reward->min_rank,
+                'max_rank' => $reward->max_rank,
+                'points_rewarded' => $reward->points_rewarded,
+                'title' => $reward->title, // Example of another field
+                'description' => $decodedRewardDescription, // The decoded nested JSON data
+                // ... include other reward fields you need
+            ];
+        });
+
+        // 5. Assemble the final structure you want to use/pass
+        $finalCompetitionData = [
+            'competition_id' => $competition->id,
+            'category' => $competition->category,
+            'name' => $decodedCompetitionName, // The decoded top-level name
+            'start_date' => $competition->start_date,
+            'end_date' => $competition->end_date,
+            'rewards' => $transformedRewards, // The collection of transformed reward data
+        ];
+
+        return Inertia::render('Competition/Partials/EditCompetition', [
+            'competition' => $transformedCompetitionData,
+        ]);
     }
 }

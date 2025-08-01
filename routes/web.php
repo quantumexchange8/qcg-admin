@@ -301,7 +301,8 @@ Route::middleware(['auth', 'verified', 'role:super-admin|admin'])->group(functio
         Route::get('/getCompetitionHistory', [CompetitionController::class, 'getCompetitionHistory'])->name('competition.getCompetitionHistory');
         Route::get('/new_competition', [CompetitionController::class, 'newCompetition'])->name('competition.new_competition');
         Route::post('/createCompetition', [CompetitionController::class, 'createCompetition'])->name('competition.createCompetition');
-
+        Route::delete('/deleteCompetition', [CompetitionController::class, 'deleteCompetition'])->name('competition.deleteCompetition');
+        Route::get('/{id}/edit', [CompetitionController::class, 'editCompetition'])->name('competition.editCompetition');
     });
 
     /**

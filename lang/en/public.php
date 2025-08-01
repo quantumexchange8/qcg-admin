@@ -940,4 +940,6 @@ return [
     'second_s' => 'second(s)',
     'empty_competition_history_title' => 'No Competitions Found',
     'empty_competition_history_message' => 'There are no competition records available at this time. Please check back later for updates.',
+    'end_n_delete' => 'End & Delete',
+    'toast_competition_deleted' => 'Competition has been successfully deleted!',
 ];
