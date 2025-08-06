@@ -13,6 +13,15 @@ import DatePicker from 'primevue/datepicker';
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
 import cloneDeep from 'lodash/cloneDeep';
+import { transactionFormat } from "@/Composables/index.js";
+import {useLangObserver} from "@/Composables/localeObserver.js";
+
+const { formatAmount, formatDate } = transactionFormat();
+const {locale} = useLangObserver();
+
+const props = defineProps({
+    competition: Object,
+})
 
 const languageLabels = {
   en: 'English',
@@ -54,19 +63,20 @@ const processedInitialRewards = RAW_STATIC_INITIAL_REWARDS.map(reward => {
 });
 
 const form = useForm({
-    category: 'profit_rate',
+    competition_id: props.competition.competition_id || null,
+    category: props.competition.category || 'profit_rate',
     name: {
-        en: '',
-        tw: '',
-        cn: '',
+        en: props.competition.name['en'] || '',
+        tw: props.competition.name['tw'] || '',
+        cn: props.competition.name['cn'] || '',
     },
-    start_date: '',
-    start_time: '',
-    end_date: '',
-    end_time: '',
-    min_amount: null,
-    unranked_badge: DEFAULT_UNRANKED_BADGE_PATH,
-    rewards: processedInitialRewards,
+    start_date: props.competition.start_date   || '',
+    start_time: props.competition.start_time || '',
+    end_date: props.competition.end_date || '',
+    end_time: props.competition.end_time || '',
+    min_amount: props.competition.minimum_amount || null,
+    unranked_badge: props.competition.unranked_badge || DEFAULT_UNRANKED_BADGE_PATH,
+    rewards: props.competition.rewards || processedInitialRewards,
 });
 
 const today = new Date();
@@ -75,8 +85,8 @@ const submitForm = () => {
     // if (form.expiry_date) {
     //     form.expiry_date = formatDate(form.expiry_date);
     // }
-    
-    form.post(route('competition.createCompetition'), {
+
+    form.post(route('competition.saveCompetition'), {
         onSuccess: () => {
             visible.value = false;
             form.reset();
@@ -105,7 +115,7 @@ const onCellEditComplete = (event) => {
             const index = form.rewards.findIndex(item => item.id === data.id);
             if (index !== -1) {
                 form.rewards[index][field] = parsedValue;
-                console.log(`Updated ${field} for row ID ${data.id}: ${parsedValue}`);
+                // console.log(`Updated ${field} for row ID ${data.id}: ${parsedValue}`);
             }
         } else {
             console.warn(`Validation failed for ${field}: ${newValue} is not a valid number.`);
@@ -197,7 +207,6 @@ const addNewRow = () => {
     // For simplicity, we'll just add the row for now.
 };
 
-// --- Example delete function (for the delete button) ---
 const deleteRow = (rowData) => {
     const index = form.rewards.findIndex(item => item.id === rowData.id);
     if (index !== -1) {
@@ -215,7 +224,7 @@ const deleteRow = (rowData) => {
     }
 };
 
-const selectedUnrankedBadge = ref(DEFAULT_UNRANKED_BADGE_PATH);
+const selectedUnrankedBadge = ref(props.competition.unranked_badge ?? DEFAULT_UNRANKED_BADGE_PATH);
 const handleUploadUnranked = (event) => {
     const unrankedInput = event.target;
     const file = unrankedInput.files[0];
@@ -250,15 +259,15 @@ const handleUploadRanked = (event, rowData) => {
 </script>
 
 <template>
-    <Head :title="$t('public.new_competition')"></Head>
+    <Head :title="$t('public.edit_competition')"></Head>
 
     <div class="min-h-screen bg-gray-100 flex flex-col">
         <div class="flex flex-col flex-1">
             <nav
                 aria-label="secondary"
-                class="flex w-full h-16 sticky top-0 z-10 py-2 px-5 gap-3 justify-center items-center bg-white"
+                class="flex w-full h-16 sticky top-0 z-10 py-2 px-5 gap-3 justify-between items-center bg-white"
             >
-                <div class="w-full flex items-center gap-2">
+                <div class="flex items-center gap-2">
                     <Link :href="route('competition')" as="button"> 
                         <Button
                             type="button"
@@ -275,7 +284,7 @@ const handleUploadRanked = (event, rowData) => {
                     />
                     <div class="flex justify-center items-center py-2 px-4 gap-2 rounded min-w-0">
                         <span class="txt-gray-700 text-center text-sm font-medium truncate">
-                            {{ $t('public.edit_competition') }} - 
+                            {{ $t('public.edit_competition') }} - {{ props.competition.name[locale] }}
                         </span>
                     </div>
                 </div>
@@ -284,8 +293,9 @@ const handleUploadRanked = (event, rowData) => {
                     size="sm"
                     :disabled="form.processing"
                     @click="submitForm"
+                    class=""
                 >
-                    {{ $t('public.create') }}
+                    {{ $t('public.save_changes') }}
                 </Button>
             </nav>
             <div class="flex flex-1 justify-center items-start p-5 gap-5 md:px-5">

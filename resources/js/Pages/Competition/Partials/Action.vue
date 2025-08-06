@@ -80,7 +80,7 @@ const editCompetition = () => {
 };
 
 const viewCompetition = () => {
-    router.get(route('competitions.edit', { id: props.competition_id }));
+    router.get(route('competition.viewCompetition', { id: props.competition_id }));
 };
 </script>
 
@@ -92,7 +92,7 @@ const viewCompetition = () => {
             type="button"
             iconOnly
             pill
-            @click="editCompetition"
+            @click="editCompetition()"
         >
             <IconPencilMinus size="16" stroke-width="1.5" />
         </Button>
@@ -102,7 +102,7 @@ const viewCompetition = () => {
             type="button"
             iconOnly
             pill
-            @click="viewCompetition"
+            @click="viewCompetition()"
         >
             <IconListSearch size="16" stroke-width="1.5" />
         </Button>

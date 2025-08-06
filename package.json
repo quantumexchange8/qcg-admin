@@ -26,6 +26,7 @@
         "@tiptap/vue-3": "^2.8.0",
         "@vitejs/plugin-vue-jsx": "^4.0.1",
         "chart.js": "^4.4.4",
+        "date-fns": "^4.1.0",
         "dayjs": "^1.11.13",
         "laravel-vue-i18n": "^2.7.7",
         "lodash": "^4.17.21",

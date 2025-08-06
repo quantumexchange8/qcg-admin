@@ -105,7 +105,7 @@ const onCellEditComplete = (event) => {
             const index = form.rewards.findIndex(item => item.id === data.id);
             if (index !== -1) {
                 form.rewards[index][field] = parsedValue;
-                console.log(`Updated ${field} for row ID ${data.id}: ${parsedValue}`);
+                // console.log(`Updated ${field} for row ID ${data.id}: ${parsedValue}`);
             }
         } else {
             console.warn(`Validation failed for ${field}: ${newValue} is not a valid number.`);
