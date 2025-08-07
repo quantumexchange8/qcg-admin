@@ -15,8 +15,10 @@ import { transactionFormat } from "@/Composables/index.js";
 import dayjs from "dayjs";
 import {useLangObserver} from "@/Composables/localeObserver.js";
 import { trans, wTrans } from "laravel-vue-i18n";
+import Action from "@/Pages/Competition/Partials/Action.vue";
 
 const { formatDate } = transactionFormat();
+const {locale} = useLangObserver();
 
 const categories = [
     { name: wTrans('public.profit_rate'), value: 'profit_rate' },
@@ -189,7 +191,10 @@ const handleFilter = (e) => {
                 </Column>
                 <Column field="action" headless class="">
                     <template #body="slotProps">
-
+                        <Action
+                            :competition_id="slotProps.data.competition_id" 
+                            :status="slotProps.data.status"
+                        />
                     </template>
                 </Column>
             </template>

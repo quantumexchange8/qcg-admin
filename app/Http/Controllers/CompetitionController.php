@@ -28,8 +28,12 @@ class CompetitionController extends Controller
 
     public function getCurrentCompetitions()
     {
-        $competitions = Competition::whereNot('status', 'completed')
-            ->with('rewards')
+        $competitions = Competition::with('rewards')
+            ->where(function ($query) {
+                $now = Carbon::now();
+                $query->whereDate('end_date', '>=', $now)
+                    ->orWhereDate('start_date', '>=', $now);
+            })
             ->orderBy('start_date')
             ->get()
             ->map(function ($competition) {
@@ -45,7 +49,7 @@ class CompetitionController extends Controller
                     'competition_id' => $competition->id,
                     'category' => $competition->category,
                     'name' => $name,
-                    'status' => $competition->status,
+                    'status' => $competition->statusByDate,
                     'start_date' => $competition->start_date,
                     'end_date' => $competition->end_date,
                     'total_points' => $totalPointsDistributed,
@@ -61,7 +65,10 @@ class CompetitionController extends Controller
     public function getCompetitionHistory(Request $request)
     {
         $category = $request->query('category');
-        $query = Competition::where('status', 'completed');
+        $query = Competition::where(function ($query) {
+            $now = Carbon::now();
+            $query->whereDate('end_date', '<', $now);
+        });
 
         if ($category) {
             $query->where('category', $category);
@@ -83,6 +90,7 @@ class CompetitionController extends Controller
                     'competition_id' => $competition->id,
                     'category' => $competition->category,
                     'name' => $name,
+                    'status' => $competition->statusByDate,
                     'start_date' => $competition->start_date,
                     'end_date' => $competition->end_date,
                     'total_points' => $totalPointsDistributed,
@@ -402,6 +410,7 @@ class CompetitionController extends Controller
             'competition_id' => $competition->id,
             'category' => $competition->category,
             'name' => $name,
+            'status' => $competition->statusByDate,
             'start_datetime' =>  Carbon::parse($competition->start_date)->format('Y-m-d H:i'),
             'end_datetime' => Carbon::parse($competition->end_date)->format('Y-m-d H:i'),
             'minimum_amount' => $competition->minimum_amount,

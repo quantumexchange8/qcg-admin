@@ -87,6 +87,7 @@ const viewCompetition = () => {
 <template>
     <div class="flex gap-0.5 items-center justify-center">
         <Button
+            v-if="props.status !== 'completed'"
             variant="gray-text"
             size="sm"
             type="button"
@@ -107,6 +108,7 @@ const viewCompetition = () => {
             <IconListSearch size="16" stroke-width="1.5" />
         </Button>
         <Button
+            v-if="props.status !== 'completed'"
             variant="error-text"
             size="sm"
             type="button"

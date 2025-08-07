@@ -325,6 +325,7 @@ watchEffect(() => {
                                     <span class="text-sm text-gray-500">{{ $t('public.indicates_virtual_participant') }}</span>
                                 </div>
                                 <Button
+                                    v-if="competition.status !== 'completed'"
                                     type="button"
                                     variant="primary-flat"
                                     size="sm"
@@ -399,7 +400,7 @@ watchEffect(() => {
                                     <Column
                                         field="action"
                                         headless
-                                        
+                                        v-if="competition.status !== 'completed'"
                                     >
                                         <template #body="slotProps">
                                             <div v-if="slotProps.data.user_type === 'virtual'" class="flex gap-1">
