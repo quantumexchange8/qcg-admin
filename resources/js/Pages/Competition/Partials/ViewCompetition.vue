@@ -20,6 +20,7 @@ import ToastList from "@/Components/ToastList.vue";
 import ConfirmationDialog from "@/Components/ConfirmationDialog.vue";
 import { useConfirm } from "primevue/useconfirm";
 import { trans, wTrans } from "laravel-vue-i18n";
+import { FirstPlaceIcon, SecondPlaceIcon, ThirdPlaceIcon } from "@/Components/Icons/solid.jsx";
 
 const props = defineProps({
     competition: Object,
@@ -202,6 +203,18 @@ const requireConfirmation = (action_type, participant_id) => {
     });
 };
 
+const getRankContent = (rank) => {
+    if (rank === 1) {
+        return FirstPlaceIcon;
+    } else if (rank === 2) {
+        return SecondPlaceIcon;
+    } else if (rank === 3) {
+        return ThirdPlaceIcon;
+    } else {
+        return rank;
+    }
+};
+
 watchEffect(() => {
     if (usePage().props.toast !== null) {
         getResults();
@@ -254,7 +267,7 @@ watchEffect(() => {
                                         <span class="text-center text-white text-xs">{{ formatDate(props.competition.start_datetime) }} - {{ formatDate(props.competition.end_datetime) }}</span>
                                     </div>
                                 </div>
-                                <div v-if="isCompetitionActive" class="flex w-full">
+                                <div v-if="isCompetitionActive" class="flex flex-col w-full gap-8 ">
                                     <div class="flex items-center self-stretch flex-1">
                                         <div class="flex flex-col items-center gap-1 flex-1">
                                             <span class="text-xxl font-medium text-white">{{ days }}</span>
@@ -273,14 +286,9 @@ watchEffect(() => {
                                             <span class="text-xs text-gray-500">{{ $t('public.second_s') }}</span>
                                         </div>
                                     </div>
+                                    <span class="text-xs text-gray-300 text-center animate-pulse">{{ $t('public.competition_live_desc') }}</span>
                                 </div>
-                                
-                                <div v-else class="flex flex-col w-full gap-1">
-                                    <p class="text-white text-center">
-                                        <span v-if="countdownTarget > new Date()">Competition starts in...</span>
-                                        <span v-else>Competition has ended.</span>
-                                    </p>
-                                    
+                                <div v-else class="flex flex-col w-full gap-8">                 
                                     <div v-if="countdownTarget > new Date()" class="flex items-center self-stretch flex-1">
                                         <div class="flex flex-col items-center gap-1 flex-1">
                                             <span class="text-xxl font-medium text-white">{{ days }}</span>
@@ -299,6 +307,10 @@ watchEffect(() => {
                                             <span class="text-xs text-gray-500">{{ $t('public.second_s') }}</span>
                                         </div>
                                     </div>
+                                    <p class="text-xs text-gray-300 text-center animate-pulse">
+                                        <span v-if="countdownTarget > new Date()">{{ $t('public.competition_soon_desc') }}</span>
+                                        <span v-else>{{ $t('public.competition_ended_desc') }}</span>
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -348,7 +360,10 @@ watchEffect(() => {
                                     <Column field="rank" sortable :header="$t('public.rank')" class="">
                                         <template #body="slotProps">
                                             <div class="text-gray-950 text-sm">
-                                                {{ slotProps.data.rank }}
+                                                <component :is="getRankContent(slotProps.data.rank)" v-if="typeof getRankContent(slotProps.data.rank) === 'object'" />
+                                                <template v-else>
+                                                    {{ getRankContent(slotProps.data.rank) }}
+                                                </template>
                                             </div>
                                         </template>
                                     </Column>
@@ -365,20 +380,20 @@ watchEffect(() => {
                                     <Column field="score" sortable :header="$t(`public.${props.competition.category}`)" class="">
                                         <template #body="slotProps">
                                             <div class="text-gray-950 text-sm max-w-full">
-                                                {{ slotProps.data.score }}
+                                                {{ formatAmount(slotProps.data.score) }}{{ dynamicSuffix }}
                                             </div>
                                         </template>
                                     </Column>
                                     <Column field="title" :header="$t('public.category')" class="">
                                         <template #body="slotProps">
                                             <div class="text-gray-950 text-sm max-w-full">
-                                                {{ slotProps.data.title[locale] }}
+                                                {{ slotProps.data.title ? slotProps.data.title[locale] : '-' }}
                                             </div>
                                         </template>
                                     </Column>
                                     <Column field="points_rewarded" :header="$t('public.rewards') + ' (tp)'" class="">
                                         <template #body="slotProps">
-                                            {{ slotProps.data.points_rewarded }}
+                                            {{ slotProps.data.points_rewarded ? slotProps.data.points_rewarded : '-' }}
                                         </template>
                                     </Column>
                                     <Column

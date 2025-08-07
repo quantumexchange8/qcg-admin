@@ -422,22 +422,27 @@ class CompetitionController extends Controller
             ->map(function ($participant, $key) {
             $participantRank = $key + 1;
 
-            $reward = $participant->competition->rewards->first(function ($reward) use ($participantRank) {
-                return $participantRank >= $reward->min_rank && $participantRank <= $reward->max_rank;
-            });
-
             $rankTitle = null;
-            $points = 0;
-            if ($reward) {
-                $rankTitle = json_decode($reward->title, true);
-                $points = $reward->points_rewarded;
-            }
+            $points = null;
 
             $name = null;
             if ($participant->user_type == 'standard') {
                 $name = $participant->user?->chinese_name ?? $participant->user?->first_name;
             } else {
                 $name = $participant->user_name;
+            }
+
+            if ($participant->score >= $participant->competition->minimum_amount) {
+                $reward = $participant->competition->rewards->first(function ($reward) use ($participantRank) {
+                    return $participantRank >= $reward->min_rank && $participantRank <= $reward->max_rank;
+                });
+    
+                if ($reward) {
+                    // Log::info($reward);
+                    $rankTitle = json_decode($reward->title, true);
+                    $points = $reward->points_rewarded;
+                    $rank_badge = $reward->getFirstMediaUrl('rank_badge');
+                } 
             }
 
             return [

@@ -953,4 +953,7 @@ return [
     'delete_virtual' => 'Delete this participant?',
     'delete_virtual_caption' => 'Are you sure you want to delete this participant? Once deleted, it will be permanently removed and cannot be recovered.',
     'toast_delete_participant_success' => 'You’ve successfully deleted a virtual participant!',
+    'competition_live_desc' => 'The competition is live for the participants.',
+    'competition_soon_desc' => 'The competition will start for the participants soon.',
+    'competition_ended_desc' => 'The competition has ended.',
 ];
