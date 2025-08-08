@@ -126,6 +126,10 @@ class CompetitionController extends Controller
         $validator->validate();
 
         try {
+
+            // $start_datetime_string = $request->start_date . ' ' . $request->start_time;
+            // $end_datetime_string = $request->end_date . ' ' . $request->end_time;
+
             $start_at = Carbon::parse($request->start_date)->format('Y-m-d') . ' ' . Carbon::parse($request->start_time)->format('H:i:s');
             $end_at = Carbon::parse($request->end_date)->format('Y-m-d') . ' ' . Carbon::parse($request->end_time)->format('H:i:s');
             // Log::info($start_at);

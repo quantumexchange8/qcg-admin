@@ -13,6 +13,9 @@ import DatePicker from 'primevue/datepicker';
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
 import cloneDeep from 'lodash/cloneDeep';
+import { transactionFormat } from "@/Composables/index.js";
+
+const { formatDate, formatTime } = transactionFormat();
 
 const languageLabels = {
   en: 'English',
@@ -72,10 +75,24 @@ const form = useForm({
 const today = new Date();
 
 const submitForm = () => {
-    // if (form.expiry_date) {
-    //     form.expiry_date = formatDate(form.expiry_date);
+    // if (form.start_date) {
+    //     form.start_date = formatDate(form.start_date);
+    // }
+
+    // if (form.start_time) {
+    //     let formattedTime = formatTime(form.start_time);
+    //     form.start_time = formattedTime.substring(0, formattedTime.lastIndexOf(':'));
     // }
     
+    // if (form.end_date) {
+    //     form.end_date = formatDate(form.end_date);
+    // }
+
+    // if (form.end_time) {
+    //     let formattedTime = formatTime(form.end_time);
+    //     form.end_time = formattedTime.substring(0, formattedTime.lastIndexOf(':'));
+    // }
+
     form.post(route('competition.createCompetition'), {
         onSuccess: () => {
             visible.value = false;
