@@ -417,10 +417,13 @@ class CompetitionController extends Controller
             'category' => $competition->category,
             'name' => $name,
             'status' => $competition->statusByDate,
-            'start_datetime' =>  Carbon::parse($competition->start_date)->format('Y-m-d H:i'),
-            'end_datetime' => Carbon::parse($competition->end_date)->format('Y-m-d H:i'),
+            'start_datetime' =>  $competition->start_date,
+            'end_datetime' => $competition->end_date,
             'minimum_amount' => $competition->minimum_amount,
         ];
+
+        Log::info($competitionData);
+        Log::info(Carbon::parse($competition->end_date)->format('Y-m-d H:i'));
 
         return Inertia::render('Competition/Partials/ViewCompetition', [
             'competition' => $competitionData,
