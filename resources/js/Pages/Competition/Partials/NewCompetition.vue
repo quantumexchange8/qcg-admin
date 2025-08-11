@@ -75,23 +75,23 @@ const form = useForm({
 const today = new Date();
 
 const submitForm = () => {
-    // if (form.start_date) {
-    //     form.start_date = formatDate(form.start_date);
-    // }
+    if (form.start_date) {
+        form.start_date = formatDate(form.start_date);
+    }
 
-    // if (form.start_time) {
-    //     let formattedTime = formatTime(form.start_time);
-    //     form.start_time = formattedTime.substring(0, formattedTime.lastIndexOf(':'));
-    // }
+    if (form.start_time) {
+        let formattedTime = formatTime(form.start_time);
+        form.start_time = formattedTime.substring(0, formattedTime.lastIndexOf(':'));
+    }
     
-    // if (form.end_date) {
-    //     form.end_date = formatDate(form.end_date);
-    // }
+    if (form.end_date) {
+        form.end_date = formatDate(form.end_date);
+    }
 
-    // if (form.end_time) {
-    //     let formattedTime = formatTime(form.end_time);
-    //     form.end_time = formattedTime.substring(0, formattedTime.lastIndexOf(':'));
-    // }
+    if (form.end_time) {
+        let formattedTime = formatTime(form.end_time);
+        form.end_time = formattedTime.substring(0, formattedTime.lastIndexOf(':'));
+    }
 
     form.post(route('competition.createCompetition'), {
         onSuccess: () => {

@@ -127,15 +127,17 @@ class CompetitionController extends Controller
 
         try {
 
-            // $start_datetime_string = $request->start_date . ' ' . $request->start_time;
-            // $end_datetime_string = $request->end_date . ' ' . $request->end_time;
+            $start_datetime_string = $request->start_date . ' ' . $request->start_time;
+            $end_datetime_string = $request->end_date . ' ' . $request->end_time;
 
-            $start_at = Carbon::parse($request->start_date)->format('Y-m-d') . ' ' . Carbon::parse($request->start_time)->format('H:i:s');
-            $end_at = Carbon::parse($request->end_date)->format('Y-m-d') . ' ' . Carbon::parse($request->end_time)->format('H:i:s');
+            // Log::info($start_datetime_string);
+            // Log::info($end_datetime_string);
+
+            $start_at = Carbon::parse($start_datetime_string)->format('Y-m-d H:i:s');
+            $end_at = Carbon::parse($end_datetime_string)->format('Y-m-d H:i:s');
+
             // Log::info($start_at);
             // Log::info($end_at);
-            $start_at = Carbon::parse($start_at);
-            $end_at = Carbon::parse($end_at);
 
             $competition = Competition::create([
                 'category' => $request->category,
