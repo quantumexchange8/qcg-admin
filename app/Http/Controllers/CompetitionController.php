@@ -126,15 +126,18 @@ class CompetitionController extends Controller
         $validator->validate();
 
         try {
-
             $start_datetime_string = $request->start_date . ' ' . $request->start_time;
             $end_datetime_string = $request->end_date . ' ' . $request->end_time;
 
-            // Log::info($start_datetime_string);
-            // Log::info($end_datetime_string);
+            $localTimezone = config('app.timezone');
 
-            $start_at = Carbon::parse($start_datetime_string)->format('Y-m-d H:i:s');
-            $end_at = Carbon::parse($end_datetime_string)->format('Y-m-d H:i:s');
+            $start_at = Carbon::parse($start_datetime_string, $localTimezone)
+                ->setTimezone('UTC')
+                ->format('Y-m-d H:i:s');
+
+            $end_at = Carbon::parse($end_datetime_string, $localTimezone)
+                ->setTimezone('UTC')
+                ->format('Y-m-d H:i:s');
 
             // Log::info($start_at);
             // Log::info($end_at);
@@ -221,6 +224,7 @@ class CompetitionController extends Controller
 
                 // note to self: deleting this way is more efficient than for each
                 $competition->rewards()->delete();
+                $competition->participants()->delete();
             }
 
             $competition->clearMediaCollection('unranked_badge');
@@ -303,13 +307,19 @@ class CompetitionController extends Controller
         $validator->validate();
 
         try {
-            $start_at = Carbon::parse($request->start_date)->format('Y-m-d') . ' ' . Carbon::parse($request->start_time)->format('H:i:s');
-            $end_at = Carbon::parse($request->end_date)->format('Y-m-d') . ' ' . Carbon::parse($request->end_time)->format('H:i:s');
-            // Log::info($start_at);
-            // Log::info($end_at);
-            $start_at = Carbon::parse($start_at);
-            $end_at = Carbon::parse($end_at);
+            $start_datetime_string = $request->start_date . ' ' . $request->start_time;
+            $end_datetime_string = $request->end_date . ' ' . $request->end_time;
 
+            $localTimezone = config('app.timezone');
+
+            $start_at = Carbon::parse($start_datetime_string, $localTimezone)
+                ->setTimezone('UTC')
+                ->format('Y-m-d H:i:s');
+
+            $end_at = Carbon::parse($end_datetime_string, $localTimezone)
+                ->setTimezone('UTC')
+                ->format('Y-m-d H:i:s');
+                
             $competition = Competition::findOrFail($request->competition_id);
 
             $competition->update([
@@ -417,12 +427,12 @@ class CompetitionController extends Controller
             'category' => $competition->category,
             'name' => $name,
             'status' => $competition->statusByDate,
-            'start_datetime' =>  $competition->start_date,
-            'end_datetime' => $competition->end_date,
+            'start_datetime' =>  Carbon::parse($competition->start_date, 'UTC')->toIso8601String(),
+            'end_datetime' => Carbon::parse($competition->end_date, 'UTC')->toIso8601String(),
             'minimum_amount' => $competition->minimum_amount,
         ];
 
-        Log::info($competitionData);
+        Log::info($competitionData);    
         Log::info(Carbon::parse($competition->end_date)->format('Y-m-d H:i'));
 
         return Inertia::render('Competition/Partials/ViewCompetition', [

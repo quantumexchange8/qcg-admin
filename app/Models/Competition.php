@@ -15,6 +15,11 @@ class Competition extends Model implements HasMedia
     use SoftDeletes, InteractsWithMedia;
 
     protected $guarded = [];
+
+    protected $casts = [
+        'start_date' => 'string',
+        'end_date' => 'string',
+    ];
     
     public function rewards(): HasMany
     {

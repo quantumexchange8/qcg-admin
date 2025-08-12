@@ -59,6 +59,8 @@ let timer = null;
 const countdownTarget = computed(() => {
     const now = new Date();
     const startDate = new Date(props.competition.start_datetime);
+    // console.log(props.competition.start_datetime)
+    // console.log(startDate)
 
     if (now < startDate) {
         return startDate; // Countdown to the start of the competition
