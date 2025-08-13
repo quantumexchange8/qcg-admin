@@ -25,7 +25,7 @@ const tabs = ref([
 ]);
 
 // Initial selected type
-const type = ref('announcement');
+const type = ref('forum');
 const selectedType = ref(tabs.value.find(tab => tab.type === type.value));
 
 // Watch `selectedType` and update `type` and `selectedType` in one place

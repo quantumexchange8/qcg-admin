@@ -45,9 +45,15 @@ class ForumController extends Controller
                 'message' => $request->message,
             ]);
 
-            if ($request->attachment) {
-                $post->addMedia($request->attachment)->toMediaCollection('post_attachment');
+            if ($request->hasFile('attachment')) {
+                foreach ($request->file('attachment') as $attachment) {
+                    $post->addMedia($attachment)->toMediaCollection('post_attachment');
+                }
             }
+
+            // if ($request->attachment) {
+            //     $post->addMedia($request->attachment)->toMediaCollection('post_attachment');
+            // }
 
             // Redirect with success message
             return redirect()->back()->with('toast', [
@@ -75,7 +81,7 @@ class ForumController extends Controller
             ->get()
             ->map(function ($post) {
                 $post->profile_photo = $post->user->getFirstMediaUrl('profile_photo');
-                $post->post_attachment = $post->getFirstMediaUrl('post_attachment');
+                $post->post_attachments = $post->getMedia('post_attachment');
                 return $post;
             });
 

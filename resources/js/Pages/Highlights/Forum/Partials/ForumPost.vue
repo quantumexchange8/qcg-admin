@@ -306,31 +306,35 @@ const submitForm = () => {
 
             <!-- content -->
             <div class="flex flex-col gap-5 items-start self-stretch">
-                <Image
-                    v-if="post.post_attachment"
-                    :src="post.post_attachment"
-                    alt="Image"
-                    image-class="w-60 h-40 object-contain"
-                    preview
-                    :pt="{
-                        toolbar: 'hidden',
-                    }"
-                    @click="resetImageTransform()"
-                >
-                    <!-- Original image template with click event -->
-                    <template #original>
-                        <img
-                            :src="post.post_attachment"
-                            alt="Image"
-                            class="max-h-full object-contain"
-                            :class="[isEnlarged ? 'cursor-zoom-out' : 'cursor-zoom-in']"
-                            @click="toggleEnlarged($event)"
-                            @mousemove="followMouse"
-                            :style="imageStyle"
-                            data-pc-section="original"
-                        />
-                    </template>
-                </Image>
+                <div v-if="post.post_attachments" class="flex flex-row gap-1 overflow-x-auto">
+                    <Image
+                        v-for="file in post.post_attachments"
+                        :key="file.id"
+                        :src="file.original_url"
+                        alt="Image"
+                        image-class="w-60 max-w-none h-40 object-contain"
+                        preview
+                        :pt="{
+                            toolbar: 'hidden',
+                        }"
+                        @click="resetImageTransform()"
+                    >
+                        <!-- Original image template with click event -->
+                        <template #original>
+                            <img
+                                :src="file.original_url"
+                                alt="Image"
+                                class="h-40 w-auto object-contain"
+                                :class="[isEnlarged ? 'cursor-zoom-out' : 'cursor-zoom-in']"
+                                @click="toggleEnlarged($event)"
+                                @mousemove="followMouse"
+                                :style="imageStyle"
+                                data-pc-section="original"
+                            />
+                        </template>
+                    </Image>
+                </div>
+
                 <div class="grid grid-cols-1 gap-2 items-start self-stretch text-sm text-gray-950">
                     <span class="font-semibold">{{ post.subject }}</span>
                     <div

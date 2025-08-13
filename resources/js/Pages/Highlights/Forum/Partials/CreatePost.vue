@@ -21,41 +21,76 @@ const form = useForm({
 
 const openDialog = () => {
     form.reset();
-    removeAttachment();
+    removeAttachments();
     visible.value = true;
 }
 
-const selectedAttachment = ref(null);
-const selectedAttachmentName = ref(null);
+const selectedAttachments = ref([]);
 const handleAttachment = (event) => {
-    const attachmentInput = event.target;
-    const file = attachmentInput.files[0];
+    const files = Array.from(event.target.files);
 
-    if (file) {
-        // Display the selected image
+    if (files.length > 10) {
+        alert("You can only upload up to 10 files.");
+        return;
+    }
+
+    // selectedAttachments.value = [];
+    // form.attachment = [];
+
+    files.forEach((file) => {
         const reader = new FileReader();
-        reader.onload = () => {
-            selectedAttachment.value = reader.result;
+        reader.onload = (e) => {
+            selectedAttachments.value.push({
+                name: file.name,
+                url: e.target.result,
+                file: file,
+            });
         };
         reader.readAsDataURL(file);
-        selectedAttachmentName.value = file.name;
-        form.attachment = event.target.files[0];
-    } else {
-        selectedAttachment.value = null;
-    }
+        form.attachment.push(file);
+    });
 };
 
-const removeAttachment = () => {
-    selectedAttachment.value = null;
-    form.attachment = '';
+const removeAttachment = (index) => {
+    selectedAttachments.value.splice(index, 1);
+    form.attachment.splice(index, 1);
 };
+
+const removeAttachments = () => {
+    selectedAttachments.value = [];
+    form.attachment = [];
+};
+
+// const selectedAttachmentName = ref(null);
+// const handleAttachment = (event) => {
+//     const attachmentInput = event.target;
+//     const file = attachmentInput.files[0];
+
+//     if (file) {
+//         // Display the selected image
+//         const reader = new FileReader();
+//         reader.onload = () => {
+//             selectedAttachment.value = reader.result;
+//         };
+//         reader.readAsDataURL(file);
+//         selectedAttachmentName.value = file.name;
+//         form.attachment = event.target.files[0];
+//     } else {
+//         selectedAttachment.value = null;
+//     }
+// };
+
+// const removeAttachment = () => {
+//     selectedAttachment.value = null;
+//     form.attachment = '';
+// };
 
 const submitForm = () => {
     form.post(route('highlights.createPost'), {
         onSuccess: () => {
             visible.value = false;
             form.reset();
-            removeAttachment();
+            removeAttachments();
         }
     })
 }
@@ -81,7 +116,7 @@ const submitForm = () => {
         :dismissableMask="true"
     >
         <form>
-            <div class="flex flex-col items-center py-4 gap-6 self-stretch md:py-6 md:gap-8">
+            <div class="flex flex-col items-center py-4 gap-6 self-stretch md:py-6 md:gap-8 bg-white">
                 <div class="flex flex-col gap-5 items-center self-stretch">
                     <div class="flex flex-col items-start gap-2 self-stretch">
                         <InputLabel
@@ -135,6 +170,7 @@ const submitForm = () => {
                                 class="hidden"
                                 accept="image/*"
                                 @change="handleAttachment"
+                                multiple
                             />
                             <Button
                                 type="button"
@@ -147,7 +183,7 @@ const submitForm = () => {
                             </Button>
                             <InputError :message="form.errors.kyc_verification" />
                         </div>
-                        <div
+                        <!-- <div
                             v-if="selectedAttachment"
                             class="relative w-full py-3 pl-4 flex justify-between rounded-xl bg-gray-50"
                         >
@@ -166,6 +202,31 @@ const submitForm = () => {
                             >
                                 <IconX size="20" color="#374151" stroke-width="1.25" />
                             </Button>
+                        </div> -->
+
+                        <div v-if="selectedAttachments.length" class="grid grid-cols-5 gap-1 w-full">
+                            <div 
+                                v-for="(file, index) in selectedAttachments"
+                                :key="index"
+                                class="relative py-0.5 pl-0.5 flex justify-between rounded bg-gray-50"
+                            >
+                                <div class="inline-flex items-center gap-3">
+                                    <img :src="file.url" alt="Selected Image" class="max-w-full h-9 object-contain rounded" />
+                                    <!-- <div class="text-sm text-gray-950">
+                                        {{ file.name }}
+                                    </div> -->
+                                </div>
+                                <Button
+                                    type="button"
+                                    variant="gray-text"
+                                    @click="removeAttachment(index)"
+                                    pill
+                                    iconOnly
+                                    size="sm"
+                                >
+                                    <IconX class="text-gray-700 w-4 h-4" />
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </div>
