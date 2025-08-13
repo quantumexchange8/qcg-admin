@@ -45,7 +45,7 @@ class ManualUpdateCommand extends Command
         }
 
         // Get previous day's date
-        $startDate = Carbon::createFromDate(2025, 5, 20, 'UTC');
+        $startDate = Carbon::createFromDate(2025, 8, 01, 'UTC');
         $yesterday = Carbon::yesterday('UTC');
 
         Log::info('Start Time : ' . $startDate);
@@ -69,9 +69,14 @@ class ManualUpdateCommand extends Command
         Log::info('Start Start Time : ' . $startOfStartDate);
         Log::info('Yesterday End Time : ' . $endOfYesterday);
 
+        // $tradeLots = TradeBrokerHistory::selectRaw('db_user_id, db_symgroup_id, SUM(trade_lots) as total_trade_lots')
+        //     ->whereBetween('trade_close_time', [$startOfStartDate, $endOfYesterday])
+        //     ->whereIn('meta_login', [8003091, 8003093, 8003754, 8004565, 8004617])
+        //     ->groupBy('db_user_id', 'db_symgroup_id')
+        //     ->get();
+
         $tradeLots = TradeBrokerHistory::selectRaw('db_user_id, db_symgroup_id, SUM(trade_lots) as total_trade_lots')
             ->whereBetween('trade_close_time', [$startOfStartDate, $endOfYesterday])
-            ->whereIn('meta_login', [8003091, 8003093, 8003754, 8004565, 8004617])
             ->groupBy('db_user_id', 'db_symgroup_id')
             ->get();
 
