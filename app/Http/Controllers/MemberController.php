@@ -688,9 +688,9 @@ class MemberController extends Controller
             ->where('status', 'successful')
             ->select('id', 'from_meta_login', 'to_meta_login', 'transaction_type', 'amount', 'transaction_amount', 'status', 'approved_at', 'created_at');
 
-        $total_deposit = (clone $query)->where('transaction_type', 'deposit')->sum('transaction_amount');
-        $total_withdrawal = (clone $query)->where('transaction_type', 'withdrawal')->sum('amount');
-        $transaction_history = $query->whereIn('transaction_type', ['deposit', 'withdrawal'])
+        $total_deposit = (clone $query)->whereIn('transaction_type', ['deposit', 'balance_in'])->sum('transaction_amount');
+        $total_withdrawal = (clone $query)->whereIn('transaction_type', ['withdrawal', 'balance_out'])->sum('amount');
+        $transaction_history = $query->whereIn('transaction_type', ['deposit', 'withdrawal', 'balance_in', 'balance_out'])
             ->latest()
             ->get();
 
