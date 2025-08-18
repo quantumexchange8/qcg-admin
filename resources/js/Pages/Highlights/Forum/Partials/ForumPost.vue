@@ -306,7 +306,7 @@ const submitForm = () => {
 
             <!-- content -->
             <div class="flex flex-col gap-5 items-start self-stretch">
-                <div v-if="post.post_attachments" class="flex flex-row gap-1 overflow-x-auto">
+                <div v-if="post.post_attachments" class="flex flex-row gap-1 w-full overflow-x-auto">
                     <Image
                         v-for="file in post.post_attachments"
                         :key="file.id"
