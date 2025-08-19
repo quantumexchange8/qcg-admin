@@ -386,9 +386,9 @@ class TradingAccountController extends Controller
         if ($type && $type !== 'all') {
             // Filter based on specific transaction types directly
             if ($type === 'deposit') {
-                $query->where('transaction_type', 'deposit');
+                $query->whereIn('transaction_type', ['deposit', 'balance_in']);
             } elseif ($type === 'withdrawal') {
-                $query->where('transaction_type', 'withdrawal');
+                $query->whereIn('transaction_type', ['withdrawal', 'balance_out']);
             } elseif ($type === 'transfer') {
                 $query->whereIn('transaction_type', ['transfer_to_account', 'account_to_account']);
             }

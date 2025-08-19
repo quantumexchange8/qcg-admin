@@ -21,6 +21,7 @@ use App\Jobs\CashWalletTransferJob;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class DashboardController extends Controller
 {
@@ -148,8 +149,8 @@ class DashboardController extends Controller
 
         $last_month_deposit = Transaction::whereIn('transaction_type', ['deposit', 'rebate_in', 'balance_in', 'credit_in'])
             ->where('status', 'successful')
-            ->whereMonth('created_at', now()->subMonth()->month)
-            ->whereYear('created_at', now()->subMonth()->year)
+            ->whereMonth('created_at', now()->subMonthNoOverflow()->month)
+            ->whereYear('created_at', now()->subMonthNoOverflow()->year)
             ->where(function ($query) {
                 $query->whereHas('toMetaLogin', function ($q) {
                     $q->whereHas('accountType', function ($q2) {
@@ -214,8 +215,8 @@ class DashboardController extends Controller
 
         $last_month_withdrawal = Transaction::whereIn('transaction_type', ['withdrawal', 'rebate_out', 'balance_out', 'credit_out'])
             ->where('status', 'successful')
-            ->whereMonth('created_at', now()->subMonth()->month)
-            ->whereYear('created_at', now()->subMonth()->year)
+            ->whereMonth('created_at', now()->subMonthNoOverflow()->month)
+            ->whereYear('created_at', now()->subMonthNoOverflow()->year)
             ->where(function ($query) {
                 $query->whereHas('fromMetaLogin', function ($q) {
                     $q->whereHas('accountType', function ($q2) {

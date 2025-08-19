@@ -605,6 +605,7 @@ class MemberController extends Controller
         // Validate wallets and addresses
         foreach ($wallet_names as $index => $wallet_name) {
             $token_address = $token_addresses[$index] ?? '';
+            $record_id = $request->id[$index] ?? null;
 
             if (empty($wallet_name) && !empty($token_address)) {
                 $errors["wallet_name.$index"] = trans('validation.required', ['attribute' => trans('public.wallet_name') . ' #' . ($index + 1)]);
@@ -612,6 +613,12 @@ class MemberController extends Controller
 
             if (!empty($wallet_name) && empty($token_address)) {
                 $errors["token_address.$index"] = trans('validation.required', ['attribute' => trans('public.token_address') . ' #' . ($index + 1)]);
+            }
+
+            // Check if both fields are empty and an ID exists for an existing record
+            if (empty($wallet_name) && empty($token_address) && !empty($record_id)) {
+                PaymentAccount::where('id', $record_id)->delete();
+                continue;
             }
         }
 
@@ -688,9 +695,9 @@ class MemberController extends Controller
             ->where('status', 'successful')
             ->select('id', 'from_meta_login', 'to_meta_login', 'transaction_type', 'amount', 'transaction_amount', 'status', 'approved_at', 'created_at');
 
-        $total_deposit = (clone $query)->where('transaction_type', 'deposit')->sum('transaction_amount');
-        $total_withdrawal = (clone $query)->where('transaction_type', 'withdrawal')->sum('amount');
-        $transaction_history = $query->whereIn('transaction_type', ['deposit', 'withdrawal'])
+        $total_deposit = (clone $query)->whereIn('transaction_type', ['deposit', 'balance_in'])->sum('transaction_amount');
+        $total_withdrawal = (clone $query)->whereIn('transaction_type', ['withdrawal', 'balance_out'])->sum('amount');
+        $transaction_history = $query->whereIn('transaction_type', ['deposit', 'withdrawal', 'balance_in', 'balance_out'])
             ->latest()
             ->get();
 
