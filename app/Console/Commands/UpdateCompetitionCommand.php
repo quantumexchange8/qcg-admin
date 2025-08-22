@@ -8,11 +8,11 @@ use App\Models\Participant;
 
 use App\Models\TradeBrokerHistory;
 
-use App\Models\TradePointHistory;
-use App\Models\TradePointDetail;
-use App\Models\TradePointPeriod;
-use App\Models\Wallet;
-use App\Models\User;
+// use App\Models\TradePointHistory;
+// use App\Models\TradePointDetail;
+// use App\Models\TradePointPeriod;
+// use App\Models\Wallet;
+// use App\Models\User;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
@@ -42,7 +42,9 @@ class UpdateCompetitionCommand extends Command
         });
 
         foreach ($ongoingCompetitions as $ongoingCompetition) {
-            $histories = TraderBrokerHistory::whereBetween(
+            // Log::info('Current Competition Category: ' . $ongoingCompetition->category);
+
+            $histories = TradeBrokerHistory::whereBetween(
                 'trade_close_time',
                 [$ongoingCompetition->start_date, $ongoingCompetition->end_date]
             )

@@ -261,52 +261,52 @@ watchEffect(() => {
                 <div class="w-full max-w-[1440px] flex justify-center">
                     <div class="w-full max-w-[728px] flex flex-col items-center">
                         <!-- Competition Information -->
-                        <div class="w-full flex flex-col justify-center items-center py-6 px-12 rounded-t-lg bg-primary-500 bg-blend-multiply bg-[url(/img/Competition/competition-bg.jpg)] bg-cover bg-center">
-                            <div class="flex flex-col self-stretch gap-8 items-center py-10 px-8 bg-black">
-                                <div class="flex flex-col items-center gap-2">
-                                    <span class="text-white text-xl font-bold">{{ props.competition.name[locale] }}</span>
+                        <div class="w-full flex flex-col justify-center items-center p-3 md:px-12 md:py-6 rounded-t-lg bg-primary-500 bg-blend-multiply bg-[url(/img/Competition/competition-bg.jpg)] bg-cover bg-center">
+                            <div class="flex flex-col self-stretch gap-5 md:gap-8 items-center px-2 md:px-[60px] py-5 md:py-8 bg-black">
+                                <div class="flex flex-col items-center gap-2 text-center">
+                                    <span class="text-white text-base md:text-xl font-bold">{{ props.competition.name[locale] }}</span>
                                     <div class="flex px-2 py-1 justify-center items-center bg-primary-600 rounded-[50px]">
                                         <span class="text-center text-white text-xs">{{ formatDate(props.competition.start_datetime) }} - {{ formatDate(props.competition.end_datetime) }}</span>
                                     </div>
                                 </div>
-                                <div v-if="isCompetitionActive" class="flex flex-col w-full gap-8 ">
+                                <div v-if="isCompetitionActive" class="flex flex-col w-full gap-5 md:gap-8">
                                     <div class="flex items-center self-stretch flex-1">
                                         <div class="flex flex-col items-center gap-1 flex-1">
                                             <span class="text-xxl font-medium text-white">{{ days }}</span>
-                                            <span class="text-xs text-gray-500">{{ $t('public.day_s') }}</span>
+                                            <span class="text-xxs md:text-xs text-gray-500">{{ $t('public.day_s') }}</span>
                                         </div>
                                         <div class="flex flex-col items-center gap-1 flex-1">
                                             <span class="text-xxl font-medium text-white">{{ hours }}</span>
-                                            <span class="text-xs text-gray-500">{{ $t('public.hour_s') }}</span>
+                                            <span class="text-xxs md:text-xs text-gray-500">{{ $t('public.hour_s') }}</span>
                                         </div>
                                         <div class="flex flex-col items-center gap-1 flex-1">
                                             <span class="text-xxl font-medium text-white">{{ minutes }}</span>
-                                            <span class="text-xs text-gray-500">{{ $t('public.minute_s') }}</span>
+                                            <span class="text-xxs md:text-xs text-gray-500">{{ $t('public.minute_s') }}</span>
                                         </div>
                                         <div class="flex flex-col items-center gap-1 flex-1">
                                             <span class="text-xxl font-medium text-white">{{ seconds }}</span>
-                                            <span class="text-xs text-gray-500">{{ $t('public.second_s') }}</span>
+                                            <span class="text-xxs md:text-xs text-gray-500">{{ $t('public.second_s') }}</span>
                                         </div>
                                     </div>
                                     <span class="text-xs text-gray-300 text-center animate-pulse">{{ $t('public.competition_live_desc') }}</span>
                                 </div>
-                                <div v-else class="flex flex-col w-full gap-8">                 
+                                <div v-else class="flex flex-col w-full gap-5 md:gap-8">                 
                                     <div v-if="countdownTarget > new Date()" class="flex items-center self-stretch flex-1">
                                         <div class="flex flex-col items-center gap-1 flex-1">
                                             <span class="text-xxl font-medium text-white">{{ days }}</span>
-                                            <span class="text-xs text-gray-500">{{ $t('public.day_s') }}</span>
+                                            <span class="text-xxs md:text-xs text-gray-500">{{ $t('public.day_s') }}</span>
                                         </div>
                                         <div class="flex flex-col items-center gap-1 flex-1">
                                             <span class="text-xxl font-medium text-white">{{ hours }}</span>
-                                            <span class="text-xs text-gray-500">{{ $t('public.hour_s') }}</span>
+                                            <span class="text-xxs md:text-xs text-gray-500">{{ $t('public.hour_s') }}</span>
                                         </div>
                                         <div class="flex flex-col items-center gap-1 flex-1">
                                             <span class="text-xxl font-medium text-white">{{ minutes }}</span>
-                                            <span class="text-xs text-gray-500">{{ $t('public.minute_s') }}</span>
+                                            <span class="text-xxs md:text-xs text-gray-500">{{ $t('public.minute_s') }}</span>
                                         </div>
                                         <div class="flex flex-col items-center gap-1 flex-1">
                                             <span class="text-xxl font-medium text-white">{{ seconds }}</span>
-                                            <span class="text-xs text-gray-500">{{ $t('public.second_s') }}</span>
+                                            <span class="text-xxs md:text-xs text-gray-500">{{ $t('public.second_s') }}</span>
                                         </div>
                                     </div>
                                     <p class="text-xs text-gray-300 text-center animate-pulse">
@@ -319,7 +319,7 @@ watchEffect(() => {
                         <!-- Competition Rank List -->
                         <div class="w-full flex flex-col justify-center items-center py-5 px-6 gap-5 rounded-b-lg bg-white ">
                             <!-- Ranking Legend and Action -->
-                            <div class="flex self-stretch justify-between items-center">
+                            <div class="flex flex-col md:flex-row gap-3 self-stretch justify-between items-start md:items-center">
                                 <div class="flex items-center gap-2">
                                     <div class="flex w-4 h-4 bg-error-600 p-0.5 items-center justify-center rounded-[50px]">
                                         <IconMan :size="12" class="text-white"/>

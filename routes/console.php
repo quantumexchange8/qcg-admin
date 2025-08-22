@@ -16,4 +16,5 @@ Schedule::command('accountType:updatePromotionStatus')->daily();
 Schedule::command('update:deposit-status')->hourly();
 Schedule::command('wallet:updateTradePoints')->timezone('Asia/Kuala_Lumpur')->at('9:00');
 Schedule::command('check:daily-schedule')->daily();
+Schedule::command('competition:updateRankings')->everyFourHours();
 
