@@ -443,7 +443,7 @@ class CompetitionController extends Controller
 
     public function getParticipants(Request $request)
     {
-        $participants = Participant::with(['user', 'competition.rewards'])
+        $participants = Participant::with(['tradingAccount.ofUser', 'competition.rewards'])
             ->where('competition_id', $request->competition_id)
             ->orderByDesc('score')
             ->get()
@@ -455,7 +455,7 @@ class CompetitionController extends Controller
 
             $name = null;
             if ($participant->user_type == 'standard') {
-                $name = $participant->user?->chinese_name ?? $participant->user?->first_name;
+                $name = $participant->tradingAccount?->ofUser->chinese_name ?? $participant->tradingAccount?->ofUser->first_name;
             } else {
                 $name = $participant->user_name;
             }

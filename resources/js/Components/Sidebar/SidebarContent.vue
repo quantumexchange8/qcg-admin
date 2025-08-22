@@ -271,7 +271,7 @@ watchEffect(() => {
             </template>
         </SidebarLink>
 
-        <!-- <SidebarLink
+        <SidebarLink
             :title="$t('public.competition')"
             :href="route('competition')"
             :active="route().current('competition')"
@@ -280,7 +280,7 @@ watchEffect(() => {
             <template #icon>
                 <IconStars :size="20" stroke-width="1.25" />
             </template>
-        </SidebarLink> -->
+        </SidebarLink>
 
         <!-- Transaction -->
         <SidebarCollapsible

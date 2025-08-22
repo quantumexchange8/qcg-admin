@@ -9,6 +9,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Support\Facades\Log;
 
 class Competition extends Model implements HasMedia
 {
@@ -35,7 +36,7 @@ class Competition extends Model implements HasMedia
     {
         return Attribute::make(
             get: function () {
-                $now = Carbon::now();
+                $now = Carbon::now()->utc();
 
                 if ($now->isBetween($this->start_date, $this->end_date, true)) {
                     return 'ongoing';

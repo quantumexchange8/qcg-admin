@@ -17,8 +17,8 @@ class Participant extends Model
         return $this->belongsTo(Competition::class, 'competition_id', 'id');
     }
 
-    public function user(): BelongsTo
+    public function tradingAccount(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'user_id', 'id');
+        return $this->belongsTo(TradingAccount::class, 'meta_login', 'meta_login');
     }
 }
