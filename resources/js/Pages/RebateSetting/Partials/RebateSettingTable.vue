@@ -77,14 +77,6 @@ watch(accountType, (newValue) => {
 // Flag to temporarily disable the watcher
 let isChangingAgent = false;
 
-// Watch the search value with a debounced function directly in the watcher
-watch(search, debounce((newSearchValue) => {
-    // Prevent getResults from being called when changing agent
-    if (!isChangingAgent) {
-        getResults(accountType.value, newSearchValue); // Fetch with current account type and search query
-    }
-}, 1000)); // Debounce time (1000ms)
-
 const debouncedGetResults = debounce((newSearchValue) => {
     if (!isChangingAgent) {
         getResults(accountType.value, newSearchValue);
