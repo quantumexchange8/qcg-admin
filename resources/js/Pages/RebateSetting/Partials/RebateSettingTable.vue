@@ -47,7 +47,7 @@ const agents = ref();
 // Function to fetch agents based on the current account type
 const getResults = async (type_id) => {
     loading.value = true;
-
+    console.log('test 4')
     try {
         let url = `/rebate/getAgents?type_id=${type_id}`;
 
@@ -80,16 +80,20 @@ let isChangingAgent = false;
 
 // Watch the search value with a debounced function directly in the watcher
 watch(search, debounce((newSearchValue) => {
+    console.log('test')
     // Prevent getResults from being called when changing agent
     if (!isChangingAgent) {
+        console.log('test 2')
         getResults(accountType.value, newSearchValue); // Fetch with current account type and search query
     }
 }, 1000)); // Debounce time (1000ms)
+
 
 const changeAgent = async (newAgent) => {
     loading.value = true;
 
     try {
+        console.log('test 3')
         // Temporarily disable the watcher to prevent getResults from running
         isChangingAgent = true;
 
