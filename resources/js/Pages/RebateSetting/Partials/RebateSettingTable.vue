@@ -78,7 +78,9 @@ watch(accountType, (newValue) => {
 let isChangingAgent = false;
 
 const debouncedGetResults = debounce((newSearchValue) => {
+    console.log('test')
     if (!isChangingAgent) {
+        console.log('test 2')
         getResults(accountType.value, newSearchValue);
     }
 }, 1000);
@@ -87,7 +89,6 @@ watch(search, (newSearchValue) => {
     debouncedGetResults(newSearchValue);
 });
 
-
 const changeAgent = async (newAgent) => {
     loading.value = true;
 
@@ -95,8 +96,8 @@ const changeAgent = async (newAgent) => {
         // Temporarily disable the watcher to prevent getResults from running
         isChangingAgent = true;
 
-        debouncedGetResults.cancel();
         clearSearch();
+        debouncedGetResults.cancel();
 
         const response = await axios.get(`/rebate/changeAgents?id=${newAgent.id}&type_id=${accountType.value}`);
         agents.value = response.data;
@@ -104,7 +105,6 @@ const changeAgent = async (newAgent) => {
         console.error('Error get change:', error);
     } finally {
         loading.value = false;
-
         // Re-enable the watcher after the agent change is complete
         isChangingAgent = false;
     }
