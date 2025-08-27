@@ -432,8 +432,8 @@ class CompetitionController extends Controller
             'minimum_amount' => $competition->minimum_amount,
         ];
 
-        Log::info($competitionData);    
-        Log::info(Carbon::parse($competition->end_date)->format('Y-m-d H:i'));
+        // Log::info($competitionData);    
+        // Log::info(Carbon::parse($competition->end_date)->format('Y-m-d H:i'));
 
         return Inertia::render('Competition/Partials/ViewCompetition', [
             'competition' => $competitionData,
@@ -446,6 +446,7 @@ class CompetitionController extends Controller
         $participants = Participant::with(['tradingAccount.ofUser', 'competition.rewards'])
             ->where('competition_id', $request->competition_id)
             ->orderByDesc('score')
+            ->orderBy('updated_at')
             ->get()
             ->map(function ($participant, $key) {
             $participantRank = $key + 1;
