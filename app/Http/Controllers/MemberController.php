@@ -1081,8 +1081,8 @@ class MemberController extends Controller
         $appUrl = parse_url(config('app.url'), PHP_URL_HOST);
         $memberProductionUrl = config('app.member_production_url');
 
-        if ($currentHost === 'qcg-admin.currenttech.pro') {
-            $url = "https://qcg-user.currenttech.pro/admin_login/$hashedToken";
+        if ($currentHost === 'qcg-admin.testflight4u.com') {
+            $url = "https://qcg-user.testflight4u.com/admin_login/$hashedToken";
         } elseif ($currentHost === $appUrl) {
             $url = "$memberProductionUrl/admin_login/$hashedToken";
         } else {

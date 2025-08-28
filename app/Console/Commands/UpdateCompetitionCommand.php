@@ -6,7 +6,9 @@ use App\Models\Competition;
 use App\Models\CompetitionReward;
 use App\Models\Participant;
 
+use App\Services\CTraderService;
 use App\Models\TradeBrokerHistory;
+use App\Models\TradingAccount;
 
 // use App\Models\TradePointHistory;
 // use App\Models\TradePointDetail;
@@ -62,7 +64,10 @@ class UpdateCompetitionCommand extends Command
             
                 if ($ongoingCompetition->category === 'profit_rate') {
                     $capital = Transaction::where('transaction_type', 'deposit')->where('to_meta_login', $meta_login)->sum('transaction_amount');
-                    $current_balance = 0;
+
+                    (new CTraderService)->getUserInfo($account->meta_login);
+                    $updatedAccount = TradingAccount::where('meta_login', $account->meta_login)->first();
+                    $current_balance = $updatedAccount->balance - $updatedAccount->credit;
 
                     $score = $current_balance / $capital * 100.00;
                 }
