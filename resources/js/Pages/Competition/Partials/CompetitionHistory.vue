@@ -23,7 +23,7 @@ const {locale} = useLangObserver();
 const categories = [
     { name: wTrans('public.profit_rate'), value: 'profit_rate' },
     { name: wTrans('public.trade_lot'), value: 'trade_lot' },
-    { name: wTrans('public.trade_position'), value: 'trade_position' },
+    { name: wTrans('public.trade_profit'), value: 'trade_profit' },
 ];
 
 const selectedCategory = ref(null);

@@ -955,4 +955,5 @@ return [
     'competition_live_desc' => '比赛已对参与者开放。',
     'competition_soon_desc' => '比赛即将开始。',
     'competition_ended_desc' => '比赛已结束。',
+    'trade_profit' => '交易收益',
 ];

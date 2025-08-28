@@ -38,7 +38,7 @@ const titleLabels = {
 const categories = ref([
     { name: 'profit_rate', key: 'profit' },
     { name: 'trade_lot', key: 'lot' },
-    { name: 'trade_position', key: 'position' },
+    { name: 'trade_profit', key: 'trade_profit' },
 ]);
 
 const DEFAULT_UNRANKED_BADGE_PATH = '/img/Competition/pepe-2.svg';

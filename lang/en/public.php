@@ -956,4 +956,5 @@ return [
     'competition_live_desc' => 'The competition is live for the participants.',
     'competition_soon_desc' => 'The competition will start for the participants soon.',
     'competition_ended_desc' => 'The competition has ended.',
+    'trade_profit' => 'Trade Profit',
 ];

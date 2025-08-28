@@ -954,4 +954,5 @@ return [
     'competition_live_desc' => '比賽已對參與者開放。',
     'competition_soon_desc' => '比賽即將開始。',
     'competition_ended_desc' => '比賽已結束。',
+    'trade_profit' => '交易收益',
 ];

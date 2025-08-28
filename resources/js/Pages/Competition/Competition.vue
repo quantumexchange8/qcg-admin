@@ -46,7 +46,7 @@ const categoryBgClass = computed(() => (category) => {
             return 'bg-purple';
         case 'trade_lot':
             return 'bg-indigo';
-        case 'trade_position':
+        case 'trade_profit':
             return 'bg-violet';
         default:
             return 'bg-black';

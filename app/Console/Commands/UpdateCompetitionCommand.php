@@ -63,19 +63,20 @@ class UpdateCompetitionCommand extends Command
                 $score = 0;
             
                 if ($ongoingCompetition->category === 'profit_rate') {
-                    $capital = Transaction::where('transaction_type', 'deposit')->where('to_meta_login', $meta_login)->sum('transaction_amount');
+                    $capital = Transaction::where('to_meta_login', $meta_login)
+                        ->whereIn('transaction_type', ['deposit', 'balance_in', 'account_to_account'])
+                        ->sum('transaction_amount');
 
-                    (new CTraderService)->getUserInfo($account->meta_login);
-                    $updatedAccount = TradingAccount::where('meta_login', $account->meta_login)->first();
-                    $current_balance = $updatedAccount->balance - $updatedAccount->credit;
+                    $profit = $accountHistories->sum('trade_profit');
 
-                    $score = $current_balance / $capital * 100.00;
-                }
-                elseif ($ongoingCompetition->category === 'trade_position') {
-                    $score = $accountHistories->count();
+                    $score = ($capital != 0) ? ($profit / $capital) * 100 : 0;
+                } elseif ($ongoingCompetition->category === 'trade_profit') {
+                    $score = $accountHistories->sum('trade_profit');
                 } elseif ($ongoingCompetition->category === 'trade_lot') {
                     $score = $accountHistories->sum('trade_lots');
-                }
+                // } elseif ($ongoingCompetition->category === 'trade_position') {
+                //     $score = $accountHistories->count(); 
+                // }
 
                 $ongoingCompetition->participants()->updateOrCreate(
                     [
