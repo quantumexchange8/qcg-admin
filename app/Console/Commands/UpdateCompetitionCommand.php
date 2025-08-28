@@ -37,7 +37,7 @@ class UpdateCompetitionCommand extends Command
         $this->info('Starting competition check...');
         // $walletUpdates = [];
 
-        Log::info('Current Time : ' . Carbon::now());
+        Log::info('Current Time for Ranking Update: ' . Carbon::now());
         
         $ongoingCompetitions = Competition::all()->filter(function ($competition) {
             return $competition->statusByDate === 'ongoing';
