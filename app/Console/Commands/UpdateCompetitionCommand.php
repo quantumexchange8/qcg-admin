@@ -74,6 +74,7 @@ class UpdateCompetitionCommand extends Command
                     $score = $accountHistories->sum('trade_profit');
                 } elseif ($ongoingCompetition->category === 'trade_lot') {
                     $score = $accountHistories->sum('trade_lots');
+                }
                 // } elseif ($ongoingCompetition->category === 'trade_position') {
                 //     $score = $accountHistories->count(); 
                 // }
