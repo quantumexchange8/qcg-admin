@@ -27,7 +27,7 @@ class UpdateCompetitionCommand extends Command
     protected $signature = 'competition:updateRankings';
 
     // The console command description.
-    protected $description = 'Check participant scores every 4 hours, update their rankings.';
+    protected $description = 'Check participant scores every 15 minutes, update their rankings.';
 
     // Disable the Laravel command timeout
     protected $timeout = null;
@@ -93,5 +93,26 @@ class UpdateCompetitionCommand extends Command
         }
 
         $this->info('Competition ranks have been updated successfully');
+
+        // $completedCompetitions = Competition::whereNot('status', 'distributed')->get()->filter(function ($competition) {
+        //     return $competition->statusByDate === 'completed';
+        // });
+
+        // foreach ($completedCompetitions as $completedCompetition) {
+        //     // Log::info('Current Competition Category: ' . $ongoingCompetition->category);
+        //     $completedCompetition->update(['status' => 'distributed']);
+
+            
+        //     $completedCompetition->participants()->updateOrCreate(
+        //         [
+        //             'competition_id' => $ongoingCompetition->id,
+        //             'user_type' => 'standard',
+        //             'meta_login' => $meta_login,
+        //         ],
+        //         [
+        //             'score' => $score,
+        //         ]
+        //     );
+        // }
     }
 }
