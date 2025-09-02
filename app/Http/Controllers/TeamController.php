@@ -50,7 +50,7 @@ class TeamController extends Controller
             $startDate = Carbon::now()->subWeeks($weeks)->startOfWeek();
             $endDate = Carbon::now()->subWeek($weeks)->endOfWeek(); 
         } else {
-            $carbonDate = Carbon::createFromFormat('F Y', $monthYear);
+            $carbonDate = Carbon::parse($monthYear);
 
             $startDate = (clone $carbonDate)->startOfMonth()->startOfDay();
             $endDate = (clone $carbonDate)->endOfMonth()->endOfDay();
@@ -216,7 +216,7 @@ class TeamController extends Controller
             $startDate = Carbon::now()->subWeeks($weeks)->startOfWeek();
             $endDate = Carbon::now()->subWeek($weeks)->endOfWeek(); 
         } else {
-            $carbonDate = Carbon::createFromFormat('F Y', $monthYear);
+            $carbonDate = Carbon::parse($monthYear);
 
             $startDate = (clone $carbonDate)->startOfMonth()->startOfDay();
             $endDate = (clone $carbonDate)->endOfMonth()->endOfDay();
@@ -555,7 +555,7 @@ class TeamController extends Controller
                 $startDate = Carbon::createFromDate(2020, 1, 1)->startOfDay();
                 $endDate = Carbon::now()->endOfDay();
             } else {
-                $carbonDate = Carbon::createFromFormat('F Y', $monthYear);
+                $carbonDate = Carbon::parse($monthYear);
 
                 $startDate = (clone $carbonDate)->startOfMonth()->startOfDay();
                 $endDate = (clone $carbonDate)->endOfMonth()->endOfDay();

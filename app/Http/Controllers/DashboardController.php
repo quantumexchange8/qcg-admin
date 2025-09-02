@@ -598,7 +598,7 @@ class DashboardController extends Controller
             // Assume month/year format (F Y)
             try {
                 // Parse the month/year string into a Carbon date
-                $carbonDate = Carbon::createFromFormat('F Y', $monthYear);
+                $carbonDate = Carbon::parse($monthYear);
                 $year = $carbonDate->year;
                 $month = $carbonDate->month;
 
