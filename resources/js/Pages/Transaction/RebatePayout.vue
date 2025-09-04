@@ -80,11 +80,8 @@ const getRebateMonths = async () => {
     }
 };
 
-watch([selectedMonth, selectedTeam], ([newMonth, newTeam]) => {
-    getResults(newMonth, newTeam);
-});
-
 getRebateMonths()
+
 const getResults = async (selectedMonth = '', selectedTeam = null) => {
     loading.value = true;
 
@@ -117,6 +114,10 @@ const getResults = async (selectedMonth = '', selectedTeam = null) => {
         loading.value = false;
     }
 };
+
+watch([selectedMonth, selectedTeam], ([newMonth, newTeam]) => {
+    getResults(newMonth, newTeam);
+});
 
 const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -288,7 +289,12 @@ onUnmounted(() => {
             <div class="flex flex-col pb-3 gap-3 items-center self-stretch md:flex-row md:gap-0 md:justify-between md:pb-0">
                 <span class="text-gray-950 font-semibold self-stretch md:self-auto">{{ $t('public.all_rebate_payout') }}</span>
             </div>
+            <div v-if="months.length === 0" class="flex flex-col gap-2 items-center justify-center">
+                <Loader />
+                <span class="text-sm text-gray-700">{{ $t('public.loading') }}</span>
+            </div>
             <DataTable
+                v-else
                 v-model:filters="filters"
                 :value="transactions"
                 :paginator="transactions?.length > 0 && filteredValue?.length > 0"

@@ -333,9 +333,9 @@ class TransactionController extends Controller
                 'volume' => $item->volume,
                 'net_rebate' => $item->net_rebate,
                 'rebate' => $item->rebate,
-                'team_id' => $transaction->upline_user->teamHasUser->team_id ?? null,
-                'team_name' => $transaction->upline_user->teamHasUser->team->name ?? null,
-                'team_color' => $transaction->upline_user->teamHasUser->team->color ?? null,
+                'team_id' => $item->upline_user->teamHasUser->team_id ?? null,
+                'team_name' => $item->upline_user->teamHasUser->team->name ?? null,
+                'team_color' => $item->upline_user->teamHasUser->team->color ?? null,
             ];
         });
 
