@@ -31,7 +31,9 @@ class TransactionController extends Controller
 
     public function transfer()
     {
-        return Inertia::render('Transaction/Transfer');
+        return Inertia::render('Transaction/Transfer', [
+            'teams' => (new GeneralController())->getTeams(true),
+        ]);
     }
 
     public function bonus()
@@ -50,12 +52,16 @@ class TransactionController extends Controller
 
     public function rebate()
     {
-        return Inertia::render('Transaction/RebatePayout');
+        return Inertia::render('Transaction/RebatePayout', [
+            'teams' => (new GeneralController())->getTeams(true),
+        ]);
     }
 
     public function incentive()
     {
-        return Inertia::render('Transaction/IncentivePayout');
+        return Inertia::render('Transaction/IncentivePayout', [
+            'teams' => (new GeneralController())->getTeams(true),
+        ]);
     }
 
     public function adjustment()
@@ -189,6 +195,9 @@ class TransactionController extends Controller
                 $result['wallet_address'] = $transaction->payment_account ? $transaction->payment_account->account_no : null;
                 $result['approved_at'] = $transaction->approved_at;
             } elseif ($type === 'transfer') {
+                $result['team_id'] = $transaction->user->teamHasUser->team_id ?? null;
+                $result['team_name'] = $transaction->user->teamHasUser->team->name ?? null;
+                $result['team_color'] = $transaction->user->teamHasUser->team->color ?? null;
                 $result['from_meta_login'] = $transaction->from_meta_login;
                 $result['from_account_type'] = $fromAccountType->account_group;
                 $result['from_account_type_color'] = $fromAccountType->color;
@@ -284,6 +293,7 @@ class TransactionController extends Controller
     public function getRebatePayoutData(Request $request)
     {
         $monthYear = $request->input('selectedMonth');
+        $selectedTeam = $request->query('selectedTeam');
 
         if ($monthYear === 'select_all') {
             $startDate = Carbon::createFromDate(2020, 1, 1)->startOfDay();
@@ -302,8 +312,14 @@ class TransactionController extends Controller
 
         $allSymbolGroups = SymbolGroup::pluck('display', 'id')->toArray();
 
-        $query = TradeRebateSummary::with('upline_user', 'account_type')
+        $query = TradeRebateSummary::with('upline_user.teamHasUser.team', 'account_type')
                 ->whereBetween('created_at', [$startDate, $endDate]);
+
+        if ($selectedTeam) {
+            $query->whereHas('upline_user.teamHasUser.team', function ($query) use ($selectedTeam) {
+                $query->where('id', $selectedTeam);
+            });
+        }
 
         // Fetch and map summarized data from TradeRebateSummary
         $data = $query->get()->map(function ($item) {
@@ -317,6 +333,9 @@ class TransactionController extends Controller
                 'volume' => $item->volume,
                 'net_rebate' => $item->net_rebate,
                 'rebate' => $item->rebate,
+                'team_id' => $transaction->upline_user->teamHasUser->team_id ?? null,
+                'team_name' => $transaction->upline_user->teamHasUser->team->name ?? null,
+                'team_color' => $transaction->upline_user->teamHasUser->team->color ?? null,
             ];
         });
 
@@ -359,6 +378,9 @@ class TransactionController extends Controller
                     'user_id' => $group->first()['user_id'],
                     'name' => $group->first()['name'],
                     'email' => $group->first()['email'],
+                    'team_id' => $group->first()['team_id'],
+                    'team_name' => $group->first()['team_name'],
+                    'team_color' => $group->first()['team_color'],
                     'account_type' => $group->first()['account_type'],
                     'execute_at' => $group->first()['execute_at'],
                     'volume' => $group->sum('volume'),
@@ -382,6 +404,7 @@ class TransactionController extends Controller
     public function getIncentivePayoutData(Request $request)
     {
         $monthYear = $request->input('selectedMonth');
+        $selectedTeam = $request->query('selectedTeam');
 
         if ($monthYear === 'select_all') {
             $startDate = Carbon::createFromDate(2020, 1, 1)->startOfDay();
@@ -400,8 +423,14 @@ class TransactionController extends Controller
         }
 
         // Start the query for LeaderboardBonus with related models
-        $query = LeaderboardBonus::with('leaderboard_profile', 'user')
+        $query = LeaderboardBonus::with('leaderboard_profile', 'user.teamHasUser.team')
                 ->whereBetween('created_at', [$startDate, $endDate]);
+
+        if ($selectedTeam) {
+            $query->whereHas('user.teamHasUser.team', function ($query) use ($selectedTeam) {
+                $query->where('id', $selectedTeam);
+            });
+        }
 
         // Fetch and map the data to a cleaner structure
         $data = $query->get()->map(function ($transaction) {
@@ -417,6 +446,9 @@ class TransactionController extends Controller
                 'incentive_rate' => $transaction->incentive_rate,
                 'incentive_amount' => $transaction->incentive_amount,
                 'created_at' => $transaction->created_at,
+                'team_id' => $transaction->user->teamHasUser->team_id ?? null,
+                'team_name' => $transaction->user->teamHasUser->team->name ?? null,
+                'team_color' => $transaction->user->teamHasUser->team->color ?? null,
             ];
         });
 

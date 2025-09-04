@@ -14,15 +14,17 @@ import Button from '@/Components/Button.vue';
 import Select from "primevue/select";
 import { FilterMatchMode } from '@primevue/core/api';
 import Empty from "@/Components/Empty.vue";
-import { transactionFormat } from "@/Composables/index.js";
+import { transactionFormat, generalFormat } from "@/Composables/index.js";
 import dayjs from "dayjs";
 import { trans, wTrans } from "laravel-vue-i18n";
 import Tag from 'primevue/tag';
 
 const { formatAmount } = transactionFormat();
+const { formatRgbaColor } = generalFormat();
 
 const props = defineProps({
     accountTypes: Array,
+    teams: Array,
 });
 
 const visible = ref(false);
@@ -30,7 +32,15 @@ const loading = ref(false);
 const dt = ref(null);
 const transactions = ref();
 const totalAmount = ref();
-
+const teams = ref([
+    {
+        value: null,
+        name: wTrans('public.all'),
+        color: '000000'
+    },
+    ...props.teams
+]);
+const selectedTeam = ref(teams.value[0]);
 const filteredValue = ref();
 
 // Define the account type options
@@ -70,17 +80,17 @@ const getRebateMonths = async () => {
     }
 };
 
-watch(selectedMonth, (newMonth) => {
-    getResults(newMonth);
+watch([selectedMonth, selectedTeam], ([newMonth, newTeam]) => {
+    getResults(newMonth, newTeam);
 });
 
 getRebateMonths()
-const getResults = async (selectedMonth = '') => {
+const getResults = async (selectedMonth = '', selectedTeam = null) => {
     loading.value = true;
 
     try {
-        let url = `/transaction/getRebatePayoutData`;
-
+        const params = new URLSearchParams();
+        // Create the base URL with the type parameter directly in the URL
         if (selectedMonth) {
             let formattedMonth = selectedMonth;
 
@@ -88,10 +98,15 @@ const getResults = async (selectedMonth = '') => {
                 formattedMonth = dayjs(selectedMonth, 'DD MMMM YYYY').format('MMMM YYYY');
             }
 
-            url += `?selectedMonth=${formattedMonth}`;
+            params.append('selectedMonth', formattedMonth);
         }
 
-        const response = await axios.get(url);
+        if (selectedTeam.value) {
+            params.append('selectedTeam', selectedTeam.value);
+        }
+
+        const response = await axios.get('/transaction/getRebatePayoutData', { params });
+
         transactions.value = response.data.transactions
         totalAmount.value = response.data.totalAmount;
     } catch (error) {
@@ -153,6 +168,7 @@ const clearFilter = () => {
         account_type: { value: null, matchMode: FilterMatchMode.CONTAINS },
     };
     selectedMonth.value = getCurrentMonthYear();
+    selectedTeam.value = teams.value[0];
     filteredValue.value = null; 
 };
 
@@ -295,7 +311,7 @@ onUnmounted(() => {
                                 v-model="selectedMonth" 
                                 :options="months" 
                                 :placeholder="$t('public.month_placeholder')"
-                                class="col-span-2 md:col-span-1 font-normal truncate" scroll-height="236px" 
+                                class="col-span-1 font-normal truncate" scroll-height="236px" 
                             >
                                 <template #option="{ option }">
                                     <span class="text-sm">
@@ -325,6 +341,32 @@ onUnmounted(() => {
                                     <span v-else>
                                         {{ $t('public.month_placeholder') }}
                                     </span>
+                                </template>
+                            </Select>
+                            <Select
+                                v-model="selectedTeam"
+                                :options="teams"
+                                filter
+                                :filterFields="['name']"
+                                optionLabel="name"
+                                :placeholder="$t('public.filter_by_sales_team')"
+                                class="col-span-1 font-normal"
+                                scroll-height="236px"
+                            >
+                                <template #value="slotProps">
+                                    <div v-if="slotProps.value" class="flex items-center gap-3">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-4 h-4 rounded-full overflow-hidden grow-0 shrink-0" :style="{ backgroundColor: `#${slotProps.value.color}` }"></div>
+                                            <div>{{ slotProps.value.name }}</div>
+                                        </div>
+                                    </div>
+                                    <span v-else class="text-gray-400">{{ slotProps.placeholder }}</span>
+                                </template>
+                                <template #option="slotProps">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-4 h-4 rounded-full overflow-hidden grow-0 shrink-0" :style="{ backgroundColor: `#${slotProps.option.color}` }"></div>
+                                        <div>{{ slotProps.option.name }}</div>
+                                    </div>
                                 </template>
                             </Select>
                             <div class="relative col-span-2 block md:hidden">
@@ -397,8 +439,21 @@ onUnmounted(() => {
                     <Column field="name" sortable :header="$t('public.name')" class="w-1/2 md:w-[20%] max-w-0 px-3">
                         <template #body="slotProps">
                             <div class="flex flex-col items-start max-w-full">
-                                <div class="font-semibold truncate max-w-full">
-                                    {{ slotProps.data.name }}
+                                <div class="flex max-w-full gap-2 items-center">
+                                    <div class="font-semibold truncate max-w-full">
+                                        {{ slotProps.data.name }}
+                                    </div>
+                                    <div
+                                        v-if="slotProps.data.team_id"
+                                        class="flex justify-center items-center gap-2 rounded-sm py-1 px-2 md:hidden"
+                                        :style="{ backgroundColor: formatRgbaColor(slotProps.data.team_color, 1) }"
+                                    >
+                                        <div
+                                            class="text-white text-xs text-center"
+                                        >
+                                            {{ slotProps.data.team_name }}
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="text-gray-500 text-xs truncate max-w-full hidden md:flex">
                                     {{ slotProps.data.email }}
@@ -413,6 +468,26 @@ onUnmounted(() => {
                         <template #body="slotProps">
                             <div class="text-gray-950 text-sm truncate max-w-full">
                                 {{ dayjs(slotProps.data.execute_at).format('YYYY/MM/DD') }}
+                            </div>
+                        </template>
+                    </Column>
+                    <Column field="team" :header="$t('public.sales_team')" style="width: 15%" class="hidden md:table-cell">
+                        <template #body="slotProps">
+                            <div class="flex items-center">
+                                <div
+                                    v-if="slotProps.data.team_id"
+                                    class="flex justify-center items-center gap-2 rounded-sm py-1 px-2"
+                                    :style="{ backgroundColor: formatRgbaColor(slotProps.data.team_color, 1) }"
+                                >
+                                    <div
+                                        class="text-white text-xs text-center"
+                                    >
+                                        {{ slotProps.data.team_name }}
+                                    </div>
+                                </div>
+                                <div v-else>
+                                    -
+                                </div>
                             </div>
                         </template>
                     </Column>
@@ -510,6 +585,25 @@ onUnmounted(() => {
                 <div class="w-full flex flex-col items-start gap-1 md:flex-row">
                     <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.total_volume') }}</span>
                     <span class="w-full truncate text-gray-950 text-sm font-medium">{{ formatAmount(data?.volume || 0) }}&nbsp;Ł</span>
+                </div>
+                <div class="w-full flex flex-col items-start gap-1 md:flex-row">
+                    <span class="w-full max-w-[140px] truncate text-gray-500 text-sm">{{ $t('public.sales_team') }}</span>
+                    <div class="flex items-center">
+                        <div
+                            v-if="data.team_id"
+                            class="flex justify-center items-center gap-2 rounded-sm py-1 px-2"
+                            :style="{ backgroundColor: formatRgbaColor(data.team_color, 1) }"
+                        >
+                            <div
+                                class="text-white text-xs text-center"
+                            >
+                                {{ data.team_name }}
+                            </div>
+                        </div>
+                        <div v-else>
+                            -
+                        </div>
+                    </div>
                 </div>
             </div>
 
