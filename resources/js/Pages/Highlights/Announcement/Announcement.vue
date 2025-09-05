@@ -23,6 +23,8 @@ import CreateAnnouncement from "./Partials/CreateAnnouncement.vue";
 import DeleteAnnouncement from "./Partials/Delete.vue";
 import Edit from "./Partials/Edit.vue";
 import Action from "./Partials/Action.vue";
+import 'mobile-drag-drop/default.css';
+import { polyfill } from 'mobile-drag-drop';
 
 const statusOption = [
     { name: wTrans('public.all'), value: null },
@@ -173,6 +175,30 @@ const updatePageLinkSize = () => {
 onMounted(() => {
   window.addEventListener('resize', updatePageLinkSize)
 })
+
+const dt = ref(null);
+
+onMounted(() => {
+    // Only run the polyfill initialization code once across the entire application's lifecycle.
+    if (!window.dragDropPolyfillLoaded) {
+        // Find the root element of your DataTable component.
+        const dtElement = dt.value?.$el;
+        if (dtElement) {
+            // Apply the polyfill with a check to ensure it's not already on the element.
+            if (!dtElement.dragAndDropInitialized) {
+                polyfill({
+                    dragImageTranslateOverride: () => ({ x: 0, y: 0 }),
+                }, dtElement);
+
+                // Add a marker to the element to prevent re-initialization.
+                dtElement.dragAndDropInitialized = true;
+                
+                // Mark the polyfill as loaded globally.
+                window.dragDropPolyfillLoaded = true;
+            }
+        }
+    }
+});
 
 onUnmounted(() => {
   window.removeEventListener('resize', updatePageLinkSize)
