@@ -599,12 +599,9 @@ class DashboardController extends Controller
             try {
                 // Parse the month/year string into a Carbon date
                 $carbonDate = Carbon::parse($monthYear);
-                $year = $carbonDate->year;
-                $month = $carbonDate->month;
 
-                // Define start and end dates for the selected month
-                $startDate = Carbon::create($year, $month, 1)->startOfMonth();
-                $endDate = Carbon::create($year, $month, 1)->endOfMonth();
+                $startDate = (clone $carbonDate)->startOfMonth()->startOfDay();
+                $endDate = (clone $carbonDate)->endOfMonth()->endOfDay();
             } catch (\Exception $e) {
                 return response()->json(['error' => 'Invalid date format'], 400);
             }
@@ -617,6 +614,7 @@ class DashboardController extends Controller
             ->pluck('user_id')
             ->toArray();
 
+        // Log::info($teamUserIds);
         // Query base for transactions
         $transactionQuery = Transaction::whereIn('user_id', $teamUserIds)
             ->where('status', 'successful');
