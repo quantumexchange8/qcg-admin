@@ -21,7 +21,7 @@ import {
     KycIcon,
     RewardsIcon
 } from '@/Components/Icons/outline.jsx';
-import { computed, ref, watch, watchEffect, onMounted } from "vue";
+import { computed, ref, watch, watchEffect, onMounted, onUnmounted } from "vue";
 import { trans } from "laravel-vue-i18n";
 import Vue3autocounter from 'vue3-autocounter';
 import Badge from '@/Components/Badge.vue';
@@ -363,6 +363,20 @@ watch(() => usePage().props, (newProps, oldProps) => {
     }
 }, { deep: true });
 
+const timer = ref(null);
+
+onMounted(() => {
+    timer.value = setInterval(() => {
+        window.location.reload();
+    }, 60000);
+
+});
+
+onUnmounted(() => {
+    if (timer.value) {
+        clearInterval(timer.value);
+    }
+});
 </script>
 
 <template>
