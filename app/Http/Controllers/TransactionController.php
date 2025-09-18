@@ -142,13 +142,7 @@ class TransactionController extends Controller
                     ->orWhere('transaction_type', 'account_to_account');
                 });
             } else {
-                $types = match($type) {
-                    'deposit' => ['deposit', 'rebate_in', 'balance_in', 'credit_in'],
-                    'withdrawal' => ['withdrawal', 'rebate_out', 'balance_out', 'credit_out'],
-                    default => [$type]
-                };
-
-                $query->whereIn('transaction_type', $types);
+                $query->where('transaction_type', $type);
             }
         }
 
