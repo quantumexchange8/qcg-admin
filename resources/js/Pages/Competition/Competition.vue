@@ -64,8 +64,8 @@ watchEffect(() => {
 <template>
     <AuthenticatedLayout :title="$t('public.competition')">
         <div class="flex flex-col gap-5 items-center self-stretch">
-            <div class="flex flex-col justify-center items-center py-5 px-3 gap-5 self-stretch rounded-lg bg-white shadow-card md:p-6 md:gap-6">
-                <div class="flex justify-between items-center self-stretch">
+            <div class="flex flex-col justify-center items-center p-0 gap-5 self-stretch rounded-lg bg-white shadow-card md:p-6 md:gap-6">
+                <div class="md:flex justify-between items-center self-stretch hidden">
                     <span class="font-semibold text-gray-950">{{ $t('public.upcoming_ongoing_competition') }}</span>
                     <Link :href="route('competition.new_competition')" as="button">
                         <Button

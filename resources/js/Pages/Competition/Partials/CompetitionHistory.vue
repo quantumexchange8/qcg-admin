@@ -91,7 +91,7 @@ const handleFilter = (e) => {
 </script>
 
 <template>
-    <div class="flex flex-col justify-center items-center py-5 px-3 gap-5 self-stretch rounded-lg bg-white shadow-card md:p-6 md:gap-6">
+    <div class="hidden md:flex flex-col justify-center items-center py-5 px-3 gap-5 self-stretch rounded-lg bg-white shadow-card md:p-6 md:gap-6">
         <div class="flex items-center self-stretch">
             <span class="font-semibold text-gray-950">{{ $t('public.history') }}</span>
         </div>
@@ -168,28 +168,28 @@ const handleFilter = (e) => {
                         </div>
                     </template>
                 </Column>
-                <Column field="category" :header="$t('public.category')" class="">
+                <Column field="category" :header="$t('public.category')" class="w-1/5">
                     <template #body="slotProps">
                         <div class="text-gray-950 text-sm">
                             {{ $t(`public.${slotProps.data.category}`) }}
                         </div>
                     </template>
                 </Column>
-                <Column field="period" sortable :header="$t('public.period')" class="">
+                <Column field="period" sortable :header="$t('public.period')" class="w-1/5">
                     <template #body="slotProps">
                         <div class="text-gray-950 text-sm max-w-full">
                             {{ formatDate(slotProps.data.start_date) }} - {{ formatDate(slotProps.data.end_date) }}
                         </div>
                     </template>
                 </Column>
-                <Column field="total_points" :header="$t('public.trade_points_paid') + ' (tp)'" class="">
+                <Column field="total_points" :header="$t('public.trade_points_paid') + ' (tp)'" class="w-1/5">
                     <template #body="slotProps">
                         <div class="text-gray-950 text-sm max-w-full">
                             {{ slotProps.data.total_points }}
                         </div>
                     </template>
                 </Column>
-                <Column field="action" headless class="">
+                <Column field="action" headless class="w-1/12">
                     <template #body="slotProps">
                         <Action
                             :competition_id="slotProps.data.competition_id" 
