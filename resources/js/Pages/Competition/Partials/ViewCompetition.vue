@@ -3,7 +3,7 @@ import Button from "@/Components/Button.vue";
 import Dialog from 'primevue/dialog';
 import {ref, watchEffect, computed, onMounted, onUnmounted, h} from "vue";
 import { useForm, usePage, router, Link, Head } from '@inertiajs/vue3';
-import { IconPlus, IconChevronRight, IconPencilMinus, IconUserCancel, IconSquareRoundedMinus, IconMan } from "@tabler/icons-vue";
+import { IconPlus, IconChevronRight, IconPencilMinus, IconUserCancel, IconSquareRoundedMinus, IconMan, IconDotsVertical } from "@tabler/icons-vue";
 import InputLabel from "@/Components/InputLabel.vue";
 import InputText from 'primevue/inputtext';
 import InputNumber from "primevue/inputnumber";
@@ -21,6 +21,7 @@ import ConfirmationDialog from "@/Components/ConfirmationDialog.vue";
 import { useConfirm } from "primevue/useconfirm";
 import { trans, wTrans } from "laravel-vue-i18n";
 import { FirstPlaceIcon, SecondPlaceIcon, ThirdPlaceIcon } from "@/Components/Icons/solid.jsx";
+import TieredMenu from "primevue/tieredmenu";
 
 const props = defineProps({
     competition: Object,
@@ -29,8 +30,16 @@ const props = defineProps({
 const { formatAmount, formatDate } = transactionFormat();
 const {locale} = useLangObserver();
 
+const menu = ref();
+const selectedData = ref(null);
 const loading = ref(false);
 const participants = ref();
+
+const toggle = (event, data) => {
+    selectedData.value = data;
+    menu.value.toggle(event);
+};
+
 const getResults = async () => {
     loading.value = true;
 
@@ -134,6 +143,25 @@ const form = useForm({
     amount : null,
 })
 
+const items = computed(() => {
+    return [
+        {
+            label: 'edit',
+            icon: h(IconPencilMinus),
+            command: () => {
+                editDialog(selectedData.value);
+            },
+        },
+        {
+            label: 'remove',
+            icon: h(IconSquareRoundedMinus),
+            command: () => {
+                requireConfirmation('delete_virtual', selectedData.value.id);
+            },
+        },
+    ];
+});
+
 const addDialog = () => {
     form.reset();
     dialogType.value = 'add';
@@ -231,9 +259,9 @@ watchEffect(() => {
         <div class="flex flex-col flex-1">
             <nav
                 aria-label="secondary"
-                class="flex w-full h-16 sticky top-0 z-10 py-2 px-5 gap-3 justify-between items-center bg-white"
+                class="flex w-full h-auto sticky top-0 z-10 py-2 px-5 gap-3 justify-between items-center bg-white"
             >
-                <div class="flex items-center gap-2">
+                <div class="flex flex-wrap md:flex-nowrap items-center gap-2 self-stretch overflow-hidden">
                     <Link :href="route('competition')" as="button"> 
                         <Button
                             type="button"
@@ -360,7 +388,7 @@ watchEffect(() => {
                                     </div>
                                 </template>
                                 <template v-if="participants?.length > 0">
-                                    <Column field="rank" sortable :header="$t('public.rank')" class="">
+                                    <Column field="rank" sortable :header="$t('public.rank')" headerClass="hidden md:table-cell" class="w-1/6 md:w-1/12">
                                         <template #body="slotProps">
                                             <div class="text-gray-950 text-sm">
                                                 <component :is="getRankContent(slotProps.data.rank)" v-if="typeof getRankContent(slotProps.data.rank) === 'object'" />
@@ -370,31 +398,31 @@ watchEffect(() => {
                                             </div>
                                         </template>
                                     </Column>
-                                    <Column field="name" :header="$t('public.participant')" class="">
+                                    <Column field="name" :header="$t('public.participant')" headerClass="hidden md:table-cell" class="w-1/3 md:w-1/4 max-w-0">
                                         <template #body="slotProps">
                                             <div class="flex gap-2 items-center">
                                                 <div v-if="slotProps.data.user_type === 'virtual'" class="flex w-4 h-4 bg-error-600 p-0.5 items-center justify-center rounded-[50px]">
                                                     <IconMan :size="12" class="text-white"/>
                                                 </div>
-                                                <span class="text-gray-950 text-sm">{{ slotProps.data.name }}</span>
+                                                <span class="text-gray-950 text-sm truncate">{{ slotProps.data.name }}</span>
                                             </div>
                                         </template>
                                     </Column>
-                                    <Column field="score" sortable :header="$t(`public.${props.competition.category}`)" class="">
+                                    <Column field="score" sortable :header="$t(`public.${props.competition.category}`)" headerClass="hidden md:table-cell" class="w-1/5 md:w-1/6">
                                         <template #body="slotProps">
                                             <div class="text-gray-950 text-sm max-w-full">
                                                 {{ formatAmount(slotProps.data.score) }}{{ dynamicSuffix }}
                                             </div>
                                         </template>
                                     </Column>
-                                    <Column field="title" :header="$t('public.category')" class="">
+                                    <Column field="title" :header="$t('public.category')" class="hidden md:table-cell">
                                         <template #body="slotProps">
                                             <div class="text-gray-950 text-sm max-w-full">
                                                 {{ slotProps.data.title ? slotProps.data.title[locale] : '-' }}
                                             </div>
                                         </template>
                                     </Column>
-                                    <Column field="points_rewarded" :header="$t('public.rewards') + ' (tp)'" class="">
+                                    <Column field="points_rewarded" :header="$t('public.rewards') + ' (tp)'" class="hidden md:table-cell">
                                         <template #body="slotProps">
                                             {{ slotProps.data.points_rewarded ? slotProps.data.points_rewarded : '-' }}
                                         </template>
@@ -402,10 +430,12 @@ watchEffect(() => {
                                     <Column
                                         field="action"
                                         headless
+                                        headerClass="hidden md:table-cell"
                                         v-if="competition.status !== 'completed'"
+                                        class="w-1/12"
                                     >
                                         <template #body="slotProps">
-                                            <div v-if="slotProps.data.user_type === 'virtual'" class="flex gap-1">
+                                            <div v-if="slotProps.data.user_type === 'virtual'" class="hidden md:flex gap-1">
                                                 <Button
                                                     variant="gray-text"
                                                     size="sm"
@@ -427,6 +457,43 @@ watchEffect(() => {
                                                     <IconSquareRoundedMinus size="16" stroke-width="1.5" />
                                                 </Button>
                                             </div>
+
+                                            <Button
+                                                v-if="slotProps.data.user_type === 'virtual'"
+                                                class="md:hidden"
+                                                variant="gray-text"
+                                                size="sm"
+                                                type="button"
+                                                iconOnly
+                                                pill
+                                                @click="toggle($event, slotProps.data)"
+                                                aria-haspopup="true"
+                                                aria-controls="overlay_tmenu"
+                                            >
+                                                <IconDotsVertical size="16" stroke-width="1.25" color="#667085" />
+                                            </Button>
+
+                                            <TieredMenu ref="menu" id="overlay_tmenu" :model="items" popup>
+                                                <template #item="{ item, props }">
+                                                    <div
+                                                        class="flex items-center gap-3 self-stretch"
+                                                        v-bind="props.action"
+                                                    >
+                                                    <component
+                                                        :is="item.icon"
+                                                        size="20"
+                                                        stroke-width="1.25"
+                                                        class="grow-0 shrink-0"
+                                                        :class="{'text-error-500': item.label === 'remove'}"
+                                                    />
+                                                        <span class="text-sm" 
+                                                            :class="{'text-gray-700': item.label !== 'remove', 'text-error-500': item.label === 'remove'}"
+                                                        >
+                                                            {{ $t(`public.${item.label}`) }}
+                                                        </span>
+                                                    </div>
+                                                </template>
+                                            </TieredMenu>
                                         </template>
                                     </Column>
                                 </template>

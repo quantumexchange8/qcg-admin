@@ -485,7 +485,7 @@ class CompetitionController extends Controller
             ];
         });
 
-        Log::info($participants);
+        // Log::info($participants);
 
         return response()->json([
             'participants' => $participants,
