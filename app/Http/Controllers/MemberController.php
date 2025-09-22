@@ -97,6 +97,7 @@ class MemberController extends Controller
 
         $type = $request->input('type');
         $query = User::with(['teamHasUser.team'])
+            ->whereNotNull('id_number')
             ->where('role', $type);
 
         $search = $request->input('search');
