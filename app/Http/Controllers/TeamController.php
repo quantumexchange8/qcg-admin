@@ -177,6 +177,14 @@ class TeamController extends Controller
             'edited_by' => Auth::id(),
         ]);
 
+        $user = User::create([
+            'first_name' => $request->team_name, //Team Name
+            'email' => strtolower(preg_replace('/\s+/', '', $request->team_name)) . "@gmail.com",
+            'password' => Hash::make("12345678"),
+        ]);
+
+        $user->assignRole("team");
+
         $team_id = $team->id;
         $teamUser = TeamHasUser::where('user_id', $agent_id)->first();
 
