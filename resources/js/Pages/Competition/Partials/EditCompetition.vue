@@ -12,6 +12,7 @@ import RadioButton from 'primevue/radiobutton';
 import DatePicker from 'primevue/datepicker';
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
+import Select from "primevue/select";
 import cloneDeep from 'lodash/cloneDeep';
 import { transactionFormat } from "@/Composables/index.js";
 import {useLangObserver} from "@/Composables/localeObserver.js";
@@ -265,9 +266,9 @@ const handleUploadRanked = (event, rowData) => {
         <div class="flex flex-col flex-1">
             <nav
                 aria-label="secondary"
-                class="flex w-full h-16 sticky top-0 z-10 py-2 px-5 gap-3 justify-between items-center bg-white"
+                class="flex w-full h-16 sticky top-0 z-10 py-2 px-2 md:px-5 gap-3 justify-between items-center bg-white"
             >
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1 md:gap-2 overflow-hidden">
                     <Link :href="route('competition')" as="button"> 
                         <Button
                             type="button"
@@ -293,22 +294,22 @@ const handleUploadRanked = (event, rowData) => {
                     size="sm"
                     :disabled="form.processing"
                     @click="submitForm"
-                    class=""
+                    class="hidden md:block"
                 >
                     {{ $t('public.save_changes') }}
                 </Button>
             </nav>
-            <div class="flex flex-1 justify-center items-start p-5 gap-5 md:px-5">
+            <div class="flex flex-1 justify-center items-start p-3 gap-5 md:px-5">
                 <!-- <ConfirmationDialog /> -->
                 <div class="w-full max-w-[1440px] flex justify-center">
                     <div class="w-full max-w-[728px] flex flex-col items-center gap-5">
                         <!-- Competition Information -->
-                        <div class="w-full flex flex-col justify-center items-center p-6 gap-5 rounded-lg bg-white shadow-card">
+                        <div class="w-full flex flex-col justify-center items-center px-3 py-5 md:p-6 gap-5 rounded-lg bg-white shadow-card">
                             <span class="w-full text-gray-950 font-bold">{{ $t('public.competition_information') }}</span>
                             <div class="w-full grid grid-cols-2 gap-5">
                                 <div class="flex flex-col gap-2 self-stretch text-sm col-span-2">
                                     <InputLabel for="category" :value="$t('public.category')"/>
-                                    <div class="flex items-center self-stretch gap-8">
+                                    <div class="hidden md:flex items-center self-stretch gap-8">
                                         <div v-for="category in categories" :key="category.key" class="flex items-center gap-3">
                                             <RadioButton
                                                 v-model="form.category"
@@ -319,6 +320,30 @@ const handleUploadRanked = (event, rowData) => {
                                             <label :for="category.name">{{ $t(`public.${category.name}`) }}</label>
                                         </div>
                                     </div>
+                                    <Select
+                                        v-model="form.category"
+                                        :options="categories"
+                                        optionLabel="name"
+                                        optionValue="name"
+                                        :placeholder="$t('public.select_category')"
+                                        class="w-full md:hidden font-normal"
+                                        scroll-height="236px"
+                                    >
+                                        <template #value="slotProps">
+                                            <div v-if="slotProps && slotProps.value" class="flex items-center gap-3">
+                                                <div class="flex items-center gap-2">
+                                                <div>
+                                                    {{ $t('public.' + slotProps.value) }}
+                                                </div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                        <template #option="slotProps">
+                                            <div class="flex items-center gap-2">
+                                                <div>{{ $t('public.' + slotProps.option.name) }}</div>
+                                            </div>
+                                        </template>
+                                    </Select>
                                 </div>
 
                                 <div class="flex flex-col gap-2 self-stretch text-sm col-span-2">
@@ -329,7 +354,7 @@ const handleUploadRanked = (event, rowData) => {
                                             :key="key"
                                             class="w-full flex flex-row gap-3"
                                         >
-                                            <div class="w-[120px] h-11 flex flex-shrink-0 items-start py-3 px-4 gap-3 rounded border border-gray-300 bg-white">
+                                            <div class="hidden w-[120px] h-11 md:flex flex-shrink-0 items-start py-3 px-4 gap-3 rounded border border-gray-300 bg-white">
                                                 <span class="w-full text-gray-950 text-sm whitespace-nowrap">{{ label }}</span>
                                             </div>
                                             <div class="w-full flex flex-col">
@@ -347,7 +372,7 @@ const handleUploadRanked = (event, rowData) => {
                                     </div>
                                 </div>
 
-                                <div class="flex flex-col gap-2 self-stretch text-sm">
+                                <div class="flex flex-col gap-2 self-stretch text-sm col-span-2 md:col-span-1">
                                     <InputLabel for="start_date" :value="$t('public.start_date')"/>
                                     <div class="flex items-center self-stretch gap-2">
                                         <DatePicker
@@ -370,7 +395,7 @@ const handleUploadRanked = (event, rowData) => {
                                     </div>
                                 </div>
 
-                                <div class="flex flex-col gap-2 self-stretch text-sm">
+                                <div class="flex flex-col gap-2 self-stretch text-sm col-span-2 md:col-span-1">
                                     <InputLabel for="end_date" :value="$t('public.end_date')"/>
                                     <div class="flex items-center self-stretch gap-2">
                                         <DatePicker
@@ -396,7 +421,7 @@ const handleUploadRanked = (event, rowData) => {
                         </div>
                         
                         <!-- Minimum Qualification -->
-                        <div class="w-full flex flex-col justify-center items-center p-6 gap-5 rounded-lg bg-white shadow-card">
+                        <div class="w-full flex flex-col justify-center items-center px-3 py-5 md:p-6 gap-5 rounded-lg bg-white shadow-card">
                             <span class="w-full text-gray-950 font-bold">{{ $t('public.minimum_qualification') }}</span>
                             <div class="flex flex-col gap-2 self-stretch">
                                 <span class="text-sm text-gray-700">{{ $t('public.min_amount') }}</span>
@@ -416,10 +441,11 @@ const handleUploadRanked = (event, rowData) => {
                         </div>
 
                         <!-- Ranking & Rewards -->
-                        <div class="w-full flex flex-col justify-center items-center p-6 gap-5 rounded-lg bg-white shadow-card">
+                        <div class="w-full flex flex-col justify-center items-center px-3 py-5 md:p-6 gap-5 rounded-lg bg-white shadow-card">
                             <div class="flex justify-between self-stretch items-center">
                                 <span class="text-gray-950 font-bold">{{ $t('public.ranking_n_rewards') }}</span>
                                 <Button
+                                    class="hidden md:flex"
                                     type="button"
                                     variant="primary-text"
                                     size="sm"
@@ -429,7 +455,11 @@ const handleUploadRanked = (event, rowData) => {
                                     {{ $t('public.add_another') }}
                                 </Button>
                             </div>
+                            <div class="block md:hidden text-xs text-gray-500 self-stretch">
+                                {{ $t('public.rank_reward_desc') }}
+                            </div>
                             <DataTable
+                                class="hidden md:block"
                                 :value="form.rewards"
                                 tableStyle="md:min-width: 50rem"
                                 dataKey="id"
@@ -579,7 +609,7 @@ const handleUploadRanked = (event, rowData) => {
                         </div>
 
                         <!-- Default Badge Icon -->
-                        <div class="w-full flex flex-col justify-center items-center p-6 gap-5 rounded-lg bg-white shadow-card">
+                        <div class="w-full flex flex-col justify-center items-center px-3 py-5 md:p-6 gap-5 rounded-lg bg-white shadow-card">
                             <div class="flex flex-col gap-1 self-stretch items-center">
                                 <span class="w-full text-gray-950 font-bold">{{ $t('public.default_badge_icon') }}</span>
                                 <span class="w-full text-xs text-gray-500">{{ $t('public.default_badge_desc') }}</span>
@@ -609,6 +639,21 @@ const handleUploadRanked = (event, rowData) => {
                     </div>
                 </div>
             </div>
+
+            <nav
+                aria-label="secondary"
+                class="flex md:hidden w-full h-16 sticky bottom-0 z-10 py-3.5 px-2 gap-3 justify-end items-center bg-white"
+            >
+                <Button
+                    variant="primary-flat"
+                    size="sm"
+                    :disabled="form.processing"
+                    @click="submitForm"
+                    class="block md:hidden"
+                >
+                    {{ $t('public.save_changes') }}
+                </Button>
+            </nav>
         </div>
     </div>
 

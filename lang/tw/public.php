@@ -955,4 +955,5 @@ return [
     'competition_soon_desc' => '比賽即將開始。',
     'competition_ended_desc' => '比賽已結束。',
     'trade_profit' => '交易收益',
+    'rank_reward_desc' => '📱 此部分在小螢幕上被隱藏，以確保更好的編輯體驗。請切換到桌面設備或更大螢幕以查看或編輯「排名與獎勵」。',
 ];

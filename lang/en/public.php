@@ -957,4 +957,5 @@ return [
     'competition_soon_desc' => 'The competition will start for the participants soon.',
     'competition_ended_desc' => 'The competition has ended.',
     'trade_profit' => 'Trade Profit',
+    'rank_reward_desc' => '📱 This section is hidden on smaller screens to ensure a better editing experience. Please switch to a desktop or larger screen to view or edit the Ranking & Rewards.'
 ];
