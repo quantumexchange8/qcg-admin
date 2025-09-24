@@ -17,10 +17,7 @@ import dayjs from "dayjs";
 import { trans, wTrans } from "laravel-vue-i18n";
 import StatusBadge from '@/Components/StatusBadge.vue';
 import {useLangObserver} from "@/Composables/localeObserver.js";
-import Checkbox from 'primevue/checkbox';
-import TextArea from "primevue/textarea";
 import TicketReplies from "@/Pages/Tickets/Partials/TicketReplies.vue";
-import { useConfirm } from "primevue/useconfirm";
 
 const {locale} = useLangObserver();
 

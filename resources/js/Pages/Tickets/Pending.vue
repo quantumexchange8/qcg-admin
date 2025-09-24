@@ -466,11 +466,11 @@ const removeAttachment = (index) => {
                 <TextArea
                     id="message"
                     type="text"
-                    class="w-full h-10 md:h-24"
+                    class="w-full"
+                    autoResize
                     v-model="form.message"
                     :placeholder="$t('public.message_placeholder')"
-                    rows="5"
-                    cols="30"
+                    rows="4"
                     :invalid="!!form.errors.message"
                 />
                 <InputError :message="form.errors.message" />
